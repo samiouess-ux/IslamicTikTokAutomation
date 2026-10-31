@@ -37,5 +37,4 @@ because it was copied from a website or passed through the validator.
 
 ## Current coverage
 
-The initial reviewed snapshot contains only Surah Ash-Sharh 94:5-6. Expand it
-only when the exact source text has been independently checked and reviewed.
+The current reference snapshot contains Surah Ash-Sharh 94:5-6 and Surah Al-Ikhlas 112:1-4. The exact-text validator checks manifests against these local keys only; it does not independently authenticate the source or verify the text online. Expand the snapshot only when the exact source text has been independently checked and reviewed.
