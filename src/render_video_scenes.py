@@ -47,6 +47,30 @@ def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS)
         )
 
 
+def validate_quran_audio_approval(audio: dict) -> None:
+    """Allow approved audio or an explicitly rights-cleared review-only preview."""
+    preview_only = audio.get("preview_only") is True
+    approved = audio.get("approved_for_first_test_video", audio.get("approved", False)) is True
+    if not approved and not preview_only:
+        raise SystemExit("Audio is not marked approved. Refusing to render.")
+    if preview_only and approved:
+        raise SystemExit("A preview-only recording cannot be marked production-approved.")
+    exact_recording_reviewed = audio.get("exact_recording_user_reviewed", False) or any(
+        item.get("exact_recording_user_reviewed", False)
+        for item in audio.get("license_research_candidates", [])
+        if isinstance(item, dict)
+    )
+    if not exact_recording_reviewed and not preview_only:
+        raise SystemExit("Exact recitation has not been user-reviewed. Refusing to render.")
+    rights_verified = audio.get("rights_verified") or any(
+        item.get("status", "").startswith("approved_")
+        for item in audio.get("license_research_candidates", [])
+        if isinstance(item, dict)
+    )
+    if not rights_verified:
+        raise SystemExit("Reuse permission for the exact Quran recording is not documented.")
+
+
 def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> None:
     """One verse per card; wrap by whole words and shrink only when needed."""
     if len(verses) != 1:
@@ -196,14 +220,7 @@ def main() -> None:
     background_url = visual.get("approved_background_url") or visual.get("background_candidate", {}).get("direct_video_url")
     if not background_url:
         raise SystemExit("Manifest must provide an approved background candidate URL.")
-    if not audio.get("approved_for_first_test_video", audio.get("approved", False)):
-        raise SystemExit("Audio is not marked approved. Refusing to render.")
-    exact_recording_reviewed = audio.get("exact_recording_user_reviewed", False) or any(
-        item.get("exact_recording_user_reviewed", False)
-        for item in audio.get("license_research_candidates", [])
-    )
-    if not exact_recording_reviewed:
-        raise SystemExit("Exact recitation has not been user-reviewed. Refusing to render.")
+    validate_quran_audio_approval(audio)
     background = visual.get("background_candidate", {})
     if not background.get("approved", False):
         raise SystemExit("Background is not marked approved. Refusing to render.")
