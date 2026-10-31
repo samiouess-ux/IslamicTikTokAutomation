@@ -85,7 +85,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> d
             combined = candidate_dir / "passage.mp3"
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                "-f", "concat", "-safe", "0", "-i", list_file.name,
+                "-f", "concat", "-safe", "0", "-i", str(list_file.resolve()),
                 "-c", "copy", str(combined.resolve())
             ], check=True)
             actual = probe(combined)
