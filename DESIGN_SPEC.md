@@ -51,3 +51,11 @@ The user approved the latest rendered preview (GitHub Actions run 12; commit fb5
 - Keep the calm natural background, vertical 9:16 layout, and translucent dark reading panel.
 - Preserve the title/verse visual hierarchy and readability when varying backgrounds and subtle decorative details in future videos.
 - No public reciter attribution; captions and publishing still require user review and explicit approval.
+
+
+## Background rotation requirement — reaffirmed by user (2026-10-31)
+- Do not use one fixed background for all videos.
+- Maintain a curated pool of multiple backgrounds that have both explicit user approval and verified reuse rights.
+- Rotate backgrounds across consecutive generated videos; exclude the most recently used background when at least one other eligible asset exists.
+- Prefer visual variety across calm natural scenery, sky, sea, and suitable architecture, without making the video distracting or reducing text contrast.
+- Background rotation must never bypass approval or rights checks. If no safe alternative is available, stop or use a documented fallback; do not silently select an unapproved asset.
