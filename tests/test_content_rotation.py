@@ -7,7 +7,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from content_rotation import choose_manifest
+from content_rotation import choose_manifest, choose_manifests
 
 
 class ContentRotationTests(unittest.TestCase):
