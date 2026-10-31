@@ -8,7 +8,9 @@ on:
       - "src/prepare_official_quran_passage.py"
       - "src/build_quran_translation_catalog.py"
       - "src/build_quran_uthmani_catalog.py"
+      - "src/build_quran_video_catalog.py"
       - "tests/test_build_quran_uthmani_catalog.py"
+      - "tests/test_build_quran_video_catalog.py"
       - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
 
@@ -78,6 +80,28 @@ jobs:
               raise SystemExit("Uthmani human-review/rendering safety gate is missing.")
           print("Verified 6,236 Uthmani verse entries. Human review required; rendering remains disabled.")
           PY
+      - name: Join Arabic, translation and audio by exact surah:ayah keys (review-only)
+        run: |
+          python src/build_quran_video_catalog.py \
+            --arabic output/quran_uthmani_candidate.json \
+            --translation output/saheeh_international_translation.json \
+            --audio output/official_verse_audio_inventory.json \
+            --output output/quran_joined_candidate.json
+      - name: Verify joined catalog remains blocked from rendering
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          catalog = json.loads(Path("output/quran_joined_candidate.json").read_text(encoding="utf-8"))
+          if catalog.get("joined_verse_count") != 6236 or len(catalog.get("verses", {})) != 6236:
+              raise SystemExit("Joined Quran catalog must contain exactly 6,236 verses.")
+          if catalog.get("join_key") != "surah:ayah" or catalog.get("rendering_allowed") is not False:
+              raise SystemExit("Joined catalog key or fail-closed rendering gate is invalid.")
+          if catalog.get("status") != "complete_join_candidate_requires_human_review_and_recording_approval":
+              raise SystemExit("Joined catalog review status is missing.")
+          print("Verified 6,236 exact-key joins. Candidate catalog remains blocked from rendering.")
+          PY
       - name: Run Quran catalog regression tests
         run: |
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
@@ -96,6 +120,7 @@ jobs:
             output/official_verse_audio_inventory.json
             output/saheeh_international_translation.json
             output/quran_uthmani_candidate.json
+            output/quran_joined_candidate.json
             output/candidate_passage_94.json
             output/candidate_audio_94/*.mp3
           if-no-files-found: error
