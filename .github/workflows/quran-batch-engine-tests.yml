@@ -41,13 +41,15 @@ jobs:
             src/build_quran_review_batch.py \
             src/build_quran_video_catalog.py \
             src/render_video_scenes.py \
+            src/render_quran_review_batch.py \
             src/validate_content_manifest.py
       - name: Run Quran catalog, batch and visual template tests
         run: |
           python -m unittest -v \
             tests/test_build_quran_review_batch.py \
             tests/test_build_quran_video_catalog.py \
-            tests/test_quran_visual_templates.py \\\n            tests/test_render_quran_review_batch.py
+            tests/test_quran_visual_templates.py \
+            tests/test_render_quran_review_batch.py
       - name: Confirm workflow is test-only
         run: |
           ! grep -Eq "send_telegram|upload_to_tiktok|publish" .github/workflows/quran-batch-engine-tests.yml
