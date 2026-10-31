@@ -32,7 +32,7 @@ jobs:
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
       - name: Build and validate full Saheeh translation corpus
         run: |
-          python src/build_quran_translation_catalog.py --output output/english_saheeh_translation.json
+          python src/build_quran_translation_catalog.py --output output/saheeh_international_translation.json
       - name: Prepare a duration-probed Quran passage candidate (not approved for publishing)
         run: |
           python src/prepare_official_quran_passage.py \
