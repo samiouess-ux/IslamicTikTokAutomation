@@ -52,9 +52,19 @@ def validate_surah_payload(payload: dict, surah: int, expected_count: int) -> di
 def build_catalog(fetcher=fetch_json) -> dict:
     if len(COUNTS) != 114 or sum(COUNTS) != 6236:
         raise ValueError("Internal canonical verse-count table is invalid")
+    response = fetcher(f"{BASE}/quran/{EDITION}")
+    if not isinstance(response, dict) or response.get("code") != 200:
+        raise ValueError("Complete translation API did not return HTTP 200 data")
+    data = response.get("data")
+    surahs = data.get("surahs") if isinstance(data, dict) else None
+    if not isinstance(surahs, list) or len(surahs) != 114:
+        raise ValueError("Complete translation response must contain all 114 surahs")
     verses: dict[str, str] = {}
     for surah, expected_count in enumerate(COUNTS, 1):
-        payload = fetcher(f"{BASE}/surah/{surah}/{EDITION}")
+        matching = [item for item in surahs if isinstance(item, dict) and item.get("number") == surah]
+        if len(matching) != 1:
+            raise ValueError(f"Complete translation response has missing/duplicate surah {surah}")
+        payload = {"code": 200, "data": matching[0]}
         verses.update(validate_surah_payload(payload, surah, expected_count))
     if len(verses) != 6236:
         raise ValueError(f"Expected 6,236 translations, received {len(verses)}")
