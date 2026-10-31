@@ -170,6 +170,9 @@ jobs:
               'Content-Disposition: form-data; name="supports_streaming"\r\n\r\n'
               "true\r\n"
               f"--{boundary}\r\n"
+              'Content-Disposition: form-data; name="reply_markup"\r\n\r\n'
+              + json.dumps({"inline_keyboard": [[{"text": "Approve", "callback_data": "approve_review"}, {"text": "Reject", "callback_data": "reject_review"}]]}) + "\r\n"
+              f"--{boundary}\r\n"
               'Content-Disposition: form-data; name="video"; filename="ash_sharh_94_1_8_review.mp4"\r\n'
               "Content-Type: video/mp4\r\n\r\n"
           ).encode("utf-8") + video_path.read_bytes() + f"\r\n--{boundary}--\r\n".encode("utf-8")
