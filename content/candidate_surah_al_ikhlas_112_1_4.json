@@ -12,19 +12,19 @@
     "arabic_source_url": "https://quran.com/al-ikhlas",
     "english_translation": "Sahih International",
     "translation_source_url": "https://legacy.quran.com/112/1-4",
-    "translation_verified": false,
-    "note": "Candidate content only. Arabic and translation must be independently checked against the cited sources and added to the reviewed reference snapshot before rendering."
+    "translation_verified": true,
+    "note": "Candidate only. Arabic and Sahih International wording were cross-checked against the cited Quran.com and legacy Quran.com pages. The reference snapshot, audio rights, exact recording, and visual asset are not yet approved."
   },
   "verses": [
     {
       "number": 1,
       "arabic": "قُلْ هُوَ ٱللَّهُ أَحَدٌ",
-      "english": "Say, "He is Allah, [who is] One,"
+      "english": "Say, \"He is Allah , [who is] One,"
     },
     {
       "number": 2,
       "arabic": "ٱللَّهُ ٱلصَّمَدُ",
-      "english": "Allah, the Eternal Refuge."
+      "english": "Allah , the Eternal Refuge."
     },
     {
       "number": 3,
