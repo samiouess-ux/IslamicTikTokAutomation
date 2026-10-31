@@ -20,7 +20,7 @@ on:
       manifest:
         description: Repository path to a reviewed content JSON manifest
         required: true
-        default: content/first_video.json
+        default: content/second_video_ash_sharh_94_1_8_draft.json
         type: string
       use_rotation:
         description: Select an eligible reviewed manifest instead of the explicit path
@@ -80,7 +80,7 @@ jobs:
             done <<< "$RECENT_IDS"
             selected=$(python src/select_review_manifest.py "${args[@]}")
           else
-            selected="${EXPLICIT_MANIFEST:-content/first_video.json}"
+            selected="${EXPLICIT_MANIFEST:-content/second_video_ash_sharh_94_1_8_draft.json}"
           fi
           echo "manifest=$selected" >> "$GITHUB_OUTPUT"
           echo "Selected review manifest: $selected"
@@ -97,9 +97,58 @@ jobs:
         run: |
           python src/validate_quran_text.py --manifest "${{ steps.selection.outputs.manifest }}"
 
-      - name: Render video and caption for review
+      - name: Prepare approved Ash-Sharh audio and per-verse timing
+        if: steps.selection.outputs.manifest == 'content/second_video_ash_sharh_94_1_8_draft.json'
+        shell: bash
         run: |
-          python src/render_video_scenes.py --manifest "${{ steps.selection.outputs.manifest }}" --output output/review.mp4
+          python - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import json, subprocess
+
+          url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
+          prefix = 'ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/'
+          work = Path('build/audio/processed')
+          work.mkdir(parents=True, exist_ok=True)
+          durations = {}
+          with RemoteZip(url) as archive:
+              names = archive.namelist()
+              for verse in range(1, 9):
+                  suffix = f'10-094{verse:03d}-A08.mp3'
+                  matches = [n for n in names if n.startswith(prefix) and n.endswith(suffix)]
+                  if len(matches) != 1:
+                      raise RuntimeError(f'Expected one official source for verse {verse}, got {matches}')
+                  source = work / f'original_{verse:02d}.mp3'
+                  with archive.open(matches[0]) as src, source.open('wb') as dst:
+                      while chunk := src.read(1024 * 1024): dst.write(chunk)
+                  processed = work / f'verse_{verse:02d}.mp3'
+                  subprocess.run(['ffmpeg','-hide_banner','-y','-i',str(source),'-af','silenceremove=stop_duration=0.08:stop_threshold=-42dB','-c:a','libmp3lame','-q:a','2',str(processed)],check=True)
+                  duration = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(processed)],text=True).strip())
+                  durations[str(verse)] = duration
+          concat = work / 'concat.txt'
+          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + ("file 'silence_050ms.wav'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
+          silence = work / 'silence_050ms.wav'
+          subprocess.run(['ffmpeg','-hide_banner','-y','-f','lavfi','-i','anullsrc=r=44100:cl=stereo','-t','0.05','-c:a','pcm_s16le',str(silence)],check=True)
+          # Rebuild concat list now that the inter-verse silence asset exists.
+          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + (f"file '{silence.resolve()}'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
+          output = Path('output/ash_sharh_94_1_8_approved_audio.mp3')
+          output.parent.mkdir(parents=True, exist_ok=True)
+          subprocess.run(['ffmpeg','-hide_banner','-y','-f','concat','-safe','0','-i',str(concat),'-c:a','libmp3lame','-q:a','2',str(output)],check=True)
+          manifest = json.loads(Path('content/second_video_ash_sharh_94_1_8_draft.json').read_text(encoding='utf-8'))
+          manifest['audio']['production_audio_file'] = str(output)
+          manifest['audio']['processed_verse_durations_seconds'] = durations
+          manifest['audio']['inter_verse_silence_seconds'] = 0.05
+          Path('build/manifest_for_render.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('Processed verse durations:', json.dumps(durations,sort_keys=True))
+          print('Production audio duration:', subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(output)],text=True).strip())
+          PY
+
+      - name: Render video and caption for review
+        shell: bash
+        run: |
+          manifest='${{ steps.selection.outputs.manifest }}'
+          if [ "$manifest" = 'content/second_video_ash_sharh_94_1_8_draft.json' ]; then manifest='build/manifest_for_render.json'; fi
+          python src/render_video_scenes.py --manifest "$manifest" --output output/review.mp4
 
       - name: Upload review files (no publishing)
         uses: actions/upload-artifact@v4
