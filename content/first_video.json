@@ -1,6 +1,6 @@
 {
   "id": "test_surah_ash_sharh_94_5_6",
-  "status": "content_prepared_official_reciter_selected_audio_file_pending",
+  "status": "official_verse_audio_extracted_pending_user_review",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -38,7 +38,7 @@
     "recitation": "Hafs",
     "rights_verified_for_official_complex_recordings": true,
     "rights_source_url": "https://qurancomplex.gov.sa/quran-audios/",
-    "exact_audio_file_downloaded": false,
+    "exact_audio_file_downloaded": true,
     "exact_audio_file_listened_and_checked": false,
     "production_blocked_until_exact_audio_checked": true,
     "license_research_candidates": [
@@ -51,7 +51,18 @@
         "surah_ash_sharh_listed_on_separate_reciter_page": "https://maheralmuaiqly.com/ar/quran/107",
         "status": "user_approved_reciter_official_permission_confirmed_exact_audio_not_yet_downloaded_or_checked"
       }
-    ]
+    ],
+    "extracted_verses": [
+      5,
+      6
+    ],
+    "combined_audio_file": "maher_almuaiqly_ash_sharh_verses_5_6.mp3",
+    "combined_audio_duration_seconds": 15.882449,
+    "combined_audio_sha256": "3e2a91674ce2ee604885e06fba0ee67c425e5dbece54cc3256803e3b5f02c5a0",
+    "github_actions_run_id": "41164756151",
+    "github_actions_artifact_id": "13028735937",
+    "github_actions_artifact_name": "maher-ash-sharh-verses-5-6-review",
+    "note": "The exact official verse files for 94:5 and 94:6 were extracted and joined in order without re-encoding. User review of this exact combined clip is still required before rendering."
   },
   "visual": {
     "format": "9:16",
