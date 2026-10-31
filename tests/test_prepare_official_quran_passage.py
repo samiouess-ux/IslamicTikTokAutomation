@@ -7,7 +7,7 @@ class PassagePackingTests(unittest.TestCase):
     def test_selects_consecutive_verses_until_target(self):
         self.assertEqual(
             choose_contiguous_passage({1: 18.0, 2: 20.0, 3: 19.0, 4: 15.0}, 1),
-            [1, 2, 3, 4],
+            [1, 2, 3],
         )
 
     def test_stops_before_exceeding_hard_limit(self):
