@@ -55,7 +55,8 @@ class DuaRendererTests(unittest.TestCase):
             with patch.object(render_dua_video, "create_overlay"):
                 with self.assertRaises(SystemExit):
                     render_dua_video.build_slideshow(items, "ذكر", Path(tmp))
-\n    def test_renderer_keeps_validation_and_separate_content_type_gate(self):
+
+    def test_renderer_keeps_validation_and_separate_content_type_gate(self):
         source = (ROOT / "src" / "render_dua_video.py").read_text(encoding="utf-8")
         self.assertIn("validate_content_manifest(data)", source)
         self.assertIn('not in {"dua", "dhikr"}', source)
