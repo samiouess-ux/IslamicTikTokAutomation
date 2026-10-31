@@ -80,7 +80,7 @@ def save_history(path: Path, history: dict, completed: list[dict]) -> None:
     updated["content"] = [*history.get("content", []), *[x["content_id"] for x in completed]]
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    temporary.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
 
 
