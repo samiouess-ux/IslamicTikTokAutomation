@@ -60,6 +60,38 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     image.save(destination)
 
 
+def create_english_overlay(verses: list[dict], destination: Path) -> None:
+    """Render each translation separately, wrapped and centered."""
+    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    if not Path(font_path).exists():
+        raise SystemExit("English font not found.")
+    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(font_path, 36)
+    blocks = []
+    for verse in verses:
+        lines, current = [], ""
+        for word in verse["english"].split():
+            candidate = (current + " " + word).strip()
+            if draw.textbbox((0, 0), candidate, font=font)[2] <= 900:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        blocks.append(lines)
+    total = sum(len(block) for block in blocks) * 56 + max(0, len(blocks) - 1) * 18
+    y = 1370 + max(0, (360 - total) // 2)
+    for block in blocks:
+        for line in block:
+            draw.text((540, y), line, font=font, fill=(255, 255, 255, 255), anchor="mm")
+            y += 56
+        y += 18
+    image.save(destination)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
@@ -102,8 +134,10 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     audio_file, bg_file = work / "recitation.mp3", work / "background.mp4"
     arabic_overlay = work / "arabic_text.png"
+    english_overlay = work / "english_text.png"
 
     create_arabic_overlay(title, verses, arabic_overlay)
+    create_english_overlay(verses, english_overlay)
 
     from remotezip import RemoteZip
     archive_url = audio.get("official_verse_archive_url")
@@ -136,21 +170,17 @@ def main() -> None:
     ], text=True).strip()
     duration = float(duration_result)
 
-    font_en = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    english = "\\n".join(v["english"] for v in verses)
     draw = (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,setsar=1,fps=30,"
         "drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill[v0];"
         "[v0][2:v]overlay=0:0[v1];"
-        f"[v1]drawtext=fontfile={font_en}:text='{ffmpeg_text(english)}':"
-        "fontcolor=white:fontsize=30:line_spacing=16:"
-        "x=(w-text_w)/2:y=1260[v]"
+        "[v1][3:v]overlay=0:0[v]"
     )
     run([
         "ffmpeg", "-hide_banner", "-y", "-stream_loop", "-1", "-i", str(bg_file),
         "-i", str(audio_file), "-i", str(arabic_overlay),
-        "-filter_complex", draw,
+        "-i", str(english_overlay), "-filter_complex", draw,
         "-map", "[v]", "-map", "1:a", "-t", str(duration),
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
