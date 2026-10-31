@@ -119,29 +119,32 @@ jobs:
         run: |
           python src/build_quran_review_batch.py \
             --catalog output/quran_joined_candidate.json \
-            --count 5 \
-            --verses-per-passage 3 \
+            --count 8 \
+            --verses-per-passage 2 \
+            --exclude-surah 94 \
             --seed "quran-daily-$(date -u +%F)" \
             --output output/quran_review_batch.json
           python - <<'PY'
           import json
           from pathlib import Path
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
-          assert batch["candidate_count"] == 5
-          assert batch["distinct_surah_count"] == 5
+          assert batch["candidate_count"] == 8
+          assert batch["distinct_surah_count"] == 8
+          assert 94 not in [item["surah_number"] for item in batch["passages"]]
           assert batch["rendering_allowed"] is False
           assert batch["telegram_delivery"] is False
           assert batch["auto_publish"] is False
           assert all(item["approval"]["ready_to_render"] is False for item in batch["passages"])
           print("Prepared five distinct-surah passages for human review only.")
           PY
-      - name: Prepare audio for the five distinct-surah review candidates
+      - name: Prepare audio for three distinct-surah review candidates
         run: |
           python src/prepare_quran_review_batch_audio.py \
             --batch output/quran_review_batch.json \
             --inventory output/official_verse_audio_inventory.json \
             --output-dir output/quran_batch_audio \
-            --report output/quran_batch_audio_report.json
+            --report output/quran_batch_audio_report.json \
+            --target-count 3
           python - <<'PY'
           import json
           from pathlib import Path
