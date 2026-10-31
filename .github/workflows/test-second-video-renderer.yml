@@ -44,19 +44,48 @@ jobs:
           scenes = manifest["visual"]["scenes"]
           assert [n for scene in scenes for n in scene["verses"]] == list(range(1, 9))
           assert all(scene.get("transition") == "soft fade" for scene in scenes)
-          assert manifest["audio"]["approved"] is False
-          assert manifest["audio"]["production_audio_file"] is None
+          assert manifest["audio"]["approved"] is True
+          assert manifest["audio"]["exact_recording_user_reviewed"] is True
+          assert manifest["audio"]["production_audio_file"] == "output/ash_sharh_94_1_8_approved_audio.mp3"
+          assert manifest.get("publishing", {}).get("approval_required") is True
           assert manifest.get("publishing", {}).get("auto_publish", False) is False
-          print("Manifest, exact Arabic reference, scene order, audio lock and no-auto-publish checks passed.")
+          print("Manifest, exact Arabic reference, scene order, approved audio and no-auto-publish checks passed.")
+          PY
+      - name: Exercise Arabic overlay renderer
+        run: |
+          mkdir -p build
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          from render_video_scenes import create_arabic_overlay
+          output = Path("build/arabic-overlay-smoke-test.png")
+          create_arabic_overlay("سورة الشرح", [{
+              "number": 1,
+              "arabic": "أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ",
+              "english": "Did We not expand for you, [O Muhammad], your breast?"
+          }], output)
+          assert output.is_file() and output.stat().st_size > 0
+          print("Arabic overlay smoke test passed.")
           PY
       - name: Confirm renderer refuses unapproved audio
         run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+          manifest["audio"]["approved"] = False
+          manifest["audio"]["production_audio_file"] = None
+          Path("build/unapproved-audio-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
           set +e
-          output=$(python src/render_video_scenes.py --manifest content/second_video_ash_sharh_94_1_8_draft.json --output build/should_not_exist.mp4 2>&1)
+          output=$(python src/render_video_scenes.py --manifest build/unapproved-audio-manifest.json --output build/should_not_exist.mp4 2>&1)
           status=$?
           set -e
           echo "$output"
           test "$status" -ne 0
           echo "$output" | grep -q "Audio is not marked approved"
           test ! -e build/should_not_exist.mp4
-          echo "Safety gate passed: no video rendered while audio approval is false."
+          echo "Safety gate passed: renderer blocks an explicitly unapproved audio copy."
