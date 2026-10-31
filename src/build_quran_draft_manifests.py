@@ -38,6 +38,10 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
             "english": v["english_saheeh_international"],
         } for v in candidate["verses"]]
         surah = int(candidate["surah_number"])
+        from render_quran_review_previews import SURAH_NAMES
+        if not 1 <= surah <= len(SURAH_NAMES):
+            raise ValueError(f"Invalid Quran surah number: {surah}")
+        surah_name_ar = SURAH_NAMES[surah - 1]
         manifest = {
             "id": candidate["candidate_id"],
             "content_type": "quran",
@@ -45,7 +49,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
             "rotation_approved": False,
             "source": {
                 "surah_number": surah,
-                "surah_name_ar": f"رقم {surah}",
+                "surah_name_ar": surah_name_ar,
                 "verses": expected,
                 "references": [v["reference"] for v in candidate["verses"]],
                 "arabic_source": "Quran Uthmani joined candidate catalog; not yet human-reviewed",
@@ -83,7 +87,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
                 "manual_review_required": True,
             },
             "caption": {
-                "text": f"Quran | Surah {surah} | Ayahs {expected[0]}-{expected[-1]}",
+                "text": f"سورة {surah_name_ar} | الآيات {expected[0]}-{expected[-1]}",
                 "references": [v["reference"] for v in candidate["verses"]],
             },
             "preflight": {
