@@ -229,10 +229,10 @@ jobs:
                   '-c:a','libmp3lame','-q:a','2',str(processed)
               ],check=True)
           concat = work / 'concat.txt'
-          concat.write_text(
-              "file '%s'\\nfile '%s'\\n" % ((work / 'processed_05.mp3').resolve(), (work / 'processed_06.mp3').resolve()),
-              encoding='utf-8'
-          )
+          concat.write_text("\n".join([
+              "file '%s'" % (work / 'processed_05.mp3').resolve(),
+              "file '%s'" % (work / 'processed_06.mp3').resolve(),
+          ]) + "\n", encoding='utf-8')
           output = work / 'ash_sharh_94_5_6.mp3'
           subprocess.run(['ffmpeg','-hide_banner','-y','-f','concat','-safe','0','-i',str(concat),'-c:a','libmp3lame','-q:a','2',str(output)],check=True)
           manifest = json.loads(Path('content/first_video.json').read_text(encoding='utf-8'))
