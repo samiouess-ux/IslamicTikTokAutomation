@@ -211,6 +211,43 @@ jobs:
                   raise SystemExit("Preview must preserve original MP3 audio stream.")
           print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
           PY
+      - name: Send three review-only videos to Telegram for manual approval
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
+          if report.get("preview_count") != 3 or report.get("auto_publish") is not False:
+              raise SystemExit("Telegram delivery requires exactly three review-only videos and disabled auto-publishing.")
+          if len({item["surah_number"] for item in report["items"]}) != 3:
+              raise SystemExit("Telegram batch must contain three distinct surahs.")
+          captions_dir = Path("output/telegram_captions")
+          captions_dir.mkdir(parents=True, exist_ok=True)
+          for item in report["items"]:
+              manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              caption_path = captions_dir / f"{item['candidate_id']}.json"
+              caption = {
+                  "arabic_caption": manifest["caption"]["text"],
+                  "hashtags_ar": ["#القرآن_الكريم", "#تلاوة"],
+                  "english_caption": f"Quran recitation — Surah {manifest['source']['surah_name_ar']}",
+                  "hashtags_en": ["#Quran", "#QuranRecitation"],
+              }
+              caption_path.write_text(json.dumps(caption, ensure_ascii=False, indent=2), encoding="utf-8")
+              subprocess.run([
+                  sys.executable, "src/send_telegram.py",
+                  "--video", item["file"],
+                  "--caption", str(caption_path),
+              ], check=True)
+          print("Telegram confirmed three review videos. TikTok publishing remains manual.")
+          PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
