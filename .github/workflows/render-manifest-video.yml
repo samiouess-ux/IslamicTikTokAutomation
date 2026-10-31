@@ -29,7 +29,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
-          pip install remotezip
+          pip install remotezip pillow
           python --version
           ffmpeg -version | head -n 1
 
