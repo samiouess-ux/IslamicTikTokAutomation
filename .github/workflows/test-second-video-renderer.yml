@@ -37,7 +37,7 @@ jobs:
           manifest = json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
           reference = json.loads(Path("data/reference/surah_ash_sharh_94_1_8_approved.json").read_text(encoding="utf-8"))
           assert [v["number"] for v in manifest["verses"]] == list(range(1, 9))
-          approved = {int(k): v for k, v in reference["verses"].items()}
+          approved = {int(k.split(":")[1]): v for k, v in reference["verses"].items() if k.startswith("94:")}
           for verse in manifest["verses"]:
               assert verse["arabic"] == approved[verse["number"]], f"Arabic mismatch at verse {verse['number']}"
               assert verse["english"].strip(), f"Missing translation at verse {verse['number']}"
