@@ -212,3 +212,11 @@ Theme: hope and ease after hardship.
 - The matching pre-optimization manifest artifact was 48,372,661 bytes and took about 3m52 from workflow start to completion; the optimized run took about 1m45. Runner timing varies, but the new revision completed faster in this observed pair. The deshake removal is now validated as a working change.
 - The three-item batch-selection regression tests also passed in both optimized manifest workflow and Ash-Sharh workflow test steps.
 - No real Telegram send has occurred; push workflows correctly skipped delivery. No daily/Friday schedule or TikTok publishing is enabled.
+
+
+## User delivery preference — authoritative clarification (2026-10-31)
+- User explicitly rejected a workflow where they must open GitHub Actions and manually dispatch each video to Telegram.
+- Intended operation: once the production engine and schedule are ready, it generates the planned videos and sends each finished MP4 directly to the user's Telegram automatically. The user downloads the videos from Telegram and uploads them to TikTok manually.
+- Do not ask the user to run a GitHub Actions manual dispatch as the normal delivery process. Manual dispatch may remain only as an internal/one-time diagnostic while testing, not as a recurring user task.
+- TikTok publishing must remain manual; no TikTok API publishing or automatic posting.
+- This preference does not mean enabling an incomplete daily schedule now. First finish three distinct, validated content outputs (Quran plus authentic dua/dhikr/reminders), verify real Telegram delivery end-to-end, then enable the intended automated schedule and Telegram delivery. Until those gates pass, schedules stay disabled.
