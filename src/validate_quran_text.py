@@ -31,6 +31,17 @@ def validate(manifest_path: Path, reference_path: Path) -> None:
     if not verses:
         raise SystemExit("Manifest contains no verses.")
 
+    requested = source.get("verses", [])
+    if not isinstance(requested, list) or not requested:
+        raise SystemExit("Manifest source.verses must list the requested verse numbers.")
+    if len(requested) != len(set(requested)):
+        raise SystemExit("Manifest source.verses contains duplicate verse numbers.")
+    actual_numbers = [verse.get("number") for verse in verses]
+    if actual_numbers != requested:
+        raise SystemExit(
+            "Manifest verse entries must exactly match source.verses in the same order."
+        )
+
     seen = set()
     for verse in verses:
         number = verse.get("number")
