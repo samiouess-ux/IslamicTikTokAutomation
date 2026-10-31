@@ -23,6 +23,41 @@ class OrchestratorTests(unittest.TestCase):
                 with self.assertRaisesRegex(FileNotFoundError, "dua"):
                     build_plan(folder, {"content": []}, "test-day")
 
+    def test_all_three_types_are_selected_and_validated_before_plan_returns(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            manifests = {}
+            for kind in ("quran", "dua", "dhikr"):
+                path = folder / f"{kind}.json"
+                path.write_text(json.dumps({
+                    "id": f"{kind}-1",
+                    "content_type": kind,
+                    "publishing": {"approval_required": True, "auto_publish": False},
+                }), encoding="utf-8")
+                manifests[kind] = path
+            def choose(_folder, kind, _recent, _key):
+                return manifests[kind]
+            with patch("orchestrator.choose_manifest", side_effect=choose), \
+                 patch("orchestrator.validate_content_manifest") as validate:
+                plan = build_plan(folder, {"content": []}, "test-day")
+            self.assertEqual([item["content_type"] for item in plan],
+                             ["quran", "dua", "dhikr"])
+            self.assertEqual(validate.call_count, 3)
+            self.assertEqual(len({item["content_id"] for item in plan}), 3)
+
+    def test_manifest_must_explicitly_match_requested_category(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            path = folder / "quran.json"
+            path.write_text(json.dumps({
+                "id": "q1",
+                "publishing": {"approval_required": True, "auto_publish": False},
+            }), encoding="utf-8")
+            with patch("orchestrator.choose_manifest", return_value=path), \
+                 patch("orchestrator.validate_content_manifest"):
+                with self.assertRaisesRegex(SystemExit, "must explicitly declare"):
+                    build_plan(folder, {"content": []}, "test-day")
+
     def test_missing_history_starts_empty_without_creating_a_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "history.json"
