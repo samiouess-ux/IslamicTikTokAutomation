@@ -63,3 +63,12 @@ The user approved the latest rendered preview (GitHub Actions run 12; commit fb5
 
 ## Quran variety safeguard (2026-10-31)
 Rotate between reviewed surahs and verse selections (single ayahs or consecutive ranges). A candidate is eligible only when exact Uthmani text is present in the reviewed reference snapshot, the translation is sourced and verified for those exact verses, and an authentic permitted recitation matches the exact passage and order and has been user-reviewed. Preserve the approved 9:16 gold cartouche, separate gold verse medallions, white Arabic, smaller English translation, calm approved backgrounds, and all audio rules: no music, no synthetic recitation, no public reciter name. Skip any candidate that fails a check; never trade correctness for variety.
+
+
+## Full-Quran rotation and short-video duration (2026-10-31)
+- The Quran engine must not be hard-coded to Ash-Sharh or any other single surah. Its target inventory is all 114 surahs and all ayahs, with deterministic rotation across surahs and contiguous ayah passages.
+- Build each clip from a contiguous passage whose exact approved recitation duration is at most 65 seconds. Prefer a safety target of 55–60 seconds to leave room for encoding/metadata; the hard maximum is 65 seconds inclusive.
+- Never speed up recitation, cut a verse mid-recitation, reorder verses, or combine non-contiguous ayahs to meet the limit. If the next complete verse would exceed the limit, close the clip before it and start the next clip at that verse.
+- Reuse the approved Ash-Sharh render as the visual template/example, not as a fixed content source. Select surah title, verse number, exact Arabic, translation, and matching verse audio dynamically from validated Quran-wide sources.
+- Full-Quran coverage requires a versioned trusted Uthmani text corpus, a sourced translation corpus, and the official reuse-permitted verse-audio archive. Verify source identifiers, exact verse mapping, archive entry mapping, and rights before enabling a passage. Missing or mismatched data must fail closed, not silently narrow coverage to the two sample surahs.
+- Keep the approved 9:16/1080x1920/30fps design, gold ornate surah cartouche, independent gold verse medallions, white Arabic, smaller English translation, varied approved backgrounds, authentic matching recitation, no music/synthetic audio, no public reciter attribution, and manual review.
