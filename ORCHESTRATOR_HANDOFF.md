@@ -142,3 +142,15 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - The workflow now builds the translation corpus alongside the official archive index and duration-probed candidate audio. The latest workflow run after switching to a single full-corpus request is `41239290344`; wait for its result before treating the translation corpus as validated.
 - New tests cover full-surah shape, exact verse coverage, duplicates, missing rows, and empty text. The test workflow triggered on commit `246a713058b5cac352b4c6a88d0313d4c8d9e4d9` is still running at the latest check.
 - Source references: AlQuran Cloud API documentation and terms are recorded in the script metadata. The Arabic Uthmani reference corpus remains a separate outstanding task; the existing six-verse reviewed snapshot is not yet expanded.
+
+
+## Resume checkpoint — corpus artifact fix (2026-10-31)
+- Latest verified feature branch: `feature/telegram-review-notifications`; never write to `main`.
+- Run `41239290344` passed all 8 operational steps. Its logs explicitly report `Validated 6,236 translations from Saheeh International (en.sahih)` and the audio passage probe selected contiguous 94:1–8 at 62.579 seconds.
+- The downloaded run artifact `13056846824` did not contain the translation JSON because the workflow's upload path incorrectly named `english_saheeh_translation.json`; the build step actually wrote `saheeh_international_translation.json`.
+- Corrected `.github/workflows/build-quran-audio-inventory.yml` in commit `46cf87d48d18ce41679341254ed9695c8927abfb`. Added a fail-fast artifact-input verification (edition `en.sahih`, 6,236 dictionary entries, and retained rights/review status) and corrected the upload path.
+- This workflow-fix commit must trigger a fresh Actions run. Check its job and inspect the new artifact to confirm the translation JSON is present and has 6,236 entries. Do not rely on the earlier artifact for translation data.
+- The branch had two documentation-only commits after `df8b8e7` before this workflow fix; the feature branch is not to be reset or rebased onto `main`. Continue from the live feature branch head.
+- Important content gates remain: Quran-wide exact Arabic Uthmani source is not integrated (the checked-in reviewed reference is still only a small sample); new recordings require exact matching and listening review; translation rights for commercial reuse need confirmation; dua/dhikr items need trusted sources and approval; background catalog variety is not yet active; no actual Telegram MP4 receipt is confirmed.
+- Do not enable any schedule, daily/Friday dispatch, or TikTok publishing. TikTok remains manual only.
+- Next engineering sequence: verify the new artifact; integrate a Quran-wide Arabic text source with exact 6,236-key validation and source metadata; join it to audio inventory and Saheeh translation by exact `surah:ayah` keys; retain passage-level rights/review gates; then implement safe approved-content queueing and complete a real Telegram delivery test before scheduling.
