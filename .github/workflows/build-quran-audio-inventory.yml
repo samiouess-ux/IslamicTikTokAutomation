@@ -33,6 +33,27 @@ jobs:
       - name: Build and validate full Saheeh translation corpus
         run: |
           python src/build_quran_translation_catalog.py --output output/saheeh_international_translation.json
+      - name: Verify generated translation artifact input
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("output/saheeh_international_translation.json")
+          if not path.is_file() or path.stat().st_size == 0:
+              raise SystemExit("Validated Saheeh translation corpus file is missing or empty.")
+          catalog = json.loads(path.read_text(encoding="utf-8"))
+          verses = catalog.get("verses")
+          if catalog.get("edition") != "en.sahih":
+              raise SystemExit("Unexpected translation edition.")
+          if catalog.get("translated_verse_count") != 6236:
+              raise SystemExit("Translation metadata does not report 6,236 verses.")
+          if not isinstance(verses, dict) or len(verses) != 6236:
+              raise SystemExit("Translation JSON does not contain exactly 6,236 verse entries.")
+          if catalog.get("status") != "complete_source_corpus_requires_rights_confirmation_and_verse_level_review":
+              raise SystemExit("Translation review/rights status is missing or unexpected.")
+          print(f"Verified artifact input: {len(verses)} Saheeh International verses.")
+          PY
       - name: Prepare a duration-probed Quran passage candidate (not approved for publishing)
         run: |
           python src/prepare_official_quran_passage.py \
@@ -40,14 +61,14 @@ jobs:
             --surah 94 --start-ayah 1 \
             --output-dir output/candidate_audio_94 \
             --report output/candidate_passage_94.json
-      - name: Upload Quran-wide inventory and candidate audio probe
+      - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
           name: official-quran-audio-inventory-and-probe
           path: |
             output/official_verse_audio_inventory.json
+            output/saheeh_international_translation.json
             output/candidate_passage_94.json
             output/candidate_audio_94/*.mp3
-            output/english_saheeh_translation.json
           if-no-files-found: error
           retention-days: 30
