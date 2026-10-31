@@ -343,3 +343,12 @@ Theme: hope and ease after hardship.
 - Added `validate_quran_audio_approval()` to the renderer: approved audio still requires user listening review; a candidate may render only when `preview_only=true`, `approved=false`, and reuse rights are documented. It rejects missing rights and any preview marked production-approved.
 - Added five renderer regression tests for the approval/preview combinations. Latest full review-render run `41240328907` includes these changes; inspect its result before treating the refreshed preview artifact as complete.
 - Existing earlier 94:1-8 artifact is technically valid as a visual preview, but its caption JSON had literal escaped newline markers. Use only a refreshed artifact after run `41240328907` completes if available; the corrected manifest caption now has actual line breaks.
+
+
+## Latest renderer gate verified (2026-10-31)
+- GitHub Actions run `41240328907` completed successfully on `feature/telegram-review-notifications`, commit `b9b33009b5c1a1827bb79dfec286b842223b559b`.
+- All render-job steps passed: Quran reference structure, regression tests, exact Arabic validation, audio preparation, video rendering, MP4 technical verification, and artifact upload.
+- Renderer regression tests now enforce the approval boundary: the exact user-reviewed 94:5–6 recording may be production-approved; 94:1–8 may render only as a rights-cleared preview candidate and cannot be marked production-approved.
+- Latest artifact `islamic-video-review`, ID `13056564523`, contains `review.mp4` and `review.caption.json`. MP4 independently checked: H.264, AAC, 1080×1920, 30 FPS, 62.8 seconds. Caption JSON parses and contains actual line breaks; it says `review_required` and `publishing=disabled`.
+- Telegram step was skipped because this was a push-triggered run. No real Telegram receipt is confirmed; manual Telegram delivery test remains open.
+- This 94:1–8 output is still a review-only candidate. Do not publish or treat its recording as user-approved without the user's separate listening approval.
