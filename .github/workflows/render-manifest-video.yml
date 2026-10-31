@@ -1,6 +1,11 @@
 name: Render manifest video for review
 
 on:
+  push:
+    paths:
+      - 'src/render_video.py'
+      - 'content/first_video.json'
+      - '.github/workflows/render-manifest-video.yml'
   workflow_dispatch:
     inputs:
       manifest:
