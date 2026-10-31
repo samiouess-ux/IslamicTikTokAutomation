@@ -28,9 +28,11 @@ def probe(path: Path) -> float:
     return value
 
 
-def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> dict:
+def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, target_count: int = 3) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    if not isinstance(target_count, int) or target_count < 1:
+        raise ValueError("target_count must be a positive integer.")
     if batch.get("batch_status") != "review_candidates_only":
         raise ValueError("Input must be a review-only Quran candidate batch.")
     if batch.get("rendering_allowed") is not False or batch.get("auto_publish") is not False:
@@ -44,6 +46,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> d
     results = []
     with RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE)) as archive:
         for candidate in batch.get("passages", []):
+            if sum(item["status"].startswith("audio_prepared") for item in results) >= target_count:
+                break
             surah = int(candidate["surah_number"])
             selected = []
             durations = {}
@@ -123,6 +127,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> d
     report = {
         "status": "multi_surah_audio_review_package_prepared" if len(ready) >= 2 else "insufficient_audio_candidates_prepared",
         "candidate_count": len(batch.get("passages", [])),
+        "target_count": target_count,
         "audio_prepared_count": len(ready),
         "distinct_surah_count": len({x["surah_number"] for x in ready}),
         "maximum_seconds": MAX_SECONDS,
@@ -142,13 +147,14 @@ def main() -> None:
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=Path("output/quran_batch_audio"))
     parser.add_argument("--report", type=Path, default=Path("output/quran_batch_audio_report.json"))
+    parser.add_argument("--target-count", type=int, default=3)
     args = parser.parse_args()
-    report = prepare_batch(args.batch, args.inventory, args.output_dir)
+    report = prepare_batch(args.batch, args.inventory, args.output_dir, args.target_count)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    if report["audio_prepared_count"] < 2:
-        raise SystemExit("Fewer than two distinct-surah audio candidates were prepared.")
+    if report["audio_prepared_count"] != args.target_count:
+        raise SystemExit(f"Expected exactly {args.target_count} distinct-surah audio candidates; prepared {report['audio_prepared_count']}.")
 
 
 if __name__ == "__main__":
