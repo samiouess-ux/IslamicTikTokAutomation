@@ -133,11 +133,21 @@ jobs:
               )
 
           boundary = "----IslamicTikTokTelegramUploadBoundary"
-          caption = (
-              "✅ فيديو سورة الشرح (الآيات 1–8) جاهز للمراجعة.\n"
-              "الفيديو مرفق مباشرة هنا بصيغة MP4.\n"
-              "لم يتم نشره على TikTok؛ النشر يستوجب موافقتك الشخصية."
-          )
+          caption_file = Path("output/ash_sharh_94_1_8_review.caption.json")
+          if not caption_file.is_file():
+              raise FileNotFoundError(f"Review caption not found: {caption_file}")
+          caption_data = json.loads(caption_file.read_text(encoding="utf-8"))
+          arabic_caption = caption_data.get("arabic_caption", "").strip()
+          english_caption = caption_data.get("english_caption", "").strip()
+          hashtags_ar = " ".join(caption_data.get("hashtags_ar", []))
+          hashtags_en = " ".join(caption_data.get("hashtags_en", []))
+          caption_parts = [part for part in (
+              arabic_caption, hashtags_ar, english_caption, hashtags_en,
+              "للمراجعة فقط — لم يتم النشر على TikTok. النشر يستوجب موافقتك الشخصية."
+          ) if part]
+          caption = "\n\n".join(caption_parts)
+          if len(caption) > 1024:
+              raise RuntimeError(f"Telegram caption is too long: {len(caption)} characters.")
           body = (
               f"--{boundary}\r\n"
               'Content-Disposition: form-data; name="chat_id"\r\n\r\n'
