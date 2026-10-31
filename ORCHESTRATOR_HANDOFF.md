@@ -224,3 +224,13 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Telegram delivery step was skipped (push event); no delivery receipt exists yet. Next operational milestone is an explicit manual dispatch with Telegram send enabled, then confirm the MP4 arrives in the user's Telegram chat. Do not enable schedules before that confirmation.
 - The 94:1–8 render remains review-only: user approval applies to the exact 94:5–6 recording, not the full 94:1–8 candidate. Never publish this candidate without separate listening approval.
 - Continue only on `feature/telegram-review-notifications`; `main` remains untouched. Item 5 (dua/dhikr engine) remains deferred.
+
+
+## Latest checkpoint — successful 20ms render (2026-10-31)
+- Run `41240985110` completed successfully on the active feature branch. All validation, tests, audio prep, render, MP4 verification, and artifact upload passed.
+- Artifact: `islamic-video-review`, ID `13056804985`, 47,412,647 bytes.
+- Inter-verse silence is 0.02 seconds; no recitation speed change or word/verse cuts.
+- Telegram was skipped on this push-triggered run; do not claim delivery.
+- Rotation code exists, but no manifest is currently confirmed eligible for production rotation: Al-Ikhlas remains an unapproved candidate; Ash-Sharh 94:1–8 is preview-only; only the exact 94:5–6 recording has user listening approval.
+- Keep the rotation approval gate strict. Prepare more exact, rights-cleared Quran audio candidates and distinct approved backgrounds/layouts for user review. Then implement/test a batch of three separately rendered MP4s and confirm actual Telegram receipt.
+- Never enable TikTok auto-publishing. Daily/Friday schedules remain disabled until batch rendering and real Telegram delivery are proven.
