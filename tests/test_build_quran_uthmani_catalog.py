@@ -16,6 +16,24 @@ class UthmaniCatalogTests(unittest.TestCase):
         ]}}
         self.assertEqual(validate_surah_payload(payload, 1, 2), {"1:1": text, "1:2": "الْحَمْدُ لِلَّهِ"})
 
+
+    def test_removes_prefixed_basmala_from_first_ayah_except_fatihah(self):
+        basmala = "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        payload = {"code": 200, "data": {"ayahs": [
+            {"numberInSurah": 1, "text": basmala + " تَبَّتْ يَدَآ أَبِى لَهَبٍۢ وَتَبَّ"},
+            {"numberInSurah": 2, "text": "مَآ أَغْنَىٰ عَنْهُ مَالُهُۥ"},
+        ]}}
+        result = validate_surah_payload(payload, 111, 2)
+        self.assertEqual(result["111:1"], "تَبَّتْ يَدَآ أَبِى لَهَبٍۢ وَتَبَّ")
+        self.assertEqual(result["111:2"], "مَآ أَغْنَىٰ عَنْهُ مَالُهُۥ")
+
+    def test_preserves_fatihah_basmala_as_ayah_one(self):
+        basmala = "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        payload = {"code": 200, "data": {"ayahs": [
+            {"numberInSurah": 1, "text": basmala},
+        ]}}
+        self.assertEqual(validate_surah_payload(payload, 1, 1)["1:1"], basmala)
+
     def test_rejects_missing_ayah(self):
         with self.assertRaisesRegex(ValueError, "incomplete Uthmani text"):
             validate_surah_payload({"code": 200, "data": {"ayahs": [{"numberInSurah": 1, "text": "نص"}]}}, 1, 2)
