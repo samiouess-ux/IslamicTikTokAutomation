@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "src" / "select_review_manifest.py"
+BATCH_SCRIPT = ROOT / "src" / "select_review_batch.py"
 CONTENT = ROOT / "content"
 
 
