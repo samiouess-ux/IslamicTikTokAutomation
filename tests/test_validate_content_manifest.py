@@ -14,6 +14,31 @@ class ContentManifestTests(unittest.TestCase):
         data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
         validate_content_manifest(data)
 
+    def test_unapproved_quran_audio_is_allowed_only_as_review_preview(self):
+        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        self.assertFalse(data["audio"]["approved"])
+        self.assertTrue(data["audio"]["preview_only"])
+        self.assertFalse(data["audio"]["exact_recording_user_reviewed"])
+        validate_content_manifest(data)
+
+    def test_preview_only_quran_audio_still_requires_reuse_rights(self):
+        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data["audio"]["rights_verified"] = False
+        with self.assertRaisesRegex(SystemExit, "Reuse permission"):
+            validate_content_manifest(data)
+
+    def test_unapproved_quran_audio_without_preview_gate_is_rejected(self):
+        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data["audio"]["preview_only"] = False
+        with self.assertRaisesRegex(SystemExit, "only an explicit preview_only"):
+            validate_content_manifest(data)
+
+    def test_preview_only_quran_audio_cannot_be_marked_production_approved(self):
+        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data["audio"]["approved"] = True
+        with self.assertRaisesRegex(SystemExit, "cannot also be marked"):
+            validate_content_manifest(data)
+
     def dua_manifest(self):
         return {
             "content_type": "dua",
