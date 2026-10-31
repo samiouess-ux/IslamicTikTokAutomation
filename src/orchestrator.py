@@ -1,7 +1,7 @@
-"""Safe daily orchestrator for the three review-only video categories.
+"""Safe daily orchestrator for a complete Quran/dua/dhikr review batch.
 
-Default mode is a read-only preflight. Rendering requires --render.
-No Telegram delivery, scheduling, or TikTok publishing is performed here.
+Preflight is read-only. Rendering is opt-in and only starts after all three
+categories have eligible, validated manifests. No Telegram or TikTok actions.
 """
 from __future__ import annotations
 
@@ -38,63 +38,89 @@ def load_history(path: Path) -> dict:
 
 
 def build_plan(content_dir: Path, history: dict, day_key: str) -> list[dict]:
+    """Validate the entire three-category batch before returning any plan."""
     recent = list(history.get("content", []))
-    plan = []
+    plan: list[dict] = []
     for index, kind in enumerate(KINDS):
         manifest_path = choose_manifest(
             content_dir, kind, recent, f"{day_key}:{index}:{kind}"
         )
         manifest = read_json(manifest_path)
+        if manifest.get("content_type") != kind:
+            raise SystemExit(
+                f"Manifest {manifest_path} must explicitly declare content_type={kind}."
+            )
         validate_content_manifest(manifest)
-        if manifest.get("content_type", "quran") != kind:
-            raise SystemExit(f"Manifest type mismatch: {manifest_path}")
-        if manifest.get("publishing", {}).get("auto_publish", False):
+        publishing = manifest.get("publishing", {})
+        if publishing.get("approval_required") is not True:
+            raise SystemExit(f"Manual review must be required: {manifest_path}")
+        if publishing.get("auto_publish", False):
             raise SystemExit(f"Auto-publish must remain disabled: {manifest_path}")
+        item_id = manifest.get("id")
+        if not isinstance(item_id, str) or not item_id:
+            raise SystemExit(f"Manifest has no stable id: {manifest_path}")
         plan.append({
             "content_type": kind,
             "manifest": str(manifest_path),
-            "content_id": manifest["id"],
+            "content_id": item_id,
         })
-        recent.append(manifest["id"])
+        recent.append(item_id)
     return plan
 
 
 def render_plan(plan: list[dict], output_dir: Path) -> list[dict]:
+    """Render only after a complete preflight; each category uses its own engine."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    rendered = []
+    rendered: list[dict] = []
     for item in plan:
         output = output_dir / f"{item['content_type']}-{item['content_id']}.mp4"
-        renderer = "src/render_video_scenes.py" if item["content_type"] == "quran" else "src/render_dua_video.py"
+        renderer = (
+            "src/render_video_scenes.py"
+            if item["content_type"] == "quran"
+            else "src/render_dua_video.py"
+        )
         subprocess.run(
-            [sys.executable, renderer, "--manifest", item["manifest"], "--output", str(output)],
+            [sys.executable, renderer, "--manifest", item["manifest"],
+             "--output", str(output)],
             check=True,
         )
         if not output.is_file() or output.stat().st_size == 0:
-            raise SystemExit(f"Renderer did not produce a valid MP4: {output}")
+            raise SystemExit(f"Renderer did not produce a non-empty MP4: {output}")
         rendered.append({**item, "output": str(output)})
     return rendered
 
 
 def save_history(path: Path, history: dict, completed: list[dict]) -> None:
     updated = dict(history)
-    updated["content"] = [*history.get("content", []), *[x["content_id"] for x in completed]]
+    updated["content"] = [
+        *history.get("content", []),
+        *[item["content_id"] for item in completed],
+    ]
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temporary.write_text(
+        json.dumps(updated, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
     temporary.replace(path)
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Coordinate a safe Quran/dua/dhikr review batch.")
+    parser = argparse.ArgumentParser(
+        description="Coordinate a complete Quran/dua/dhikr review batch."
+    )
     parser.add_argument("--content-dir", type=Path, default=Path("content"))
     parser.add_argument("--history", type=Path, default=Path("content/rotation_history.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("output/daily"))
     parser.add_argument("--day", default=date.today().isoformat())
-    parser.add_argument("--render", action="store_true", help="Render after the complete batch passes preflight.")
+    parser.add_argument(
+        "--render", action="store_true",
+        help="Render only after all three categories pass preflight.",
+    )
     args = parser.parse_args()
 
-    history = load_history(args.history)
     try:
+        history = load_history(args.history)
         plan = build_plan(args.content_dir, history, args.day)
     except (FileNotFoundError, ValueError, LookupError, SystemExit) as exc:
         print(json.dumps({
@@ -108,19 +134,26 @@ def main() -> int:
         }, ensure_ascii=False, indent=2))
         return 2
 
-    print(json.dumps({"status": "ready_to_render" if args.render else "preflight_passed",
-                      "day": args.day, "videos": plan,
-                      "telegram_sent": False, "tiktok_published": False},
-                     ensure_ascii=False, indent=2))
+    print(json.dumps({
+        "status": "ready_to_render" if args.render else "preflight_passed",
+        "day": args.day,
+        "videos": plan,
+        "telegram_sent": False,
+        "tiktok_published": False,
+    }, ensure_ascii=False, indent=2))
     if not args.render:
-        print("Preflight only. Re-run with --render to create review MP4 files.")
+        print("Preflight only. Use --render to create the complete review batch.")
         return 0
 
     rendered = render_plan(plan, args.output_dir)
+    # Rotation history is updated only after all three renderers succeeded.
     save_history(args.history, history, rendered)
-    print(json.dumps({"status": "rendered_for_manual_review", "videos": rendered,
-                      "telegram_sent": False, "tiktok_published": False},
-                     ensure_ascii=False, indent=2))
+    print(json.dumps({
+        "status": "rendered_for_manual_review",
+        "videos": rendered,
+        "telegram_sent": False,
+        "tiktok_published": False,
+    }, ensure_ascii=False, indent=2))
     return 0
 
 
