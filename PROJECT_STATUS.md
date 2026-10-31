@@ -23,7 +23,7 @@ Theme: hope and ease after hardship.
 - Surah Ash-Sharh (94), verses 5–6.
 - Arabic: فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝٥ إِنَّ مَعَ الْعُسْرِ يُسْرًا ۝٦
 - Language choice updated by user: English replaces French (not an additional third language).
-- English translation draft: Sahih International. Verify exact wording against the cited source before rendering.
+- English translation: Sahih International, wording verified for both verses against Quran.com / Quranic Arabic Corpus; retain the exact verse-specific wording.
 - Proposed background: peaceful natural scenery, gently animated; Pexels candidate is documented in content/first_video.json.
 
 ## Current technical state
@@ -40,7 +40,7 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 
 ## Next steps
 1. Verify the exact English translation wording and source for verses 94:5–6.
-2. Select a lawful/reusable authentic recitation audio source and confirm the recitation matches the verses.
+2. Confirm whether the user accepts Maher Al-Muaiqly as an alternative reciter: the King Fahd Complex official audio page explicitly grants free public-use permission for listed recitations, and lists his Hafs recording. Confirm exact Surah Ash-Sharh audio and review it before production.
 3. Review and approve the Pexels background candidate.
 4. Build one Arabic/English 9:16 test video.
 5. Review the output with the user before any further automation.
@@ -57,5 +57,5 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 - Earlier French translation research is retained only as historical context; French is no longer an output language.
 - Candidate background source: Pexels videos. Its official license/help pages state that videos can be used and modified for commercial projects, subject to restrictions and third-party rights. Save the specific asset page and creator details when selecting a clip.
 - Recitation audio: not yet selected. Do not assume that a stream or downloadable recitation is cleared for reuse in monetized TikTok videos. Verify rights/permission for the exact recording before embedding or publishing.
-- User's preferred reciters: Islam Sobhi or Yasser Al-Dosari. No recording selected or cleared yet.
+- User's initial preferred reciters: Islam Sobhi or Yasser Al-Dosari. No reuse permission has been verified for their recordings. Quran.com states it cannot grant reuse rights; rights belong to the reciter or rights manager. A public reuse-permission candidate was found from the King Fahd Complex: Maher Al-Muaiqly (Hafs), with Surah Ash-Sharh listed on his official recitation page. User approval is still needed before switching reciter.
 - The Pexels ocean-and-mountains clip by Engin Akyurt remains a candidate only; it has not been downloaded or approved.
