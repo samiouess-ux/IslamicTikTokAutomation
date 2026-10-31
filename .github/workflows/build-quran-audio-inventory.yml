@@ -105,6 +105,26 @@ jobs:
       - name: Run Quran catalog regression tests
         run: |
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
+      - name: Build a diverse five-surah Quran review candidate batch
+        run: |
+          python src/build_quran_review_batch.py \
+            --catalog output/quran_joined_candidate.json \
+            --count 5 \
+            --verses-per-passage 3 \
+            --seed github-actions-quran-batch \
+            --output output/quran_review_batch.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
+          assert batch["candidate_count"] == 5
+          assert batch["distinct_surah_count"] == 5
+          assert batch["rendering_allowed"] is False
+          assert batch["telegram_delivery"] is False
+          assert batch["auto_publish"] is False
+          assert all(item["approval"]["ready_to_render"] is False for item in batch["passages"])
+          print("Prepared five distinct-surah passages for human review only.")
+          PY
       - name: Prepare a duration-probed Quran passage candidate (not approved for publishing)
         run: |
           python src/prepare_official_quran_passage.py \
@@ -121,6 +141,7 @@ jobs:
             output/saheeh_international_translation.json
             output/quran_uthmani_candidate.json
             output/quran_joined_candidate.json
+            output/quran_review_batch.json
             output/candidate_passage_94.json
             output/candidate_audio_94/*.mp3
           if-no-files-found: error
