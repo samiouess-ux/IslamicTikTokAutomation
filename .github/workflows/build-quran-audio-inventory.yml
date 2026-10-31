@@ -1,0 +1,33 @@
+name: Build Quran-wide official verse audio inventory
+
+on:
+  push:
+    branches: [feature/telegram-review-notifications]
+    paths:
+      - "src/build_official_audio_inventory.py"
+      - ".github/workflows/build-quran-audio-inventory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Inspect official archive and validate complete verse mapping
+        run: |
+          python -m pip install --disable-pip-version-check remotezip
+          python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
+      - name: Upload Quran-wide audio inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-quran-verse-audio-inventory
+          path: output/official_verse_audio_inventory.json
+          if-no-files-found: error
+          retention-days: 30
