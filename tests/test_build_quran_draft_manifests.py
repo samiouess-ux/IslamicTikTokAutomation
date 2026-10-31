@@ -41,6 +41,8 @@ class DraftManifestTests(unittest.TestCase):
                 self.assertFalse(data["publishing"]["auto_publish"])
                 self.assertFalse(data["preflight"]["rendering_allowed"])
                 self.assertEqual([v["number"] for v in data["verses"]], [4, 5])
+            self.assertEqual(data["source"]["surah_name_ar"], "مريم")
+            self.assertIn("سورة مريم", data["caption"]["text"])
 
     def test_rejects_missing_ayah_from_audio(self):
         batch = {"batch_status": "review_candidates_only", "passages": [candidate("a", 19), candidate("b", 88)]}
