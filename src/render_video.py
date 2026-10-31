@@ -42,9 +42,20 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     title_font = ImageFont.truetype(font_path, 48)
     verse_font = ImageFont.truetype(font_path, 76)
 
-    # Draw each manifest string unchanged. The verse number is metadata, not
-    # appended to or substituted into the Quran text itself.
-    draw.text((540, 475), title, font=title_font, fill=(255, 255, 255, 255),
+    # Elegant gold Islamic title cartouche. Decoration is drawn separately;
+    # it never changes or overlaps the Arabic title text.
+    gold = (224, 184, 92, 255)
+    soft_gold = (224, 184, 92, 175)
+    draw.rounded_rectangle((235, 412, 845, 538), radius=28,
+                           outline=soft_gold, width=3)
+    draw.rounded_rectangle((247, 424, 833, 526), radius=22,
+                           outline=(224, 184, 92, 105), width=1)
+    for x in (265, 815):
+        draw.polygon([(x, 475), (x + (12 if x < 540 else -12), 463),
+                      (x + (24 if x < 540 else -24), 475),
+                      (x + (12 if x < 540 else -12), 487)], outline=gold)
+        draw.ellipse((x - 3, 472, x + 3, 478), fill=gold)
+    draw.text((540, 475), title, font=title_font, fill=gold,
               anchor="mm", direction="rtl", language="ar", stroke_width=0)
     line_gap = 145 if len(verses) <= 3 else 115
     first_y = 700 if len(verses) <= 3 else 620
@@ -67,14 +78,17 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         gap = 48
         cx = bbox[0] - gap - medallion_radius
         cy = y
+        # Gold double-ring medallion remains separate from Quran text.
         draw.ellipse((cx - medallion_radius, cy - medallion_radius,
                       cx + medallion_radius, cy + medallion_radius),
-                     outline=(255, 255, 255, 255), width=3)
+                     outline=gold, width=3)
+        draw.ellipse((cx - medallion_radius + 5, cy - medallion_radius + 5,
+                      cx + medallion_radius - 5, cy + medallion_radius - 5),
+                     outline=(224, 184, 92, 150), width=1)
         number_font = ImageFont.truetype(font_path, 27)
         number = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
         draw.text((cx, cy), number, font=number_font,
-                  fill=(255, 255, 255, 255), anchor="mm",
-                  direction="rtl", language="ar")
+                  fill=gold, anchor="mm", direction="rtl", language="ar")
     image.save(destination)
 
 
