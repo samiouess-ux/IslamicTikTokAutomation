@@ -11,6 +11,10 @@ on:
       - "content/second_video_ash_sharh_94_1_8_draft.json"
   workflow_dispatch:
 
+concurrency:
+  group: telegram-video-review
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
