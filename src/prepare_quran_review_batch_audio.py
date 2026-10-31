@@ -51,6 +51,9 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> d
             total = 0.0
             candidate_dir = output_dir / str(candidate["candidate_id"])
             candidate_dir.mkdir(parents=True, exist_ok=True)
+            blocked_reason = None
+            # Download and probe EVERY requested ayah before deciding. Never
+            # silently shorten a candidate when its complete passage exceeds 65s.
             for verse in candidate["verses"]:
                 number = int(verse["ayah"])
                 key = f"{surah}:{number}"
@@ -61,23 +64,32 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> d
                 with archive.open(member) as source, target.open("wb") as dest:
                     shutil.copyfileobj(source, dest)
                 duration = probe(target)
-                if duration > MAX_SECONDS or total + duration > MAX_SECONDS:
-                    target.unlink(missing_ok=True)
-                    if not selected:
-                        results.append({
-                            "candidate_id": candidate["candidate_id"],
-                            "surah_number": surah,
-                            "status": "blocked_single_ayah_exceeds_65_seconds" if duration > MAX_SECONDS else "blocked_no_complete_ayah_fits",
-                            "selected_verses": [],
-                            "duration_seconds": 0,
-                            "audio_file": None,
-                        })
-                    break
                 selected.append(number)
                 durations[number] = round(duration, 3)
                 files.append(target)
                 total += duration
-            if not selected:
+                if duration > MAX_SECONDS:
+                    blocked_reason = "blocked_single_ayah_exceeds_65_seconds"
+            if total > MAX_SECONDS:
+                blocked_reason = "blocked_complete_passage_exceeds_65_seconds"
+            if blocked_reason:
+                for path in files:
+                    path.unlink(missing_ok=True)
+                results.append({
+                    "candidate_id": candidate["candidate_id"],
+                    "surah_number": surah,
+                    "status": blocked_reason,
+                    "requested_verses": selected,
+                    "verse_durations_seconds": durations,
+                    "complete_duration_seconds": round(total, 3),
+                    "selected_verses": [],
+                    "duration_seconds": 0,
+                    "audio_file": None,
+                    "audio_approved": False,
+                    "rendering_allowed": False,
+                    "telegram_delivery": False,
+                    "auto_publish": False,
+                })
                 continue
             # Concatenate whole MP3 files in order; stream copy avoids re-encoding.
             list_file = candidate_dir / "concat.txt"
