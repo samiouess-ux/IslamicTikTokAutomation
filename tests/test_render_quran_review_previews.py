@@ -11,29 +11,30 @@ from render_quran_review_previews import render
 
 class ReviewPreviewRendererTests(unittest.TestCase):
     def fixtures(self, root: Path):
-        audio_dir = root / "audio" / "quran_s019_081_083"
-        audio_dir.mkdir(parents=True)
-        (audio_dir / "passage.mp3").write_bytes(b"placeholder")
-        for n in (81, 82, 83):
-            (audio_dir / f"019_{n:03d}.mp3").write_bytes(b"whole ayah")
-        batch = {
-            "batch_status": "review_candidates_only",
-            "passages": [{
-                "candidate_id": "quran_s019_081_083",
-                "surah_number": 19,
+        passages, items = [], []
+        for surah, start in ((19, 81), (88, 21)):
+            cid = f"quran_s{surah:03d}_{start:03d}_{start+2:03d}"
+            audio_dir = root / "audio" / cid
+            audio_dir.mkdir(parents=True)
+            (audio_dir / "passage.mp3").write_bytes(b"placeholder")
+            for n in range(start, start + 3):
+                (audio_dir / f"{surah:03d}_{n:03d}.mp3").write_bytes(b"whole ayah")
+            passages.append({
+                "candidate_id": cid, "surah_number": surah,
                 "verses": [
-                    {"ayah": n, "arabic_uthmani": f"نص الآية {n}", "english_saheeh_international": f"Verse {n}"}
-                    for n in (81, 82, 83)
+                    {"ayah": n, "arabic_uthmani": f"نص الآية {n}",
+                     "english_saheeh_international": f"Verse {n}"}
+                    for n in range(start, start + 3)
                 ],
-            }],
-        }
-        report = {
-            "rendering_allowed": False, "telegram_delivery": False, "auto_publish": False,
-            "items": [{
-                "candidate_id": "quran_s019_081_083", "status": "audio_prepared_requires_review",
-                "selected_verses": [81, 82, 83], "audio_file": str(audio_dir / "passage.mp3"),
-            }],
-        }
+            })
+            items.append({
+                "candidate_id": cid, "status": "audio_prepared_requires_review",
+                "selected_verses": list(range(start, start + 3)),
+                "audio_file": str(audio_dir / "passage.mp3"),
+            })
+        batch = {"batch_status": "review_candidates_only", "passages": passages}
+        report = {"rendering_allowed": False, "telegram_delivery": False,
+                  "auto_publish": False, "items": items}
         batch_path, report_path = root / "batch.json", root / "report.json"
         batch_path.write_text(json.dumps(batch), encoding="utf-8")
         report_path.write_text(json.dumps(report), encoding="utf-8")
@@ -46,23 +47,22 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.make_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
-    def test_renders_complete_distinct_review_preview_with_safety_flags_false(
+    def test_renders_multiple_complete_distinct_review_previews(
         self, _font, run, make_frame, _probe
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch, report = self.fixtures(root)
             result = render(batch, report, root / "out")
-            self.assertEqual(result["preview_count"], 1)
-            item = result["items"][0]
-            self.assertEqual(item["verses"], [81, 82, 83])
-            self.assertEqual((item["width"], item["height"]), (1080, 1920))
-            self.assertTrue(item["review_only"])
-            self.assertFalse(item["audio_approved"])
-            self.assertFalse(item["telegram_delivery"])
+            self.assertEqual(result["preview_count"], 2)
+            self.assertEqual({x["surah_number"] for x in result["items"]}, {19, 88})
+            self.assertTrue(all(x["review_only"] for x in result["items"]))
+            self.assertTrue(all(x["audio_codec"] == "mp3" for x in result["items"]))
+            self.assertFalse(result["production_approved"])
+            self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
-            self.assertEqual(make_frame.call_count, 3)
-            self.assertGreaterEqual(run.call_count, 4)
+            self.assertEqual(make_frame.call_count, 6)
+            self.assertGreaterEqual(run.call_count, 8)
 
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_rejects_incomplete_audio_verse_coverage(self, _font):
