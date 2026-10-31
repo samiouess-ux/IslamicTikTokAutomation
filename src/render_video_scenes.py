@@ -31,108 +31,35 @@ def run(command: list[str]) -> None:
 
 
 def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> None:
-    """Shape Arabic with libraqm; never normalize, strip, or rewrite Quran text."""
+    """One verse per card; wrap by whole words and shrink only when needed."""
+    if len(verses) != 1:
+        raise SystemExit("Each screen must contain exactly one verse.")
     if not features.check("raqm"):
         raise SystemExit("Arabic rendering blocked: Pillow libraqm/RAQM is unavailable.")
     font_path = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf"
-    if not Path(font_path).exists():
-        raise SystemExit("Arabic font not found; refusing to render Quran text.")
+    bold_path = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf"
+    if not Path(font_path).exists() or not Path(bold_path).exists():
+        raise SystemExit("Required Noto Naskh Arabic fonts are missing.")
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    title_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf", 58)
-    verse_font = ImageFont.truetype(font_path, 76)
-
-    # Ornate classical Islamic cartouche: pointed ends, layered borders,
-    # rosette details and corner arabesques. All decoration stays outside text.
     gold = (231, 190, 103, 255)
-    soft_gold = (231, 190, 103, 190)
-    faint_gold = (231, 190, 103, 105)
-
-    # Main title cartouche with pointed ends and gently scalloped shoulders.
-    outer = [(540, 392), (575, 410), (785, 410), (815, 430),
-             (845, 475), (815, 520), (785, 540), (575, 540),
-             (540, 558), (505, 540), (295, 540), (265, 520),
-             (235, 475), (265, 430), (295, 410), (505, 410)]
-    inner = [(540, 405), (568, 420), (780, 420), (802, 437),
-             (829, 475), (802, 513), (780, 530), (568, 530),
-             (540, 545), (512, 530), (300, 530), (278, 513),
-             (251, 475), (278, 437), (300, 420), (512, 420)]
-    draw.line(outer + [outer[0]], fill=gold, width=4, joint="curve")
-    draw.line(inner + [inner[0]], fill=faint_gold, width=2, joint="curve")
-
-    # Small eight-petal rosettes at both ends of the cartouche.
-    def rosette(cx: int, cy: int, radius: int, color) -> None:
-        for angle in range(0, 360, 45):
-            import math
-            rad = math.radians(angle)
-            px, py = cx + math.cos(rad) * radius * 0.62, cy + math.sin(rad) * radius * 0.62
-            draw.ellipse((px - radius * 0.38, py - radius * 0.38,
-                          px + radius * 0.38, py + radius * 0.38),
-                         outline=color, width=2)
-        draw.ellipse((cx - 3, cy - 3, cx + 3, cy + 3), fill=color)
-
-    rosette(282, 475, 17, gold)
-    rosette(798, 475, 17, gold)
-    for x in (335, 745):
-        draw.polygon([(x, 414), (x + 7, 425), (x, 436), (x - 7, 425)],
-                     outline=soft_gold)
-        draw.polygon([(x, 514), (x + 7, 525), (x, 536), (x - 7, 525)],
-                     outline=soft_gold)
-
-    draw.text((540, 475), title, font=title_font, fill=gold,
-              anchor="mm", direction="rtl", language="ar", stroke_width=0)
-    line_gap = 145 if len(verses) <= 3 else 115
-    first_y = 700 if len(verses) <= 3 else 620
-    for index, verse in enumerate(verses):
-        exact_text = verse["arabic"]
-        if not isinstance(exact_text, str) or not exact_text.strip():
-            raise SystemExit("Invalid/empty Arabic verse text.")
-
-        y = first_y + index * line_gap
-        # Draw the Quran text alone, unchanged. Do not append a marker to it.
-        draw.text((540, y), exact_text, font=verse_font,
-                  fill=(255, 255, 255, 255), anchor="mm",
-                  direction="rtl", language="ar", stroke_width=0)
-
-        # Place a separate, small verse-number medallion just after the
-        # visual end of the RTL line, with a clear gap from the letters.
-        bbox = draw.textbbox((540, y), exact_text, font=verse_font,
-                             anchor="mm", direction="rtl", language="ar")
-        medallion_radius = 27
-        gap = 48
-        cx = bbox[0] - gap - medallion_radius
-        cy = y
-        # Eight-lobed ornamental verse cartouche, separate from Quran text.
-        import math
-        points = []
-        for angle in range(0, 360, 15):
-            radius = medallion_radius if (angle // 15) % 2 == 0 else medallion_radius - 5
-            rad = math.radians(angle)
-            points.append((cx + math.cos(rad) * radius, cy + math.sin(rad) * radius))
-        draw.line(points + [points[0]], fill=gold, width=3, joint="curve")
-        draw.ellipse((cx - 19, cy - 19, cx + 19, cy + 19),
-                     outline=soft_gold, width=2)
-        number_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf", 34)
-        number = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
-        draw.text((cx, cy), number, font=number_font,
-                  fill=gold, anchor="mm", direction="rtl", language="ar")
-    image.save(destination)
-
-
-def create_english_overlay(verses: list[dict], destination: Path) -> None:
-    """Render each translation separately, wrapped and centered."""
-    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    if not Path(font_path).exists():
-        raise SystemExit("English font not found.")
-    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(font_path, 30)
-    blocks = []
-    for verse in verses:
+    draw.rounded_rectangle((245, 390, 835, 540), radius=48, outline=gold, width=4)
+    title_font = ImageFont.truetype(bold_path, 54)
+    draw.text((540, 465), title, font=title_font, fill=gold, anchor="mm",
+              direction="rtl", language="ar")
+    verse = verses[0]
+    exact_text = verse["arabic"]
+    if not isinstance(exact_text, str) or not exact_text.strip():
+        raise SystemExit("Invalid/empty Arabic verse text.")
+    # Greedy line wrapping retains every original word and its order.
+    chosen = None
+    for size in (76, 72, 68, 64, 60, 56, 52, 48):
+        font = ImageFont.truetype(font_path, size)
+        words = exact_text.split(" ")
         lines, current = [], ""
-        for word in verse["english"].split():
+        for word in words:
             candidate = (current + " " + word).strip()
-            if draw.textbbox((0, 0), candidate, font=font)[2] <= 900:
+            if draw.textbbox((0, 0), candidate, font=font, direction="rtl", language="ar")[2] <= 900:
                 current = candidate
             else:
                 if current:
@@ -140,21 +67,56 @@ def create_english_overlay(verses: list[dict], destination: Path) -> None:
                 current = word
         if current:
             lines.append(current)
-        blocks.append(lines)
-    line_height, block_gap = 46, 12
-    total = sum(len(block) for block in blocks) * line_height + max(0, len(blocks) - 1) * block_gap
-    if total > 520:
-        raise SystemExit("English translations exceed the scene layout; refusing to clip or overlap text.")
-    y = 1120 + max(0, (520 - total) // 2)
-    for block in blocks:
-        for line in block:
-            draw.text((540, y), line, font=font, fill=(255, 255, 255, 255), anchor="mm")
-            y += line_height
-        y += block_gap
-    if y > 1680:
-        raise SystemExit("English translation overlay exceeds its safe area.")
+        if len(lines) <= 4:
+            chosen = (font, lines)
+            break
+    if chosen is None:
+        raise SystemExit("Verse cannot fit safely; refusing to clip Quran text.")
+    font, lines = chosen
+    line_height = font.size * 1.75
+    first_y = 830 - (len(lines)-1)*line_height/2
+    for i, line in enumerate(lines):
+        draw.text((540, first_y+i*line_height), line, font=font,
+                  fill=(255,255,255,255), anchor="mm", direction="rtl", language="ar")
+    # Independent ornamental verse-number medallion.
+    import math
+    cx, cy, radius = 540, 1110, 34
+    pts=[]
+    for angle in range(0,360,15):
+        r=radius if (angle//15)%2==0 else radius-6
+        rad=math.radians(angle)
+        pts.append((cx+math.cos(rad)*r,cy+math.sin(rad)*r))
+    draw.line(pts+[pts[0]], fill=gold, width=3, joint="curve")
+    number_font=ImageFont.truetype(bold_path,34)
+    number=str(verse["number"]).translate(str.maketrans("0123456789","٠١٢٣٤٥٦٧٨٩"))
+    draw.text((cx,cy),number,font=number_font,fill=gold,anchor="mm",direction="rtl",language="ar")
     image.save(destination)
 
+def create_english_overlay(verses: list[dict], destination: Path) -> None:
+    """One translation per screen, wrapped with generous line spacing."""
+    if len(verses) != 1:
+        raise SystemExit("Each screen must contain exactly one translation.")
+    font_path="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    font=ImageFont.truetype(font_path,34)
+    image=Image.new("RGBA",(1080,1920),(0,0,0,0))
+    draw=ImageDraw.Draw(image)
+    lines=[]; current=""
+    for word in verses[0]["english"].split():
+        candidate=(current+" "+word).strip()
+        if draw.textbbox((0,0),candidate,font=font)[2] <= 900:
+            current=candidate
+        else:
+            if current: lines.append(current)
+            current=word
+    if current: lines.append(current)
+    if len(lines)>5:
+        raise SystemExit("Translation exceeds safe layout.")
+    line_h=58
+    y=1300-(len(lines)-1)*line_h/2
+    for line in lines:
+        draw.text((540,y),line,font=font,fill=(255,255,255,255),anchor="mm")
+        y+=line_h
+    image.save(destination)
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -220,9 +182,7 @@ def main() -> None:
     bg_file = work / "background.mp4"
     if not audio_file.is_file():
         raise SystemExit(f"Approved audio file missing: {audio_file}")
-    scenes = visual.get("scenes", [])
-    if not scenes:
-        scenes = [{"scene": 1, "verses": verse_numbers}]
+    scenes = [{"scene": i, "verses": [n]} for i, n in enumerate(verse_numbers, 1)]
     if [n for scene in scenes for n in scene.get("verses", [])] != verse_numbers:
         raise SystemExit("Scene plan must cover every verse exactly once and in order.")
     scene_overlays = []
@@ -258,7 +218,7 @@ def main() -> None:
     inputs = ["-stream_loop", "-1", "-i", str(bg_file), "-i", str(audio_file)]
     filters = [
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-        "crop=1080:1920,setsar=1,fps=30,"
+        "crop=1080:1920,deshake=rx=16:ry=16:edge=mirror,setsar=1,fps=30,"
         "drawbox=x=55:y=380:w=970:h=1340:color=black@0.30:t=fill[vbase]"
     ]
     current = "vbase"
