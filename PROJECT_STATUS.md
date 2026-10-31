@@ -40,7 +40,7 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 
 ## Next steps
 1. Verify the exact English translation wording and source for verses 94:5–6.
-2. Reciter approved: Maher Al-Muaiqly (Hafs), selected by the user. The King Fahd Complex official rights page grants free public-use permission for the listed recordings inside and outside Saudi Arabia. The exact Surah Ash-Sharh audio file still needs to be obtained and checked before production.
+2. Reciter approved: Maher Al-Muaiqly (Hafs), selected by the user. The King Fahd Complex official rights page grants free public-use permission for the listed recordings inside and outside Saudi Arabia. The exact Surah Ash-Sharh audio file has been extracted and the user confirmed it is the complete surah with good audio quality.
 3. Review and approve the Pexels background candidate.
 4. Build one Arabic/English 9:16 test video.
 5. Review the output with the user before any further automation.
@@ -66,7 +66,7 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 - Preferred approach: build and operate the project from the existing GitHub repository using cloud execution where feasible (e.g. GitHub Actions), with ChatGPT making repository changes and checking workflow results.
 - Audio source remains the King Fahd Complex official Maher Al-Muaiqly Hafs collection. Its public-use permission is documented on the Complex site. The official page currently exposes downloads for the complete surah archive and complete verse archive; a direct individual Surah 94 URL has not yet been verified.
 - The complete-surah archive is about 1.26 GiB. Avoid downloading it unnecessarily. A third-party page listing a separate Surah 94 MP3 is not accepted as a substitute until reuse rights for that exact recording are established.
-- No audio has been downloaded, extracted, listened to, or approved yet. No video has been generated. Keep auto-publishing disabled and user approval mandatory.
+- The official Surah Ash-Sharh MP3 has been extracted in GitHub Actions. The user listened to it and confirmed it is the complete surah and the audio sounds good. This is user-confirmed listening, not an independent audio analysis by ChatGPT. No video has been generated. Keep auto-publishing disabled and user approval mandatory.
 
 
 ## Cloud runner setup (2026-10-31)
@@ -85,3 +85,9 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 - Extracted MP3 SHA-256: `78d40c55bfece24bdc738a88408264f3ef94f31e05dda77228f05d2de1e403b1`.
 - GitHub Actions artifact: `official-maher-ash-sharh-audio`, artifact ID `13027479483`, expires 2026-11-07.
 - Extraction and technical metadata check succeeded. The recording has NOT yet been listened to and checked against verses 94:5–6; therefore it is not yet approved for video production.
+
+
+## User audio review (2026-10-31)
+- User listened to the extracted official Maher Al-Muaiqly Hafs recording and confirmed: it is the complete Surah Ash-Sharh and the audio is good.
+- Treat the recording as approved for use in the first test-video workflow, based on the user's listening confirmation.
+- Technical extraction details and SHA-256 remain recorded above. Do not claim ChatGPT independently listened to the recording.
