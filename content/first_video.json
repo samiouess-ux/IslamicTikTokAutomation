@@ -5,7 +5,10 @@
     "surah_number": 94,
     "surah_name_ar": "الشرح",
     "surah_name_fr": "As Sharh",
-    "verses": [5, 6],
+    "verses": [
+      5,
+      6
+    ],
     "arabic_source": "Tanzil text as displayed by QuranEnc",
     "french_translation": "Muhammad Hamidullah (version révisée)",
     "translation_source_url": "https://quranenc.com/fr/browse/french_hameedullah/94",
@@ -26,7 +29,10 @@
   "audio": {
     "required": true,
     "music_allowed": false,
-    "preferred_reciters": ["Islam Sobhi", "Yasser Al-Dosari"],
+    "preferred_reciters": [
+      "Islam Sobhi",
+      "Yasser Al-Dosari"
+    ],
     "selected_recording": null,
     "rights_verified": false,
     "production_blocked_until_rights_verified": true
@@ -40,7 +46,18 @@
     "background_source": "Pexels",
     "arabic_text_size": "large_primary",
     "french_text_size": "smaller_secondary",
-    "gentle_motion": true
+    "gentle_motion": true,
+    "background_candidate": {
+      "provider": "Pexels",
+      "creator": "Engin Akyurt",
+      "title": "Serene Blue Ocean Horizon with Distant Mountains",
+      "source_url": "https://www.pexels.com/video/serene-blue-ocean-horizon-with-distant-mountains-37336447/",
+      "aspect_ratio": "9:16",
+      "resolution": "2160x3840",
+      "duration_seconds": 48,
+      "status": "candidate_not_downloaded_or_approved",
+      "note": "Review the exact clip and retain source/creator attribution information before use."
+    }
   },
   "publishing": {
     "approval_required": true,
