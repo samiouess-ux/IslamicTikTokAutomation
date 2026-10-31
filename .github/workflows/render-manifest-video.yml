@@ -39,6 +39,11 @@ on:
         required: false
         default: ''
         type: string
+      send_to_telegram:
+        description: Send the finished review MP4 to your Telegram (TikTok publishing stays manual)
+        required: false
+        default: true
+        type: boolean
       rotation_key:
         description: Stable key for deterministic selection
         required: false
@@ -201,3 +206,11 @@ jobs:
             output/review.mp4
             output/review.caption.json
           retention-days: 7
+
+      - name: Send review MP4 to Telegram
+        if: ${{ inputs.send_to_telegram == true }}
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python src/send_telegram.py --video output/review.mp4 --caption output/review.caption.json
