@@ -7,16 +7,22 @@ Prepare two vertical Islamic reminder videos per day:
 - one Arabic version
 - one English version
 
-The user must review and approve every video before publishing. Automatic publishing is disabled.
+Video content may be a complete surah, a selected sequence of verses, or a single verse. Every video must include a ready-to-review caption identifying the surah and verse range, with suitable Arabic and English description and relevant hashtags. Do not include the reciter's name in the video or public caption. The user must review and approve every video before publishing. Automatic publishing is disabled.
 
 ## Agreed video style
 - Format: vertical 9:16, target 1080x1920, 30 FPS.
 - Arabic Quran text is the main visual element and must be larger.
 - English translation appears underneath in a noticeably smaller font.
 - Quran recitation is required; music is not allowed.
-- Use a beautiful, calm, high-quality background, preferably subtle natural scenery with gentle motion.
+- Vary backgrounds and layouts across a curated set of calm, respectful designs; do not reuse the same background by default. Select a suitable background for each video.
 - Recitation must be authentic and match the displayed verses exactly.
 - Never invent Quran text, hadith, attribution, source, or translation.
+
+## Caption rules
+- Include the surah name and exact verse number/range (or identify a complete surah).
+- Prepare Arabic and English captions with relevant, restrained hashtags.
+- Do not display or mention the reciter's name in the video or public caption, per user preference.
+- Keep audio provenance and reuse-permission records internally for compliance; these are not public captions.
 
 ## First test video
 Theme: hope and ease after hardship.
@@ -27,23 +33,19 @@ Theme: hope and ease after hardship.
 - Proposed background: peaceful natural scenery, gently animated; Pexels candidate is documented in content/first_video.json.
 
 ## Current technical state
-Initial repository structure and project documentation exist:
-- src/main.py
-- config/settings.example.json
-- requirements.txt
-- .gitignore
-- PROJECT_STATUS.md
-- DESIGN_SPEC.md
-- content/first_video.json
-
-The language configuration and first-video manifest are now set to Arabic + English. No video-generation pipeline, recitation audio, external services, or publishing integration has been configured yet.
+- Arabic + English output configuration is in place.
+- Official King Fahd Complex recitation audio was extracted and the exact verses 94:5–6 clip was reviewed and approved by the user.
+- A Mixkit nature background was reviewed and approved by the user.
+- First test video render completed successfully in GitHub Actions: run `41165699435`, artifact `13029197609`, output `ash-sharh-94-5-6-review.mp4` (1080×1920, 30 FPS).
+- The first render is a successful prototype, not yet a reusable multi-surah production pipeline.
+- No automatic publishing is enabled.
 
 ## Next steps
-1. Verify the exact English translation wording and source for verses 94:5–6.
-2. Reciter approved: Maher Al-Muaiqly (Hafs), selected by the user. The King Fahd Complex official rights page grants free public-use permission for the listed recordings inside and outside Saudi Arabia. The exact Surah Ash-Sharh audio file has been extracted and the user confirmed it is the complete surah with good audio quality.
-3. Review and approve the Pexels background candidate.
-4. Build one Arabic/English 9:16 test video.
-5. Review the output with the user before any further automation.
+1. Turn the successful one-off render into a reusable renderer driven by a content manifest.
+2. Support full-surah, verse-range, and single-verse formats.
+3. Add caption generation fields: surah name, verse range, Arabic and English descriptions, and hashtags; exclude reciter name from public output.
+4. Add a curated rotating set of approved backgrounds and design layouts.
+5. Keep every generated video and caption in a review stage; no publishing without explicit user approval.
 
 ## Non-negotiable constraints
 - Prefer free/open-source tools; no upfront paid services.
@@ -103,7 +105,16 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 - The individual verse files and combined clip are available in the artifact. The user listened to the exact combined 94:5–6 clip and confirmed that the sequence is correct. The verse-level audio is now approved for the first test video.
 - The previously listened-to complete-surah recording remains approved by the user's earlier confirmation, but this exact verse-level cut is pending review.
 
-## Next action
-1. Verse-level recitation 94:5–6 has been reviewed and approved by the user.
-2. Review/approve the Pexels background candidate.
-3. Then build the first Arabic + English 9:16 test video. Auto-publishing remains disabled.
+## First render completed (2026-10-31)
+- GitHub Actions run `41165699435` completed successfully.
+- Artifact `ash-sharh-first-video-review`, ID `13029197609`.
+- Output `ash-sharh-94-5-6-review.mp4`, 1080×1920, 30 FPS.
+- The user reacted positively to the overall test render. Detailed review remains a separate approval step before publishing.
+- Approved background candidate: Mixkit “Waterfall Between Green Hills”, 720×1280 source, upscaled during rendering. User approved its representative preview.
+
+## Agreed content and caption behavior (2026-10-31)
+- Support a complete surah, a selected verse range, or a single verse depending on the content.
+- Rotate among multiple calm backgrounds and layouts; avoid repeating one background by default.
+- Every video should have a ready-to-review Arabic and English caption that names the surah and verse range (or complete surah) and includes relevant hashtags.
+- Do not show or mention the reciter's name in the video or public caption, per user preference. Retain rights/provenance details internally.
+- User approval remains mandatory before publishing; auto-publishing stays disabled.
