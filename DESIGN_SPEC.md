@@ -59,3 +59,7 @@ The user approved the latest rendered preview (GitHub Actions run 12; commit fb5
 - Rotate backgrounds across consecutive generated videos; exclude the most recently used background when at least one other eligible asset exists.
 - Prefer visual variety across calm natural scenery, sky, sea, and suitable architecture, without making the video distracting or reducing text contrast.
 - Background rotation must never bypass approval or rights checks. If no safe alternative is available, stop or use a documented fallback; do not silently select an unapproved asset.
+
+
+## Quran variety safeguard (2026-10-31)
+Rotate between reviewed surahs and verse selections (single ayahs or consecutive ranges). A candidate is eligible only when exact Uthmani text is present in the reviewed reference snapshot, the translation is sourced and verified for those exact verses, and an authentic permitted recitation matches the exact passage and order and has been user-reviewed. Preserve the approved 9:16 gold cartouche, separate gold verse medallions, white Arabic, smaller English translation, calm approved backgrounds, and all audio rules: no music, no synthetic recitation, no public reciter name. Skip any candidate that fails a check; never trade correctness for variety.
