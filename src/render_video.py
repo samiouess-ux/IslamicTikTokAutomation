@@ -42,19 +42,43 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     title_font = ImageFont.truetype(font_path, 48)
     verse_font = ImageFont.truetype(font_path, 76)
 
-    # Elegant gold Islamic title cartouche. Decoration is drawn separately;
-    # it never changes or overlaps the Arabic title text.
-    gold = (224, 184, 92, 255)
-    soft_gold = (224, 184, 92, 175)
-    draw.rounded_rectangle((235, 412, 845, 538), radius=28,
-                           outline=soft_gold, width=3)
-    draw.rounded_rectangle((247, 424, 833, 526), radius=22,
-                           outline=(224, 184, 92, 105), width=1)
-    for x in (265, 815):
-        draw.polygon([(x, 475), (x + (12 if x < 540 else -12), 463),
-                      (x + (24 if x < 540 else -24), 475),
-                      (x + (12 if x < 540 else -12), 487)], outline=gold)
-        draw.ellipse((x - 3, 472, x + 3, 478), fill=gold)
+    # Ornate classical Islamic cartouche: pointed ends, layered borders,
+    # rosette details and corner arabesques. All decoration stays outside text.
+    gold = (231, 190, 103, 255)
+    soft_gold = (231, 190, 103, 190)
+    faint_gold = (231, 190, 103, 105)
+
+    # Main title cartouche with pointed ends and gently scalloped shoulders.
+    outer = [(540, 392), (575, 410), (785, 410), (815, 430),
+             (845, 475), (815, 520), (785, 540), (575, 540),
+             (540, 558), (505, 540), (295, 540), (265, 520),
+             (235, 475), (265, 430), (295, 410), (505, 410)]
+    inner = [(540, 405), (568, 420), (780, 420), (802, 437),
+             (829, 475), (802, 513), (780, 530), (568, 530),
+             (540, 545), (512, 530), (300, 530), (278, 513),
+             (251, 475), (278, 437), (300, 420), (512, 420)]
+    draw.line(outer + [outer[0]], fill=gold, width=4, joint="curve")
+    draw.line(inner + [inner[0]], fill=faint_gold, width=2, joint="curve")
+
+    # Small eight-petal rosettes at both ends of the cartouche.
+    def rosette(cx: int, cy: int, radius: int, color) -> None:
+        for angle in range(0, 360, 45):
+            import math
+            rad = math.radians(angle)
+            px, py = cx + math.cos(rad) * radius * 0.62, cy + math.sin(rad) * radius * 0.62
+            draw.ellipse((px - radius * 0.38, py - radius * 0.38,
+                          px + radius * 0.38, py + radius * 0.38),
+                         outline=color, width=2)
+        draw.ellipse((cx - 3, cy - 3, cx + 3, cy + 3), fill=color)
+
+    rosette(282, 475, 17, gold)
+    rosette(798, 475, 17, gold)
+    for x in (335, 745):
+        draw.polygon([(x, 414), (x + 7, 425), (x, 436), (x - 7, 425)],
+                     outline=soft_gold)
+        draw.polygon([(x, 514), (x + 7, 525), (x, 536), (x - 7, 525)],
+                     outline=soft_gold)
+
     draw.text((540, 475), title, font=title_font, fill=gold,
               anchor="mm", direction="rtl", language="ar", stroke_width=0)
     line_gap = 145 if len(verses) <= 3 else 115
@@ -78,13 +102,16 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         gap = 48
         cx = bbox[0] - gap - medallion_radius
         cy = y
-        # Gold double-ring medallion remains separate from Quran text.
-        draw.ellipse((cx - medallion_radius, cy - medallion_radius,
-                      cx + medallion_radius, cy + medallion_radius),
-                     outline=gold, width=3)
-        draw.ellipse((cx - medallion_radius + 5, cy - medallion_radius + 5,
-                      cx + medallion_radius - 5, cy + medallion_radius - 5),
-                     outline=(224, 184, 92, 150), width=1)
+        # Eight-lobed ornamental verse cartouche, separate from Quran text.
+        import math
+        points = []
+        for angle in range(0, 360, 15):
+            radius = medallion_radius if (angle // 15) % 2 == 0 else medallion_radius - 5
+            rad = math.radians(angle)
+            points.append((cx + math.cos(rad) * radius, cy + math.sin(rad) * radius))
+        draw.line(points + [points[0]], fill=gold, width=3, joint="curve")
+        draw.ellipse((cx - 19, cy - 19, cx + 19, cy + 19),
+                     outline=soft_gold, width=2)
         number_font = ImageFont.truetype(font_path, 27)
         number = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
         draw.text((cx, cy), number, font=number_font,
