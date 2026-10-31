@@ -32,11 +32,12 @@ class QuranBatchAudioTests(unittest.TestCase):
                 "passages": [
                     {"candidate_id": "s1", "surah_number": 1, "verses": [{"ayah": 1}, {"ayah": 2}]},
                     {"candidate_id": "s2", "surah_number": 2, "verses": [{"ayah": 1}, {"ayah": 2}]},
+                    {"candidate_id": "s3", "surah_number": 3, "verses": [{"ayah": 1}, {"ayah": 2}, {"ayah": 3}]},
                 ],
             }
             inventory = {
                 "mapped_verse_count": 6236,
-                "verses": {f"{s}:{a}": f"{s}-{a}.mp3" for s in (1, 2) for a in (1, 2)},
+                "verses": {f"{s}:{a}": f"{s}-{a}.mp3" for s in (1, 2, 3) for a in (1, 2, 3)},
             }
             batch_path, inventory_path = root / "batch.json", root / "inventory.json"
             batch_path.write_text(json.dumps(batch), encoding="utf-8")
@@ -47,11 +48,16 @@ class QuranBatchAudioTests(unittest.TestCase):
                 return None
 
             with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
-                 patch.object(module, "probe", side_effect=[12.0, 14.0, 13.0, 15.0, 26.0, 28.0]), \
+                 patch.object(module, "probe", side_effect=[12.0, 14.0, 13.0, 15.0, 40.0, 30.0, 26.0, 28.0]), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out")
 
             self.assertEqual(report["audio_prepared_count"], 2)
+            blocked = next(item for item in report["items"] if item["candidate_id"] == "s3")
+            self.assertEqual(blocked["status"], "blocked_complete_passage_exceeds_65_seconds")
+            self.assertEqual(blocked["requested_verses"], [1, 2, 3])
+            self.assertEqual(blocked["selected_verses"], [])
+            self.assertIsNone(blocked["audio_file"])
             self.assertEqual(report["distinct_surah_count"], 2)
             self.assertFalse(report["rendering_allowed"])
             self.assertFalse(report["telegram_delivery"])
