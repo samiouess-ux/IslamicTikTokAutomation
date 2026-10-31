@@ -84,3 +84,12 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Observed render turnaround improved from roughly 3m52 on the earlier manifest run to roughly 1m45 on the optimized run (runner timing varies). Removing the unnecessary `deshake` filter is validated; the visual reference remains intact.
 - New three-distinct-manifest batch tests passed as part of the optimized CI runs.
 - Still outstanding: controlled manual Telegram dispatch with private GitHub Secrets configured, followed by user confirmation of receipt. Do not turn on daily/Friday schedules or TikTok publishing until real delivery and three varied approved content types are proven.
+
+
+## Authoritative user clarification — Telegram is automatic delivery (2026-10-31)
+- The user does NOT want to manually open GitHub Actions and dispatch each video.
+- Target workflow: the engine automatically generates the planned videos and sends the resulting MP4 files to the user's Telegram. The user downloads them from Telegram and publishes them to TikTok manually.
+- Do not present manual workflow dispatch as the normal operating procedure or ask the user to repeat it for each video. A manual dispatch can be used internally for a one-time controlled test only.
+- Keep TikTok publishing disabled and manual.
+- Do NOT enable a premature schedule: current content/rendering support is not yet ready for three varied daily videos. Complete Quran + authentic dua/dhikr/reminder rendering and validation, confirm a real Telegram delivery, and then configure the scheduled engine to send automatically. Daily/Friday schedules remain disabled until these gates are satisfied.
+- Historical notes below about a required user-initiated manual dispatch are superseded by this clarification for the final operating design.
