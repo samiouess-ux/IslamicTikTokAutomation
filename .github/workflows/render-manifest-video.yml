@@ -1,21 +1,6 @@
 name: Render manifest video for review
 
 on:
-  push:
-    paths:
-      - 'src/render_video.py'
-      - 'src/render_video_scenes.py'
-      - 'src/validate_quran_text.py'
-      - 'src/validate_quran_reference.py'
-      - 'tests/**'
-      - 'src/render_dua_video.py'
-      - 'src/content_rotation.py'
-      - 'src/select_review_manifest.py'
-      - 'src/asset_rotation.py'
-      - 'src/validate_content_manifest.py'
-      - 'data/reference/**'
-      - 'content/**'
-      - '.github/workflows/render-manifest-video.yml'
   workflow_dispatch:
     inputs:
       manifest:
