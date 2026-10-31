@@ -7,7 +7,12 @@
     "surah_number": 112,
     "surah_name_ar": "الإخلاص",
     "surah_name_en": "Al-Ikhlas",
-    "verses": [1, 2, 3, 4],
+    "verses": [
+      1,
+      2,
+      3,
+      4
+    ],
     "arabic_source": "Quran.com Uthmani text",
     "arabic_source_url": "https://quran.com/al-ikhlas",
     "english_translation": "Sahih International",
@@ -42,8 +47,10 @@
     "kind": "quran_recitation",
     "approved": false,
     "exact_recording_user_reviewed": false,
-    "rights_verified": false,
-    "note": "Do not render until the exact official recitation files, archive entry paths, usage terms, and user listening review are documented."
+    "rights_verified": true,
+    "note": "Do not render until the exact official recitation files, archive entry paths, usage terms, and user listening review are documented.",
+    "rights_source_url": "https://qurancomplex.gov.sa/quran-audios/",
+    "rights_note": "The official King Fahd Glorious Quran Printing Complex audio-recitation page lists Sheikh Maher Al-Muaiqly in Hafs and explicitly permits the listed digital recitations for free public use in computer applications, websites, and broadcast channels inside and outside Saudi Arabia. Exact clip identity and user listening approval remain separate pending checks."
   },
   "visual": {
     "format": "9:16",
@@ -60,12 +67,21 @@
     "auto_publish": false
   },
   "caption": {
-    "languages": ["ar", "en"],
+    "languages": [
+      "ar",
+      "en"
+    ],
     "mention_reciter": false,
     "status": "draft_for_review",
     "arabic": "سورة الإخلاص | الآيات 1–4",
     "english": "Surah Al-Ikhlas | Verses 1–4",
-    "hashtags_ar": ["#القرآن_الكريم", "#سورة_الإخلاص"],
-    "hashtags_en": ["#Quran", "#AlIkhlas"]
+    "hashtags_ar": [
+      "#القرآن_الكريم",
+      "#سورة_الإخلاص"
+    ],
+    "hashtags_en": [
+      "#Quran",
+      "#AlIkhlas"
+    ]
   }
 }
