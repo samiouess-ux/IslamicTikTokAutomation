@@ -177,6 +177,16 @@
       "en"
     ],
     "mention_reciter": false,
-    "status": "draft_for_review"
+    "status": "draft_for_review",
+    "arabic": "سورة الشرح | الآيات 1–8\\nتلاوة لسورة الشرح كاملة، تذكيرٌ باليسر بعد العسر وبالتوجّه إلى الله.",
+    "english": "Surah Ash-Sharh | Verses 1–8\\nA complete recitation of Surah Ash-Sharh, a reminder of ease after hardship and turning to Allah.",
+    "hashtags_ar": [
+      "#القرآن_الكريم",
+      "#سورة_الشرح"
+    ],
+    "hashtags_en": [
+      "#Quran",
+      "#AshSharh"
+    ]
   }
 }
