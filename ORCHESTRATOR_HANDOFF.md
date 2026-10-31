@@ -68,3 +68,9 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 ## Rendering performance follow-up (2026-10-31)
 - Batch regression tests passed in run `41236627114`, but both render workflows `41236627114` and `41236627093` remained active at the video-render step for an extended period. Live job log blobs were unavailable from the connector, so the cause is not confirmed.
 - Removed the unnecessary FFmpeg `deshake` filter from the approved background pipeline in commit `2c7684e57f46739d764a4b7ff25623172b04cba1`. This preserves the approved background and overlays while testing a likely CPU bottleneck. Await the new workflow runs before claiming improvement.
+
+
+## Render completion update (2026-10-31)
+- Run `41236627093` completed successfully on the previous renderer revision: the 94:1–8 MP4 rendered and uploaded as artifact `13055821597` (34,107,653 bytes; expires 2026-11-07). Telegram step was skipped, not delivered.
+- Run `41236627114` had not yet completed at the latest check.
+- The targeted no-deshake performance change is commit `2c7684e57f46739d764a4b7ff25623172b04cba1`; new runs `41236886998` and `41236886984` were still in setup/install when checked. Do not infer the optimization works until they complete.
