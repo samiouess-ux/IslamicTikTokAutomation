@@ -9,6 +9,7 @@ import urllib.request
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, features
+from hashtag_strategy import build_hashtags
 
 
 def download(url: str, destination: Path) -> None:
@@ -286,9 +287,12 @@ def main() -> None:
         "verses": verse_numbers,
         "arabic_caption": caption.get("arabic", ""),
         "english_caption": caption.get("english", ""),
-        "hashtags_ar": caption.get("hashtags_ar", []),
-        "hashtags_en": caption.get("hashtags_en", []),
-        "reciter_public_attribution": False,
+        "hashtags_ar": build_hashtags(str(data.get("id", "")), caption)["ar"],
+        "hashtags_en": build_hashtags(str(data.get("id", "")), caption)["en"],
+        "hashtags_fr": build_hashtags(str(data.get("id", "")), caption)["fr"],
+        "hashtags_tr": build_hashtags(str(data.get("id", "")), caption)["tr"],
+        "hashtags_id": build_hashtags(str(data.get("id", "")), caption)["id"],
+        "reciter_public_attribution": False
         "publishing": "disabled"
     }, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Rendered review video: {output} ({duration:.2f}s)")
