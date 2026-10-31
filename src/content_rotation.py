@@ -43,3 +43,32 @@ def choose_manifest(
         )
     digest = hashlib.sha256(rotation_key.encode("utf-8")).digest()
     return eligible[int.from_bytes(digest[:8], "big") % len(eligible)][1]
+
+
+def choose_manifests(
+    content_dir: Path,
+    content_type: str,
+    count: int,
+    recent_ids: Iterable[str] = (),
+    rotation_key: str = "",
+) -> list[Path]:
+    """Select a batch of distinct approved manifests or fail without a partial batch."""
+    if not isinstance(count, int) or count < 1:
+        raise ValueError("count must be a positive integer.")
+    recent = set(recent_ids)
+    selected: list[Path] = []
+    for index in range(count):
+        try:
+            candidate = choose_manifest(
+                content_dir, content_type, recent_ids=recent,
+                rotation_key=f"{rotation_key}:{index}",
+            )
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(
+                f"Cannot build a complete batch of {count} distinct {content_type} manifests; "
+                f"selected {len(selected)}. {exc}"
+            ) from exc
+        data = json.loads(candidate.read_text(encoding="utf-8"))
+        recent.add(data["id"])
+        selected.append(candidate)
+    return selected
