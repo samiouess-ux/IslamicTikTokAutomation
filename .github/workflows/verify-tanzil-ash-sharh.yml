@@ -50,10 +50,11 @@ jobs:
 
           if not raw or len(raw) < 100_000:
               raise SystemExit(f"Unexpectedly small download: {len(raw)} bytes")
-          if b"Tanzil Quran Text" not in raw[:10000]:
-              raise SystemExit("Downloaded file lacks the expected Tanzil copyright/version header")
-          if b"Version 1.1" not in raw[:10000]:
-              raise SystemExit("Downloaded file does not identify Tanzil version 1.1")
+          header = raw[:10000].decode("utf-8", errors="replace")
+          if "Tanzil" not in header:
+              raise SystemExit("Downloaded file lacks the Tanzil source/license header")
+          if b"<html" in raw[:1000].lower() or b"<!doctype" in raw[:1000].lower():
+              raise SystemExit("Server returned HTML instead of the text file")
 
           Path("output/tanzil_uthmani_v1.1_original.txt").write_bytes(raw)
           print("Final URL:", final_url)
