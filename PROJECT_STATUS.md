@@ -252,5 +252,13 @@ Theme: hope and ease after hardship.
 
 ## Quran-wide archive inventory automation (2026-10-31)
 - Added `src/build_official_audio_inventory.py` and `.github/workflows/build-quran-audio-inventory.yml` to enumerate the official King Fahd Complex Hafs verse archive and validate the mapping against all 6,236 verses across 114 surahs.
-- Workflow run `41238698032` was triggered automatically by the branch update and was still in progress at the last check. The inventory is not yet confirmed until the workflow succeeds and the archive mapping is inspected.
+- Workflow run `41238698032` completed successfully. Artifact `official-quran-verse-audio-inventory` (ID `13056259931`, 42,188 bytes) was downloaded and inspected: JSON contains 6,236 unique verse keys and archive-member paths. The filename mapping is confirmed; it is not a listening, translation, or rights approval.
 - This step builds an internal verse-to-official-audio archive index; it does not yet mean every recording has been individually listened to, nor does it complete the trusted Arabic text/translation catalogue or the automatic 65-second passage selector.
+
+
+## Official Quran audio inventory confirmed and passage preparer added (2026-10-31)
+- Confirmed successful inventory workflow `41238698032` and inspected artifact `13056259931`; JSON reports exactly 6,236 mapped verses across the 114-surah canonical counts. It records Hafs and the internally retained reciter/source metadata.
+- Added `src/prepare_official_quran_passage.py`: reads the inventory, downloads only contiguous official verse MP3s from the archive, probes each actual duration with ffprobe, and selects complete consecutive ayahs toward 60 seconds without exceeding 65 seconds. It never speeds up or trims the recitation. It explicitly labels its output as still requiring text, translation, rights, and user review.
+- Added `tests/test_prepare_official_quran_passage.py` for contiguous packing, hard-cap handling, missing entries, and invalid durations. The CI runs triggered by these commits are pending; do not mark the new code tested until they finish.
+- Important remaining blockers: the checked-in Uthmani reference still has only six verses; the verified Sahih International translation corpus is not Quran-wide; exact archive mapping does not by itself prove the usage terms for every file; and no new recording beyond the previously user-reviewed Ash-Sharh 94:5-6 clip has been individually listened to and approved.
+- Do not enable Quran-wide rotation, three-video daily scheduling, or Telegram automatic delivery until those blockers and the dua/dhikr content/rendering gates are closed and a real Telegram send is confirmed.
