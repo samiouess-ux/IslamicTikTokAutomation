@@ -50,16 +50,24 @@ jobs:
 
           if not raw or len(raw) < 100_000:
               raise SystemExit(f"Unexpectedly small download: {len(raw)} bytes")
-          header = raw[:10000].decode("utf-8", errors="replace")
-          if "Tanzil" not in header:
-              raise SystemExit("Downloaded file lacks the Tanzil source/license header")
           if b"<html" in raw[:1000].lower() or b"<!doctype" in raw[:1000].lower():
               raise SystemExit("Server returned HTML instead of the text file")
+          decoded = raw.decode("utf-8-sig")
+          records = [
+              line for line in decoded.splitlines()
+              if line and not line.lstrip().startswith("#") and len(line.split("|", 2)) == 3
+          ]
+          if len(records) < 6000:
+              raise SystemExit(f"Unexpected text format or incomplete Quran dataset: {len(records)} records")
+          if not any(line.split("|", 2)[:2] == ["94", "1"] for line in records):
+              raise SystemExit("Downloaded text does not contain the expected 94|1 record")
 
           Path("output/tanzil_uthmani_v1.1_original.txt").write_bytes(raw)
           print("Final URL:", final_url)
           print("Content-Type:", content_type)
           print("Bytes:", len(raw))
+          print("Parseable verse records:", len(records))
+          print("First bytes:", repr(raw[:160]))
           print("SHA-256:", hashlib.sha256(raw).hexdigest())
           PY
 
