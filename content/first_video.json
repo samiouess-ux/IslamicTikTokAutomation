@@ -1,6 +1,6 @@
 {
   "id": "test_surah_ash_sharh_94_5_6",
-  "status": "content_prepared_audio_rights_pending",
+  "status": "content_prepared_official_reciter_selected_audio_file_pending",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -34,9 +34,13 @@
       "Islam Sobhi",
       "Yasser Al-Dosari"
     ],
-    "selected_recording": null,
-    "rights_verified": false,
-    "production_blocked_until_rights_verified": true,
+    "selected_reciter": "Maher Al-Muaiqly",
+    "recitation": "Hafs",
+    "rights_verified_for_official_complex_recordings": true,
+    "rights_source_url": "https://qurancomplex.gov.sa/quran-audios/",
+    "exact_audio_file_downloaded": false,
+    "exact_audio_file_listened_and_checked": false,
+    "production_blocked_until_exact_audio_checked": true,
     "license_research_candidates": [
       {
         "reciter": "Maher Al-Muaiqly",
@@ -45,7 +49,7 @@
         "license_url": "https://qurancomplex.gov.sa/quran-audios/",
         "permission_summary": "Official page states the listed digital recitations are made available free for public use in apps, websites, broadcast channels, and private/institutional works, inside and outside Saudi Arabia.",
         "surah_ash_sharh_listed_on_separate_reciter_page": "https://maheralmuaiqly.com/ar/quran/107",
-        "status": "promising_official_permission_candidate_not_yet_downloaded_or_checked"
+        "status": "user_approved_reciter_official_permission_confirmed_exact_audio_not_yet_downloaded_or_checked"
       }
     ]
   },
