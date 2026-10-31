@@ -93,3 +93,10 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Keep TikTok publishing disabled and manual.
 - Do NOT enable a premature schedule: current content/rendering support is not yet ready for three varied daily videos. Complete Quran + authentic dua/dhikr/reminder rendering and validation, confirm a real Telegram delivery, and then configure the scheduled engine to send automatically. Daily/Friday schedules remain disabled until these gates are satisfied.
 - Historical notes below about a required user-initiated manual dispatch are superseded by this clarification for the final operating design.
+
+
+## User reaffirmation — varied video backgrounds (2026-10-31)
+- The user explicitly wants background variety; do not send every video with the same background.
+- Use a curated pool of multiple approved and rights-verified backgrounds, rotating between videos and avoiding immediate repeats whenever another eligible background exists.
+- Possible visual families include calm nature, sky, sea, and Islamic architecture; keep the approved gold cartouche/verse medallions/text hierarchy consistent and readable.
+- Do not invent approval or licensing. Never pick an unapproved asset just to make the background different. If the approved pool has no eligible alternative, fail safely and report the limitation.
