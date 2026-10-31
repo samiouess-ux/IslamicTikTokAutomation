@@ -71,17 +71,19 @@ def validate_quran_audio_approval(audio: dict) -> None:
         raise SystemExit("Reuse permission for the exact Quran recording is not documented.")
 
 
-def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> None:
-    """One verse per card; wrap by whole words and shrink only when needed."""
+def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
+                           template: str = "ornate_gold_classic") -> None:
+    """Render one exact Quran verse in one of four genuinely distinct layouts."""
+    templates = {"ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"}
+    if template not in templates:
+        raise SystemExit(f"Unsupported visual template: {template}")
     if len(verses) != 1:
         raise SystemExit("Each screen must contain exactly one verse.")
     if not features.check("raqm"):
         raise SystemExit("Arabic rendering blocked: Pillow libraqm/RAQM is unavailable.")
-    # Resolve Amiri Bold through fontconfig because distro font paths can differ.
     try:
         bold_path = subprocess.check_output(
-            ["fc-match", "-f", "%{file}", "Amiri:style=Bold"],
-            text=True,
+            ["fc-match", "-f", "%{file}", "Amiri:style=Bold"], text=True
         ).strip()
     except (FileNotFoundError, subprocess.CalledProcessError) as exc:
         raise SystemExit("Unable to locate the Amiri Bold font.") from exc
@@ -89,82 +91,84 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         raise SystemExit(f"Required Amiri Bold font is missing: {bold_path!r}")
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    gold = (231, 190, 103, 255)
-    soft_gold = (231, 190, 103, 190)
-    faint_gold = (231, 190, 103, 105)
-
-    # Restore the approved ornate gold pointed cartouche and rosette details.
-    outer = [(540, 392), (575, 410), (785, 410), (815, 430),
-             (845, 475), (815, 520), (785, 540), (575, 540),
-             (540, 558), (505, 540), (295, 540), (265, 520),
-             (235, 475), (265, 430), (295, 410), (505, 410)]
-    inner = [(540, 405), (568, 420), (780, 420), (802, 437),
-             (829, 475), (802, 513), (780, 530), (568, 530),
-             (540, 545), (512, 530), (300, 530), (278, 513),
-             (251, 475), (278, 437), (300, 420), (512, 420)]
-    draw.line(outer + [outer[0]], fill=gold, width=4, joint="curve")
-    draw.line(inner + [inner[0]], fill=faint_gold, width=2, joint="curve")
-
-    def rosette(cx: int, cy: int, radius: int, color) -> None:
-        for angle in range(0, 360, 45):
-            rad = math.radians(angle)
-            px = cx + math.cos(rad) * radius * 0.62
-            py = cy + math.sin(rad) * radius * 0.62
-            draw.ellipse((px-radius*0.38, py-radius*0.38,
-                          px+radius*0.38, py+radius*0.38), outline=color, width=2)
-        draw.ellipse((cx-3, cy-3, cx+3, cy+3), fill=color)
-
-    rosette(282, 475, 17, gold)
-    rosette(798, 475, 17, gold)
-    for x in (335, 745):
-        draw.polygon([(x,414),(x+7,425),(x,436),(x-7,425)], outline=soft_gold)
-        draw.polygon([(x,514),(x+7,525),(x,536),(x-7,525)], outline=soft_gold)
-
-    title_font = ImageFont.truetype(bold_path, 58)
-    draw.text((540, 475), title, font=title_font, fill=gold, anchor="mm",
-              direction="rtl", language="ar", stroke_width=0)
-    verse = verses[0]
-    exact_text = verse["arabic"]
-    if not isinstance(exact_text, str) or not exact_text.strip():
+    palettes = {
+        "ornate_gold_classic": ((231,190,103,255),(255,255,255,255)),
+        "nature_clean": ((205,238,211,255),(255,255,255,255)),
+        "minimal_mushaf": ((238,226,195,255),(255,255,245,255)),
+        "cinematic_landscape": ((190,220,255,255),(255,255,255,255)),
+    }
+    accent, text_color = palettes[template]
+    title_font = ImageFont.truetype(bold_path, 58 if template != "minimal_mushaf" else 52)
+    if template == "ornate_gold_classic":
+        outer = [(540,392),(575,410),(785,410),(815,430),(845,475),(815,520),
+                 (785,540),(575,540),(540,558),(505,540),(295,540),(265,520),
+                 (235,475),(265,430),(295,410),(505,410)]
+        draw.line(outer+[outer[0]], fill=accent, width=4, joint="curve")
+        for cx in (282,798):
+            for angle in range(0,360,45):
+                rad=math.radians(angle)
+                px=cx+math.cos(rad)*10; py=475+math.sin(rad)*10
+                draw.ellipse((px-5,py-5,px+5,py+5),outline=accent,width=2)
+        title_y=475
+    elif template == "nature_clean":
+        draw.rounded_rectangle((95,385,985,565),radius=48,outline=accent,width=5)
+        draw.line((170,590,910,590),fill=accent,width=3)
+        title_y=475
+    elif template == "minimal_mushaf":
+        draw.line((140,420,940,420),fill=accent,width=3)
+        draw.line((140,535,940,535),fill=accent,width=3)
+        draw.ellipse((520,463,560,503),outline=accent,width=2)
+        title_y=475
+    else:
+        draw.rounded_rectangle((65,365,1015,580),radius=12,outline=accent,width=3)
+        draw.line((120,600,960,600),fill=accent,width=2)
+        title_y=475
+    draw.text((540,title_y),title,font=title_font,fill=accent,anchor="mm",
+              direction="rtl",language="ar")
+    verse=verses[0]
+    exact_text=verse.get("arabic")
+    if not isinstance(exact_text,str) or not exact_text.strip():
         raise SystemExit("Invalid/empty Arabic verse text.")
-    # Greedy line wrapping retains every original word and its order.
-    chosen = None
-    for size in (76, 72, 68, 64, 60, 56, 52, 48):
-        font = ImageFont.truetype(bold_path, size)
-        words = exact_text.split(" ")
-        lines, current = [], ""
+    chosen=None
+    for size in (76,72,68,64,60,56,52,48):
+        font=ImageFont.truetype(bold_path,size)
+        words=exact_text.split(" "); lines=[]; current=""
         for word in words:
-            candidate = (current + " " + word).strip()
-            if draw.textbbox((0, 0), candidate, font=font, direction="rtl", language="ar")[2] <= 900:
-                current = candidate
+            candidate=(current+" "+word).strip()
+            if draw.textbbox((0,0),candidate,font=font,direction="rtl",language="ar")[2] <= 900:
+                current=candidate
             else:
-                if current:
-                    lines.append(current)
-                current = word
-        if current:
-            lines.append(current)
-        if len(lines) <= 4:
-            chosen = (font, lines)
-            break
+                if current: lines.append(current)
+                current=word
+        if current: lines.append(current)
+        if len(lines)<=4:
+            chosen=(font,lines); break
     if chosen is None:
         raise SystemExit("Verse cannot fit safely; refusing to clip Quran text.")
-    font, lines = chosen
-    line_height = font.size * 1.75
-    first_y = 830 - (len(lines)-1)*line_height/2
-    for i, line in enumerate(lines):
-        draw.text((540, first_y+i*line_height), line, font=font,
-                  fill=(255,255,255,255), anchor="mm", direction="rtl", language="ar")
-    # Independent ornamental verse-number medallion.
-    cx, cy, radius = 540, 1110, 34
-    pts=[]
-    for angle in range(0,360,15):
-        r=radius if (angle//15)%2==0 else radius-6
-        rad=math.radians(angle)
-        pts.append((cx+math.cos(rad)*r,cy+math.sin(rad)*r))
-    draw.line(pts+[pts[0]], fill=gold, width=3, joint="curve")
-    number_font=ImageFont.truetype(bold_path,34)
+    font,lines=chosen
+    line_height=font.size*1.75
+    first_y=850-(len(lines)-1)*line_height/2
+    for i,line in enumerate(lines):
+        draw.text((540,first_y+i*line_height),line,font=font,fill=text_color,
+                  anchor="mm",direction="rtl",language="ar")
     number=str(verse["number"]).translate(str.maketrans("0123456789","٠١٢٣٤٥٦٧٨٩"))
-    draw.text((cx,cy),number,font=number_font,fill=gold,anchor="mm",direction="rtl",language="ar")
+    number_font=ImageFont.truetype(bold_path,34)
+    if template == "ornate_gold_classic":
+        cx,cy,radius=540,1110,34
+        pts=[]
+        for angle in range(0,360,15):
+            r=radius if (angle//15)%2==0 else radius-6
+            rad=math.radians(angle); pts.append((cx+math.cos(rad)*r,cy+math.sin(rad)*r))
+        draw.line(pts+[pts[0]],fill=accent,width=3,joint="curve")
+        draw.text((cx,cy),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
+    elif template == "nature_clean":
+        draw.rounded_rectangle((485,1080,595,1140),radius=28,outline=accent,width=3)
+        draw.text((540,1110),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
+    elif template == "minimal_mushaf":
+        draw.text((540,1110),f"۞ {number} ۞",font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
+    else:
+        draw.line((390,1110,690,1110),fill=accent,width=2)
+        draw.text((540,1160),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
     image.save(destination)
 
 def create_english_overlay(verses: list[dict], destination: Path) -> None:
@@ -210,7 +214,7 @@ def main() -> None:
     # Template selection is manifest-driven. Keep the approved design as the
     # only enabled template until another design is separately reviewed.
     template = visual.get("template", "ornate_gold_classic")
-    supported_templates = {"ornate_gold_classic"}
+    supported_templates = {"ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"}
     if template not in supported_templates:
         raise SystemExit(
             f"Unsupported/unapproved visual template: {template}. "
@@ -263,7 +267,7 @@ def main() -> None:
             raise SystemExit("Scene verse selection is invalid or out of order.")
         arabic_overlay = work / f"arabic_scene_{scene['scene']}.png"
         english_overlay = work / f"english_scene_{scene['scene']}.png"
-        create_arabic_overlay(title, selected, arabic_overlay)
+        create_arabic_overlay(title, selected, arabic_overlay, template)
         create_english_overlay(selected, english_overlay)
         scene_overlays.append((scene, arabic_overlay, english_overlay))
 
