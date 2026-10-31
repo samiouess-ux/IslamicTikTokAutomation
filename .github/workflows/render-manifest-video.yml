@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/render_video.py'
       - 'src/validate_quran_text.py'
+      - 'tests/**'
       - 'data/reference/**'
       - 'content/first_video.json'
       - '.github/workflows/render-manifest-video.yml'
@@ -34,6 +35,10 @@ jobs:
           pip install remotezip pillow
           python --version
           ffmpeg -version | head -n 1
+
+      - name: Run Quran validation regression tests
+        run: |
+          python -m unittest discover -s tests -v
 
       - name: Validate exact Quran Arabic text
         run: |
