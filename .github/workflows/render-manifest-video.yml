@@ -18,6 +18,27 @@ on:
         required: true
         default: content/first_video.json
         type: string
+      use_rotation:
+        description: Select an eligible reviewed manifest instead of the explicit path
+        required: false
+        default: false
+        type: boolean
+      content_type:
+        description: Content type for reviewed-manifest rotation
+        required: false
+        default: quran
+        type: choice
+        options: [quran, dua, dhikr]
+      recent_manifest_ids:
+        description: Newline-separated manifest IDs already used
+        required: false
+        default: ''
+        type: string
+      rotation_key:
+        description: Stable key for deterministic selection
+        required: false
+        default: manual-review
+        type: string
 
 permissions:
   contents: read
@@ -38,6 +59,28 @@ jobs:
           python --version
           ffmpeg -version | head -n 1
 
+      - name: Select reviewed manifest (optional rotation)
+        id: selection
+        shell: bash
+        env:
+          USE_ROTATION: ${{ inputs.use_rotation }}
+          CONTENT_TYPE: ${{ inputs.content_type }}
+          RECENT_IDS: ${{ inputs.recent_manifest_ids }}
+          ROTATION_KEY: ${{ inputs.rotation_key }}
+          EXPLICIT_MANIFEST: ${{ inputs.manifest }}
+        run: |
+          if [ "$USE_ROTATION" = "true" ]; then
+            args=(--content-type "$CONTENT_TYPE" --rotation-key "$ROTATION_KEY")
+            while IFS= read -r item; do
+              [ -n "$item" ] && args+=(--recent-id "$item")
+            done <<< "$RECENT_IDS"
+            selected=$(python src/select_review_manifest.py "${args[@]}")
+          else
+            selected="${EXPLICIT_MANIFEST:-content/first_video.json}"
+          fi
+          echo "manifest=$selected" >> "$GITHUB_OUTPUT"
+          echo "Selected review manifest: $selected"
+
       - name: Validate Quran reference snapshot structure
         run: |
           python src/validate_quran_reference.py data/reference/quran_text_uthmani.json
@@ -48,11 +91,11 @@ jobs:
 
       - name: Validate exact Quran Arabic text
         run: |
-          python src/validate_quran_text.py --manifest "${{ inputs.manifest || 'content/first_video.json' }}"
+          python src/validate_quran_text.py --manifest "${{ steps.selection.outputs.manifest }}"
 
       - name: Render video and caption for review
         run: |
-          python src/render_video.py --manifest "${{ inputs.manifest || 'content/first_video.json' }}" --output output/review.mp4
+          python src/render_video.py --manifest "${{ steps.selection.outputs.manifest }}" --output output/review.mp4
 
       - name: Upload review files (no publishing)
         uses: actions/upload-artifact@v4
