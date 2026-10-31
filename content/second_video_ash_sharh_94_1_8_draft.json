@@ -1,6 +1,6 @@
 {
   "id": "review_surah_ash_sharh_94_1_8",
-  "status": "draft_review_only_audio_asset_pending",
+  "status": "draft_review_only_production_audio_rebuild_required",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -71,10 +71,11 @@
     "official_verse_archive_url": "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
     "source_audio_artifact": "ash-sharh-94-1-8-audio-review",
     "exact_recording_user_reviewed": true,
-    "pauses_treatment": "shortened_preview_user_positive_but_production_file_not_yet_verified",
-    "production_audio_file": null,
-    "approved": false,
-    "note": "Do not render using the original long-pause concatenation. Supply and verify the exact user-approved shortened-pause audio asset before production."
+    "pauses_treatment": "user_approved_preview_v4; trim trailing low-level silence using silenceremove stop_duration=0.08 stop_threshold=-42dB; insert 0.05 seconds between verses; no time-stretching or speed change",
+    "production_audio_file": "output/ash_sharh_94_1_8_approved_audio.mp3",
+    "approved": true,
+    "approved_preview_duration_seconds": 43.284898,
+    "note": "User approved preview v4. Production workflow must recreate the exact approved pause treatment from the preserved original verse files and verify the resulting asset before rendering."
   },
   "visual": {
     "format": "9:16",
@@ -103,7 +104,7 @@
           4
         ],
         "transition": "soft fade",
-        "timing": "derive duration from original verse audio segment lengths; keep all audio continuous"
+        "timing": "derive duration from processed verse audio segment lengths; keep all audio continuous"
       },
       {
         "scene": 2,
@@ -114,7 +115,7 @@
           8
         ],
         "transition": "soft fade",
-        "timing": "derive duration from original verse audio segment lengths; keep all audio continuous"
+        "timing": "derive duration from processed verse audio segment lengths; keep all audio continuous"
       }
     ],
     "readability_constraints": {
