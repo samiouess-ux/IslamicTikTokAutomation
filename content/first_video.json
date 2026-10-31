@@ -1,6 +1,6 @@
 {
   "id": "test_surah_ash_sharh_94_5_6",
-  "status": "official_verse_audio_extracted_pending_user_review",
+  "status": "official_verse_audio_approved_background_pending",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -39,8 +39,8 @@
     "rights_verified_for_official_complex_recordings": true,
     "rights_source_url": "https://qurancomplex.gov.sa/quran-audios/",
     "exact_audio_file_downloaded": true,
-    "exact_audio_file_listened_and_checked": false,
-    "production_blocked_until_exact_audio_checked": true,
+    "exact_audio_file_listened_and_checked": true,
+    "production_blocked_until_exact_audio_checked": false,
     "license_research_candidates": [
       {
         "reciter": "Maher Al-Muaiqly",
@@ -62,7 +62,9 @@
     "github_actions_run_id": "41164756151",
     "github_actions_artifact_id": "13028735937",
     "github_actions_artifact_name": "maher-ash-sharh-verses-5-6-review",
-    "note": "The exact official verse files for 94:5 and 94:6 were extracted and joined in order without re-encoding. User review of this exact combined clip is still required before rendering."
+    "note": "The exact official verse files for 94:5 and 94:6 were extracted and joined in order without re-encoding. User review of this exact combined clip is still required before rendering.",
+    "user_review": "User confirmed the combined verses 94:5-6 clip has the correct sequence.",
+    "approved_for_first_test_video": true
   },
   "visual": {
     "format": "9:16",
