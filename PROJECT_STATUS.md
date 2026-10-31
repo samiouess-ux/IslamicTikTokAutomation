@@ -100,10 +100,10 @@ The language configuration and first-video manifest are now set to Arabic + Engl
 - Combined MP3: `maher_almuaiqly_ash_sharh_verses_5_6.mp3`; duration reported by FFprobe: 15.882449 seconds; size: 111,403 bytes; SHA-256: `3e2a91674ce2ee604885e06fba0ee67c425e5dbece54cc3256803e3b5f02c5a0`.
 - Audio stream: MP3, 22,050 Hz, stereo, 56 kb/s.
 - Artifact: `maher-ash-sharh-verses-5-6-review`, ID `13028735937`, available until 2026-11-07.
-- The individual verse files and combined clip are available in the artifact. Technical extraction and concatenation succeeded; the user still needs to listen to this exact two-verse combined clip before it is approved for video rendering.
+- The individual verse files and combined clip are available in the artifact. The user listened to the exact combined 94:5–6 clip and confirmed that the sequence is correct. The verse-level audio is now approved for the first test video.
 - The previously listened-to complete-surah recording remains approved by the user's earlier confirmation, but this exact verse-level cut is pending review.
 
 ## Next action
-1. User listens to the combined 94:5–6 clip in the new artifact and confirms the cut sounds correct.
+1. Verse-level recitation 94:5–6 has been reviewed and approved by the user.
 2. Review/approve the Pexels background candidate.
-3. Only then build the first Arabic + English 9:16 test video. Auto-publishing remains disabled.
+3. Then build the first Arabic + English 9:16 test video. Auto-publishing remains disabled.
