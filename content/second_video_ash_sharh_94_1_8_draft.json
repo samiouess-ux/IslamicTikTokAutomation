@@ -92,35 +92,77 @@
       "user_approved": true,
       "approved": true
     },
-    "layout": "eight_verses_must_be_split_into_readable_timed_scenes_or_pages; never squeeze all eight into one static frame",
-    "translation_layout": "paired_with_its_verse_in_separate_readable_scene",
+    "layout": "eight separate timed screens; exactly one verse per screen; never squeeze multiple verses into one frame",
+    "translation_layout": "show the matching English translation beneath its single Arabic verse on the same screen",
     "scenes": [
       {
         "scene": 1,
         "verses": [
-          1,
-          2,
-          3,
-          4
+          1
         ],
         "transition": "soft fade",
-        "timing": "derive duration from processed verse audio segment lengths; keep all audio continuous"
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
       },
       {
         "scene": 2,
         "verses": [
-          5,
-          6,
-          7,
+          2
+        ],
+        "transition": "soft fade",
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 3,
+        "verses": [
+          3
+        ],
+        "transition": "soft fade",
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 4,
+        "verses": [
+          4
+        ],
+        "transition": "soft fade",
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 5,
+        "verses": [
+          5
+        ],
+        "transition": "soft fade",
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 6,
+        "verses": [
+          6
+        ],
+        "transition": "soft fade",
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 7,
+        "verses": [
+          7
+        ],
+        "transition": "soft fade",
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 8,
+        "verses": [
           8
         ],
         "transition": "soft fade",
-        "timing": "derive duration from processed verse audio segment lengths; keep all audio continuous"
+        "timing": "derive from processed verse audio segment lengths; keep all audio continuous"
       }
     ],
     "readability_constraints": {
-      "arabic": "Large centered Arabic, each verse on its own line with separate ornamental number medallion; no text clipping or overlap.",
-      "english": "Each English translation paired directly beneath its corresponding Arabic verse; wrap by measured font width.",
+      "arabic": "One large centered Arabic verse per screen; wrap by whole words if needed; preserve exact Unicode text byte-for-byte; no clipping or overlap; keep the separate ornamental verse-number medallion.",
+      "english": "Show only the matching English translation beneath its verse; wrap by measured font width; no clipping.",
       "collision_checks": "Measure all text bounds; fail rendering if any text crosses panel boundaries, overlaps another verse, or collides with title/ornament.",
       "basmala": "Display separately from verse text; never append it to verse 1."
     }
