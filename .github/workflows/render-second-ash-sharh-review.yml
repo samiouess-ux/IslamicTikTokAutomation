@@ -100,3 +100,40 @@ jobs:
             output/ash_sharh_94_1_8_review.caption.json
           if-no-files-found: error
           retention-days: 7
+      - name: Send Telegram review notification
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REVIEW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          chat_id = os.environ["TELEGRAM_CHAT_ID"]
+          run_url = os.environ["REVIEW_RUN_URL"]
+          message = (
+              "✅ اكتمل تجهيز فيديو سورة الشرح (الآيات 1–8) للمراجعة.\n"
+              "الفيديو لم يُنشر على TikTok. يلزم تأكيدك الشخصي قبل أي نشر.\n\n"
+              "افتح الرابط لتحميل الفيديو وملفات المراجعة:\n" + run_url
+          )
+          payload = json.dumps({
+              "chat_id": chat_id,
+              "text": message,
+              "disable_web_page_preview": True
+          }).encode("utf-8")
+          request = urllib.request.Request(
+              f"https://api.telegram.org/bot{token}/sendMessage",
+              data=payload,
+              headers={"Content-Type": "application/json"},
+              method="POST"
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              result = json.loads(response.read().decode("utf-8"))
+          if not result.get("ok"):
+              raise RuntimeError("Telegram API did not confirm the notification.")
+          print("Telegram review notification sent.")
+          PY
