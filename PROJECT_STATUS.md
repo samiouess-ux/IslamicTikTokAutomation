@@ -112,6 +112,11 @@ Theme: hope and ease after hardship.
 - The user reacted positively to the overall test render. Detailed review remains a separate approval step before publishing.
 - Approved background candidate: Mixkit “Waterfall Between Green Hills”, 720×1280 source, upscaled during rendering. User approved its representative preview.
 
+## Reusable design and caption rules committed (2026-10-31)
+- `DESIGN_SPEC.md` now defines full-surah, verse-range, and single-verse formats; background/layout rotation; caption requirements; and no public reciter attribution.
+- `content/first_video.json` records the approved Mixkit waterfall background and bilingual caption draft for Ash-Sharh 94:5–6. Internal audio provenance remains recorded.
+- Commits: design `16c52f976dc546e296da46b3829bd1ee70db50e7`; manifest `1a6f108ba14d6057ba6b8a6d6ee8f6b6f016cf18`.
+
 ## Agreed content and caption behavior (2026-10-31)
 - Support a complete surah, a selected verse range, or a single verse depending on the content.
 - Rotate among multiple calm backgrounds and layouts; avoid repeating one background by default.
