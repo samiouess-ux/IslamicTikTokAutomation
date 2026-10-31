@@ -248,34 +248,6 @@ jobs:
               ], check=True)
           print("Telegram confirmed three review videos. TikTok publishing remains manual.")
           PY
-      - name: Temporary Telegram connection test (one-time)
-        if: github.event_name == 'push'
-        env:
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          import urllib.parse
-          import urllib.request
-
-          token = os.environ["TG_BOT_TOKEN"]
-          chat_id = os.environ["TELEGRAM_CHAT_ID"]
-          payload = urllib.parse.urlencode({
-              "chat_id": chat_id,
-              "text": "✅ اختبار اتصال من GitHub Actions إلى Telegram: الربط يخدم بنجاح."
-          }).encode()
-          request = urllib.request.Request(
-              f"https://api.telegram.org/bot{token}/sendMessage",
-              data=payload,
-          )
-          with urllib.request.urlopen(request, timeout=20) as response:
-              result = json.loads(response.read().decode())
-          if not result.get("ok"):
-              raise SystemExit("Telegram test message was not accepted.")
-          print("Telegram test message confirmed by Telegram API.")
-          PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
