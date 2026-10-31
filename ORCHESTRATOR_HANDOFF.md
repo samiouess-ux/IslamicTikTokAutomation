@@ -51,3 +51,13 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Sender-test runs `41235591309` and `41235591321` were still in progress at the latest API check; no failures were reported, but do not mark them passed until their conclusions are completed/success.
 - The connected GitHub tools currently available can inspect runs/artifacts/logs but do not provide workflow dispatch. A real Telegram send requires a one-time manual dispatch; do not enable send-on-push as a workaround.
 - Manual dispatch from phone: repository > Actions > “Render manifest video for review” > Run workflow; branch `feature/telegram-review-notifications`; manifest `content/second_video_ash_sharh_94_1_8_draft.json`; `use_rotation=false`; `send_to_telegram=true`. This requires GitHub Actions secrets `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; never paste secrets into chat.
+
+
+## Verified CI follow-up (2026-10-31)
+- Runs `41235591309` (manifest workflow) and `41235591321` (Ash-Sharh workflow), both on commit `177be619d997da42ca353ecb943e08296d383136`, completed with conclusion `success`.
+- In run `41235591309`, all steps including the full unit-test suite, Quran checks, render, MP4 technical validation and artifact upload succeeded. `Send review MP4 to Telegram` was skipped because this was a push event.
+- In run `41235591321`, all steps including tests, approved audio/background preparation, render and artifact upload succeeded. Its Telegram step was skipped because that dedicated workflow is intentionally disabled for sending.
+- The successful mocked Telegram sender test confirms request construction and handling of a positive API response only. It does not confirm real delivery.
+- A new follow-up commit `3339853714fda6da77b8394ad8567130aa21bb3d` adds tests for three distinct approved manifest selection and fail-closed behavior when a full batch cannot be selected. Its two push-triggered CI runs are pending; verify them before marking the change passed.
+- Current content inventory is not ready for a three-video rotation: Al-Ikhlas is unapproved, the first Ash-Sharh prototype is not marked rotation-approved, and the Ash-Sharh 94:1–8 manifest remains a review draft. No dua/dhikr manifests exist. The renderer supports Quran only.
+- No real Telegram delivery is confirmed. Keep all schedules disabled until three distinct approved items can render and a real Telegram send is verified.
