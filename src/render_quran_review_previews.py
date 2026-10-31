@@ -12,6 +12,123 @@ import subprocess
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, features
 
+SURAH_NAMES = [
+    "الفاتحة",
+    "البقرة",
+    "آل عمران",
+    "النساء",
+    "المائدة",
+    "الأنعام",
+    "الأعراف",
+    "الأنفال",
+    "التوبة",
+    "يونس",
+    "هود",
+    "يوسف",
+    "الرعد",
+    "إبراهيم",
+    "الحجر",
+    "النحل",
+    "الإسراء",
+    "الكهف",
+    "مريم",
+    "طه",
+    "الأنبياء",
+    "الحج",
+    "المؤمنون",
+    "النور",
+    "الفرقان",
+    "الشعراء",
+    "النمل",
+    "القصص",
+    "العنكبوت",
+    "الروم",
+    "لقمان",
+    "السجدة",
+    "الأحزاب",
+    "سبأ",
+    "فاطر",
+    "يس",
+    "الصافات",
+    "ص",
+    "الزمر",
+    "غافر",
+    "فصلت",
+    "الشورى",
+    "الزخرف",
+    "الدخان",
+    "الجاثية",
+    "الأحقاف",
+    "محمد",
+    "الفتح",
+    "الحجرات",
+    "ق",
+    "الذاريات",
+    "الطور",
+    "النجم",
+    "القمر",
+    "الرحمن",
+    "الواقعة",
+    "الحديد",
+    "المجادلة",
+    "الحشر",
+    "الممتحنة",
+    "الصف",
+    "الجمعة",
+    "المنافقون",
+    "التغابن",
+    "الطلاق",
+    "التحريم",
+    "الملك",
+    "القلم",
+    "الحاقة",
+    "المعارج",
+    "نوح",
+    "الجن",
+    "المزمل",
+    "المدثر",
+    "القيامة",
+    "الإنسان",
+    "المرسلات",
+    "النبأ",
+    "النازعات",
+    "عبس",
+    "التكوير",
+    "الانفطار",
+    "المطففين",
+    "الانشقاق",
+    "البروج",
+    "الطارق",
+    "الأعلى",
+    "الغاشية",
+    "الفجر",
+    "البلد",
+    "الشمس",
+    "الليل",
+    "الضحى",
+    "الشرح",
+    "التين",
+    "العلق",
+    "القدر",
+    "البينة",
+    "الزلزلة",
+    "العاديات",
+    "القارعة",
+    "التكاثر",
+    "العصر",
+    "الهمزة",
+    "الفيل",
+    "قريش",
+    "الماعون",
+    "الكوثر",
+    "الكافرون",
+    "النصر",
+    "المسد",
+    "الإخلاص",
+    "الفلق",
+    "الناس"
+]
+
 PALETTES = [
     ((12, 31, 46), (25, 68, 75), (220, 190, 125)),
     ((31, 24, 48), (67, 47, 82), (226, 203, 151)),
@@ -29,7 +146,7 @@ def font_file() -> str:
     return result
 
 
-def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str) -> None:
+def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     top, bottom, accent = PALETTES[index % len(PALETTES)]
@@ -49,7 +166,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str) -
     body_font = ImageFont.truetype(font_path, 66, layout_engine=ImageFont.Layout.RAQM)
     number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
     english_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 30)
-    draw.text((540, 320), f"سورة {surah}", font=title_font, fill=accent,
+    draw.text((540, 320), f"سورة {surah_name}", font=title_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
     arabic = verse.get("arabic")
     english = verse.get("english")
@@ -141,9 +258,12 @@ def render(batch_path: Path, report_path: Path, output_dir: Path) -> dict:
         segments = []
         for index, verse in enumerate(verses):
             frame = work / f"ayah_{int(verse['ayah']):03d}.png"
+            surah_number = int(candidate["surah_number"])
+            if not 1 <= surah_number <= len(SURAH_NAMES):
+                raise ValueError(f"Invalid surah number: {surah_number}")
             make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
                         "english": verse["english_saheeh_international"]},
-                       int(candidate["surah_number"]), index, frame, font_path)
+                       surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1])
             audio = Path(item["audio_file"]).parent / f"{int(candidate['surah_number']):03d}_{int(verse['ayah']):03d}.mp3"
             if not audio.is_file():
                 raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
