@@ -151,13 +151,13 @@ def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, s
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     top, bottom, accent = PALETTES[index % len(PALETTES)]
     image = Image.new("RGB", (1080, 1920))
-    pixels = image.load()
+    draw = ImageDraw.Draw(image)
+    # Draw one horizontal line per row; this avoids millions of slow Python
+    # per-pixel assignments while keeping the same smooth vertical gradient.
     for y in range(1920):
         t = y / 1919
-        color = tuple(round(top[c] * (1-t) + bottom[c] * t) for c in range(3))
-        for x in range(1080):
-            pixels[x, y] = color
-    draw = ImageDraw.Draw(image)
+        color = tuple(round(top[channel] * (1-t) + bottom[channel] * t) for channel in range(3))
+        draw.line((0, y, 1079, y), fill=color)
     # Minimal geometric frame generated locally; no external background asset.
     draw.rounded_rectangle((64, 250, 1016, 1570), radius=42, outline=accent, width=3)
     draw.line((170, 390, 910, 390), fill=accent, width=2)
