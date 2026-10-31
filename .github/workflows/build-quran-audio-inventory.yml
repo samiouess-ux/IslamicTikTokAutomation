@@ -48,5 +48,6 @@ jobs:
             output/official_verse_audio_inventory.json
             output/candidate_passage_94.json
             output/candidate_audio_94/*.mp3
+            output/english_saheeh_translation.json
           if-no-files-found: error
           retention-days: 30
