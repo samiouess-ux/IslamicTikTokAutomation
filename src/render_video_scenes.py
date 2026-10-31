@@ -37,10 +37,10 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         raise SystemExit("Each screen must contain exactly one verse.")
     if not features.check("raqm"):
         raise SystemExit("Arabic rendering blocked: Pillow libraqm/RAQM is unavailable.")
-    font_path = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf"
-    bold_path = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf"
-    if not Path(font_path).exists() or not Path(bold_path).exists():
-        raise SystemExit("Required Noto Naskh Arabic fonts are missing.")
+    # Use the Amiri Arabic typeface in its bold weight for a clearer Quran overlay.
+    bold_path = "/usr/share/fonts/truetype/fonts-hosny-amiri/Amiri-Bold.ttf"
+    if not Path(bold_path).exists():
+        raise SystemExit("Required Amiri Bold font is missing.")
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     gold = (231, 190, 103, 255)
