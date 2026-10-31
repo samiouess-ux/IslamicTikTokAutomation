@@ -53,3 +53,9 @@ No video-generation pipeline, recitation audio, external services, or publishing
 - Candidate background source: Pexels videos. Its official license/help pages state that videos can be used and modified for commercial projects without attribution, subject to restrictions and third-party rights. Save the specific asset page and creator details when selecting a clip.
 - Recitation audio: not yet selected. Do not assume that a stream or downloadable recitation is cleared for reuse in monetized TikTok videos. Verify rights/permission for the exact recording before embedding or publishing.
 - Suggested first workflow: select one calm nature video from Pexels; select a reciter/recording with documented reuse permission; then assemble and review the 9:16 test video.
+
+## Reciter preference
+- User proposed either Islam Sobhi or Yasser Al-Dosari.
+- Both have recordings of Surah Ash-Sharh available online; no recording has been selected or downloaded yet.
+- Before using a specific recording in TikTok videos, verify permission/licensing for that exact audio recording. Availability to stream/download does not by itself grant reuse rights.
+- Next action: identify a rights-cleared recording by one of the two preferred reciters, or obtain explicit permission from the relevant rights holder.
