@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/render-second-ash-sharh-review.yml"
       - "src/render_video_scenes.py"
+      - "src/hashtag_strategy.py"
+      - "tests/**"
       - "content/second_video_ash_sharh_94_1_8_draft.json"
   workflow_dispatch:
 
@@ -86,9 +88,14 @@ jobs:
           ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 build/background-source.mp4
           mkdir -p build
           cp build/background-source.mp4 build/background.mp4
+      - name: Validate approved Quran text
+        run: |
+          python src/validate_quran_text.py --manifest content/second_video_ash_sharh_94_1_8_draft.json --reference data/reference/surah_ash_sharh_94_1_8_approved.json
+      - name: Run automated tests
+        run: python -m unittest discover -s tests -v
       - name: Render review MP4
         run: |
-          python -m py_compile src/render_video_scenes.py
+          python -m py_compile src/render_video_scenes.py src/hashtag_strategy.py
           python src/render_video_scenes.py --manifest content/second_video_ash_sharh_94_1_8_draft.json --output output/ash_sharh_94_1_8_review.mp4
           ffprobe -v error -show_entries format=duration,size -of json output/ash_sharh_94_1_8_review.mp4
       - uses: actions/upload-artifact@v4
@@ -141,8 +148,12 @@ jobs:
           english_caption = caption_data.get("english_caption", "").strip()
           hashtags_ar = " ".join(caption_data.get("hashtags_ar", []))
           hashtags_en = " ".join(caption_data.get("hashtags_en", []))
+          hashtags_fr = " ".join(caption_data.get("hashtags_fr", []))
+          hashtags_tr = " ".join(caption_data.get("hashtags_tr", []))
+          hashtags_id = " ".join(caption_data.get("hashtags_id", []))
           caption_parts = [part for part in (
               arabic_caption, hashtags_ar, english_caption, hashtags_en,
+              hashtags_fr, hashtags_tr, hashtags_id,
               "للمراجعة فقط — لم يتم النشر على TikTok. النشر يستوجب موافقتك الشخصية."
           ) if part]
           caption = "\n\n".join(caption_parts)
