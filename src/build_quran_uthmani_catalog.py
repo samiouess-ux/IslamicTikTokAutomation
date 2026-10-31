@@ -12,6 +12,7 @@ from pathlib import Path
 
 BASE = "https://api.alquran.cloud/v1"
 EDITION = "quran-uthmani"
+BASMALA_UTHMANI = "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
 COUNTS = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6]
 
 
@@ -40,6 +41,11 @@ def validate_surah_payload(payload: dict, surah: int, expected_count: int) -> di
         key = f"{surah}:{number}"
         if key in verses:
             raise ValueError(f"Surah {surah}:{number}: duplicate Arabic text")
+        # AlQuran Cloud prefixes the basmala to the first ayah of most
+        # surahs. It is not part of that ayah (except Al-Fatihah); remove
+        # only this exact known prefix for surahs 2-8 and 10-114.
+        if number == 1 and surah not in (1, 9) and text.startswith(BASMALA_UTHMANI + " "):
+            text = text[len(BASMALA_UTHMANI):].lstrip()
         verses[key] = text
     expected = {f"{surah}:{number}" for number in range(1, expected_count + 1)}
     if set(verses) != expected:
