@@ -18,50 +18,51 @@
     "arabic_reference_file": "data/reference/surah_ash_sharh_94_1_8_approved.json",
     "arabic_source": "Tanzil Quran Text Uthmani v1.1",
     "english_translation": "Sahih International",
-    "translation_verified": false,
-    "note": "Arabic text must be loaded byte-for-byte from the separately user-approved reference. Verify English translation wording for all eight verses before render."
+    "translation_verified": true,
+    "note": "English wording checked against Sahih International at the cited source. Arabic must remain byte-for-byte identical to the approved Tanzil reference.",
+    "translation_source_url": "https://legacy.quran.com/94/1-8"
   },
   "basmala": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
   "verses": [
     {
       "number": 1,
       "arabic": "أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ",
-      "english": ""
+      "english": "Did We not expand for you, [O Muhammad], your breast?"
     },
     {
       "number": 2,
       "arabic": "وَوَضَعْنَا عَنكَ وِزْرَكَ",
-      "english": ""
+      "english": "And We removed from you your burden"
     },
     {
       "number": 3,
       "arabic": "ٱلَّذِىٓ أَنقَضَ ظَهْرَكَ",
-      "english": ""
+      "english": "Which had weighed upon your back"
     },
     {
       "number": 4,
       "arabic": "وَرَفَعْنَا لَكَ ذِكْرَكَ",
-      "english": ""
+      "english": "And raised high for you your repute."
     },
     {
       "number": 5,
       "arabic": "فَإِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
-      "english": ""
+      "english": "For indeed, with hardship [will be] ease."
     },
     {
       "number": 6,
       "arabic": "إِنَّ مَعَ ٱلْعُسْرِ يُسْرًا",
-      "english": ""
+      "english": "Indeed, with hardship [will be] ease."
     },
     {
       "number": 7,
       "arabic": "فَإِذَا فَرَغْتَ فَٱنصَبْ",
-      "english": ""
+      "english": "So when you have finished [your duties], then stand up [for worship]."
     },
     {
       "number": 8,
       "arabic": "وَإِلَىٰ رَبِّكَ فَٱرْغَب",
-      "english": ""
+      "english": "And to your Lord direct [your] longing."
     }
   ],
   "audio": {
@@ -91,7 +92,37 @@
       "approved": true
     },
     "layout": "eight_verses_must_be_split_into_readable_timed_scenes_or_pages; never squeeze all eight into one static frame",
-    "translation_layout": "paired_with_its_verse_in_separate_readable_scene"
+    "translation_layout": "paired_with_its_verse_in_separate_readable_scene",
+    "scenes": [
+      {
+        "scene": 1,
+        "verses": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "transition": "soft fade",
+        "timing": "derive duration from original verse audio segment lengths; keep all audio continuous"
+      },
+      {
+        "scene": 2,
+        "verses": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "transition": "soft fade",
+        "timing": "derive duration from original verse audio segment lengths; keep all audio continuous"
+      }
+    ],
+    "readability_constraints": {
+      "arabic": "Large centered Arabic, each verse on its own line with separate ornamental number medallion; no text clipping or overlap.",
+      "english": "Each English translation paired directly beneath its corresponding Arabic verse; wrap by measured font width.",
+      "collision_checks": "Measure all text bounds; fail rendering if any text crosses panel boundaries, overlaps another verse, or collides with title/ornament.",
+      "basmala": "Display separately from verse text; never append it to verse 1."
+    }
   },
   "publishing": {
     "approval_required": true,
