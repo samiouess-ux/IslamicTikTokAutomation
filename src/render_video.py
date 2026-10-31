@@ -177,7 +177,11 @@ def main() -> None:
         raise SystemExit("Manifest must provide an approved background candidate URL.")
     if not audio.get("approved_for_first_test_video", audio.get("approved", False)):
         raise SystemExit("Audio is not marked approved. Refusing to render.")
-    if not audio.get("exact_recording_user_reviewed", False):
+    exact_recording_reviewed = audio.get("exact_recording_user_reviewed", False) or any(
+        item.get("exact_recording_user_reviewed", False)
+        for item in audio.get("license_research_candidates", [])
+    )
+    if not exact_recording_reviewed:
         raise SystemExit("Exact recitation has not been user-reviewed. Refusing to render.")
     background = visual.get("background_candidate", {})
     if not background.get("approved", False):
