@@ -45,3 +45,9 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 4. Perform one controlled Telegram delivery of a reviewed/approved video. Require Telegram API success and user confirmation of receipt.
 5. Then implement and test a queue/batch of three distinct approved items. Add dua/dhikr render support only after exact content/source and asset approvals; do not weaken validation gates.
 6. Keep the status and handoff documents synchronized.
+
+## Latest follow-up
+- Run `41235405611` completed successfully.
+- Sender-test runs `41235591309` and `41235591321` were still in progress at the latest API check; no failures were reported, but do not mark them passed until their conclusions are completed/success.
+- The connected GitHub tools currently available can inspect runs/artifacts/logs but do not provide workflow dispatch. A real Telegram send requires a one-time manual dispatch; do not enable send-on-push as a workaround.
+- Manual dispatch from phone: repository > Actions > “Render manifest video for review” > Run workflow; branch `feature/telegram-review-notifications`; manifest `content/second_video_ash_sharh_94_1_8_draft.json`; `use_rotation=false`; `send_to_telegram=true`. This requires GitHub Actions secrets `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; never paste secrets into chat.
