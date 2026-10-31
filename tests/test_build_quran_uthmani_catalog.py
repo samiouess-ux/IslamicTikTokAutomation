@@ -9,7 +9,7 @@ from build_quran_uthmani_catalog import validate_surah_payload
 
 class UthmaniCatalogTests(unittest.TestCase):
     def test_accepts_complete_surah_and_preserves_exact_unicode(self):
-        text = "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        text = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
         payload = {"code": 200, "data": {"ayahs": [
             {"numberInSurah": 1, "text": text},
             {"numberInSurah": 2, "text": "الْحَمْدُ لِلَّهِ"},
@@ -18,7 +18,7 @@ class UthmaniCatalogTests(unittest.TestCase):
 
 
     def test_removes_prefixed_basmala_from_first_ayah_except_fatihah(self):
-        basmala = "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
         payload = {"code": 200, "data": {"ayahs": [
             {"numberInSurah": 1, "text": basmala + " تَبَّتْ يَدَآ أَبِى لَهَبٍۢ وَتَبَّ"},
             {"numberInSurah": 2, "text": "مَآ أَغْنَىٰ عَنْهُ مَالُهُۥ"},
@@ -28,7 +28,7 @@ class UthmaniCatalogTests(unittest.TestCase):
         self.assertEqual(result["111:2"], "مَآ أَغْنَىٰ عَنْهُ مَالُهُۥ")
 
     def test_preserves_fatihah_basmala_as_ayah_one(self):
-        basmala = "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"
+        basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
         payload = {"code": 200, "data": {"ayahs": [
             {"numberInSurah": 1, "text": basmala},
         ]}}
