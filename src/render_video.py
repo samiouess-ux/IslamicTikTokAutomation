@@ -63,8 +63,8 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         # visual end of the RTL line, with a clear gap from the letters.
         bbox = draw.textbbox((540, y), exact_text, font=verse_font,
                              anchor="mm", direction="rtl", language="ar")
-        medallion_radius = 25
-        gap = 24
+        medallion_radius = 27
+        gap = 48
         cx = bbox[0] - gap - medallion_radius
         cy = y
         draw.ellipse((cx - medallion_radius, cy - medallion_radius,
@@ -142,9 +142,8 @@ def main() -> None:
         if not verse.get("english"):
             raise SystemExit("Every verse must contain its paired English translation.")
 
-    range_label = (f"الآيات {verse_numbers[0]}–{verse_numbers[-1]}"
-                   if len(verse_numbers) > 1 else f"الآية {verse_numbers[0]}")
-    title = f"سورة {source['surah_name_ar']} — {range_label}"
+    # Keep the on-screen title to Arabic letters only; verse range is in caption metadata.
+    title = f"سورة {source['surah_name_ar']}"
 
     work = Path("build")
     work.mkdir(exist_ok=True)
