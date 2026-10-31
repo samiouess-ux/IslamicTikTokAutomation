@@ -164,14 +164,46 @@ jobs:
           print('Production audio duration:', subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(output)],text=True).strip())
           PY
 
+      - name: Extract Al-Ikhlas exact official recitation for listening review only
+        if: steps.selection.outputs.manifest == 'content/candidate_surah_al_ikhlas_112_1_4.json'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import subprocess
+
+          url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
+          out = Path('output/al_ikhlas_audio_review')
+          out.mkdir(parents=True, exist_ok=True)
+          with RemoteZip(url) as archive:
+              names = archive.namelist()
+              for verse in range(1, 5):
+                  suffix = f'10-112{verse:03d}-A08.mp3'
+                  matches = [name for name in names if name.endswith(suffix)]
+                  if len(matches) != 1:
+                      raise RuntimeError(f'Expected exactly one archive entry ending {suffix}; found: {matches}')
+                  target = out / f'al_ikhlas_112_{verse:03d}_source.mp3'
+                  with archive.open(matches[0]) as source, target.open('wb') as dest:
+                      while chunk := source.read(1024 * 1024):
+                          dest.write(chunk)
+                  duration = subprocess.check_output(
+                      ['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                       '-of', 'default=nw=1:nk=1', str(target)], text=True).strip()
+                  print(f'Verse {verse}: archive entry={matches[0]} duration={duration}s bytes={target.stat().st_size}')
+          print('These are unmodified source clips for user listening review only; no production approval is implied.')
+          PY
+
       - name: Render video and caption for review
         shell: bash
         run: |
           manifest='${{ steps.selection.outputs.manifest }}'
           if [ "$manifest" = 'content/second_video_ash_sharh_94_1_8_draft.json' ]; then manifest='build/manifest_for_render.json'; fi
+          if [ "$manifest" = 'content/candidate_surah_al_ikhlas_112_1_4.json' ]; then echo 'Audio-probe-only run; video render intentionally skipped until audio and visual approvals.'; exit 0; fi
           python src/render_video_scenes.py --manifest "$manifest" --output output/review.mp4
 
       - name: Verify rendered MP4 technical quality
+        if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json'
         shell: bash
         run: |
           python - <<'PY'
@@ -198,7 +230,16 @@ jobs:
           print(f'Validated review MP4: 1080x1920, 30 fps, audio present, {duration:.2f}s')
           PY
 
+      - name: Upload Al-Ikhlas source audio for private listening review
+        if: steps.selection.outputs.manifest == 'content/candidate_surah_al_ikhlas_112_1_4.json'
+        uses: actions/upload-artifact@v4
+        with:
+          name: al-ikhlas-audio-listening-review
+          path: output/al_ikhlas_audio_review/*.mp3
+          retention-days: 7
+
       - name: Upload review files (no publishing)
+        if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json'
         uses: actions/upload-artifact@v4
         with:
           name: islamic-video-review
@@ -208,7 +249,7 @@ jobs:
           retention-days: 7
 
       - name: Send review MP4 to Telegram
-        if: ${{ inputs.send_to_telegram == true }}
+        if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json' && inputs.send_to_telegram == true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
