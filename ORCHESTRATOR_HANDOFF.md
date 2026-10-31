@@ -63,3 +63,8 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - No real Telegram delivery is confirmed. Keep all schedules disabled until three distinct approved items can render and a real Telegram send is verified.
 
 - Latest live check: `41236627114` is still rendering the manifest video after all unit tests and Quran validations passed; `41236627093` is still rendering the Ash-Sharh review MP4 after its automated tests passed. Neither run has completed artifact upload yet, and both Telegram steps are expected to be skipped on push events.
+
+
+## Rendering performance follow-up (2026-10-31)
+- Batch regression tests passed in run `41236627114`, but both render workflows `41236627114` and `41236627093` remained active at the video-render step for an extended period. Live job log blobs were unavailable from the connector, so the cause is not confirmed.
+- Removed the unnecessary FFmpeg `deshake` filter from the approved background pipeline in commit `2c7684e57f46739d764a4b7ff25623172b04cba1`. This preserves the approved background and overlays while testing a likely CPU bottleneck. Await the new workflow runs before claiming improvement.
