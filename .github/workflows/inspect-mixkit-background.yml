@@ -11,10 +11,6 @@ on:
         description: Exact Mixkit item page URL
         required: true
         type: string
-      direct_video_url:
-        description: Direct MP4 URL hosted on assets.mixkit.co
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -32,12 +28,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Inspect candidate
+      - name: Resolve official MP4 and inspect
         run: |
-          python src/inspect_background.py \
+          python src/resolve_and_inspect_mixkit.py \
             --title "${{ inputs.title }}" \
             --source-page "${{ inputs.source_page }}" \
-            --url "${{ inputs.direct_video_url }}" \
             --output-dir background_inspection
 
       - name: Upload inspection files for review
