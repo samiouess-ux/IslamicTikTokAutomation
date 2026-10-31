@@ -1,36 +1,40 @@
-# First video — visual design specification
+# Video design specification
 
-## Canvas
+## Supported content formats
+- Complete surah.
+- A consecutive range of verses.
+- A single verse.
+- The duration follows the approved recitation; never cut a verse mid-word.
+
+## Canvas and visual identity
 - 1080 × 1920 px (9:16), 30 FPS.
 - Calm, respectful, uncluttered composition.
-- Nature footage fills the entire frame.
-- Apply a subtle dark overlay behind text only as needed for legibility.
+- Rotate among a curated set of approved backgrounds and layouts; do not default to the same background for every video.
+- Nature, sky, sea, and architecture can be used when appropriate and rights-cleared.
+- Use subtle motion and text transitions only; no flashing, bouncing, or distracting effects.
+- Keep Arabic Quran text primary, large, centered, and legible.
+- Place the English meaning underneath in a noticeably smaller font.
+- Keep verse numbers and Arabic/English verse pairing accurate.
 
-## Layout
-1. Top: small label "تذكير من القرآن الكريم".
-2. Middle: Arabic Quran text, centered, large and highly legible.
-3. Directly below: French meaning, centered, smaller than Arabic (approximately 45–55% of Arabic font size).
-4. Bottom: "سورة الشرح — الآيتان 5 و6" / "Sourate Ach-Charh — versets 5 et 6".
+## On-screen information
+- Show the surah name and exact verse range (or indicate that the complete surah is being recited).
+- Do not display the reciter's name.
 
-## Motion
-- Slow, gentle background motion only.
-- Text fades in calmly; no bouncing, flashing, or fast transitions.
-- Keep each Arabic verse paired with its own French translation and verse number.
-- Timing must follow the exact recitation; never cut a verse mid-word.
+## Captions for each video
+Prepare a caption for review alongside the video:
+- Arabic caption and English caption.
+- Identify the surah and exact verse range, or say it is the complete surah.
+- Add a short, relevant description and restrained hashtags.
+- Do not mention the reciter's name.
+- Keep audio source and license/provenance information in internal project metadata, not public captions.
 
 ## Audio
-- Quran recitation required; music prohibited.
-- Preferred reciters: Islam Sobhi or Yasser Al-Dosari.
-- Do not use a recording until reuse permission for that exact recording is verified.
-- No synthetic replacement recitation.
+- Authentic Quran recitation is required; music is prohibited.
+- The exact recording must have documented reuse permission.
+- The recitation must match the displayed Arabic text exactly.
+- Never invent Quran text, translations, hadith, sources, or attributions.
+- Do not use synthetic recitation as a replacement.
 
-## Background candidate
-- Pexels nature video candidate recorded in `content/first_video.json`.
-- Pexels states videos may be used for free, including commercial use, subject to its license restrictions.
-- Record the exact asset page and creator in project metadata.
-- Do not assume that the candidate video has been downloaded or approved yet.
-
-## Approval
-- Generate a preview only after the exact recitation audio is rights-cleared.
-- The user must review and approve every finished video.
-- Automatic publishing remains disabled.
+## Review and publishing
+- Every generated video and caption must be presented for user review.
+- No automatic publishing. Publishing remains disabled unless the user explicitly approves a specific video and caption.
