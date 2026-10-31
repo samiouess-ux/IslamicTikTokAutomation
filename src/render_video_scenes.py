@@ -107,7 +107,8 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     first_y = 830 - (len(lines)-1)*line_height/2
     for i, line in enumerate(lines):
         draw.text((540, first_y+i*line_height), line, font=font,
-                  fill=(255,255,255,255), anchor="mm", direction="rtl", language="ar")
+                  fill=(255,255,255,255), anchor="mm", direction="rtl", language="ar",
+                  stroke_width=1, stroke_fill=(255,255,255,255))
     # Independent ornamental verse-number medallion.
     cx, cy, radius = 540, 1110, 34
     pts=[]
