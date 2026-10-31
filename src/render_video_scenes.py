@@ -43,10 +43,39 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     gold = (231, 190, 103, 255)
-    draw.rounded_rectangle((245, 390, 835, 540), radius=48, outline=gold, width=4)
-    title_font = ImageFont.truetype(bold_path, 54)
-    draw.text((540, 465), title, font=title_font, fill=gold, anchor="mm",
-              direction="rtl", language="ar")
+    soft_gold = (231, 190, 103, 190)
+    faint_gold = (231, 190, 103, 105)
+
+    # Restore the approved ornate gold pointed cartouche and rosette details.
+    outer = [(540, 392), (575, 410), (785, 410), (815, 430),
+             (845, 475), (815, 520), (785, 540), (575, 540),
+             (540, 558), (505, 540), (295, 540), (265, 520),
+             (235, 475), (265, 430), (295, 410), (505, 410)]
+    inner = [(540, 405), (568, 420), (780, 420), (802, 437),
+             (829, 475), (802, 513), (780, 530), (568, 530),
+             (540, 545), (512, 530), (300, 530), (278, 513),
+             (251, 475), (278, 437), (300, 420), (512, 420)]
+    draw.line(outer + [outer[0]], fill=gold, width=4, joint="curve")
+    draw.line(inner + [inner[0]], fill=faint_gold, width=2, joint="curve")
+
+    def rosette(cx: int, cy: int, radius: int, color) -> None:
+        for angle in range(0, 360, 45):
+            rad = math.radians(angle)
+            px = cx + math.cos(rad) * radius * 0.62
+            py = cy + math.sin(rad) * radius * 0.62
+            draw.ellipse((px-radius*0.38, py-radius*0.38,
+                          px+radius*0.38, py+radius*0.38), outline=color, width=2)
+        draw.ellipse((cx-3, cy-3, cx+3, cy+3), fill=color)
+
+    rosette(282, 475, 17, gold)
+    rosette(798, 475, 17, gold)
+    for x in (335, 745):
+        draw.polygon([(x,414),(x+7,425),(x,436),(x-7,425)], outline=soft_gold)
+        draw.polygon([(x,514),(x+7,525),(x,536),(x-7,525)], outline=soft_gold)
+
+    title_font = ImageFont.truetype(bold_path, 58)
+    draw.text((540, 475), title, font=title_font, fill=gold, anchor="mm",
+              direction="rtl", language="ar", stroke_width=0)
     verse = verses[0]
     exact_text = verse["arabic"]
     if not isinstance(exact_text, str) or not exact_text.strip():
