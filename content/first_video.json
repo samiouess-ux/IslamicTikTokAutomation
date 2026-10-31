@@ -1,6 +1,6 @@
 {
   "id": "test_surah_ash_sharh_94_5_6",
-  "status": "rendered_prototype_user_positive_reusable_pipeline_next",
+  "status": "approved_review_rotation_ready",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -68,7 +68,13 @@
     "archive_entries": {
       "5": "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094005-A08.mp3",
       "6": "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094006-A08.mp3"
-    }
+    },
+    "production_audio_file": "build/audio/ash_sharh_94_5_6.mp3",
+    "processed_verse_durations_seconds": {
+      "5": 7.9,
+      "6": 7.9
+    },
+    "inter_verse_silence_seconds": 0.02
   },
   "visual": {
     "format": "9:16",
@@ -118,5 +124,6 @@
       "#AshSharh"
     ],
     "status": "draft_for_review"
-  }
+  },
+  "rotation_approved": true
 }
