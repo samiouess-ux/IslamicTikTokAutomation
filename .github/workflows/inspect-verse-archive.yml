@@ -1,0 +1,35 @@
+name: Inspect official verse archive entries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/inspect-verse-archive.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-verses:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Inspect official ZIP directory remotely
+        run: |
+          python -m pip install --disable-pip-version-check remotezip
+          python - <<'PY'
+          from remotezip import RemoteZip
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
+          with RemoteZip(url) as archive:
+              names = archive.namelist()
+              print("Archive entries:", len(names))
+              matches = [name for name in names if any(token in name.lower() for token in ("094", "94-005", "94-006", "0094", "0094-005", "0094-006"))]
+              print("Potential Surah Ash-Sharh verse entries:")
+              for name in matches:
+                  print(name)
+              if not matches:
+                  print("No obvious 094 match. First 40 entries:")
+                  for name in names[:40]:
+                      print(name)
+          PY
