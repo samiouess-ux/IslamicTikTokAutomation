@@ -94,8 +94,14 @@ jobs:
           python -m unittest discover -s tests -v
 
       - name: Validate exact Quran Arabic text
+        shell: bash
         run: |
-          python src/validate_quran_text.py --manifest "${{ steps.selection.outputs.manifest }}"
+          manifest='${{ steps.selection.outputs.manifest }}'
+          if [ "$manifest" = 'content/second_video_ash_sharh_94_1_8_draft.json' ]; then
+            python src/validate_quran_text.py --manifest "$manifest" --reference data/reference/surah_ash_sharh_94_1_8_approved.json
+          else
+            python src/validate_quran_text.py --manifest "$manifest"
+          fi
 
       - name: Prepare approved Ash-Sharh audio and per-verse timing
         if: steps.selection.outputs.manifest == 'content/second_video_ash_sharh_94_1_8_draft.json'
