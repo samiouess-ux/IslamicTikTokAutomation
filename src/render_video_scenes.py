@@ -10,6 +10,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, features
 from hashtag_strategy import build_hashtags
+from validate_content_manifest import validate_content_manifest
 
 
 def download(url: str, destination: Path) -> None:
@@ -162,6 +163,9 @@ def main() -> None:
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    validate_content_manifest(data)
+    if data.get("content_type", "quran") != "quran":
+        raise SystemExit("This renderer currently renders Quran manifests only; dua/dhikr rendering is being added separately.")
     source, audio, visual = data["source"], data["audio"], data["visual"]
     caption = data.get("caption", {})
 
