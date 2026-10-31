@@ -1,0 +1,64 @@
+name: Extract Surah Ash-Sharh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/extract-ash-sharh.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extract-audio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Extract only Surah Ash-Sharh from official archive
+        run: |
+          python -m pip install --disable-pip-version-check remotezip
+          mkdir -p output
+          python - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import hashlib
+
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/sura-12-1-2020.zip"
+          member = "sura/10-094D00-A08.mp3"
+          destination = Path("output/maher_almuaiqly_surah_ash_sharh.mp3")
+
+          with RemoteZip(url) as archive:
+              info = archive.getinfo(member)
+              print(f"Official archive entry: {member}")
+              print(f"Uncompressed size: {info.file_size} bytes")
+              with archive.open(member) as source, destination.open("wb") as target:
+                  while True:
+                      chunk = source.read(1024 * 1024)
+                      if not chunk:
+                          break
+                      target.write(chunk)
+
+          digest = hashlib.sha256(destination.read_bytes()).hexdigest()
+          print(f"Extracted file size: {destination.stat().st_size} bytes")
+          print(f"Extracted MP3 SHA-256: {digest}")
+          PY
+
+      - name: Check audio metadata
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 output/maher_almuaiqly_surah_ash_sharh.mp3
+
+      - name: Upload extracted audio for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-maher-ash-sharh-audio
+          path: output/maher_almuaiqly_surah_ash_sharh.mp3
+          if-no-files-found: error
+          retention-days: 7
