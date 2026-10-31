@@ -114,7 +114,7 @@ jobs:
       # Fresh workflow run re-reads the current repository secrets.
       # Send the MP4 itself to Telegram; keep publishing manual and approval-only.
       - name: Send review MP4 directly to Telegram
-        if: success()
+        if: false # Temporarily paused: prevent duplicate Ash-Sharh sends while rotation is implemented
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
