@@ -227,3 +227,14 @@ Theme: hope and ease after hardship.
 - Rotate through a curated library of multiple user-approved, rights-verified backgrounds (e.g. nature, sky, sea, architecture) and avoid repeating the immediately previous background whenever another eligible background exists.
 - Keep background choice calm and respectful, preserve Quran/text readability, and vary backgrounds independently of the approved visual identity.
 - Never select an unreviewed or rights-unverified asset merely to force variety. If no eligible alternative exists, fail safely or reuse only according to an explicit fallback rule rather than silently claiming rotation.
+
+
+## Quran variety safeguard and verified inventory (2026-10-31)
+- User requests varied surahs and ayah selections while preserving every approved audio and visual rule.
+- `src/render_video_scenes.py` already supports Quran manifests with one verse per timed screen, preserving verse order and paired English translation; it currently rejects non-Quran content.
+- `src/validate_quran_text.py` performs exact Unicode comparison against `data/reference/quran_text_uthmani.json` and fails closed for missing, changed, duplicated, or reordered verses.
+- The reviewed reference snapshot currently covers only Ash-Sharh 94:5-6 and Al-Ikhlas 112:1-4. The Ash-Sharh 94:1-8 approved reference exists separately and is used by its dedicated validation path.
+- Al-Ikhlas remains an unapproved candidate: exact audio rights/recording and a matching user listening review are not yet complete. Do not rotate it into production.
+- Do not invent or auto-select new surahs/ayahs. Add a passage to production rotation only after exact Arabic reference, sourced translation, matching permitted recitation, and user review are all documented.
+- Current background catalog file is not present in the repository tree; the renderer reads the approved background URL from each manifest. Do not claim automated catalog-based background rotation is active.
+- Daily scheduling and Telegram delivery remain disabled pending complete approved content and real delivery confirmation.
