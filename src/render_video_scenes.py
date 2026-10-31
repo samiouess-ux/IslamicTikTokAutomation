@@ -42,7 +42,7 @@ def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS)
         raise SystemExit("Video duration must be positive.")
     if duration > maximum:
         raise SystemExit(
-            f"Video duration {duration:.3f}s exceeds the {maximum:.0f}s maximum; "
+            f"Video duration {duration:.3f}s exceeds the {maximum:.0f}-second maximum; "
             "select a shorter contiguous verse passage before rendering."
         )
 
