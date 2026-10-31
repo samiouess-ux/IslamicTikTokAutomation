@@ -22,7 +22,7 @@ class QuranTemplateTests(unittest.TestCase):
             images = [Image.open(path).convert("RGBA") for path in paths]
             for i in range(len(images)):
                 for j in range(i + 1, len(images)):
-                    self.assertIsNotNone(ImageChops.difference(images[i], images[j]).getbbox())
+                    self.assertIsNotNone(ImageChops.difference(images[i].convert("RGB"), images[j].convert("RGB")).getbbox())
 
     def test_new_templates_require_explicit_approval(self):
         manifest = {
