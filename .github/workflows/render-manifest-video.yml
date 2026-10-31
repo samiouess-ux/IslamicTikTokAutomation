@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'src/render_video.py'
+      - 'src/render_video_scenes.py'
       - 'src/validate_quran_text.py'
       - 'src/validate_quran_reference.py'
       - 'tests/**'
@@ -58,7 +59,16 @@ jobs:
       - name: Install FFmpeg and fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
+          sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-noto-core fonts-dejavu-core
+          fc-cache -f
+          python - <<'PY'
+          import subprocess
+          match = subprocess.check_output(['fc-match', '-f', '%{family}|%{style}|%{file}', 'Amiri:style=Bold'], text=True).strip()
+          print('Resolved approved Arabic font:', match)
+          family, style, path = match.split('|', 2)
+          if 'Amiri' not in family or 'Bold' not in style or not path.endswith(('.ttf', '.otf')):
+              raise SystemExit('Required Amiri Bold font is unavailable; refusing to render with a fallback font.')
+          PY
           pip install remotezip pillow
           python --version
           ffmpeg -version | head -n 1
