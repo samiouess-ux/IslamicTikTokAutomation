@@ -13,10 +13,40 @@ from validate_content_manifest import validate_content_manifest
 
 
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
+AUDIO_DURATION_TOLERANCE_SECONDS = 0.75
 
 
 def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
+
+
+def probe_duration(path: Path) -> float:
+    """Read the actual media duration; fail rather than silently pad or trim."""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    try:
+        duration = float(result.stdout.strip())
+    except ValueError as exc:
+        raise SystemExit(f"Unable to read media duration: {path}") from exc
+    if duration <= 0:
+        raise SystemExit(f"Media has an invalid duration: {path}")
+    return duration
+
+
+def validate_audio_duration(path: Path, expected: float,
+                            tolerance: float = AUDIO_DURATION_TOLERANCE_SECONDS) -> float:
+    actual = probe_duration(path)
+    difference = abs(actual - expected)
+    if difference > tolerance:
+        raise SystemExit(
+            f"Audio duration mismatch: expected {expected:.3f}s, got {actual:.3f}s "
+            f"(difference {difference:.3f}s; allowed {tolerance:.2f}s). "
+            "Refusing to pad or truncate audio automatically."
+        )
+    return actual
 
 
 def item_duration(item: dict) -> float:
@@ -58,7 +88,6 @@ def create_overlay(title: str, item: dict, destination: Path) -> None:
     draw.text((540, 475), title, font=title_font, fill=gold, anchor="mm",
               direction="rtl", language="ar")
 
-    # Wrap by measured rendered width; shrink only to a readable lower bound.
     font_size = 64
     while font_size >= 42:
         font = ImageFont.truetype(font_path, font_size)
@@ -103,7 +132,6 @@ def build_slideshow(items: list[dict], title: str, work: Path) -> float:
         lines.extend([f"file '{overlay.resolve().as_posix()}'",
                       f"duration {duration:.3f}"])
         total += duration
-    # concat demuxer applies the last duration only when a following frame exists.
     lines.append(f"file '{(work / f'item_{len(items)-1:03d}.png').resolve().as_posix()}'")
     playlist = work / "overlays.ffconcat"
     playlist.write_text("ffconcat version 1.0\n" + "\n".join(lines) + "\n",
@@ -148,15 +176,16 @@ def main() -> None:
         audio_file = Path(audio.get("production_audio_file", ""))
         if not audio_file.is_file():
             raise SystemExit("Approved spoken/ambient audio file is missing.")
+        validate_audio_duration(audio_file, duration)
         inputs += ["-i", str(audio_file)]
     inputs += ["-f", "concat", "-safe", "0", "-i", str(work / "overlays.ffconcat")]
     graph = ("[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
              "crop=1080:1920,setsar=1,fps=30,"
              "drawbox=x=55:y=380:w=970:h=1200:color=black@0.30:t=fill[v0];"
              "[v0][2:v]overlay=0:0:shortest=1[v]")
-    # Durations control screen changes only. No per-item audio synchronization is claimed.
+    # Durations control screen changes only; audio is checked as a whole, not synced per item.
     run(["ffmpeg", "-hide_banner", "-y", *inputs, "-filter_complex", graph,
-         "-map", "[v]", "-map", "1:a", "-af", "apad", "-t", f"{duration:.3f}",
+         "-map", "[v]", "-map", "1:a", "-t", f"{duration:.3f}",
          "-r", str(FPS), "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
          "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
          "-movflags", "+faststart", str(output)])
