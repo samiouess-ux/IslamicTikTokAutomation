@@ -52,20 +52,25 @@ def validate_content_manifest(data: dict[str, Any]) -> None:
     if content_type == "quran":
         if kind != "quran_recitation":
             raise SystemExit("Quran content requires authentic Quran recitation.")
-        if not audio.get("approved", audio.get("approved_for_first_test_video", False)):
-            raise SystemExit("Quran recitation is not approved.")
+        preview_only = audio.get("preview_only") is True
+        approved = audio.get("approved", audio.get("approved_for_first_test_video", False)) is True
+        if not approved and not preview_only:
+            raise SystemExit("Quran recitation is not approved; only an explicit preview_only candidate may be rendered for review.")
+        if preview_only and approved:
+            raise SystemExit("A preview_only Quran recording cannot also be marked production-approved.")
         reviewed = audio.get("exact_recording_user_reviewed", False) or any(
             item.get("exact_recording_user_reviewed", False)
             for item in audio.get("license_research_candidates", [])
             if isinstance(item, dict)
         )
-        if not reviewed:
+        if not reviewed and not preview_only:
             raise SystemExit("Exact Quran recording has not been user-reviewed.")
-        if not audio.get("rights_verified") and not any(
+        rights_verified = audio.get("rights_verified") or any(
             item.get("status", "").startswith("approved_")
             for item in audio.get("license_research_candidates", [])
             if isinstance(item, dict)
-        ):
+        )
+        if not rights_verified:
             raise SystemExit("Reuse permission for the exact Quran recording is not documented.")
         if not source.get("surah_number") or not source.get("verses"):
             raise SystemExit("Quran source must identify a surah and requested verses.")
