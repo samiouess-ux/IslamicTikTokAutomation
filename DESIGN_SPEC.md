@@ -38,3 +38,16 @@ Prepare a caption for review alongside the video:
 ## Review and publishing
 - Every generated video and caption must be presented for user review.
 - No automatic publishing. Publishing remains disabled unless the user explicitly approves a specific video and caption.
+
+
+## Approved visual reference — first test design (2026-10-31)
+
+The user approved the latest rendered preview (GitHub Actions run 12; commit fb519f49ff61c7feae83120b332bfaa28b2ae085) as the reference style for the first video.
+
+- Surah title: larger, bold Noto Naskh Arabic Bold, gold, centered inside an ornate pointed Islamic cartouche with double borders and small rosette details.
+- Verse numbers: larger, bold Noto Naskh Arabic Bold, placed in separate gold multi-lobed ornamental medallions.
+- Quran text: keep the exact original Arabic source strings unchanged; render in white Noto Naskh Arabic with proper RAQM shaping. Decorations and verse-number badges must remain separate and must not overlap or modify the Quran text.
+- English translation: keep beneath the Arabic verses in a smaller, readable white font.
+- Keep the calm natural background, vertical 9:16 layout, and translucent dark reading panel.
+- Preserve the title/verse visual hierarchy and readability when varying backgrounds and subtle decorative details in future videos.
+- No public reciter attribution; captions and publishing still require user review and explicit approval.
