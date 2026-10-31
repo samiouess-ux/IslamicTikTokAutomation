@@ -128,7 +128,7 @@ jobs:
           import json, subprocess
 
           url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
-                    work = Path('build/audio/processed')
+          work = Path('build/audio/processed')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
           with RemoteZip(url) as archive:
@@ -142,7 +142,7 @@ jobs:
                   with archive.open(matches[0]) as src, source.open('wb') as dst:
                       while chunk := src.read(1024 * 1024): dst.write(chunk)
                   processed = work / f'verse_{verse:02d}.mp3'
-                  subprocess.run(['ffmpeg','-hide_banner','-y','-i',str(source),'-af','silenceremove=stop_duration=0.08:stop_threshold=-42dB','-c:a','libmp3lame','-q:a','2',str(processed)],check=True)
+                  subprocess.run(['ffmpeg','-hide_banner','-y','-i',str(source),'-c:a','libmp3lame','-q:a','2',str(processed)],check=True)
                   duration = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(processed)],text=True).strip())
                   durations[str(verse)] = duration
           concat = work / 'concat.txt'
