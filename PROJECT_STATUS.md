@@ -220,3 +220,10 @@ Theme: hope and ease after hardship.
 - Do not ask the user to run a GitHub Actions manual dispatch as the normal delivery process. Manual dispatch may remain only as an internal/one-time diagnostic while testing, not as a recurring user task.
 - TikTok publishing must remain manual; no TikTok API publishing or automatic posting.
 - This preference does not mean enabling an incomplete daily schedule now. First finish three distinct, validated content outputs (Quran plus authentic dua/dhikr/reminders), verify real Telegram delivery end-to-end, then enable the intended automated schedule and Telegram delivery. Until those gates pass, schedules stay disabled.
+
+
+## Background variety — user reaffirmation (2026-10-31)
+- User explicitly reaffirmed that generated videos must not keep using the same background.
+- Rotate through a curated library of multiple user-approved, rights-verified backgrounds (e.g. nature, sky, sea, architecture) and avoid repeating the immediately previous background whenever another eligible background exists.
+- Keep background choice calm and respectful, preserve Quran/text readability, and vary backgrounds independently of the approved visual identity.
+- Never select an unreviewed or rights-unverified asset merely to force variety. If no eligible alternative exists, fail safely or reuse only according to an explicit fallback rule rather than silently claiming rotation.
