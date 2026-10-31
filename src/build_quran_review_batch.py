@@ -130,7 +130,7 @@ def main() -> None:
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
     result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
 
 
