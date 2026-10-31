@@ -75,7 +75,9 @@
     "production_audio_file": "output/ash_sharh_94_1_8_approved_audio.mp3",
     "approved": true,
     "approved_preview_duration_seconds": 43.284898,
-    "note": "User approved preview v4. Production workflow must recreate the exact approved pause treatment from the preserved original verse files and verify the resulting asset before rendering."
+    "note": "User approved preview v4. Production workflow must recreate the exact approved pause treatment from the preserved original verse files and verify the resulting asset before rendering.",
+    "kind": "quran_recitation",
+    "rights_verified": true
   },
   "visual": {
     "format": "9:16",
