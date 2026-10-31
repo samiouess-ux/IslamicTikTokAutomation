@@ -32,7 +32,7 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 
 ## Evidence and outstanding checks
 - Run `41235405617` succeeded and produced artifact `ash-sharh-94-1-8-video-review`, artifact ID `13055730388`, size 34,101,084 bytes. Its Telegram step was skipped (explicit `if: false`).
-- Runs `41235405611` and `41235407692` were reported in progress at last check.
+- Run `41235407692` completed successfully: all render/validation/artifact steps passed and produced `islamic-video-review` artifact `13055525766` (48,363,815 bytes). Telegram step was skipped as expected for a push-triggered run. Run `41235405611` remained in progress at last check.
 - Latest sender-test push runs: `41235591309` (manifest workflow) and `41235591321` (Ash-Sharh review workflow); check final conclusions and job steps before asserting success.
 - No actual Telegram delivery has yet been confirmed in this implementation checkpoint. Confirm both repository secrets exist through a deliberate manual dispatch of the manifest workflow with an approved manifest and `send_to_telegram=true`. If secrets are absent, do not request tokens in chat; tell the user to add them as GitHub Actions repository secrets.
 - The manual dispatch may not be executable through the currently available GitHub action tools; if unavailable, give the user a concise phone-friendly path to run it only after all CI checks pass.
