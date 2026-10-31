@@ -15,36 +15,53 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Download the selected Pexels video
+      - name: Resolve the downloadable MP4 from the public Pexels page
         run: |
           python - <<'PY'
-          import requests
+          import json, re, requests
           from pathlib import Path
+          from html import unescape
 
-          video_id = "37336447"
-          url = f"https://www.pexels.com/video/{video_id}/download"
-          response = requests.get(
-              url,
-              headers={"User-Agent": "Mozilla/5.0 (compatible; IslamicTikTokAutomation/1.0)"},
-              allow_redirects=True,
-              timeout=120,
-              stream=True,
-          )
+          page_url = "https://www.pexels.com/video/serene-blue-ocean-horizon-with-distant-mountains-37336447/"
+          response = requests.get(page_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=60)
+          print("Page status:", response.status_code)
           response.raise_for_status()
-          content_type = response.headers.get("content-type", "")
-          print("Final URL:", response.url)
-          print("Content-Type:", content_type)
-          if "video" not in content_type and "octet-stream" not in content_type:
-              raise RuntimeError(f"Expected a video download, got Content-Type: {content_type}")
+          html = unescape(response.text)
+
+          # Pexels embeds video file metadata in the public page's JSON.
+          links = list(dict.fromkeys(re.findall(r'https?[^"\\\\ ]+?\\.mp4(?:\\?[^"\\\\ ]*)?', html)))
+          links = [x.replace("\\u0026", "&").replace("\\/", "/").replace("&amp;", "&") for x in links]
+          if not links:
+              # Keep a small diagnostic excerpt rather than silently trying an invented URL.
+              for token in ("video_files", "videos.pexels.com", "player.vimeo.com"):
+                  pos = html.find(token)
+                  if pos >= 0:
+                      print(f"Found {token}; nearby page data:", html[max(0,pos-300):pos+1200])
+              raise RuntimeError("No direct MP4 link was exposed in the public Pexels page. API-key authentication may be required.")
+          print("Discovered MP4 candidates:", len(links))
+          for i, link in enumerate(links[:10]):
+              print(f"Candidate {i}: {link[:240]}")
+
+          # Prefer the largest vertical MP4 when dimensions are embedded in page metadata;
+          # otherwise try the first discovered MP4 and verify dimensions afterwards.
+          selected = links[0]
+          for link in links:
+              if "2160" in link or "1080" in link:
+                  selected = link
+                  break
+          print("Selected direct MP4 URL:", selected)
+          r = requests.get(selected, headers={"User-Agent":"Mozilla/5.0"}, stream=True, timeout=120)
+          r.raise_for_status()
+          print("MP4 Content-Type:", r.headers.get("content-type"))
           target = Path("pexels_ocean_mountains_37336447.mp4")
           total = 0
-          with target.open("wb") as output:
-              for chunk in response.iter_content(chunk_size=1024 * 1024):
+          with target.open("wb") as out:
+              for chunk in r.iter_content(1024*1024):
                   if chunk:
-                      output.write(chunk)
+                      out.write(chunk)
                       total += len(chunk)
           if total < 100_000:
-              raise RuntimeError(f"Downloaded file is unexpectedly small: {total} bytes")
+              raise RuntimeError(f"Downloaded file too small: {total} bytes")
           print(f"Downloaded {target}: {total} bytes")
           PY
 
