@@ -1,0 +1,41 @@
+name: Render manifest video for review
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest:
+        description: Repository path to a reviewed content JSON manifest
+        required: true
+        default: content/first_video.json
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
+          python --version
+          ffmpeg -version | head -n 1
+
+      - name: Render video and caption for review
+        run: |
+          python src/render_video.py --manifest "${{ inputs.manifest }}" --output output/review.mp4
+
+      - name: Upload review files (no publishing)
+        uses: actions/upload-artifact@v4
+        with:
+          name: islamic-video-review
+          path: |
+            output/review.mp4
+            output/review.caption.json
+          retention-days: 7
