@@ -28,8 +28,7 @@ def choose_manifest(
             continue
         if data.get("content_type", "quran") != content_type:
             continue
-        if data.get("status") not in {"approved", "reviewed", "ready_for_review",
-                                      "rendered_prototype_user_positive_reusable_pipeline_next"}:
+        if data.get("rotation_approved") is not True:
             continue
         if data.get("publishing", {}).get("approval_required") is not True:
             continue
