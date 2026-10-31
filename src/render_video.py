@@ -47,10 +47,9 @@ def main() -> None:
     visual = data["visual"]
     caption = data.get("caption", {})
 
-    audio_url = audio.get("approved_audio_url")
-    background_url = visual.get("approved_background_url")
-    if not audio_url or not background_url:
-        raise SystemExit("Manifest must provide approved_audio_url and approved_background_url.")
+    background_url = visual.get("approved_background_url") or visual.get("background_candidate", {}).get("direct_video_url")
+    if not background_url:
+        raise SystemExit("Manifest must provide an approved background candidate URL.")
     if not audio.get("approved_for_first_test_video", audio.get("approved", False)):
         raise SystemExit("Audio is not marked approved. Refusing to render.")
     if not visual.get("background_candidate", {}).get("approved", False):
@@ -72,7 +71,29 @@ def main() -> None:
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     audio_file, bg_file = work / "recitation.mp3", work / "background.mp4"
-    download(audio_url, audio_file)
+    from remotezip import RemoteZip
+    archive_url = audio.get("official_verse_archive_url")
+    if not archive_url:
+        raise SystemExit("Manifest is missing the official verse archive URL.")
+    archive_entries = audio.get("archive_entries", {})
+    extracted = []
+    with RemoteZip(archive_url) as archive:
+        for number in verse_numbers:
+            entry = archive_entries.get(str(number))
+            if not entry:
+                raise SystemExit(f"Missing approved archive entry for verse {number}.")
+            target = work / f"verse_{number:03d}.mp3"
+            with archive.open(entry) as src, target.open("wb") as dst:
+                while True:
+                    chunk = src.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    dst.write(chunk)
+            extracted.append(target)
+    concat_list = work / "audio_concat.txt"
+    concat_list.write_text("".join("file '" + str(p.resolve()) + "'\\n" for p in extracted), encoding="utf-8")
+    run(["ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
+         "-i", str(concat_list), "-c", "copy", str(audio_file)])
     download(background_url, bg_file)
 
     duration_result = subprocess.check_output([
