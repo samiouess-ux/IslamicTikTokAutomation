@@ -59,3 +59,9 @@ No video-generation pipeline, recitation audio, external services, or publishing
 - Both have recordings of Surah Ash-Sharh available online; no recording has been selected or downloaded yet.
 - Before using a specific recording in TikTok videos, verify permission/licensing for that exact audio recording. Availability to stream/download does not by itself grant reuse rights.
 - Next action: identify a rights-cleared recording by one of the two preferred reciters, or obtain explicit permission from the relevant rights holder.
+
+## Audio-rights research update (2026-10-31)
+- Quran.com states it does not own the recitation recordings and cannot grant reuse/redistribution permission; rights belong to reciters or managing organizations. A specific Yasser Al-Dosari reuse request was directed to the rights holder; one discussion identifies Salam Network as managing rights for Yasser Al-Dosari recordings. Do not download/use these recordings for publication without explicit permission or a clear license for the exact recording.
+- No clear reuse license has yet been verified for Islam Sobhi recordings either. Keep both as preferred choices, but do not assume public availability means permission.
+- Pexels confirms its photos/videos are free for personal and commercial use under the Pexels license, subject to restrictions and third-party rights. Use a specific clip only after saving its source page/creator and checking it against the license.
+- Next practical step: choose a calm nature background clip from Pexels and separately continue looking for an explicitly reusable recitation or obtain written permission for a preferred recording. Keep music disabled and publishing approval required.
