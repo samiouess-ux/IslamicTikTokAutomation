@@ -1,0 +1,102 @@
+name: Render second Ash-Sharh video for review
+
+on:
+  push:
+    branches: [feature/ash-sharh-1-8-review]
+    paths:
+      - ".github/workflows/render-second-ash-sharh-review.yml"
+      - "src/render_video_scenes.py"
+      - "content/second_video_ash_sharh_94_1_8_draft.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install rendering tools and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core fonts-hosny-amiri
+          python -m pip install --disable-pip-version-check Pillow remotezip
+      - name: Rebuild the user-approved v4 audio and timings
+        run: |
+          mkdir -p output build
+          python - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import subprocess, json, wave, hashlib
+
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
+          prefix = "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/"
+          verse_wavs = []
+          durations = {}
+          with RemoteZip(url) as archive:
+              names = archive.namelist()
+              for n in range(1, 9):
+                  suffix = f"10-094{n:03d}-A08.mp3"
+                  found = [x for x in names if x.startswith(prefix) and x.endswith(suffix)]
+                  if len(found) != 1:
+                      raise RuntimeError(f"Expected one official audio entry for verse {n}: {found}")
+                  source = Path("build") / f"source_{n:02d}.mp3"
+                  with archive.open(found[0]) as src, source.open("wb") as dst:
+                      while chunk := src.read(1024 * 1024):
+                          dst.write(chunk)
+                  wav = Path("build") / f"verse_{n:02d}.wav"
+                  subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-i",str(source),
+                      "-af","silenceremove=stop_periods=1:stop_duration=0.08:stop_threshold=-42dB:stop_mode=all",
+                      "-ar","44100","-ac","2","-c:a","pcm_s16le",str(wav)],check=True)
+                  with wave.open(str(wav),"rb") as w:
+                      durations[n] = w.getnframes()/w.getframerate()
+                  verse_wavs.append(wav)
+          gap=Path("build/gap.wav")
+          subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-f","lavfi","-i",
+              "anullsrc=r=44100:cl=stereo","-t","0.05","-c:a","pcm_s16le",str(gap)],check=True)
+          pieces=[]
+          for i,wav in enumerate(verse_wavs):
+              pieces += ["-i",str(wav)]
+              if i<7: pieces += ["-i",str(gap)]
+          inputs=[]
+          for i in range(8):
+              inputs.append(f"[{2*i}:a]")
+              if i<7: inputs.append(f"[{2*i+1}:a]")
+          graph="".join(inputs)+f"concat=n=15:v=0:a=1[out]"
+          subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y",*pieces,
+              "-filter_complex",graph,"-map","[out]","-c:a","pcm_s16le","build/preview.wav"],check=True)
+          subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y","-i","build/preview.wav",
+              "-c:a","libmp3lame","-q:a","2","output/ash_sharh_94_1_8_approved_audio.mp3"],check=True)
+          data=json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+          data["audio"]["processed_verse_durations_seconds"]={str(k):v for k,v in durations.items()}
+          data["audio"]["inter_verse_silence_seconds"]=0.05
+          Path("content/second_video_ash_sharh_94_1_8_draft.json").write_text(json.dumps(data,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print("Audio SHA-256:",hashlib.sha256(Path("output/ash_sharh_94_1_8_approved_audio.mp3").read_bytes()).hexdigest())
+          print("Processed verse timings:",durations)
+          PY
+      - name: Download approved waterfall background
+        run: |
+          curl -fL --retry 3 --retry-delay 2 "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4" -o build/background-source.mp4
+          test -s build/background-source.mp4
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 build/background-source.mp4
+          mkdir -p build
+          cp build/background-source.mp4 build/background.mp4
+      - name: Render review MP4
+        run: |
+          python -m py_compile src/render_video_scenes.py
+          python src/render_video_scenes.py --manifest content/second_video_ash_sharh_94_1_8_draft.json --output output/ash_sharh_94_1_8_review.mp4
+          ffprobe -v error -show_entries format=duration,size -of json output/ash_sharh_94_1_8_review.mp4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ash-sharh-94-1-8-video-review
+          path: |
+            output/ash_sharh_94_1_8_review.mp4
+            output/ash_sharh_94_1_8_approved_audio.mp3
+            output/ash_sharh_94_1_8_review.caption.json
+          if-no-files-found: error
+          retention-days: 7

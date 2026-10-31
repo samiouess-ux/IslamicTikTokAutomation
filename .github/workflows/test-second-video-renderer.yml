@@ -1,0 +1,91 @@
+name: Test second Ash-Sharh video renderer
+
+on:
+  push:
+    branches: [feature/ash-sharh-1-8-review]
+    paths:
+      - "src/render_video_scenes.py"
+      - "content/second_video_ash_sharh_94_1_8_draft.json"
+      - ".github/workflows/test-second-video-renderer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install renderer dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core fonts-hosny-amiri
+          python -m pip install --disable-pip-version-check Pillow remotezip
+      - name: Compile renderer
+        run: python -m py_compile src/render_video_scenes.py
+      - name: Validate manifest, Quran reference, scenes and safety gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+          reference = json.loads(Path("data/reference/surah_ash_sharh_94_1_8_approved.json").read_text(encoding="utf-8"))
+          assert [v["number"] for v in manifest["verses"]] == list(range(1, 9))
+          approved = {int(k.split(":")[1]): v for k, v in reference["verses"].items() if k.startswith("94:")}
+          for verse in manifest["verses"]:
+              assert verse["arabic"] == approved[verse["number"]], f"Arabic mismatch at verse {verse['number']}"
+              assert verse["english"].strip(), f"Missing translation at verse {verse['number']}"
+          scenes = manifest["visual"]["scenes"]
+          assert [n for scene in scenes for n in scene["verses"]] == list(range(1, 9))
+          assert all(scene.get("transition") == "soft fade" for scene in scenes)
+          assert manifest["audio"]["approved"] is True
+          assert manifest["audio"]["exact_recording_user_reviewed"] is True
+          assert manifest["audio"]["production_audio_file"] == "output/ash_sharh_94_1_8_approved_audio.mp3"
+          assert manifest.get("publishing", {}).get("approval_required") is True
+          assert manifest.get("publishing", {}).get("auto_publish", False) is False
+          print("Manifest, exact Arabic reference, scene order, approved audio and no-auto-publish checks passed.")
+          PY
+      - name: Exercise Arabic overlay renderer
+        run: |
+          mkdir -p build
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          from render_video_scenes import create_arabic_overlay
+          output = Path("build/arabic-overlay-smoke-test.png")
+          create_arabic_overlay("سورة الشرح", [{
+              "number": 1,
+              "arabic": "أَلَمْ نَشْرَحْ لَكَ صَدْرَكَ",
+              "english": "Did We not expand for you, [O Muhammad], your breast?"
+          }], output)
+          assert output.is_file() and output.stat().st_size > 0
+          print("Arabic overlay smoke test passed.")
+          PY
+      - name: Confirm renderer refuses unapproved audio
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+          manifest["audio"]["approved"] = False
+          manifest["audio"]["production_audio_file"] = None
+          Path("build/unapproved-audio-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
+          set +e
+          output=$(python src/render_video_scenes.py --manifest build/unapproved-audio-manifest.json --output build/should_not_exist.mp4 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          test "$status" -ne 0
+          echo "$output" | grep -q "Audio is not marked approved"
+          test ! -e build/should_not_exist.mp4
+          echo "Safety gate passed: renderer blocks an explicitly unapproved audio copy."
