@@ -7,7 +7,7 @@ on:
       - "src/build_official_audio_inventory.py"
       - "src/prepare_official_quran_passage.py"
       - "src/prepare_quran_review_batch_audio.py"
-      - "src/build_quran_review_batch.py"
+      - "src/build_quran_review_batch.py"\n      - "src/build_quran_draft_manifests.py"\n      - "tests/test_build_quran_draft_manifests.py"
       - "src/build_quran_translation_catalog.py"
       - "src/build_quran_uthmani_catalog.py"
       - "src/build_quran_video_catalog.py"
@@ -108,7 +108,7 @@ jobs:
       - name: Run Quran catalog regression tests
         run: |
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
-          python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
+          python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v\n          python -m unittest discover -s tests -p 'test_build_quran_draft_manifests.py' -v
       - name: Build a diverse five-surah Quran review candidate batch
         run: |
           python src/build_quran_review_batch.py \
@@ -148,6 +148,29 @@ jobs:
               raise SystemExit("Audio preparation must remain review-only.")
           print(f"Prepared {report['audio_prepared_count']} distinct-surah audio candidates.")
           PY
+      - name: Generate draft manifests automatically for every prepared distinct surah
+        run: |
+          python src/build_quran_draft_manifests.py \\
+            --batch output/quran_review_batch.json \\
+            --audio-report output/quran_batch_audio_report.json \\
+            --output-dir output/quran_draft_manifests \\
+            --report output/quran_draft_manifest_report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/quran_draft_manifest_report.json").read_text(encoding="utf-8"))
+          if report["manifest_count"] < 2 or report["manifest_count"] != report["distinct_surah_count"]:
+              raise SystemExit("Expected at least two distinct-surah draft manifests.")
+          if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
+              raise SystemExit("Draft manifests must remain blocked from rendering and delivery.")
+          for item in report["items"]:
+              manifest = json.loads(Path(item["manifest"]).read_text(encoding="utf-8"))
+              if manifest["audio"]["approved"] or manifest["audio"]["rights_verified"]:
+                  raise SystemExit("Draft manifest unexpectedly grants audio approval.")
+              if manifest["visual"]["background_candidate"]:
+                  raise SystemExit("Draft manifest unexpectedly contains an approved background.")
+          print(f"Generated {report['manifest_count']} distinct-surah draft manifests; production gates remain closed.")
+          PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
@@ -159,6 +182,6 @@ jobs:
             output/quran_joined_candidate.json
             output/quran_review_batch.json
             output/quran_batch_audio_report.json
-            output/quran_batch_audio/**/*.mp3
+            output/quran_batch_audio/**/*.mp3\n            output/quran_draft_manifests/*.json\n            output/quran_draft_manifest_report.json
           if-no-files-found: error
           retention-days: 30
