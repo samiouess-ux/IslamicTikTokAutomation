@@ -6,6 +6,8 @@ on:
     paths:
       - "src/build_official_audio_inventory.py"
       - "src/prepare_official_quran_passage.py"
+      - "src/prepare_quran_review_batch_audio.py"
+      - "src/build_quran_review_batch.py"
       - "src/build_quran_translation_catalog.py"
       - "src/build_quran_uthmani_catalog.py"
       - "src/build_quran_video_catalog.py"
@@ -125,13 +127,25 @@ jobs:
           assert all(item["approval"]["ready_to_render"] is False for item in batch["passages"])
           print("Prepared five distinct-surah passages for human review only.")
           PY
-      - name: Prepare a duration-probed Quran passage candidate (not approved for publishing)
+      - name: Prepare audio for the five distinct-surah review candidates
         run: |
-          python src/prepare_official_quran_passage.py \
+          python src/prepare_quran_review_batch_audio.py \
+            --batch output/quran_review_batch.json \
             --inventory output/official_verse_audio_inventory.json \
-            --surah 94 --start-ayah 1 \
-            --output-dir output/candidate_audio_94 \
-            --report output/candidate_passage_94.json
+            --output-dir output/quran_batch_audio \
+            --report output/quran_batch_audio_report.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/quran_batch_audio_report.json").read_text(encoding="utf-8"))
+          if report["audio_prepared_count"] < 2:
+              raise SystemExit("At least two distinct-surah audio candidates must be prepared.")
+          if report["distinct_surah_count"] != report["audio_prepared_count"]:
+              raise SystemExit("Audio candidates must come from distinct surahs.")
+          if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
+              raise SystemExit("Audio preparation must remain review-only.")
+          print(f"Prepared {report['audio_prepared_count']} distinct-surah audio candidates.")
+          PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
@@ -142,7 +156,7 @@ jobs:
             output/quran_uthmani_candidate.json
             output/quran_joined_candidate.json
             output/quran_review_batch.json
-            output/candidate_passage_94.json
-            output/candidate_audio_94/*.mp3
+            output/quran_batch_audio_report.json
+            output/quran_batch_audio/**/*.mp3
           if-no-files-found: error
           retention-days: 30
