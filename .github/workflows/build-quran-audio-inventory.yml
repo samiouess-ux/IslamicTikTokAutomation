@@ -7,7 +7,9 @@ on:
       - "src/build_official_audio_inventory.py"
       - "src/prepare_official_quran_passage.py"
       - "src/prepare_quran_review_batch_audio.py"
-      - "src/build_quran_review_batch.py"\n      - "src/build_quran_draft_manifests.py"\n      - "tests/test_build_quran_draft_manifests.py"
+      - "src/build_quran_review_batch.py"
+      - "src/build_quran_draft_manifests.py"
+      - "tests/test_build_quran_draft_manifests.py"
       - "src/build_quran_translation_catalog.py"
       - "src/build_quran_uthmani_catalog.py"
       - "src/build_quran_video_catalog.py"
@@ -108,7 +110,8 @@ jobs:
       - name: Run Quran catalog regression tests
         run: |
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
-          python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v\n          python -m unittest discover -s tests -p 'test_build_quran_draft_manifests.py' -v
+          python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
+          python -m unittest discover -s tests -p 'test_build_quran_draft_manifests.py' -v
       - name: Build a diverse five-surah Quran review candidate batch
         run: |
           python src/build_quran_review_batch.py \
@@ -150,10 +153,10 @@ jobs:
           PY
       - name: Generate draft manifests automatically for every prepared distinct surah
         run: |
-          python src/build_quran_draft_manifests.py \\
-            --batch output/quran_review_batch.json \\
-            --audio-report output/quran_batch_audio_report.json \\
-            --output-dir output/quran_draft_manifests \\
+          python src/build_quran_draft_manifests.py \
+            --batch output/quran_review_batch.json \
+            --audio-report output/quran_batch_audio_report.json \
+            --output-dir output/quran_draft_manifests \
             --report output/quran_draft_manifest_report.json
           python - <<'PY'
           import json
@@ -182,6 +185,8 @@ jobs:
             output/quran_joined_candidate.json
             output/quran_review_batch.json
             output/quran_batch_audio_report.json
-            output/quran_batch_audio/**/*.mp3\n            output/quran_draft_manifests/*.json\n            output/quran_draft_manifest_report.json
+            output/quran_batch_audio/**/*.mp3
+            output/quran_draft_manifests/*.json
+            output/quran_draft_manifest_report.json
           if-no-files-found: error
           retention-days: 30
