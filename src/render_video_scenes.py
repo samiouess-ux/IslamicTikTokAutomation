@@ -84,7 +84,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     # Greedy line wrapping retains every original word and its order.
     chosen = None
     for size in (76, 72, 68, 64, 60, 56, 52, 48):
-        font = ImageFont.truetype(font_path, size)
+        font = ImageFont.truetype(bold_path, size)
         words = exact_text.split(" ")
         lines, current = [], ""
         for word in words:
@@ -107,8 +107,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
     first_y = 830 - (len(lines)-1)*line_height/2
     for i, line in enumerate(lines):
         draw.text((540, first_y+i*line_height), line, font=font,
-                  fill=(255,255,255,255), anchor="mm", direction="rtl", language="ar",
-                  stroke_width=1, stroke_fill=(255,255,255,255))
+                  fill=(255,255,255,255), anchor="mm", direction="rtl", language="ar")
     # Independent ornamental verse-number medallion.
     cx, cy, radius = 540, 1110, 34
     pts=[]
