@@ -258,7 +258,7 @@ def main() -> None:
     inputs = ["-stream_loop", "-1", "-i", str(bg_file), "-i", str(audio_file)]
     filters = [
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-        "crop=1080:1920,deshake=rx=16:ry=16:edge=mirror,setsar=1,fps=30,"
+        "crop=1080:1920,setsar=1,fps=30,"
         "drawbox=x=55:y=380:w=970:h=1340:color=black@0.30:t=fill[vbase]"
     ]
     current = "vbase"
