@@ -147,9 +147,9 @@ jobs:
                   duration = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(processed)],text=True).strip())
                   durations[str(verse)] = duration
           concat = work / 'concat.txt'
-          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + ("file 'silence_050ms.mp3'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
-          silence = work / 'silence_050ms.mp3'
-          subprocess.run(['ffmpeg','-hide_banner','-y','-f','lavfi','-i','anullsrc=r=44100:cl=stereo','-t','0.05','-c:a','libmp3lame','-q:a','2',str(silence)],check=True)
+          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + ("file 'silence_020ms.mp3'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
+          silence = work / 'silence_020ms.mp3'
+          subprocess.run(['ffmpeg','-hide_banner','-y','-f','lavfi','-i','anullsrc=r=44100:cl=stereo','-t','0.02','-c:a','libmp3lame','-q:a','2',str(silence)],check=True)
           # Rebuild concat list now that the inter-verse silence asset exists.
           concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + (f"file '{silence.resolve()}'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
           output = Path('output/ash_sharh_94_1_8_approved_audio.mp3')
@@ -158,7 +158,7 @@ jobs:
           manifest = json.loads(Path('content/second_video_ash_sharh_94_1_8_draft.json').read_text(encoding='utf-8'))
           manifest['audio']['production_audio_file'] = str(output)
           manifest['audio']['processed_verse_durations_seconds'] = durations
-          manifest['audio']['inter_verse_silence_seconds'] = 0.05
+          manifest['audio']['inter_verse_silence_seconds'] = 0.02
           Path('build/manifest_for_render.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
           print('Processed verse durations:', json.dumps(durations,sort_keys=True))
           print('Production audio duration:', subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(output)],text=True).strip())
