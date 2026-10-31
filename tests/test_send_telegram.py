@@ -16,6 +16,22 @@ class TelegramDeliveryTests(unittest.TestCase):
             with patch("send_telegram.urllib.request.urlopen") as call:
                 with self.assertRaisesRegex(ValueError,"GitHub Secrets"): send_video(video,caption,"","chat")
                 call.assert_not_called()
+    def test_successful_api_response_confirms_delivery(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp); video=p/"review.mp4"; caption=p/"caption.json"
+            video.write_bytes(b"FAKE-MP4-BYTES")
+            caption.write_text(json.dumps({"arabic_caption":"مراجعة","english_caption":"Review"}),encoding="utf-8")
+            class Response:
+                def __enter__(self): return self
+                def __exit__(self,*args): return False
+                def read(self): return b'{"ok":true,"result":{"message_id":123}}'
+            with patch("send_telegram.urllib.request.urlopen", return_value=Response()) as call:
+                message=send_video(video,caption,"token","chat-id")
+            self.assertEqual(message["message_id"],123)
+            request=call.call_args.args[0]
+            self.assertIn("sendVideo",request.full_url)
+            self.assertIn(b"FAKE-MP4-BYTES",request.data)
+            self.assertIn("لم يتم النشر على TikTok".encode(),request.data)
     def test_over_50mb_fails_before_network(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp); video=p/"review.mp4"; caption=p/"caption.json"
