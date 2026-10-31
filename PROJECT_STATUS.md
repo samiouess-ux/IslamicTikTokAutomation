@@ -248,3 +248,9 @@ Theme: hope and ease after hardship.
 - Full-Quran automatic selection is NOT yet production-ready: the checked-in exact Uthmani reference covers only a small sample; the official verse archive has an identified URL and individual extraction has been demonstrated for Ash-Sharh, but a verified Quran-wide mapping/selection pipeline and sourced translation corpus are not yet integrated.
 - Next engineering milestone: create a Quran-wide catalogue/selector that uses trusted text and translation datasets plus the official verse archive's exact entry map; select contiguous verse ranges using actual processed audio durations with a 55–60 second target and 65-second hard cap. Never truncate/speed up a verse or synthesize missing recitation.
 - Keep schedules and automatic Telegram delivery disabled until the full-corpus selector, 3 varied sample renders, and a real Telegram delivery have been tested.
+
+
+## Quran-wide archive inventory automation (2026-10-31)
+- Added `src/build_official_audio_inventory.py` and `.github/workflows/build-quran-audio-inventory.yml` to enumerate the official King Fahd Complex Hafs verse archive and validate the mapping against all 6,236 verses across 114 surahs.
+- Workflow run `41238698032` was triggered automatically by the branch update and was still in progress at the last check. The inventory is not yet confirmed until the workflow succeeds and the archive mapping is inspected.
+- This step builds an internal verse-to-official-audio archive index; it does not yet mean every recording has been individually listened to, nor does it complete the trusted Arabic text/translation catalogue or the automatic 65-second passage selector.
