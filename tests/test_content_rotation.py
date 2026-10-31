@@ -42,5 +42,31 @@ class ContentRotationTests(unittest.TestCase):
             self.assertEqual(choose_manifest(folder, "dua", rotation_key="day-1"), dua)
 
 
+    def test_selects_three_distinct_approved_manifests(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            expected = {
+                self.write(folder, "a.json", "one"),
+                self.write(folder, "b.json", "two"),
+                self.write(folder, "c.json", "three"),
+            }
+            selected = choose_manifests(
+                folder, "quran", count=3, rotation_key="daily-batch"
+            )
+            self.assertEqual(len(selected), 3)
+            self.assertEqual(len({p.name for p in selected}), 3)
+            self.assertEqual(set(selected), expected)
+
+    def test_batch_fails_closed_when_three_distinct_items_are_unavailable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write(folder, "a.json", "one")
+            self.write(folder, "b.json", "two")
+            with self.assertRaisesRegex(FileNotFoundError, "complete batch of 3"):
+                choose_manifests(
+                    folder, "quran", count=3, rotation_key="daily-batch"
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
