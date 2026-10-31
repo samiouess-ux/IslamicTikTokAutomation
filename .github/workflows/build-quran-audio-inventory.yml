@@ -80,7 +80,7 @@ jobs:
           PY
       - name: Run Quran catalog regression tests
         run: |
-          python -m unittest tests/test_build_quran_translation_catalog.py tests/test_build_quran_uthmani_catalog.py
+          python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
       - name: Prepare a duration-probed Quran passage candidate (not approved for publishing)
         run: |
           python src/prepare_official_quran_passage.py \
