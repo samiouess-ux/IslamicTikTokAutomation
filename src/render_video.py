@@ -125,7 +125,7 @@ def main() -> None:
                     dst.write(chunk)
             extracted.append(target)
     concat_list = work / "audio_concat.txt"
-    concat_list.write_text("".join("file '" + str(p.resolve()) + "'\\n" for p in extracted), encoding="utf-8")
+    concat_list.write_text("".join("file '" + str(p.resolve()) + "'\n" for p in extracted), encoding="utf-8")
     run(["ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
          "-i", str(concat_list), "-c", "copy", str(audio_file)])
     download(background_url, bg_file)
