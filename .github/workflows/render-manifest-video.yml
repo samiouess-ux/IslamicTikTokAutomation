@@ -99,7 +99,7 @@ jobs:
 
       - name: Render video and caption for review
         run: |
-          python src/render_video.py --manifest "${{ steps.selection.outputs.manifest }}" --output output/review.mp4
+          python src/render_video_scenes.py --manifest "${{ steps.selection.outputs.manifest }}" --output output/review.mp4
 
       - name: Upload review files (no publishing)
         uses: actions/upload-artifact@v4
