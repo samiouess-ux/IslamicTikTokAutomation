@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "script": "uthmani",
+  "source_name": "Quran.com / Quran Foundation text reference",
+  "source_url": "https://legacy.quran.com/94/5-6",
+  "source_note": "Reviewed reference snapshot for Surah Ash-Sharh 94:5-6. Before adding new verses, verify each exact string against the selected trusted Quran text source and record its source URL.",
+  "review_status": "reviewed",
+  "verses": {
+    "94:5": "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
+    "94:6": "إِنَّ مَعَ الْعُسْرِ يُسْرًا"
+  }
+}
