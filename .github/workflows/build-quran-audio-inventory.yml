@@ -121,7 +121,7 @@ jobs:
             --catalog output/quran_joined_candidate.json \
             --count 5 \
             --verses-per-passage 3 \
-            --seed github-actions-quran-batch \
+            --seed "quran-daily-$(date -u +%F)" \
             --output output/quran_review_batch.json
           python - <<'PY'
           import json
@@ -146,8 +146,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_batch_audio_report.json").read_text(encoding="utf-8"))
-          if report["audio_prepared_count"] < 2:
-              raise SystemExit("At least two distinct-surah audio candidates must be prepared.")
+          if report["audio_prepared_count"] != 3:
+              raise SystemExit("Exactly three distinct-surah audio candidates must be prepared for the daily target.")
           if report["distinct_surah_count"] != report["audio_prepared_count"]:
               raise SystemExit("Audio candidates must come from distinct surahs.")
           if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
@@ -165,8 +165,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_draft_manifest_report.json").read_text(encoding="utf-8"))
-          if report["manifest_count"] < 2 or report["manifest_count"] != report["distinct_surah_count"]:
-              raise SystemExit("Expected at least two distinct-surah draft manifests.")
+          if report["manifest_count"] != 3 or report["manifest_count"] != report["distinct_surah_count"]:
+              raise SystemExit("Expected exactly three distinct-surah draft manifests.")
           if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Draft manifests must remain blocked from rendering and delivery.")
           for item in report["items"]:
@@ -187,8 +187,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
-          if report["preview_count"] < 2 or report["production_approved"]:
-              raise SystemExit("Expected multiple review-only previews with production approval disabled.")
+          if report["preview_count"] != 3 or report["production_approved"]:
+              raise SystemExit("Expected exactly three review-only previews with production approval disabled.")
           if report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Telegram delivery and auto-publishing must remain disabled.")
           for item in report["items"]:
