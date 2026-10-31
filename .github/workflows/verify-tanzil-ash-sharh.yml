@@ -99,6 +99,18 @@ jobs:
           if list(sorted(found, key=int)) != expected:
               raise SystemExit(f"Expected verses 1-8; found {sorted(found, key=int)}")
 
+          # Tanzil's txt-2 dataset prefixes the basmala to the first ayah
+          # of this surah. Separate only this exact known prefix; do not
+          # normalize, rewrite, or otherwise modify the Quranic text.
+          basmala = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
+          first = found["1"]
+          exact_prefix = basmala + " "
+          if not first.startswith(exact_prefix):
+              raise SystemExit("Expected exact basmala prefix not found in 94:1")
+          found["1"] = first[len(exact_prefix):]
+          if not found["1"]:
+              raise SystemExit("Verse 94:1 is empty after separating basmala")
+
           output = {
               "source": "Tanzil Quran Text (Uthmani, Version 1.1)",
               "source_url": "https://tanzil.net/download/",
@@ -107,6 +119,8 @@ jobs:
               "review_status": "source_downloaded_not_yet_human_approved",
               "raw_file_sha256": hashlib.sha256(raw).hexdigest(),
               "unicode_normalization": "none",
+              "basmala_separate": basmala,
+              "basmala_handling": "exact prefix separated from the source record for 94:1; verse text preserved byte-for-byte after prefix",
               "verses": {f"94:{i}": found[str(i)] for i in range(1, 9)},
           }
           Path("output/ash_sharh_94_1_8_source_extract.json").write_text(
