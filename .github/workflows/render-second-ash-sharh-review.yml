@@ -1,15 +1,6 @@
 name: Render second Ash-Sharh video for review
 
 on:
-  push:
-    branches: [feature/telegram-review-notifications]
-    paths:
-      - ".github/workflows/render-second-ash-sharh-review.yml"
-      - "src/render_video_scenes.py"
-      - "src/hashtag_strategy.py"
-      - "tests/**"
-      - "src/render_dua_video.py"
-      - "content/second_video_ash_sharh_94_1_8_draft.json"
   workflow_dispatch:
 
 concurrency:
