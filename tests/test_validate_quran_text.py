@@ -2,12 +2,14 @@
 import json
 import tempfile
 import unittest
+import sys
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 from validate_quran_text import validate
 
 
-ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT / "data" / "reference" / "quran_text_uthmani.json"
 BASE_MANIFEST = ROOT / "content" / "first_video.json"
 
