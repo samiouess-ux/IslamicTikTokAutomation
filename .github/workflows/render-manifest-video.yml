@@ -126,9 +126,9 @@ jobs:
                   duration = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(processed)],text=True).strip())
                   durations[str(verse)] = duration
           concat = work / 'concat.txt'
-          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + ("file 'silence_050ms.wav'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
-          silence = work / 'silence_050ms.wav'
-          subprocess.run(['ffmpeg','-hide_banner','-y','-f','lavfi','-i','anullsrc=r=44100:cl=stereo','-t','0.05','-c:a','pcm_s16le',str(silence)],check=True)
+          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + ("file 'silence_050ms.mp3'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
+          silence = work / 'silence_050ms.mp3'
+          subprocess.run(['ffmpeg','-hide_banner','-y','-f','lavfi','-i','anullsrc=r=44100:cl=stereo','-t','0.05','-c:a','libmp3lame','-q:a','2',str(silence)],check=True)
           # Rebuild concat list now that the inter-verse silence asset exists.
           concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + (f"file '{silence.resolve()}'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
           output = Path('output/ash_sharh_94_1_8_approved_audio.mp3')
