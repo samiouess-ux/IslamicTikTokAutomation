@@ -1,0 +1,52 @@
+name: Quran batch engine tests
+
+on:
+  push:
+    branches: [feature/telegram-review-notifications]
+    paths:
+      - "src/build_quran_review_batch.py"
+      - "src/build_quran_video_catalog.py"
+      - "src/render_video_scenes.py"
+      - "src/validate_content_manifest.py"
+      - "tests/test_build_quran_review_batch.py"
+      - "tests/test_build_quran_video_catalog.py"
+      - "tests/test_quran_visual_templates.py"
+      - ".github/workflows/quran-batch-engine-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install renderer test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
+          python -m pip install --disable-pip-version-check Pillow remotezip
+      - name: Compile Quran engine modules
+        run: |
+          python -m py_compile \
+            src/build_quran_review_batch.py \
+            src/build_quran_video_catalog.py \
+            src/render_video_scenes.py \
+            src/validate_content_manifest.py
+      - name: Run Quran catalog, batch and visual template tests
+        run: |
+          python -m unittest -v \
+            tests/test_build_quran_review_batch.py \
+            tests/test_build_quran_video_catalog.py \
+            tests/test_quran_visual_templates.py
+      - name: Confirm workflow is test-only
+        run: |
+          ! grep -Eq "send_telegram|upload_to_tiktok|publish" .github/workflows/quran-batch-engine-tests.yml
+          echo "Test workflow does not render, send Telegram messages, or publish."
