@@ -33,8 +33,12 @@ def validate_content_manifest(data: dict[str, Any]) -> None:
     if publishing.get("approval_required") is not True:
         raise SystemExit("Every video must require explicit user review.")
 
-    if visual.get("template", "ornate_gold_classic") != "ornate_gold_classic":
-        raise SystemExit("Only the approved ornate_gold_classic template is enabled.")
+    template = visual.get("template", "ornate_gold_classic")
+    supported_templates = {"ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"}
+    if template not in supported_templates:
+        raise SystemExit(f"Unsupported visual template: {template}.")
+    if template != "ornate_gold_classic" and visual.get("template_approved") is not True:
+        raise SystemExit("A new visual template must be explicitly approved before production rendering.")
     background = visual.get("background_candidate", {})
     if not isinstance(background, dict):
         raise SystemExit("visual.background_candidate must be an object.")
