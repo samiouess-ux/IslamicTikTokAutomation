@@ -21,9 +21,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install audio probe and archive tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check remotezip
       - name: Inspect official archive and validate complete verse mapping
         run: |
-          python -m pip install --disable-pip-version-check remotezip
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
       - name: Prepare a duration-probed Quran passage candidate (not approved for publishing)
         run: |
