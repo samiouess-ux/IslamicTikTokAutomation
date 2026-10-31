@@ -136,10 +136,7 @@ def build_slideshow(items: list[dict], title: str, work: Path) -> float:
         total += duration
     lines.append(f"file '{(work / f'item_{len(items)-1:03d}.png').resolve().as_posix()}'")
     playlist = work / "overlays.ffconcat"
-    playlist.write_text("ffconcat version 1.0
-" + "
-".join(lines) + "
-",
+    playlist.write_text("ffconcat version 1.0\\n" + "\\n".join(lines) + "\\n",
                         encoding="utf-8")
     return total
 
