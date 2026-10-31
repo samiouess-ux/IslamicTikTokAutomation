@@ -146,3 +146,16 @@ Theme: hope and ease after hardship.
 - GitHub Actions cron uses UTC. Tunisia is UTC+1 for this checkpoint; an 08:00 Tunis run corresponds to 07:00 UTC. Reconfirm timezone rules if scheduling at a later date.
 - Next safe step: inspect the current branch head, workflow, renderer, and content manifests; then implement one small change at a time and run tests. Keep auto-publishing disabled.
 - This section is the handover source of truth for resuming after a chat/account change. Update it after each meaningful implementation or test result; distinguish confirmed behavior from plans and unverified work.
+
+
+## Daily content plan clarification (2026-10-31)
+- User clarified the daily target is **three varied Islamic videos per day**, not one Arabic Quran video plus one English Quran video.
+- Quran videos remain in Arabic with a verified translation shown alongside/below the Arabic text (English translation may be used; do not create an English-only Quran recitation/video as the default).
+- The three daily slots should rotate naturally among:
+  1. Quran recitation in Arabic with verified translation.
+  2. Authentic morning/evening adhkar and duas (choose according to the day's slot where practical).
+  3. Another verified Islamic reminder: Quran passage, dua, dhikr, or other sourced content.
+- This is a varied content mix, not a rigid requirement that every day contain exactly one of each category. Avoid repetitive topics, backgrounds, and layouts.
+- Every Quran verse, translation, dua, hadith, attribution, and source must be checked; never invent or paraphrase sacred wording as a quotation. Record reliable source/provenance internally.
+- Deliver three separate 9:16 MP4 files to Telegram, each with its own ready-to-use caption and relevant hashtags, for the user to upload manually to TikTok.
+- Do not enable the daily schedule yet. First implement reusable content selection and rendering, then test three distinct videos and confirm quality and Telegram delivery. Automatic TikTok publishing remains disabled.
