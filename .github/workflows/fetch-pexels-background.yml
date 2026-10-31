@@ -23,28 +23,22 @@ jobs:
           from html import unescape
 
           page_url = "https://mixkit.co/free-stock-video/waterfall-between-green-hills-100174/"
-          headers = {"User-Agent": "Mozilla/5.0"}
-          response = requests.get(page_url, headers=headers, timeout=60)
+          response = requests.get(page_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=60)
           print("Mixkit page status:", response.status_code)
           response.raise_for_status()
-          html = unescape(response.text).replace("\\/", "/").replace("&amp;", "&")
-          candidates = list(dict.fromkeys(re.findall(r'https?://[^"\\s<>]+?\\.mp4(?:\\?[^"\\s<>]*)?', html)))
-          candidates = [u.rstrip("\\'\\),;") for u in candidates]
-          if not candidates:
-              for token in ("mixkit", ".mp4", "video"):
-                  pos = html.find(token)
-                  if pos >= 0:
-                      print(f"Page excerpt near {token}:", html[max(0,pos-250):pos+900])
-              raise RuntimeError("No direct MP4 URL found in Mixkit page HTML; stopping rather than guessing a download URL.")
-          print("Found MP4 candidates:", len(candidates))
-          for i, url in enumerate(candidates[:10]):
-              print(f"Candidate {i}: {url[:260]}")
-          # Prefer an explicit 1080p asset when the page exposes one.
-          selected = next((u for u in candidates if "1080" in u), candidates[0])
-          print("Selected MP4:", selected)
-          r = requests.get(selected, headers=headers, stream=True, timeout=120)
+          html = unescape(response.text).replace("\\/", "/")
+          matches = re.findall(r'"contentUrl"\s*:\s*"([^"]+\.mp4[^"]*)"', html)
+          urls = list(dict.fromkeys(matches))
+          if not urls:
+              raise RuntimeError("Mixkit page did not expose a contentUrl MP4 field.")
+          print("Video URLs found:", len(urls))
+          for url in urls:
+              print("Candidate:", url)
+          selected = next((u for u in urls if "720" in u), urls[0])
+          print("Selected:", selected)
+          r = requests.get(selected, headers={"User-Agent": "Mozilla/5.0"}, stream=True, timeout=120)
           r.raise_for_status()
-          print("Video content type:", r.headers.get("content-type"))
+          print("Content type:", r.headers.get("content-type"))
           target = Path("mixkit_waterfall_green_hills_100174.mp4")
           total = 0
           with target.open("wb") as out:
@@ -57,7 +51,7 @@ jobs:
           print(f"Downloaded {target}: {total} bytes")
           PY
 
-      - name: Verify vertical format and create preview
+      - name: Verify video and create preview
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
