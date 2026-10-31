@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'src/render_video.py'
+      - 'src/validate_quran_text.py'
+      - 'data/reference/**'
       - 'content/first_video.json'
       - '.github/workflows/render-manifest-video.yml'
   workflow_dispatch:
@@ -32,6 +34,10 @@ jobs:
           pip install remotezip pillow
           python --version
           ffmpeg -version | head -n 1
+
+      - name: Validate exact Quran Arabic text
+        run: |
+          python src/validate_quran_text.py --manifest "${{ inputs.manifest || 'content/first_video.json' }}"
 
       - name: Render video and caption for review
         run: |
