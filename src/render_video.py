@@ -52,11 +52,29 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         exact_text = verse["arabic"]
         if not isinstance(exact_text, str) or not exact_text.strip():
             raise SystemExit("Invalid/empty Arabic verse text.")
-        # Keep the original Arabic string byte-for-byte at the Unicode level.
-        label = f"{exact_text} ۝{verse['number']}"
-        draw.text((540, first_y + index * line_gap), label, font=verse_font,
+
+        y = first_y + index * line_gap
+        # Draw the Quran text alone, unchanged. Do not append a marker to it.
+        draw.text((540, y), exact_text, font=verse_font,
                   fill=(255, 255, 255, 255), anchor="mm",
                   direction="rtl", language="ar", stroke_width=0)
+
+        # Place a separate, small verse-number medallion just after the
+        # visual end of the RTL line, with a clear gap from the letters.
+        bbox = draw.textbbox((540, y), exact_text, font=verse_font,
+                             anchor="mm", direction="rtl", language="ar")
+        medallion_radius = 25
+        gap = 24
+        cx = bbox[0] - gap - medallion_radius
+        cy = y
+        draw.ellipse((cx - medallion_radius, cy - medallion_radius,
+                      cx + medallion_radius, cy + medallion_radius),
+                     outline=(255, 255, 255, 255), width=3)
+        number_font = ImageFont.truetype(font_path, 27)
+        number = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
+        draw.text((cx, cy), number, font=number_font,
+                  fill=(255, 255, 255, 255), anchor="mm",
+                  direction="rtl", language="ar")
     image.save(destination)
 
 
