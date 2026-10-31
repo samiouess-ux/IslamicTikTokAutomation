@@ -216,7 +216,10 @@ def main() -> None:
     work.mkdir(exist_ok=True)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    audio_file, bg_file = work / "recitation.mp3", work / "background.mp4"
+    audio_file = Path(audio["production_audio_file"])
+    bg_file = work / "background.mp4"
+    if not audio_file.is_file():
+        raise SystemExit(f"Approved audio file missing: {audio_file}")
     scenes = visual.get("scenes", [])
     if not scenes:
         scenes = [{"scene": 1, "verses": verse_numbers}]
@@ -233,43 +236,17 @@ def main() -> None:
         create_english_overlay(selected, english_overlay)
         scene_overlays.append((scene, arabic_overlay, english_overlay))
 
-    from remotezip import RemoteZip
-    archive_url = audio.get("official_verse_archive_url")
-    if not archive_url:
-        raise SystemExit("Manifest is missing the official verse archive URL.")
-    archive_entries = audio.get("archive_entries", {})
-    extracted = []
-    with RemoteZip(archive_url) as archive:
-        for number in verse_numbers:
-            entry = archive_entries.get(str(number))
-            if not entry:
-                raise SystemExit(f"Missing approved archive entry for verse {number}.")
-            target = work / f"verse_{number:03d}.mp3"
-            with archive.open(entry) as src, target.open("wb") as dst:
-                while True:
-                    chunk = src.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    dst.write(chunk)
-            extracted.append(target)
-    concat_list = work / "audio_concat.txt"
-    concat_list.write_text("".join("file '" + str(p.resolve()) + "'\n" for p in extracted), encoding="utf-8")
-    run(["ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
-         "-i", str(concat_list), "-c", "copy", str(audio_file)])
+    verse_durations = {int(k): float(v) for k, v in audio.get("processed_verse_durations_seconds", {}).items()}
+    if set(verse_durations) != set(verse_numbers):
+        raise SystemExit("Processed verse timing data is incomplete.")
+    inter_verse_gap = float(audio.get("inter_verse_silence_seconds", 0.05))
     download(background_url, bg_file)
 
-    # Determine scene boundary from exact extracted verse audio durations.
-    verse_durations = {}
-    for number, path in zip(verse_numbers, extracted):
-        value = subprocess.check_output([
-            "ffprobe", "-v", "error", "-show_entries", "format=duration",
-            "-of", "default=nw=1:nk=1", str(path)
-        ], text=True).strip()
-        verse_durations[number] = float(value)
+    # Scene boundaries use the approved processed verse durations.
     scene_boundaries = []
     elapsed = 0.0
     for scene in scenes[:-1]:
-        elapsed += sum(verse_durations[n] for n in scene["verses"])
+        elapsed += sum(verse_durations[n] for n in scene["verses"]) + inter_verse_gap * len(scene["verses"])
         scene_boundaries.append(elapsed)
 
     duration_result = subprocess.check_output([
