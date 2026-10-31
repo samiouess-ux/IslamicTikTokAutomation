@@ -104,7 +104,7 @@ jobs:
       - name: Send Telegram review notification
         if: success()
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           REVIEW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -113,7 +113,9 @@ jobs:
           import os
           import urllib.request
 
-          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          token = os.environ["TELEGRAM_BOT_TOKEN"].strip()
+          if not token:
+              raise RuntimeError("TG_BOT_TOKEN secret is missing or empty; Telegram notification was not sent.")
           chat_id = os.environ["TELEGRAM_CHAT_ID"]
           run_url = os.environ["REVIEW_RUN_URL"]
           message = (
