@@ -270,3 +270,14 @@ Theme: hope and ease after hardship.
 - The workflow now builds the translation corpus alongside the official archive index and duration-probed candidate audio. The latest workflow run after switching to a single full-corpus request is `41239290344`; wait for its result before treating the translation corpus as validated.
 - New tests cover full-surah shape, exact verse coverage, duplicates, missing rows, and empty text. The test workflow triggered on commit `246a713058b5cac352b4c6a88d0313d4c8d9e4d9` is still running at the latest check.
 - Source references: AlQuran Cloud API documentation and terms are recorded in the script metadata. The Arabic Uthmani reference corpus remains a separate outstanding task; the existing six-verse reviewed snapshot is not yet expanded.
+
+
+## Quran corpus verification checkpoint (2026-10-31)
+- GitHub Actions run `41239290344` completed successfully on feature branch commit `df8b8e7df379d3eec857512c6ad8d42388285243`.
+- The official King Fahd Complex audio archive mapping validated all 6,236 verse entries across 114 surahs.
+- The Saheeh International API build validated exactly 6,236 non-empty, unique verse translations across all 114 surahs. This is source-corpus completeness, not a verse-by-verse religious/editorial review or permission for commercial reuse.
+- The duration probe selected contiguous Ash-Sharh 94:1–8 audio at 62.579 seconds. It remains a candidate and is not newly user-approved for production.
+- Artifact inspection found a packaging defect: the workflow generated `output/saheeh_international_translation.json` but attempted to upload the nonexistent `output/english_saheeh_translation.json`. The artifact therefore omitted the translation corpus even though its build step passed.
+- Fixed the workflow on this feature branch in commit `46cf87d48d18ce41679341254ed9695c8927abfb`: it now checks the generated file, edition, 6,236-entry count and review/rights status, and uploads the correct filename. A new Actions run must pass and its artifact must be inspected before considering the packaged corpus available.
+- The current exact Arabic Uthmani reference snapshot is still only a small reviewed sample. Quran-wide Arabic text integration, per-passage review, recording review/rights gates, varied approved backgrounds, dua/dhikr source approval, and real Telegram delivery remain outstanding.
+- No daily/Friday schedule or TikTok auto-publishing is enabled.
