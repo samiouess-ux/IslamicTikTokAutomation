@@ -101,42 +101,67 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       # Fresh workflow run re-reads the current repository secrets.
-      - name: Send Telegram review notification
+      # Send the MP4 itself to Telegram; keep publishing manual and approval-only.
+      - name: Send review MP4 directly to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          REVIEW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python - <<'PY'
           import json
           import os
+          from pathlib import Path
           import urllib.request
 
           token = os.environ["TELEGRAM_BOT_TOKEN"].strip()
+          chat_id = os.environ["TELEGRAM_CHAT_ID"].strip()
           if not token:
-              raise RuntimeError("TG_BOT_TOKEN secret is missing or empty; Telegram notification was not sent.")
-          chat_id = os.environ["TELEGRAM_CHAT_ID"]
-          run_url = os.environ["REVIEW_RUN_URL"]
-          message = (
-              "✅ اكتمل تجهيز فيديو سورة الشرح (الآيات 1–8) للمراجعة.\n"
-              "الفيديو لم يُنشر على TikTok. يلزم تأكيدك الشخصي قبل أي نشر.\n\n"
-              "افتح الرابط لتحميل الفيديو وملفات المراجعة:\n" + run_url
+              raise RuntimeError("TG_BOT_TOKEN secret is missing or empty.")
+          if not chat_id:
+              raise RuntimeError("TELEGRAM_CHAT_ID secret is missing or empty.")
+
+          video_path = Path("output/ash_sharh_94_1_8_review.mp4")
+          if not video_path.is_file():
+              raise FileNotFoundError(f"Review video not found: {video_path}")
+          video_size = video_path.stat().st_size
+          max_size = 50 * 1024 * 1024
+          if video_size > max_size:
+              raise RuntimeError(
+                  f"Video is {video_size / (1024 * 1024):.1f} MB; "
+                  "Telegram sendVideo limit is 50 MB."
+              )
+
+          boundary = "----IslamicTikTokTelegramUploadBoundary"
+          caption = (
+              "✅ فيديو سورة الشرح (الآيات 1–8) جاهز للمراجعة.\n"
+              "الفيديو مرفق مباشرة هنا بصيغة MP4.\n"
+              "لم يتم نشره على TikTok؛ النشر يستوجب موافقتك الشخصية."
           )
-          payload = json.dumps({
-              "chat_id": chat_id,
-              "text": message,
-              "disable_web_page_preview": True
-          }).encode("utf-8")
+          body = (
+              f"--{boundary}\r\n"
+              'Content-Disposition: form-data; name="chat_id"\r\n\r\n'
+              f"{chat_id}\r\n"
+              f"--{boundary}\r\n"
+              'Content-Disposition: form-data; name="caption"\r\n\r\n'
+              f"{caption}\r\n"
+              f"--{boundary}\r\n"
+              'Content-Disposition: form-data; name="supports_streaming"\r\n\r\n'
+              "true\r\n"
+              f"--{boundary}\r\n"
+              'Content-Disposition: form-data; name="video"; filename="ash_sharh_94_1_8_review.mp4"\r\n'
+              "Content-Type: video/mp4\r\n\r\n"
+          ).encode("utf-8") + video_path.read_bytes() + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
           request = urllib.request.Request(
-              f"https://api.telegram.org/bot{token}/sendMessage",
-              data=payload,
-              headers={"Content-Type": "application/json"},
+              f"https://api.telegram.org/bot{token}/sendVideo",
+              data=body,
+              headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
               method="POST"
           )
-          with urllib.request.urlopen(request, timeout=20) as response:
+          with urllib.request.urlopen(request, timeout=180) as response:
               result = json.loads(response.read().decode("utf-8"))
           if not result.get("ok"):
-              raise RuntimeError("Telegram API did not confirm the notification.")
-          print("Telegram review notification sent.")
+              raise RuntimeError(f"Telegram did not confirm the MP4 upload: {result}")
+          print(f"Telegram MP4 review video sent ({video_size / (1024 * 1024):.1f} MB).")
           PY
