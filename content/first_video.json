@@ -1,6 +1,6 @@
 {
   "id": "test_surah_ash_sharh_94_5_6",
-  "status": "official_verse_audio_approved_background_pending",
+  "status": "rendered_prototype_user_positive_reusable_pipeline_next",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -30,10 +30,7 @@
   "audio": {
     "required": true,
     "music_allowed": false,
-    "preferred_reciters": [
-      "Islam Sobhi",
-      "Yasser Al-Dosari"
-    ],
+    "preferred_reciters": [],
     "selected_reciter": "Maher Al-Muaiqly",
     "recitation": "Hafs",
     "rights_verified_for_official_complex_recordings": true,
@@ -49,7 +46,8 @@
         "license_url": "https://qurancomplex.gov.sa/quran-audios/",
         "permission_summary": "Official page states the listed digital recitations are made available free for public use in apps, websites, broadcast channels, and private/institutional works, inside and outside Saudi Arabia.",
         "surah_ash_sharh_listed_on_separate_reciter_page": "https://maheralmuaiqly.com/ar/quran/107",
-        "status": "user_approved_reciter_official_permission_confirmed_exact_audio_not_yet_downloaded_or_checked"
+        "status": "approved_official_collection_and_exact_audio_user_reviewed",
+        "exact_recording_user_reviewed": true
       }
     ],
     "extracted_verses": [
@@ -62,9 +60,10 @@
     "github_actions_run_id": "41164756151",
     "github_actions_artifact_id": "13028735937",
     "github_actions_artifact_name": "maher-ash-sharh-verses-5-6-review",
-    "note": "The exact official verse files for 94:5 and 94:6 were extracted and joined in order without re-encoding. User review of this exact combined clip is still required before rendering.",
-    "user_review": "User confirmed the combined verses 94:5-6 clip has the correct sequence.",
-    "approved_for_first_test_video": true
+    "note": "Internal provenance and rights records are retained for compliance. Do not mention the reciter in the public video or caption.",
+    "user_review": "User confirmed exact verses 94:5–6 sequence is correct; do not include reciter name in public-facing output.",
+    "approved_for_first_test_video": true,
+    "public_reciter_attribution": false
   },
   "visual": {
     "format": "9:16",
@@ -72,29 +71,46 @@
     "height": 1920,
     "fps": 30,
     "background_style": "calm_nature_scenery",
-    "background_source": "Pexels",
+    "background_source": "Mixkit",
     "arabic_text_size": "large_primary",
     "english_text_size": "smaller_secondary",
     "gentle_motion": true,
     "background_candidate": {
-      "provider": "Pexels",
-      "creator": "Engin Akyurt",
-      "title": "Serene Blue Ocean Horizon with Distant Mountains",
-      "source_url": "https://www.pexels.com/video/serene-blue-ocean-horizon-with-distant-mountains-37336447/",
-      "aspect_ratio": "9:16",
-      "resolution": "2160x3840",
-      "duration_seconds": 48,
-      "status": "candidate_not_downloaded_or_approved",
-      "note": "Review the exact clip and retain source/creator attribution information before use.",
-      "license": "Pexels License",
-      "license_url": "https://www.pexels.com/legal-pages/license/",
-      "license_checked": true,
-      "downloaded": false,
-      "approved": false
+      "provider": "Mixkit",
+      "title": "Waterfall Between Green Hills",
+      "source_url": "https://mixkit.co/free-stock-video/waterfall-between-green-hills-100174/",
+      "direct_video_url": "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4",
+      "source_resolution": "720x1280",
+      "user_approved": true,
+      "note": "User approved the representative preview; source is upscaled to 1080x1920 during rendering.",
+      "approved": true,
+      "downloaded": true
     }
   },
   "publishing": {
     "approval_required": true,
     "auto_publish": false
+  },
+  "caption": {
+    "languages": [
+      "ar",
+      "en"
+    ],
+    "include_surah_name": true,
+    "include_verse_range": true,
+    "include_description": true,
+    "include_relevant_hashtags": true,
+    "mention_reciter": false,
+    "arabic": "سورة الشرح | الآيتان 5–6\nفإن مع العسر يسرا.",
+    "english": "Surah Ash-Sharh | Verses 5–6\nIndeed, with hardship comes ease.",
+    "hashtags_ar": [
+      "#القرآن_الكريم",
+      "#سورة_الشرح"
+    ],
+    "hashtags_en": [
+      "#Quran",
+      "#AshSharh"
+    ],
+    "status": "draft_for_review"
   }
 }
