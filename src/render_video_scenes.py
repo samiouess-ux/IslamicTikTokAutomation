@@ -220,7 +220,7 @@ def main() -> None:
     scenes = visual.get("scenes", [])
     if not scenes:
         scenes = [{"scene": 1, "verses": verse_numbers}]
-    if sorted(n for scene in scenes for n in scene.get("verses", [])) != verse_numbers:
+    if [n for scene in scenes for n in scene.get("verses", [])] != verse_numbers:
         raise SystemExit("Scene plan must cover every verse exactly once and in order.")
     scene_overlays = []
     for scene in scenes:
