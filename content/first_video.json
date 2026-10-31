@@ -90,7 +90,8 @@
       "note": "User approved the representative preview; source is upscaled to 1080x1920 during rendering.",
       "approved": true,
       "downloaded": true
-    }
+    },
+    "template": "ornate_gold_classic"
   },
   "publishing": {
     "approval_required": true,
