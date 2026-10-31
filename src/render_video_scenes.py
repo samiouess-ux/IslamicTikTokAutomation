@@ -126,7 +126,7 @@ def create_english_overlay(verses: list[dict], destination: Path) -> None:
         raise SystemExit("English font not found.")
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(font_path, 36)
+    font = ImageFont.truetype(font_path, 30)
     blocks = []
     for verse in verses:
         lines, current = [], ""
@@ -141,13 +141,18 @@ def create_english_overlay(verses: list[dict], destination: Path) -> None:
         if current:
             lines.append(current)
         blocks.append(lines)
-    total = sum(len(block) for block in blocks) * 56 + max(0, len(blocks) - 1) * 18
-    y = 1370 + max(0, (360 - total) // 2)
+    line_height, block_gap = 46, 12
+    total = sum(len(block) for block in blocks) * line_height + max(0, len(blocks) - 1) * block_gap
+    if total > 520:
+        raise SystemExit("English translations exceed the scene layout; refusing to clip or overlap text.")
+    y = 1120 + max(0, (520 - total) // 2)
     for block in blocks:
         for line in block:
             draw.text((540, y), line, font=font, fill=(255, 255, 255, 255), anchor="mm")
-            y += 56
-        y += 18
+            y += line_height
+        y += block_gap
+    if y > 1680:
+        raise SystemExit("English translation overlay exceeds its safe area.")
     image.save(destination)
 
 
@@ -277,7 +282,7 @@ def main() -> None:
     filters = [
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,setsar=1,fps=30,"
-        "drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill[vbase]"
+        "drawbox=x=55:y=380:w=970:h=1340:color=black@0.30:t=fill[vbase]"
     ]
     current = "vbase"
     input_index = 2
