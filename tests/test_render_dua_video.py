@@ -34,11 +34,23 @@ class DuaRendererTests(unittest.TestCase):
             self.assertIn("item_001.png", playlist)
             self.assertEqual(playlist.count("duration "), 2)
 
+    def test_audio_duration_mismatch_fails_closed(self):
+        audio = Path('audio.mp3')
+        with patch.object(render_dua_video, 'probe_duration', return_value=9.0):
+            self.assertEqual(render_dua_video.validate_audio_duration(audio, 9.5), 9.0)
+        with patch.object(render_dua_video, 'probe_duration', return_value=12.0):
+            with self.assertRaises(SystemExit):
+                render_dua_video.validate_audio_duration(audio, 9.5)
+
+    def test_renderer_does_not_silently_pad_audio(self):
+        source = (ROOT / 'src' / 'render_dua_video.py').read_text(encoding='utf-8')
+        self.assertIn('validate_audio_duration(audio_file, duration)', source)
+        self.assertNotIn('apad', source)
+
     def test_renderer_keeps_validation_and_separate_content_type_gate(self):
         source = (ROOT / "src" / "render_dua_video.py").read_text(encoding="utf-8")
         self.assertIn("validate_content_manifest(data)", source)
         self.assertIn('not in {"dua", "dhikr"}', source)
-        self.assertIn('"-af", "apad"', source)
         self.assertIn("No per-item audio synchronization is claimed", source)
 
     def test_overlay_rejects_missing_source_and_text(self):
