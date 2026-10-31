@@ -13,7 +13,7 @@ from validate_content_manifest import validate_content_manifest
 
 
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
-AUDIO_DURATION_TOLERANCE_SECONDS = 0.75
+AUDIO_DURATION_TOLERANCE_SECONDS = 0.75\nTARGET_MAX_DURATION_SECONDS = 60.0\nHARD_MAX_DURATION_SECONDS = 65.0
 
 
 def run(command: list[str]) -> None:
