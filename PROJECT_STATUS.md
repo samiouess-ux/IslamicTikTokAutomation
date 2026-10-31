@@ -47,3 +47,9 @@ No video-generation pipeline, recitation audio, external services, or publishing
 - Work step by step and test each phase.
 - Do not publish automatically.
 - Do not make repository changes beyond the agreed project scope.
+
+## Research checkpoint (2026-10-31)
+- French Hamidullah wording for 94:5 and 94:6 verified against Quran.com and QuranEnc. Keep each verse paired with its own ayah number; display translation smaller than Arabic.
+- Candidate background source: Pexels videos. Its official license/help pages state that videos can be used and modified for commercial projects without attribution, subject to restrictions and third-party rights. Save the specific asset page and creator details when selecting a clip.
+- Recitation audio: not yet selected. Do not assume that a stream or downloadable recitation is cleared for reuse in monetized TikTok videos. Verify rights/permission for the exact recording before embedding or publishing.
+- Suggested first workflow: select one calm nature video from Pexels; select a reciter/recording with documented reuse permission; then assemble and review the 9:16 test video.
