@@ -26,8 +26,8 @@ class DraftManifestTests(unittest.TestCase):
             "rendering_allowed": False,
             "auto_publish": False,
             "items": [
-                {"candidate_id": "a", "surah_number": 19, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "selected_verses": [4, 5], "audio_file": "a.mp3", "duration_seconds": 32.5},
-                {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "selected_verses": [4, 5], "audio_file": "b.mp3", "duration_seconds": 28.0},
+                {"candidate_id": "a", "surah_number": 19, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "selected_verses": [4, 5], "verse_durations_seconds": {4: 15.2, 5: 17.1}, "audio_file": "a.mp3", "duration_seconds": 32.5},
+                {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "selected_verses": [4, 5], "verse_durations_seconds": {4: 13.0, 5: 15.0}, "audio_file": "b.mp3", "duration_seconds": 28.0},
             ],
         }
         with tempfile.TemporaryDirectory() as tmp:
@@ -45,8 +45,8 @@ class DraftManifestTests(unittest.TestCase):
     def test_rejects_missing_ayah_from_audio(self):
         batch = {"batch_status": "review_candidates_only", "passages": [candidate("a", 19), candidate("b", 88)]}
         report = {"rendering_allowed": False, "auto_publish": False, "items": [
-            {"candidate_id": "a", "surah_number": 19, "status": "audio_prepared", "selected_verses": [4], "audio_file": "a.mp3", "duration_seconds": 12},
-            {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared", "selected_verses": [4, 5], "audio_file": "b.mp3", "duration_seconds": 12},
+            {"candidate_id": "a", "surah_number": 19, "status": "audio_prepared", "selected_verses": [4], "verse_durations_seconds": {4: 12}, "audio_file": "a.mp3", "duration_seconds": 12},
+            {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared", "selected_verses": [4, 5], "verse_durations_seconds": {4: 6, 5: 6}, "audio_file": "b.mp3", "duration_seconds": 12},
         ]}
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "every requested ayah"):
