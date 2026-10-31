@@ -1,0 +1,74 @@
+name: Render first approved test video
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/render-first-video.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install rendering tools and Arabic font
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+          ffmpeg -version | head -n 1
+
+      - name: Download approved official recitation verses
+        run: |
+          python -m pip install --upgrade pip
+          pip install remotezip requests
+          python - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import requests, zipfile, io
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
+          entries = [
+              "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094005-A08.mp3",
+              "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094006-A08.mp3",
+          ]
+          Path("audio").mkdir(exist_ok=True)
+          with RemoteZip(url) as archive:
+              for index, entry in enumerate(entries, start=1):
+                  data = archive.read(entry)
+                  Path(f"audio/verse{index}.mp3").write_bytes(data)
+          Path("audio/list.txt").write_text(
+              "file 'verse1.mp3'\nfile 'verse2.mp3'\n", encoding="utf-8"
+          )
+          PY
+          ffmpeg -hide_banner -y -f concat -safe 0 -i audio/list.txt -c copy audio/recitation.mp3
+          ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 audio/recitation.mp3
+
+      - name: Download approved Mixkit background
+        run: |
+          mkdir -p output
+          curl -L --fail --retry 3 \
+            "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4" \
+            -o background.mp4
+          ffprobe -v error -show_entries stream=width,height -show_entries format=duration -of default=nw=1 background.mp4
+
+      - name: Render Arabic and English reminder video
+        run: |
+          FONT="/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf"
+          test -f "$FONT"
+          ffmpeg -hide_banner -y \
+            -stream_loop -1 -i background.mp4 \
+            -i audio/recitation.mp3 \
+            -filter_complex "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30,drawbox=x=70:y=500:w=940:h=820:color=black@0.28:t=fill,drawtext=fontfile=$FONT:text='فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝٥':fontcolor=white:fontsize=76:text_shaping=1:x=(w-text_w)/2:y=690,drawtext=fontfile=$FONT:text='إِنَّ مَعَ الْعُسْرِ يُسْرًا ۝٦':fontcolor=white:fontsize=76:text_shaping=1:x=(w-text_w)/2:y=850,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text='For indeed, with hardship will be ease.':fontcolor=white:fontsize=34:x=(w-text_w)/2:y=1110,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf:text='Indeed, with hardship will be ease.':fontcolor=white:fontsize=34:x=(w-text_w)/2:y=1170[v]" \
+            -map "[v]" -map 1:a -t 15.88 -c:v libx264 -preset veryfast -crf 20 \
+            -pix_fmt yuv420p -c:a aac -b:a 192k -movflags +faststart \
+            output/ash-sharh-94-5-6-review.mp4
+          ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate -show_entries format=duration -of json output/ash-sharh-94-5-6-review.mp4
+
+      - name: Upload review video
+        uses: actions/upload-artifact@v4
+        with:
+          name: ash-sharh-first-video-review
+          path: output/ash-sharh-94-5-6-review.mp4
+          retention-days: 7
