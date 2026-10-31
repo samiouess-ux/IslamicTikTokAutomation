@@ -1,39 +1,45 @@
 import unittest
 
-from build_quran_translation_catalog import find_translation_metadata
+from build_quran_translation_catalog import validate_surah_payload
 
 
-class TranslationMetadataTests(unittest.TestCase):
-    def test_accepts_saheeh_translation_with_version(self):
-        item = {
-            "key": "english_saheeh",
-            "title": "English Translation - Saheeh International",
-            "version": "1.0",
+class TranslationCatalogTests(unittest.TestCase):
+    def test_accepts_complete_surah_and_preserves_verbatim_text(self):
+        payload = {
+            "code": 200,
+            "data": {
+                "ayahs": [
+                    {"numberInSurah": 1, "text": "In the Name of Allah."},
+                    {"numberInSurah": 2, "text": "All praise is due to Allah."},
+                ]
+            },
         }
-        self.assertEqual(find_translation_metadata([item]), item)
+        self.assertEqual(
+            validate_surah_payload(payload, 1, 2),
+            {"1:1": "In the Name of Allah.", "1:2": "All praise is due to Allah."},
+        )
 
-    def test_rejects_missing_translation(self):
-        with self.assertRaisesRegex(ValueError, "found 0"):
-            find_translation_metadata([])
+    def test_rejects_missing_ayah(self):
+        payload = {"code": 200, "data": {"ayahs": [{"numberInSurah": 1, "text": "text"}]}}
+        with self.assertRaisesRegex(ValueError, "incomplete translation"):
+            validate_surah_payload(payload, 1, 2)
 
-    def test_rejects_ambiguous_duplicate_entries(self):
-        item = {
-            "key": "english_saheeh",
-            "title": "Sahih International",
-            "version": "1",
-        }
-        with self.assertRaisesRegex(ValueError, "found 2"):
-            find_translation_metadata([item, item])
+    def test_rejects_duplicate_ayah(self):
+        payload = {"code": 200, "data": {"ayahs": [
+            {"numberInSurah": 1, "text": "one"},
+            {"numberInSurah": 1, "text": "duplicate"},
+        ]}}
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            validate_surah_payload(payload, 1, 1)
 
-    def test_rejects_unidentified_translation_title(self):
-        item = {"key": "english_saheeh", "title": "English Translation", "version": "1"}
-        with self.assertRaisesRegex(ValueError, "does not identify"):
-            find_translation_metadata([item])
+    def test_rejects_empty_translation(self):
+        payload = {"code": 200, "data": {"ayahs": [{"numberInSurah": 1, "text": "  "}]}}
+        with self.assertRaisesRegex(ValueError, "empty translation"):
+            validate_surah_payload(payload, 1, 1)
 
-    def test_rejects_unversioned_translation(self):
-        item = {"key": "english_saheeh", "title": "Saheeh International"}
-        with self.assertRaisesRegex(ValueError, "version"):
-            find_translation_metadata([item])
+    def test_rejects_wrong_api_status(self):
+        with self.assertRaisesRegex(ValueError, "HTTP 200"):
+            validate_surah_payload({"code": 500}, 1, 1)
 
 
 if __name__ == "__main__":
