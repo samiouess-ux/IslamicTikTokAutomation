@@ -81,13 +81,13 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path) -> d
                 continue
             # Concatenate whole MP3 files in order; stream copy avoids re-encoding.
             list_file = candidate_dir / "concat.txt"
-            list_file.write_text("".join(f"file '{p.name}'\n" for p in files), encoding="utf-8")
+            list_file.write_text("".join(f"file '{p.resolve()}'\n" for p in files), encoding="utf-8")
             combined = candidate_dir / "passage.mp3"
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
                 "-f", "concat", "-safe", "0", "-i", list_file.name,
-                "-c", "copy", str(combined)
-            ], cwd=candidate_dir, check=True)
+                "-c", "copy", str(combined.resolve())
+            ], check=True)
             actual = probe(combined)
             if actual > MAX_SECONDS:
                 raise ValueError(f"Concatenated candidate exceeds 65 seconds: {candidate['candidate_id']}")
