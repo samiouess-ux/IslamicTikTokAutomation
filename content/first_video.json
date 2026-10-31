@@ -63,7 +63,12 @@
     "note": "Internal provenance and rights records are retained for compliance. Do not mention the reciter in the public video or caption.",
     "user_review": "User confirmed exact verses 94:5–6 sequence is correct; do not include reciter name in public-facing output.",
     "approved_for_first_test_video": true,
-    "public_reciter_attribution": false
+    "public_reciter_attribution": false,
+    "official_verse_archive_url": "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
+    "archive_entries": {
+      "5": "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094005-A08.mp3",
+      "6": "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094006-A08.mp3"
+    }
   },
   "visual": {
     "format": "9:16",
