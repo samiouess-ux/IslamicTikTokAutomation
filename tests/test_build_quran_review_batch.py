@@ -21,8 +21,9 @@ class BatchTests(unittest.TestCase):
             "expected_verse_count": len(verses),
             "verses": verses
         }
-        result = build_review_batch(source, count=4, verses_per_passage=2, seed="test")
+        result = build_review_batch(source, count=4, verses_per_passage=2, seed="test", excluded_surahs=[2])
         self.assertEqual(result["distinct_surah_count"], 4)
+        self.assertNotIn(2, [item["surah_number"] for item in result["passages"]])
         self.assertFalse(result["rendering_allowed"])
         self.assertFalse(result["auto_publish"])
         self.assertFalse(result["telegram_delivery"])
