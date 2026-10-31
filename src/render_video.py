@@ -177,8 +177,15 @@ def main() -> None:
         raise SystemExit("Manifest must provide an approved background candidate URL.")
     if not audio.get("approved_for_first_test_video", audio.get("approved", False)):
         raise SystemExit("Audio is not marked approved. Refusing to render.")
-    if not visual.get("background_candidate", {}).get("approved", False):
+    if not audio.get("exact_recording_user_reviewed", False):
+        raise SystemExit("Exact recitation has not been user-reviewed. Refusing to render.")
+    background = visual.get("background_candidate", {})
+    if not background.get("approved", False):
         raise SystemExit("Background is not marked approved. Refusing to render.")
+    if not background.get("user_approved", False):
+        raise SystemExit("Background has not been explicitly user-approved. Refusing to render.")
+    if data.get("publishing", {}).get("auto_publish", False):
+        raise SystemExit("Auto-publishing must remain disabled; renderer is review-only.")
 
     verses = data.get("verses", [])
     if not verses:
