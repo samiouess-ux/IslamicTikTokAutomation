@@ -74,3 +74,13 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Run `41236627093` completed successfully on the previous renderer revision: the 94:1–8 MP4 rendered and uploaded as artifact `13055821597` (34,107,653 bytes; expires 2026-11-07). Telegram step was skipped, not delivered.
 - Run `41236627114` had not yet completed at the latest check.
 - The targeted no-deshake performance change is commit `2c7684e57f46739d764a4b7ff25623172b04cba1`; new runs `41236886998` and `41236886984` were still in setup/install when checked. Do not infer the optimization works until they complete.
+
+
+## Verified optimized render results (2026-10-31)
+- Optimized revision `2c7684e57f46739d764a4b7ff25623172b04cba1` passed both workflow runs:
+  - `41236886984` manifest review: Quran checks, unit tests, rendering, MP4 validation and artifact upload all successful; Telegram skipped on push. Artifact `13056036545` (`islamic-video-review`).
+  - `41236886998` Ash-Sharh 94:1–8: audio rebuild, background, Quran checks, tests, render and artifact upload all successful; Telegram skipped by intentional pause. Artifact `13055697994`.
+- Downloaded the optimized manifest artifact and inspected it: MP4 1080×1920, 30 fps, audio present, 62.8 seconds; representative frame preserves the approved gold cartouche, Arabic verse, gold number medallion, English translation and waterfall background.
+- Observed render turnaround improved from roughly 3m52 on the earlier manifest run to roughly 1m45 on the optimized run (runner timing varies). Removing the unnecessary `deshake` filter is validated; the visual reference remains intact.
+- New three-distinct-manifest batch tests passed as part of the optimized CI runs.
+- Still outstanding: controlled manual Telegram dispatch with private GitHub Secrets configured, followed by user confirmation of receipt. Do not turn on daily/Friday schedules or TikTok publishing until real delivery and three varied approved content types are proven.
