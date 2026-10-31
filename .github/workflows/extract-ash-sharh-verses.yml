@@ -1,0 +1,75 @@
+name: Extract Ash-Sharh verses 5 and 6
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/extract-ash-sharh-verses.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extract-and-join:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Extract only verses 5 and 6 from official archive
+        run: |
+          python -m pip install --disable-pip-version-check remotezip
+          mkdir -p output
+          python - <<'PY'
+          from remotezip import RemoteZip
+          from pathlib import Path
+          import hashlib
+
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
+          members = {
+              "verse_5.mp3": "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094005-A08.mp3",
+              "verse_6.mp3": "ayat-12-1-2020/094 Ash-Sharh ƒΘ¼⌐Ñ/10-094006-A08.mp3",
+          }
+
+          with RemoteZip(url) as archive:
+              available = set(archive.namelist())
+              for filename, member in members.items():
+                  if member not in available:
+                      raise FileNotFoundError(f"Official archive entry not found: {member}")
+                  destination = Path("output") / filename
+                  info = archive.getinfo(member)
+                  print(f"Official archive entry: {member}")
+                  print(f"Uncompressed size: {info.file_size} bytes")
+                  with archive.open(member) as source, destination.open("wb") as target:
+                      while True:
+                          chunk = source.read(1024 * 1024)
+                          if not chunk:
+                              break
+                          target.write(chunk)
+                  print(f"{filename}: {destination.stat().st_size} bytes; SHA-256 {hashlib.sha256(destination.read_bytes()).hexdigest()}")
+          PY
+
+      - name: Join the two original MP3 verses without re-encoding
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          printf "file 'verse_5.mp3'\nfile 'verse_6.mp3'\n" > output/concat.txt
+          cd output
+          ffmpeg -hide_banner -y -f concat -safe 0 -i concat.txt -c copy maher_almuaiqly_ash_sharh_verses_5_6.mp3
+          ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 maher_almuaiqly_ash_sharh_verses_5_6.mp3
+          sha256sum maher_almuaiqly_ash_sharh_verses_5_6.mp3
+
+      - name: Upload original verses and combined clip for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: maher-ash-sharh-verses-5-6-review
+          path: |
+            output/verse_5.mp3
+            output/verse_6.mp3
+            output/maher_almuaiqly_ash_sharh_verses_5_6.mp3
+          if-no-files-found: error
+          retention-days: 7
