@@ -126,14 +126,24 @@ def create_overlay(title: str, item: dict, destination: Path) -> None:
 def build_slideshow(items: list[dict], title: str, work: Path) -> float:
     if not items:
         raise SystemExit("No sourced dua/dhikr text.")
-    lines, total = [], 0.0
+    total = sum(item_duration(item) for item in items)
+    if total > HARD_MAX_DURATION_SECONDS:
+        raise SystemExit(
+            f"Video duration {total:.2f}s exceeds the hard limit "
+            f"of {HARD_MAX_DURATION_SECONDS:.0f}s."
+        )
+    if total > TARGET_MAX_DURATION_SECONDS:
+        print(
+            f"Warning: video duration {total:.2f}s exceeds the "
+            f"{TARGET_MAX_DURATION_SECONDS:.0f}s target."
+        )
+    lines = []
     for index, item in enumerate(items):
         duration = item_duration(item)
         overlay = work / f"item_{index:03d}.png"
         create_overlay(title, item, overlay)
         lines.extend([f"file '{overlay.resolve().as_posix()}'",
                       f"duration {duration:.3f}"])
-        total += duration
     lines.append(f"file '{(work / f'item_{len(items)-1:03d}.png').resolve().as_posix()}'")
     playlist = work / "overlays.ffconcat"
     playlist.write_text("ffconcat version 1.0\\n" + "\\n".join(lines) + "\\n",
