@@ -1,0 +1,40 @@
+name: Inspect official recitation archive
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/inspect-official-audio.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inspect ZIP directory remotely (no full archive download)
+        run: |
+          python -m pip install --disable-pip-version-check remotezip
+          python - <<'PY'
+          from remotezip import RemoteZip
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/sura-12-1-2020.zip"
+          with RemoteZip(url) as archive:
+              names = archive.namelist()
+              print("Archive entries:", len(names))
+              matches = [name for name in names if any(token in name.lower() for token in ("094", "surah094", "ash-sharh", "inshirah", "al-sharh", "الشرح"))]
+              print("Potential Surah Ash-Sharh entries:")
+              for name in matches:
+                  print(name)
+              if not matches:
+                  print("No filename match found. First 30 entries:")
+                  for name in names[:30]:
+                      print(name)
+          PY
