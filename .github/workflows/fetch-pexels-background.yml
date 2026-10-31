@@ -1,0 +1,68 @@
+name: Fetch Pexels background candidate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fetch-pexels-background.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-background:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download the selected Pexels video
+        run: |
+          python - <<'PY'
+          import requests
+          from pathlib import Path
+
+          video_id = "37336447"
+          url = f"https://www.pexels.com/video/{video_id}/download"
+          response = requests.get(
+              url,
+              headers={"User-Agent": "Mozilla/5.0 (compatible; IslamicTikTokAutomation/1.0)"},
+              allow_redirects=True,
+              timeout=120,
+              stream=True,
+          )
+          response.raise_for_status()
+          content_type = response.headers.get("content-type", "")
+          print("Final URL:", response.url)
+          print("Content-Type:", content_type)
+          if "video" not in content_type and "octet-stream" not in content_type:
+              raise RuntimeError(f"Expected a video download, got Content-Type: {content_type}")
+          target = Path("pexels_ocean_mountains_37336447.mp4")
+          total = 0
+          with target.open("wb") as output:
+              for chunk in response.iter_content(chunk_size=1024 * 1024):
+                  if chunk:
+                      output.write(chunk)
+                      total += len(chunk)
+          if total < 100_000:
+              raise RuntimeError(f"Downloaded file is unexpectedly small: {total} bytes")
+          print(f"Downloaded {target}: {total} bytes")
+          PY
+
+      - name: Verify video metadata and create a preview
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffprobe -v error -show_entries format=duration,size:stream=codec_name,width,height,r_frame_rate -of json pexels_ocean_mountains_37336447.mp4 | tee pexels_metadata.json
+          ffmpeg -hide_banner -y -ss 3 -i pexels_ocean_mountains_37336447.mp4 -frames:v 1 pexels_preview.jpg
+          sha256sum pexels_ocean_mountains_37336447.mp4
+
+      - name: Upload background and preview for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: pexels-ocean-mountains-background-review
+          path: |
+            pexels_ocean_mountains_37336447.mp4
+            pexels_metadata.json
+            pexels_preview.jpg
+          if-no-files-found: error
+          retention-days: 7
