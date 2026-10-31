@@ -216,3 +216,11 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Added `validate_quran_audio_approval()` to the renderer: approved audio still requires user listening review; a candidate may render only when `preview_only=true`, `approved=false`, and reuse rights are documented. It rejects missing rights and any preview marked production-approved.
 - Added five renderer regression tests for the approval/preview combinations. Latest full review-render run `41240328907` includes these changes; inspect its result before treating the refreshed preview artifact as complete.
 - Existing earlier 94:1-8 artifact is technically valid as a visual preview, but its caption JSON had literal escaped newline markers. Use only a refreshed artifact after run `41240328907` completes if available; the corrected manifest caption now has actual line breaks.
+
+
+## Resume point — renderer gate passed (2026-10-31)
+- Latest run `41240328907` is complete with conclusion `success`; all render steps passed, including the new renderer-level Quran audio approval gate.
+- Latest artifact ID `13056564523` (`islamic-video-review`) was downloaded and checked. `review.mp4`: H.264/AAC, 1080×1920, 30 FPS, 62.8 sec. `review.caption.json` parses correctly with real newline characters, `review_required`, and `publishing=disabled`.
+- Telegram delivery step was skipped (push event); no delivery receipt exists yet. Next operational milestone is an explicit manual dispatch with Telegram send enabled, then confirm the MP4 arrives in the user's Telegram chat. Do not enable schedules before that confirmation.
+- The 94:1–8 render remains review-only: user approval applies to the exact 94:5–6 recording, not the full 94:1–8 candidate. Never publish this candidate without separate listening approval.
+- Continue only on `feature/telegram-review-notifications`; `main` remains untouched. Item 5 (dua/dhikr engine) remains deferred.
