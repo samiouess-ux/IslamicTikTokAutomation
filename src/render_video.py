@@ -39,7 +39,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         raise SystemExit("Arabic font not found; refusing to render Quran text.")
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    title_font = ImageFont.truetype(font_path, 48)
+    title_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf", 58)
     verse_font = ImageFont.truetype(font_path, 76)
 
     # Ornate classical Islamic cartouche: pointed ends, layered borders,
@@ -112,7 +112,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> 
         draw.line(points + [points[0]], fill=gold, width=3, joint="curve")
         draw.ellipse((cx - 19, cy - 19, cx + 19, cy + 19),
                      outline=soft_gold, width=2)
-        number_font = ImageFont.truetype(font_path, 27)
+        number_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoNaskhArabic-Bold.ttf", 34)
         number = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
         draw.text((cx, cy), number, font=number_font,
                   fill=gold, anchor="mm", direction="rtl", language="ar")
