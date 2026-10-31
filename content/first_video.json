@@ -56,7 +56,12 @@
       "resolution": "2160x3840",
       "duration_seconds": 48,
       "status": "candidate_not_downloaded_or_approved",
-      "note": "Review the exact clip and retain source/creator attribution information before use."
+      "note": "Review the exact clip and retain source/creator attribution information before use.",
+      "license": "Pexels License",
+      "license_url": "https://www.pexels.com/legal-pages/license/",
+      "license_checked": true,
+      "downloaded": false,
+      "approved": false
     }
   },
   "publishing": {
