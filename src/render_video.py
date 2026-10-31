@@ -1,16 +1,13 @@
-"""Reusable manifest-driven renderer for reviewed Quran reminder videos.
-
-The renderer deliberately requires explicit, pre-approved audio/background URLs.
-It does not publish anything.
-"""
+"""Manifest-driven Quran video renderer with strict Arabic text preservation."""
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import subprocess
 import urllib.request
 from pathlib import Path
+
+from PIL import Image, ImageDraw, ImageFont, features
 
 
 def download(url: str, destination: Path) -> None:
@@ -24,7 +21,6 @@ def download(url: str, destination: Path) -> None:
 
 
 def ffmpeg_text(value: str) -> str:
-    # Escape drawtext filter special characters.
     return (value.replace("\\", "\\\\").replace(":", "\\:")
             .replace("'", "\\'").replace("%", "\\%")
             .replace(",", "\\,").replace("[", "\\[").replace("]", "\\]"))
@@ -32,6 +28,36 @@ def ffmpeg_text(value: str) -> str:
 
 def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
+
+
+def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> None:
+    """Shape Arabic with libraqm; never normalize, strip, or rewrite Quran text."""
+    if not features.check("raqm"):
+        raise SystemExit("Arabic rendering blocked: Pillow libraqm/RAQM is unavailable.")
+    font_path = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf"
+    if not Path(font_path).exists():
+        raise SystemExit("Arabic font not found; refusing to render Quran text.")
+    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    title_font = ImageFont.truetype(font_path, 48)
+    verse_font = ImageFont.truetype(font_path, 76)
+
+    # Draw each manifest string unchanged. The verse number is metadata, not
+    # appended to or substituted into the Quran text itself.
+    draw.text((540, 475), title, font=title_font, fill=(255, 255, 255, 255),
+              anchor="mm", direction="rtl", language="ar", stroke_width=0)
+    line_gap = 145 if len(verses) <= 3 else 115
+    first_y = 700 if len(verses) <= 3 else 620
+    for index, verse in enumerate(verses):
+        exact_text = verse["arabic"]
+        if not isinstance(exact_text, str) or not exact_text.strip():
+            raise SystemExit("Invalid/empty Arabic verse text.")
+        # Keep the original Arabic string byte-for-byte at the Unicode level.
+        label = f"{exact_text} ۝{verse['number']}"
+        draw.text((540, first_y + index * line_gap), label, font=verse_font,
+                  fill=(255, 255, 255, 255), anchor="mm",
+                  direction="rtl", language="ar", stroke_width=0)
+    image.save(destination)
 
 
 def main() -> None:
@@ -42,9 +68,7 @@ def main() -> None:
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
-    source = data["source"]
-    audio = data["audio"]
-    visual = data["visual"]
+    source, audio, visual = data["source"], data["audio"], data["visual"]
     caption = data.get("caption", {})
 
     background_url = visual.get("approved_background_url") or visual.get("background_candidate", {}).get("direct_video_url")
@@ -58,19 +82,29 @@ def main() -> None:
     verses = data.get("verses", [])
     if not verses:
         raise SystemExit("Manifest has no verified verse text.")
-    arabic = "   ".join(f"{v['arabic']} ۝{v['number']}" for v in verses)
-    english = "\\n".join(v["english"] for v in verses)
-    surah_ar = source["surah_name_ar"]
     verse_numbers = [int(v["number"]) for v in verses]
+    if len(set(verse_numbers)) != len(verse_numbers) or verse_numbers != sorted(verse_numbers):
+        raise SystemExit("Verse numbers must be unique and in ascending Quran order.")
+    # Do not normalize Unicode, remove harakat, or rewrite Arabic characters.
+    for verse in verses:
+        if not isinstance(verse.get("arabic"), str) or not verse["arabic"]:
+            raise SystemExit("Every verse must contain exact Arabic source text.")
+        if not verse.get("english"):
+            raise SystemExit("Every verse must contain its paired English translation.")
+
     range_label = (f"الآيات {verse_numbers[0]}–{verse_numbers[-1]}"
                    if len(verse_numbers) > 1 else f"الآية {verse_numbers[0]}")
-    title = f"سورة {surah_ar} — {range_label}"
+    title = f"سورة {source['surah_name_ar']} — {range_label}"
 
     work = Path("build")
     work.mkdir(exist_ok=True)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     audio_file, bg_file = work / "recitation.mp3", work / "background.mp4"
+    arabic_overlay = work / "arabic_text.png"
+
+    create_arabic_overlay(title, verses, arabic_overlay)
+
     from remotezip import RemoteZip
     archive_url = audio.get("official_verse_archive_url")
     if not archive_url:
@@ -91,7 +125,7 @@ def main() -> None:
                     dst.write(chunk)
             extracted.append(target)
     concat_list = work / "audio_concat.txt"
-    concat_list.write_text("".join("file '" + str(p.resolve()) + "'\n" for p in extracted), encoding="utf-8")
+    concat_list.write_text("".join("file '" + str(p.resolve()) + "'\\n" for p in extracted), encoding="utf-8")
     run(["ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
          "-i", str(concat_list), "-c", "copy", str(audio_file)])
     download(background_url, bg_file)
@@ -102,34 +136,27 @@ def main() -> None:
     ], text=True).strip()
     duration = float(duration_result)
 
-    font_ar = "/usr/share/fonts/truetype/noto/NotoNaskhArabic-Regular.ttf"
     font_en = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    if not Path(font_ar).exists():
-        raise SystemExit("Arabic font not found on runner.")
-
+    english = "\\n".join(v["english"] for v in verses)
     draw = (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,setsar=1,fps=30,"
-        "drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill,"
-        f"drawtext=fontfile={font_ar}:text='{ffmpeg_text(title)}':"
-        "fontcolor=white:fontsize=42:x=(w-text_w)/2:y=450,"
-        f"drawtext=fontfile={font_ar}:text='{ffmpeg_text(arabic)}':"
-        "fontcolor=white:fontsize=68:line_spacing=24:text_shaping=1:"
-        "x=(w-text_w)/2:y=650,"
-        f"drawtext=fontfile={font_en}:text='{ffmpeg_text(english)}':"
+        "drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill[v0];"
+        "[v0][2:v]overlay=0:0[v1];"
+        f"[v1]drawtext=fontfile={font_en}:text='{ffmpeg_text(english)}':"
         "fontcolor=white:fontsize=30:line_spacing=16:"
-        "x=(w-text_w)/2:y=1120[v]"
+        "x=(w-text_w)/2:y=1260[v]"
     )
     run([
         "ffmpeg", "-hide_banner", "-y", "-stream_loop", "-1", "-i", str(bg_file),
-        "-i", str(audio_file), "-filter_complex", draw,
+        "-i", str(audio_file), "-i", str(arabic_overlay),
+        "-filter_complex", draw,
         "-map", "[v]", "-map", "1:a", "-t", str(duration),
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
         "-movflags", "+faststart", str(output)
     ])
 
-    # Produce review caption separately; never publish.
     caption_path = output.with_suffix(".caption.json")
     caption_path.write_text(json.dumps({
         "status": "review_required",
