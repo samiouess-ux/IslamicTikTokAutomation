@@ -299,7 +299,7 @@ jobs:
           retention-days: 7
 
       - name: Send review MP4 to Telegram
-        if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json' && (github.event_name != 'workflow_dispatch' || inputs.send_to_telegram == true)
+        if: github.event_name == 'workflow_dispatch' && steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json' && inputs.send_to_telegram == true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
