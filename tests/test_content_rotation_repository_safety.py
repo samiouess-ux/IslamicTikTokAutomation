@@ -31,5 +31,5 @@ class RepositoryRotationSafetyTests(unittest.TestCase):
         self.assertIn("refusing to repeat or invent content", result.stderr)
 
 
-if ___content__ == "__main__":
+if __name__ == "__main__":
     unittest.main()
