@@ -10,7 +10,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 
 def _ordered_surahs(joined: dict[str, Any]) -> list[int]:
@@ -28,6 +28,7 @@ def build_review_batch(
     count: int = 5,
     verses_per_passage: int = 3,
     seed: str = "quran-review-batch",
+    excluded_surahs: Iterable[int] = (),
 ) -> dict[str, Any]:
     if joined.get("rendering_allowed") is not False:
         raise ValueError("Input catalog must remain blocked from rendering.")
@@ -38,7 +39,10 @@ def build_review_batch(
     corpus = joined.get("verses")
     if not isinstance(corpus, dict) or len(corpus) != joined.get("expected_verse_count"):
         raise ValueError("Joined corpus is incomplete or its verse count does not match.")
-    surahs = _ordered_surahs(joined)
+    excluded = {int(number) for number in excluded_surahs}
+    if any(not 1 <= number <= 114 for number in excluded):
+        raise ValueError("Excluded surah numbers must be between 1 and 114.")
+    surahs = [number for number in _ordered_surahs(joined) if number not in excluded]
     if count > len(surahs):
         raise ValueError(f"Cannot select {count} distinct surahs from {len(surahs)} available.")
 
@@ -126,9 +130,10 @@ def main() -> None:
     parser.add_argument("--count", type=int, default=5)
     parser.add_argument("--verses-per-passage", type=int, default=3)
     parser.add_argument("--seed", default="quran-review-batch")
+    parser.add_argument("--exclude-surah", type=int, action="append", default=[])
     args = parser.parse_args()
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
-    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed)
+    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, args.exclude_surah)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
