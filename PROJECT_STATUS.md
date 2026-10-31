@@ -352,3 +352,14 @@ Theme: hope and ease after hardship.
 - Latest artifact `islamic-video-review`, ID `13056564523`, contains `review.mp4` and `review.caption.json`. MP4 independently checked: H.264, AAC, 1080×1920, 30 FPS, 62.8 seconds. Caption JSON parses and contains actual line breaks; it says `review_required` and `publishing=disabled`.
 - Telegram step was skipped because this was a push-triggered run. No real Telegram receipt is confirmed; manual Telegram delivery test remains open.
 - This 94:1–8 output is still a review-only candidate. Do not publish or treat its recording as user-approved without the user's separate listening approval.
+
+
+## Latest render and rotation checkpoint (2026-10-31)
+- Run `41240985110` completed successfully on `feature/telegram-review-notifications`.
+- Quran reference validation, regression tests, exact Arabic validation, audio preparation, video rendering, MP4 verification, and artifact upload all passed.
+- Artifact `islamic-video-review`, ID `13056804985`, size 47,412,647 bytes.
+- The render uses 0.02 seconds of inserted silence between verses. It does not time-stretch or speed up the recitation.
+- Telegram step was skipped because this was a push-triggered run. No actual Telegram delivery is confirmed.
+- Rotation engine currently selects only manifests explicitly marked `rotation_approved=true`; the existing Al-Ikhlas candidate is not approved, and the Ash-Sharh 94:1–8 manifest remains preview-only. The approved 94:5–6 recording is the only explicitly user-reviewed exact passage.
+- Therefore automatic variety is not yet production-ready: there are not yet three distinct eligible reviewed manifests/assets. Do not weaken approval gates or mark candidate content rotation-approved to make the selector run.
+- Next: prepare additional Quran candidates with exact official audio, verified text/translation, approved visual assets, and user review; then batch-render three distinct videos and verify real Telegram delivery. TikTok publishing remains manual-only.
