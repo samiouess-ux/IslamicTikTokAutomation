@@ -162,6 +162,16 @@ def main() -> None:
     source, audio, visual = data["source"], data["audio"], data["visual"]
     caption = data.get("caption", {})
 
+    # Template selection is manifest-driven. Keep the approved design as the
+    # only enabled template until another design is separately reviewed.
+    template = visual.get("template", "ornate_gold_classic")
+    supported_templates = {"ornate_gold_classic"}
+    if template not in supported_templates:
+        raise SystemExit(
+            f"Unsupported/unapproved visual template: {template}. "
+            "Only ornate_gold_classic is currently approved."
+        )
+
     background_url = visual.get("approved_background_url") or visual.get("background_candidate", {}).get("direct_video_url")
     if not background_url:
         raise SystemExit("Manifest must provide an approved background candidate URL.")
