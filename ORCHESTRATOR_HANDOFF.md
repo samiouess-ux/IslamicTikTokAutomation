@@ -100,3 +100,13 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Use a curated pool of multiple approved and rights-verified backgrounds, rotating between videos and avoiding immediate repeats whenever another eligible background exists.
 - Possible visual families include calm nature, sky, sea, and Islamic architecture; keep the approved gold cartouche/verse medallions/text hierarchy consistent and readable.
 - Do not invent approval or licensing. Never pick an unapproved asset just to make the background different. If the approved pool has no eligible alternative, fail safely and report the limitation.
+
+
+## Quran variety follow-up — verified repository state (2026-10-31)
+- The user wants different surahs and ayah selections while preserving all approved visual/audio requirements.
+- `src/render_video_scenes.py` already creates one timed screen per verse and checks the ordered verse list and processed per-verse duration keys. It remains Quran-only.
+- `src/validate_quran_text.py` compares exact Unicode Arabic against the reviewed Uthmani reference snapshot; missing or mismatched text fails closed.
+- The shared reference snapshot currently has 94:5-6 and 112:1-4; Ash-Sharh 94:1-8 has a separate approved reference file. The Al-Ikhlas manifest is still a candidate with audio and background unapproved, so it is not eligible for production rotation.
+- No `data/assets` or asset catalog exists in the current branch tree. Backgrounds are currently supplied in each manifest and checked for approval by the renderer; do not claim automated shared background rotation is active.
+- Next safe Quran-variety work: expand reference coverage only from exact reviewed source passages, then add a separate candidate manifest for each passage only after exact matching official recitation, documented reuse rights, and user listening review. Keep translation source/provenance attached to each manifest.
+- Keep the ornate gold cartouche, separate gold verse medallions, exact white Arabic, smaller English translation, vertical 9:16/1080x1920/30fps, authentic matching recitation, no music/synthetic recitation, no public reciter name, and manual review/no auto-publishing.
