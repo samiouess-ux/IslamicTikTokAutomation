@@ -238,3 +238,13 @@ Theme: hope and ease after hardship.
 - Do not invent or auto-select new surahs/ayahs. Add a passage to production rotation only after exact Arabic reference, sourced translation, matching permitted recitation, and user review are all documented.
 - Current background catalog file is not present in the repository tree; the renderer reads the approved background URL from each manifest. Do not claim automated catalog-based background rotation is active.
 - Daily scheduling and Telegram delivery remain disabled pending complete approved content and real delivery confirmation.
+
+
+## Full Quran rotation and duration requirement (2026-10-31)
+- User clarified that the engine must work across the full Quran, not remain tied to the Ash-Sharh prototype. The approved first video is a reusable design/render example only.
+- Target coverage: all 114 surahs and all ayahs, rotating across varied single-ayah or contiguous-ayah clips. Each clip must be no longer than 65 seconds.
+- Implemented in `src/render_video_scenes.py`: a hard fail-closed duration guard rejects source audio longer than 65.000 seconds. It does not yet automatically select or split Quran passages from a full-corpus inventory.
+- Added `tests/test_render_video_duration.py` for 65-second boundary, shorter clips, over-limit rejection, and invalid durations. CI should run this with the full test suite.
+- Full-Quran automatic selection is NOT yet production-ready: the checked-in exact Uthmani reference covers only a small sample; the official verse archive has an identified URL and individual extraction has been demonstrated for Ash-Sharh, but a verified Quran-wide mapping/selection pipeline and sourced translation corpus are not yet integrated.
+- Next engineering milestone: create a Quran-wide catalogue/selector that uses trusted text and translation datasets plus the official verse archive's exact entry map; select contiguous verse ranges using actual processed audio durations with a 55–60 second target and 65-second hard cap. Never truncate/speed up a verse or synthesize missing recitation.
+- Keep schedules and automatic Telegram delivery disabled until the full-corpus selector, 3 varied sample renders, and a real Telegram delivery have been tested.
