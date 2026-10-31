@@ -1,10 +1,10 @@
 # IslamicTikTokAutomation
 
-Automated Arabic and French Islamic reminder videos.
+Automated Arabic and English Islamic reminder videos.
 
 ## Objectif
 
-Préparer deux vidéos verticales de rappel islamique par jour : une en arabe et une en français.
+Préparer deux vidéos verticales de rappel islamique par jour : une en arabe et une en anglais.
 
 ## Règles essentielles
 
@@ -18,7 +18,7 @@ Préparer deux vidéos verticales de rappel islamique par jour : une en arabe et
 
 - Vertical : 1080 × 1920 (9:16)
 - Fréquence cible : 30 FPS
-- Langues : arabe et français
+- Langues : arabe et anglais
 
 ## Structure actuelle
 
@@ -30,7 +30,7 @@ Préparer deux vidéos verticales de rappel islamique par jour : une en arabe et
 
 ## État du projet
 
-Structure initiale uniquement. Aucun générateur vidéo, service externe ou publication n'est encore configuré.
+Le moteur de rendu vidéo est disponible dans `src/render_video.py` et utilise des manifests dans `content/`. Le rendu de contrôle s'exécute via GitHub Actions. Chaque vidéo reste en révision : aucune publication automatique.
 
 ## Démarrage
 
