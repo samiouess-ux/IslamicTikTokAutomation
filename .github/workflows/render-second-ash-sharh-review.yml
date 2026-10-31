@@ -2,7 +2,7 @@ name: Render second Ash-Sharh video for review
 
 on:
   push:
-    branches: [feature/ash-sharh-1-8-review]
+    branches: [feature/telegram-review-notifications]
     paths:
       - ".github/workflows/render-second-ash-sharh-review.yml"
       - "src/render_video_scenes.py"
