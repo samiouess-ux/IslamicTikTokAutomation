@@ -1,6 +1,5 @@
 {
   "id": "test_surah_ash_sharh_94_5_6",
-  "status": "approved_review_rotation_ready",
   "source": {
     "surah_number": 94,
     "surah_name_ar": "الشرح",
@@ -119,6 +118,5 @@
       "#AshSharh"
     ],
     "status": "draft_for_review"
-  },
-  "rotation_approved": true
+  }
 }
