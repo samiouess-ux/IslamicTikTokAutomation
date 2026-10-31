@@ -95,7 +95,7 @@ jobs:
             done <<< "$RECENT_IDS"
             selected=$(python src/select_review_manifest.py "${args[@]}")
           else
-            selected="${EXPLICIT_MANIFEST:-content/second_video_ash_sharh_94_1_8_draft.json}"
+            selected="${EXPLICIT_MANIFEST:-content/candidate_surah_al_ikhlas_112_1_4.json}"
           fi
           echo "manifest=$selected" >> "$GITHUB_OUTPUT"
           echo "Selected review manifest: $selected"
