@@ -56,7 +56,9 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
             "audio": {
                 "required": True,
                 "kind": "quran_recitation",
-                "file": audio_item["audio_file"],
+                "production_audio_file": audio_item["audio_file"],
+                "processed_verse_durations_seconds": {str(k): v for k, v in audio_item["verse_durations_seconds"].items()},
+                "inter_verse_silence_seconds": 0.0,
                 "approved": False,
                 "preview_only": False,
                 "exact_recording_user_reviewed": False,
