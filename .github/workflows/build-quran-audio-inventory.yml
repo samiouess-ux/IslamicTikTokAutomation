@@ -9,6 +9,7 @@ on:
       - "src/prepare_quran_review_batch_audio.py"
       - "src/build_quran_review_batch.py"
       - "src/build_quran_draft_manifests.py"
+      - "src/render_quran_review_previews.py"
       - "tests/test_build_quran_draft_manifests.py"
       - "src/build_quran_translation_catalog.py"
       - "src/build_quran_uthmani_catalog.py"
@@ -34,8 +35,8 @@ jobs:
       - name: Install audio probe and archive tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
-          python -m pip install --disable-pip-version-check remotezip
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
+          python -m pip install --disable-pip-version-check remotezip pillow
       - name: Inspect official archive and validate complete verse mapping
         run: |
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
@@ -174,6 +175,27 @@ jobs:
                   raise SystemExit("Draft manifest unexpectedly contains an approved background.")
           print(f"Generated {report['manifest_count']} distinct-surah draft manifests; production gates remain closed.")
           PY
+      - name: Render distinct-surah 9:16 review-only video previews
+        run: |
+          python src/render_quran_review_previews.py \
+            --batch output/quran_review_batch.json \
+            --audio-report output/quran_batch_audio_report.json \
+            --output-dir output/quran_review_previews
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
+          if report["preview_count"] < 2 or report["production_approved"]:
+              raise SystemExit("Expected multiple review-only previews with production approval disabled.")
+          if report["telegram_delivery"] or report["auto_publish"]:
+              raise SystemExit("Telegram delivery and auto-publishing must remain disabled.")
+          for item in report["items"]:
+              if (item["width"], item["height"]) != (1080, 1920):
+                  raise SystemExit("Preview is not vertical 9:16.")
+              if item["audio_codec"] != "mp3" or item["video_codec"] != "h264":
+                  raise SystemExit("Preview must preserve original MP3 audio stream.")
+          print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
+          PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
@@ -188,5 +210,7 @@ jobs:
             output/quran_batch_audio/**/*.mp3
             output/quran_draft_manifests/*.json
             output/quran_draft_manifest_report.json
+            output/quran_review_previews/*.mp4
+            output/quran_review_previews/preview_report.json
           if-no-files-found: error
           retention-days: 30
