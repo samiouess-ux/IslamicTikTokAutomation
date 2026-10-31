@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from render_quran_review_previews import render
+from render_quran_review_previews import render, SURAH_NAMES
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
@@ -62,6 +62,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
             self.assertEqual(make_frame.call_count, 6)
+            self.assertEqual(SURAH_NAMES[18], "مريم")
+            self.assertEqual(SURAH_NAMES[87], "الغاشية")
+            self.assertEqual(SURAH_NAMES[110], "المسد")
+            self.assertEqual(make_frame.call_args_list[0].args[-1], "مريم")
+            self.assertEqual(make_frame.call_args_list[3].args[-1], "الغاشية")
             self.assertGreaterEqual(run.call_count, 8)
 
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
