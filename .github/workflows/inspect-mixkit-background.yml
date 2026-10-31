@@ -1,0 +1,50 @@
+name: Inspect a Mixkit background (no publishing)
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: Short name for the background candidate
+        required: true
+        type: string
+      source_page:
+        description: Exact Mixkit item page URL
+        required: true
+        type: string
+      direct_video_url:
+        description: Direct MP4 URL hosted on assets.mixkit.co
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Inspect candidate
+        run: |
+          python src/inspect_background.py \
+            --title "${{ inputs.title }}" \
+            --source-page "${{ inputs.source_page }}" \
+            --url "${{ inputs.direct_video_url }}" \
+            --output-dir background_inspection
+
+      - name: Upload inspection files for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: background-inspection
+          path: |
+            background_inspection/inspection.json
+            background_inspection/candidate.mp4
+          retention-days: 7
