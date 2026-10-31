@@ -33,6 +33,20 @@ def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
 
 
+MAX_VIDEO_SECONDS = 65.0
+
+
+def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS) -> None:
+    """Reject any render that would exceed the user's strict duration cap."""
+    if duration <= 0:
+        raise SystemExit("Video duration must be positive.")
+    if duration > maximum:
+        raise SystemExit(
+            f"Video duration {duration:.3f}s exceeds the {maximum:.0f}s maximum; "
+            "select a shorter contiguous verse passage before rendering."
+        )
+
+
 def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> None:
     """One verse per card; wrap by whole words and shrink only when needed."""
     if len(verses) != 1:
@@ -254,6 +268,7 @@ def main() -> None:
         "-of", "default=nw=1:nk=1", str(audio_file)
     ], text=True).strip()
     duration = float(duration_result)
+    validate_video_duration(duration)
 
     inputs = ["-stream_loop", "-1", "-i", str(bg_file), "-i", str(audio_file)]
     filters = [
