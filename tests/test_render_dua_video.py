@@ -47,11 +47,11 @@ class DuaRendererTests(unittest.TestCase):
         self.assertIn('validate_audio_duration(audio_file, duration)', source)
         self.assertNotIn('apad', source)
 
-    def test_renderer_keeps_validation_and_separate_content_type_gate(self):
+    def test_duration_policy_targets_under_one_minute_and_fails_above_65(self):\n        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 60.0)\n        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 65.0)\n        items = [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 66}]\n        with tempfile.TemporaryDirectory() as tmp:\n            with patch.object(render_dua_video, "create_overlay"):\n                with self.assertRaises(SystemExit):\n                    render_dua_video.build_slideshow(items, "ذكر", Path(tmp))\n\n    def test_renderer_keeps_validation_and_separate_content_type_gate(self):
         source = (ROOT / "src" / "render_dua_video.py").read_text(encoding="utf-8")
         self.assertIn("validate_content_manifest(data)", source)
         self.assertIn('not in {"dua", "dhikr"}', source)
-        self.assertIn("No per-item audio synchronization is claimed", source)
+        self.assertIn("audio is checked as a whole, not synced per item", source)
 
     def test_overlay_rejects_missing_source_and_text(self):
         with self.assertRaises(SystemExit):
