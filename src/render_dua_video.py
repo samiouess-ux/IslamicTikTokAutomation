@@ -13,7 +13,9 @@ from validate_content_manifest import validate_content_manifest
 
 
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
-AUDIO_DURATION_TOLERANCE_SECONDS = 0.75\nTARGET_MAX_DURATION_SECONDS = 60.0\nHARD_MAX_DURATION_SECONDS = 65.0
+AUDIO_DURATION_TOLERANCE_SECONDS = 0.75
+TARGET_MAX_DURATION_SECONDS = 60.0
+HARD_MAX_DURATION_SECONDS = 65.0
 
 
 def run(command: list[str]) -> None:
@@ -134,7 +136,10 @@ def build_slideshow(items: list[dict], title: str, work: Path) -> float:
         total += duration
     lines.append(f"file '{(work / f'item_{len(items)-1:03d}.png').resolve().as_posix()}'")
     playlist = work / "overlays.ffconcat"
-    playlist.write_text("ffconcat version 1.0\n" + "\n".join(lines) + "\n",
+    playlist.write_text("ffconcat version 1.0
+" + "
+".join(lines) + "
+",
                         encoding="utf-8")
     return total
 
