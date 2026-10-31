@@ -71,7 +71,7 @@
     "official_verse_archive_url": "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
     "source_audio_artifact": "ash-sharh-94-1-8-audio-review",
     "exact_recording_user_reviewed": false,
-    "pauses_treatment": "user_approved_preview_v4; trim trailing low-level silence using silenceremove stop_duration=0.08 stop_threshold=-42dB; insert 0.05 seconds between verses; no time-stretching or speed change",
+    "pauses_treatment": "user_approved_preview_v4; trim trailing low-level silence using silenceremove stop_duration=0.08 stop_threshold=-42dB; insert only 0.02 seconds between verses; no time-stretching or speed change",
     "production_audio_file": "output/ash_sharh_94_1_8_approved_audio.mp3",
     "approved": false,
     "preview_only": true,
