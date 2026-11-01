@@ -8,10 +8,20 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from render_quran_review_previews import render, SURAH_NAMES, fit_translation_lines, probe
+from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_lines,\n                                            fit_arabic_lines, font_file, probe)
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
+    def test_arabic_layout_keeps_every_word_and_fits_compact_block(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        original = "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ وَالْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
+        font, lines, line_height = fit_arabic_lines(draw, original, font_file())
+        self.assertLessEqual(len(lines), 4)
+        self.assertEqual(" ".join(lines), original)
+        self.assertGreaterEqual(font.size, 48)
+        self.assertGreater(line_height, font.size)
+
     def test_long_translation_is_fitted_without_dropping_words(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
