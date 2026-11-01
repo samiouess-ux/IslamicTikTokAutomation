@@ -92,7 +92,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
             },
             "caption": {
                 "text": f"سورة {surah_name_ar} | الآيات {expected[0]}-{expected[-1]}",
-                "references": [v["reference"] for v in candidate["verses"]],
+                "references": [v["reference"] for v in selected_source],
             },
             "preflight": {
                 "audio_duration_seconds": audio_item["duration_seconds"],
