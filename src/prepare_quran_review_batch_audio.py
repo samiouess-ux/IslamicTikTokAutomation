@@ -56,8 +56,10 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             candidate_dir = output_dir / str(candidate["candidate_id"])
             candidate_dir.mkdir(parents=True, exist_ok=True)
             blocked_reason = None
-            # Download and probe EVERY requested ayah before deciding. Never
-            # silently shorten a candidate when its complete passage exceeds 65s.
+            # Probe consecutive whole ayahs in order. Keep the longest prefix
+            # whose measured source duration fits the 65-second limit. A short
+            # surah naturally remains whole when its complete duration fits.
+            requested = []
             for verse in candidate["verses"]:
                 number = int(verse["ayah"])
                 key = f"{surah}:{number}"
@@ -68,22 +70,26 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 with archive.open(member) as source, target.open("wb") as dest:
                     shutil.copyfileobj(source, dest)
                 duration = probe(target)
+                requested.append(number)
+                proposed_total = total + duration
+                if duration > MAX_SECONDS and not selected:
+                    target.unlink(missing_ok=True)
+                    blocked_reason = "blocked_single_ayah_exceeds_65_seconds"
+                    break
+                if proposed_total > MAX_SECONDS:
+                    target.unlink(missing_ok=True)
+                    break
                 selected.append(number)
                 durations[number] = round(duration, 3)
                 files.append(target)
-                total += duration
-                if duration > MAX_SECONDS:
-                    blocked_reason = "blocked_single_ayah_exceeds_65_seconds"
-            if total > MAX_SECONDS:
-                blocked_reason = "blocked_complete_passage_exceeds_65_seconds"
-            if blocked_reason:
-                for path in files:
-                    path.unlink(missing_ok=True)
+                total = proposed_total
+
+            if not selected:
                 results.append({
                     "candidate_id": candidate["candidate_id"],
                     "surah_number": surah,
-                    "status": blocked_reason,
-                    "requested_verses": selected,
+                    "status": blocked_reason or "blocked_no_complete_ayah_fits_65_seconds",
+                    "requested_verses": requested,
                     "verse_durations_seconds": durations,
                     "complete_duration_seconds": round(total, 3),
                     "selected_verses": [],
@@ -131,7 +137,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "audio_prepared_count": len(ready),
         "distinct_surah_count": len({x["surah_number"] for x in ready}),
         "maximum_seconds": MAX_SECONDS,
-        "audio_processing": "whole_ayah_concat_stream_copy_no_trimming_no_time_stretch",
+        "audio_processing": "longest_contiguous_whole_ayah_prefix_under_65_seconds_stream_copy_no_trimming_no_time_stretch",
         "items": results,
         "rendering_allowed": False,
         "telegram_delivery": False,
