@@ -522,3 +522,9 @@ Theme: hope and ease after hardship.
 - Verified through the GitHub repository API that the repository default branch is `feature/telegram-review-notifications`. Therefore the existing `schedule` workflow is on the default branch; the GitHub scheduled-workflow default-branch restriction is not a blocker.
 - Production build run `41305424879` rendered candidate `quran_s086_012_013` (Surah At-Tariq 86, ayahs 12–13), duration 14.55 seconds, 1080x1920, H.264 video with the original MP3 audio. It is distinct from Surah Ash-Sharh and within the 65-second cap.
 - This was a `push` event, so Telegram delivery was skipped by the workflow condition. No real MP4 Telegram `message_id` has yet been observed. The next actual `schedule` run is the end-to-end delivery check; the workflow already targets the original bot and records history only after confirmed sendVideo success.
+
+## Prevent immediate repeat of the previous surah (2026-11-01)
+- Updated `src/build_quran_review_batch.py` to read the most recent confirmed delivery from `data/quran_delivery_history.json` and automatically exclude that surah from the next candidate pool, in addition to the existing delivered-ayah exclusion. This prevents two consecutive scheduled Quran videos from using the same surah while still allowing later reuse of a surah with fresh ayahs.
+- Added regression tests for selecting the last delivered surah, empty history, and invalid history values.
+- Source commit: `003ee2693c5a86cac61fd4bc5b432953e67c4f39`; test commit: `cdbbeeff260cb546fe103304789936f8bf449287`.
+- Validation is currently running: production workflow run `41306047454` (#92) and test workflow run `41306050228` (#14). Their outcomes must be checked before marking this change verified. These are push-triggered runs, so Telegram delivery is expected to be skipped.
