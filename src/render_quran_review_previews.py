@@ -339,7 +339,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     # Nearly opaque reading panel cleanly hides the first ayah until the
     # opening title fades away, while the original recitation plays from t=0.
     draw.rounded_rectangle((82, 350, 998, 1570), radius=54,
-                           fill=(3, 12, 18, 246), outline=(*accent, 235), width=3)
+                           fill=(3, 12, 18, 255), outline=(*accent, 255), width=3)
     draw.rounded_rectangle((98, 366, 982, 1554), radius=44,
                            outline=(*accent, 105), width=2)
 
