@@ -455,3 +455,8 @@ Theme: hope and ease after hardship.
 - Corrected parser/selector suite run `41291299022` completed successfully. All steps passed: parser tests (including single ayah), automatic 65-second whole-ayah range-selection tests, authorized inbox tests, request-state deduplication tests, requested-passage tests, and single/daily review-renderer tests.
 - The new on-demand workflow YAML was accepted by GitHub Actions. Push-validation run `41291338533` completed with `skipped`, as intended because the workflow only processes actual `workflow_dispatch` requests; this validates that the workflow file was recognized, not that it rendered/sent a video.
 - Still not operational end-to-end: Cloudflare Worker/KV deployment, private Worker secrets, Telegram webhook registration, and a real Telegram request/MP4 receipt remain outstanding. No daily workflow or schedule was changed.
+
+### Cloudflare bridge syntax and request regression suite (2026-11-01)
+- Added a Node.js module syntax check for `cloudflare/telegram-bridge/worker.js` to the isolated request CI workflow.
+- Run `41291401349` completed successfully. The Worker JavaScript syntax check, parser tests, automatic whole-surah range selection tests, inbox authorization, update deduplication, requested passage tests, and review-renderer tests all passed.
+- This is code/CI validation only. No Cloudflare deployment, KV binding, Telegram webhook registration, workflow dispatch from Telegram, or real requested MP4 delivery has been performed.
