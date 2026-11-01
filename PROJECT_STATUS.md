@@ -2,6 +2,12 @@
 
 Last updated: 2026-11-01
 
+## Telegram delivery confirmation hardening (2026-11-01)
+- Tightened `src/send_telegram.py`: Telegram `ok: true` is no longer sufficient by itself; the response must also contain a positive integer `message_id` before the sender exits successfully.
+- Added a regression test proving an `ok: true` response without `message_id` is rejected. The workflow therefore cannot record delivery history on an incomplete Telegram response.
+- Commits: sender `6b159c9f4703fb52f6998a8de62fe4206a0fe91b`; regression test `eb4a6d1b585023bfee08014e83147f9e48083cfd`.
+- This is code/test hardening only. It does **not** prove a real MP4 has reached Telegram; end-to-end delivery remains unverified until a scheduled run logs a real message ID.
+
 ## Autonomous agent plan and release gate (2026-11-01)
 - The active work roles, execution order, known blockers, and acceptance criteria are maintained in `AGENT_WORK_PLAN.md`.
 - This plan is authoritative for the next implementation steps on `feature/telegram-review-notifications`; it does not create separate paid agents or external infrastructure.
