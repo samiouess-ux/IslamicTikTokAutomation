@@ -41,13 +41,14 @@ token is separate and is used only to dispatch the on-demand workflow.
 
 ## Request format
 
-Example:
+Examples:
 
-`فيديو سورة الكهف الآيات 1-5`
+- `فيديو سورة الكهف` — automatically chooses an opening passage that fits 65 seconds.
+- `فيديو سورة مريم الآية 5` — one ayah.
+- `فيديو سورة البقرة الآيات 1-5` — exact range.
 
-The parser also accepts Arabic-Indic digits. Bare whole-surah requests are
-rejected with an instruction to provide a range. Ranges above ten ayahs,
-invalid verse numbers, incomplete catalogs, or audio longer than 65 seconds
+The parser also accepts Arabic-Indic digits. Ranges above ten ayahs, invalid
+verse numbers, incomplete catalogs, or a single ayah longer than 65 seconds
 fail closed and send a failure notice when Telegram credentials are available.
 
 ## Safety
