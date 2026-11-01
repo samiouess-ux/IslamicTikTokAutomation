@@ -178,3 +178,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Next visual task: create a small candidate pool of distinct nature/sky/landscape background clips from rights-cleared sources, upload a review artifact with thumbnails and source/license details, then add only explicitly user-approved assets to the rotation catalog. The existing asset chooser must fail closed if no approved non-recent background exists.
 - Next operational task: independently verify the scheduled 04:00, 12:00, and 18:00 Tunisia slots. One controlled Telegram sample proves one send path, not three daily scheduled sends.
 - Keep manual TikTok publishing and the no-auto-publish gate unchanged.
+
+## Official archive network resilience fix (2026-11-01)
+- Audited failed Actions run `41312848189`, job `124866668534`. The failure was a TCP connection timeout to `download.qurancomplex.gov.sa` while opening the official ZIP; no archive mapping mismatch was reported. All later steps were skipped because inventory is a required gate.
+- Updated `src/build_official_audio_inventory.py` to use bounded request timeouts, HTTP retry/backoff for transient connection/read and 429/5xx failures, a 1 MiB initial ZIP range, and a project User-Agent. If the host remains unavailable, the inventory still fails closed; no stale or guessed mapping is substituted.
+- Added `tests/test_build_official_audio_inventory.py` and wired it into the existing Actions workflow.
+- Commits: `7d7214eeff00e9239308439ff3f506ac7318743c`, corrected escaping `3181e2b2ed244e0497d1121bd36d8fe6d646ab47`, tests `9ed2f575b64eff3df5048bb799ddafa6885665b0`, workflow `180fca4f55135f05a7e77b86ebb19cb43af934db`, status record `1ae2b3c514648607eb4ecb076472a55231071efc`.
+- Await the push-triggered run to verify retry behavior and the complete downstream pipeline. This change does not implement background rotation and does not authorize any new background asset.
