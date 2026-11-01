@@ -54,7 +54,10 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str) -
         raise RuntimeError("Telegram delivery failed after four attempts.")
     if not result.get("ok") or not isinstance(result.get("result"), dict): raise RuntimeError("Telegram API did not confirm delivery.")
     message = result["result"]
-    print(f"Telegram confirmed delivery: message_id={message.get('message_id')}, size_mb={size / (1024 * 1024):.1f}. TikTok publishing remains manual.")
+    message_id = message.get("message_id")
+    if not isinstance(message_id, int) or message_id <= 0:
+        raise RuntimeError("Telegram API response did not include a valid message_id; delivery cannot be recorded.")
+    print(f"Telegram confirmed delivery: message_id={message_id}, size_mb={size / (1024 * 1024):.1f}. TikTok publishing remains manual.")
     return message
 
 def main() -> None:
