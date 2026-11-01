@@ -661,3 +661,9 @@ Theme: hope and ease after hardship.
 - Pexels' official help page states its uploaded media use the Pexels License and are free for personal/commercial use without attribution. Individual pages are marked Free. The bridge clip is 16:9 and needs a vertical crop check.
 - These are review candidates only: all `approved` and `user_approved` flags are false, direct MP4 URLs are empty, and download verification is false. The production renderer remains unchanged and cannot select them. No asset has been activated or sent to Telegram.
 - Commit: `903dc3902d854edc030a3f74142cd0b886d43605`.
+
+## Archive resilience CI verification (2026-11-01)
+- Push-triggered Actions run `41313825363` (run #151, commit `180fca4f55135f05a7e77b86ebb19cb43af934db`) completed with `success`.
+- All 17 inventory job steps that were expected to execute passed, including the retry/filename regression test, complete 6,236-entry official audio mapping, full Saheeh translation corpus, Uthmani candidate corpus, exact-key join, catalog tests, eight-distinct-surah candidate pool, one distinct-surah audio preparation, draft manifest generation, and review-only 9:16 preview render.
+- Telegram send/history steps were skipped because this was a push event, not a scheduled/manual delivery event. No new video was sent. This confirms the archive fix and preparation pipeline; it does not yet prove the next scheduled Telegram delivery.
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41313825363
