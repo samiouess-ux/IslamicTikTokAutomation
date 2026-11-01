@@ -153,10 +153,10 @@ def download_background(url: str, destination: Path) -> None:
 
 def font_file() -> str:
     result = subprocess.check_output(
-        ["fc-match", "-f", "%{file}", "Noto Naskh Arabic"], text=True
+        ["fc-match", "-f", "%{file}", "Amiri:style=Bold"], text=True
     ).strip()
     if not result or not Path(result).is_file():
-        raise RuntimeError("Noto Naskh Arabic font is required for Arabic preview rendering.")
+        raise RuntimeError("Amiri Bold font is required for Arabic preview rendering.")
     return result
 
 
