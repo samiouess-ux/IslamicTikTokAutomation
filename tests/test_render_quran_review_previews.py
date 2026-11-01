@@ -23,6 +23,13 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertGreaterEqual(font.size, 48)
         self.assertGreater(line_height, font.size)
 
+    def test_short_arabic_ayah_uses_larger_amiri_type(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        font, lines, _ = fit_arabic_lines(draw, "حم", font_file())
+        self.assertEqual(lines, ["حم"])
+        self.assertGreaterEqual(font.size, 90)
+
     def test_long_translation_is_fitted_without_dropping_words(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
