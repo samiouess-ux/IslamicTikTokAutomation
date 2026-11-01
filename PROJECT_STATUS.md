@@ -567,3 +567,11 @@ Theme: hope and ease after hardship.
 - Background is still one waterfall clip. Palette changes are not scene rotation.
 - The previously documented Agent 1–4 are only review responsibilities in AGENT_WORK_PLAN.md; no independent agents are running. Do not describe them as active workers. Work must be carried out and verified directly, one tested change at a time.
 - Next priority: fix duration-aware contiguous ayah selection and exact selected-verse propagation; then inspect audio waveforms/silence and safely reduce excessive inter-ayah pauses; then redesign video layout. Keep Telegram send and TikTok manual-only. Do not send another sample as approved until user accepts its quality.
+
+
+## First passage-length correction after user video review (2026-11-01)
+- Changed the scheduled candidate builder from a fixed 2 complete ayahs to 3 complete consecutive ayahs (`--verses-per-passage 3`) in `.github/workflows/build-quran-audio-inventory.yml`.
+- Commit: `7069ad5936d153f40fe66620c1624cc0bb667ffc` on `feature/telegram-review-notifications`.
+- The existing audio preparation still refuses any complete passage over 65 seconds; it does not trim an ayah. This is a safe interim improvement, not yet duration-aware variable-length selection. If a 3-ayah passage exceeds 65 seconds, the candidate is blocked and the workflow may fail rather than shortening it.
+- Ordinary push-triggered CI can validate this change but will not send Telegram; the temporary live-delivery marker remains separate.
+- Next: inspect CI for this commit, then implement/test duration-aware selection of the largest contiguous complete-ayah passage fitting 65 seconds, ensuring the exact selected list is propagated consistently to manifest, render, caption, and delivery history. Do not claim this dynamic behavior is implemented yet.
