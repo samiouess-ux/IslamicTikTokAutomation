@@ -29,6 +29,7 @@ def build_review_batch(
     verses_per_passage: int = 3,
     seed: str = "quran-review-batch",
     excluded_surahs: Iterable[int] = (),
+    used_ayah_references: Iterable[str] = (),
 ) -> dict[str, Any]:
     if joined.get("rendering_allowed") is not False:
         raise ValueError("Input catalog must remain blocked from rendering.")
@@ -54,6 +55,7 @@ def build_review_batch(
     slots = sorted({min(len(ordered)-1, (i * len(ordered)) // count) for i in range(count)})
     selected_surahs = [ordered[i] for i in slots]
     passages = []
+    used_refs = {str(reference) for reference in used_ayah_references}
 
     for index, surah in enumerate(selected_surahs, start=1):
         available = sorted(
@@ -63,13 +65,14 @@ def build_review_batch(
         )
         if len(available) < verses_per_passage:
             raise ValueError(f"Surah {surah} has fewer than {verses_per_passage} catalogued verses.")
-        # Select a deterministic contiguous window while preserving ayah order.
-        max_start = len(available) - verses_per_passage
+        # Choose an unused contiguous window; never silently recycle delivered ayahs.
+        windows = [available[i:i + verses_per_passage] for i in range(len(available) - verses_per_passage + 1)
+                   if available[i:i + verses_per_passage] == list(range(available[i], available[i] + verses_per_passage))
+                   and not any(f"{surah}:{ayah}" in used_refs for ayah in available[i:i + verses_per_passage])]
+        if not windows:
+            raise ValueError(f"Surah {surah} has no unused contiguous window of {verses_per_passage} verses.")
         local_digest = hashlib.sha256(f"{seed}:{surah}".encode("utf-8")).digest()
-        start_index = int.from_bytes(local_digest[:4], "big") % (max_start + 1)
-        numbers = available[start_index:start_index + verses_per_passage]
-        if numbers != list(range(numbers[0], numbers[0] + verses_per_passage)):
-            raise ValueError(f"Surah {surah} has a non-contiguous verse catalog window.")
+        numbers = windows[int.from_bytes(local_digest[:4], "big") % len(windows)]
         verses = []
         for number in numbers:
             key = f"{surah}:{number}"
@@ -131,9 +134,14 @@ def main() -> None:
     parser.add_argument("--verses-per-passage", type=int, default=3)
     parser.add_argument("--seed", default="quran-review-batch")
     parser.add_argument("--exclude-surah", type=int, action="append", default=[])
+    parser.add_argument("--history", type=Path, help="JSON delivery history of previously delivered ayah references.")
     args = parser.parse_args()
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
-    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, args.exclude_surah)
+    history = json.loads(args.history.read_text(encoding="utf-8")) if args.history and args.history.exists() else {}
+    used_refs = history.get("ayah_references", [])
+    if not isinstance(used_refs, list) or not all(isinstance(item, str) for item in used_refs):
+        raise ValueError("Delivery history ayah_references must be a list of strings.")
+    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, args.exclude_surah, used_refs)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
