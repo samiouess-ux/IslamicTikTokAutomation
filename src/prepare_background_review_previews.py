@@ -104,8 +104,10 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     items = []
     for candidate in candidates:
-        if candidate.get("approved") or candidate.get("user_approved") or candidate.get("download_verified"):
-            raise RuntimeError("This review workflow accepts only disabled, unverified candidates.")
+        if candidate.get("approved") and not candidate.get("user_approved"):
+            raise RuntimeError("An approved background must carry explicit user approval.")
+        if candidate.get("download_verified") and not candidate.get("user_approved"):
+            raise RuntimeError("A previously verified download without user approval is not eligible.")
         url = candidate.get("direct_video_url", "")
         if not url.startswith("https://videos.pexels.com/video-files/"):
             raise RuntimeError(f"Untrusted or missing candidate URL: {candidate.get('id')}")
@@ -124,9 +126,9 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
             "preview_path": str(preview_path),
             **metadata,
             "download_probe_verified": True,
-            "visual_approval": False,
+            "visual_approval": candidate.get("user_approved", False),
             "production_enabled": False,
-            "user_approved": False,
+            "user_approved": candidate.get("user_approved", False),
         })
     contact_sheet = output_dir / "background_candidates_contact_sheet.jpg"
     build_contact_sheet(items, contact_sheet)
