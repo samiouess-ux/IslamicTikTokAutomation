@@ -110,8 +110,8 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
             raise ValueError(f"Refusing to overwrite draft manifest: {path}")
         path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         created.append({"candidate_id": candidate["candidate_id"], "surah_number": surah, "manifest": str(path), "rendering_allowed": False})
-    if len(created) < 2:
-        raise ValueError("At least two distinct-surah audio drafts are required.")
+    if not created:
+        raise ValueError("At least one prepared distinct-surah audio draft is required for this scheduled slot.")
     if len({item["surah_number"] for item in created}) != len(created):
         raise ValueError("Draft manifests must represent distinct surahs.")
     return created
