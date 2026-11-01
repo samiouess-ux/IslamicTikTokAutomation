@@ -550,3 +550,10 @@ Theme: hope and ease after hardship.
 - Trigger commit: `391924dae1c1b4d5826386876f6395e7beae4b6d` on `feature/telegram-review-notifications`. Because the workflow file itself is in the push path filter, this commit should launch the test run.
 - This is a trigger configuration change, not proof that a run started or a video arrived. Verify the run's event, render, Telegram `sendVideo` response with a real positive `message_id`, and delivery-history commit. If successful, immediately remove the temporary tagged-push condition so ordinary pushes do not send videos.
 - If the run does not start, investigate Actions scheduling/enabled state and repository workflow permissions before adding more engine features. No `main` changes, new bot, Cloudflare, webhook, or TikTok auto-publishing.
+
+
+## User-confirmed Telegram MP4 arrival and subsequent failure alert (2026-11-01)
+- User supplied a Telegram screenshot showing the original chat "Islamic Videos Review bot" received an actual playable MP4 for Surah At-Tariq, ayahs 12–13, with Arabic caption, hashtags, English caption, and manual TikTok approval notice. This is direct user-provided evidence that at least one real MP4 sendVideo delivery succeeded; it supersedes the earlier statement that no real delivery had been observed.
+- The same screenshot also shows a subsequent failure notification saying the daily Quran video batch failed and the videos were saved as GitHub Actions artifacts for 30 days.
+- Therefore delivery itself succeeded for the shown MP4, but the overall workflow later entered its failure path. The exact failing step is not established from the screenshot alone. Inspect the corresponding Actions job logs before changing code; likely points to verify include delivery-history recording/commit/push after send, but do not assume this is the cause.
+- Keep the one-off tagged-push test condition temporary. Once the corresponding run is identified, verify the actual Telegram response/message_id and pinpoint the later failing step. Then fix only that step, remove the temporary test condition, and separately prove the three scheduled slots (04:00, 12:00, 18:00 Tunisia).
