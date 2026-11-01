@@ -58,10 +58,10 @@ jobs:
           from parse_telegram_quran_request import parse_quran_request
           request = parse_quran_request(os.environ["REQUEST_TEXT"])
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"surah_number={request['surah_number']}\\n")
-              output.write(f"start_ayah={request['start_ayah']}\\n")
-              output.write(f"end_ayah={request['end_ayah'] or ''}\\n")
-              output.write(f"surah_name={request['surah_name']}\\n")
+              output.write(f"surah_number={request['surah_number']}\n")
+              output.write(f"start_ayah={request['start_ayah']}\n")
+              output.write(f"end_ayah={request['end_ayah'] or ''}\n")
+              output.write(f"surah_name={request['surah_name']}\n")
           PY
         id: request
         shell: bash
@@ -70,17 +70,17 @@ jobs:
         id: select_range
         if: steps.request.outputs.end_ayah == ''
         run: |
-          python src/select_requested_quran_range.py \\
-            --inventory output/official_verse_audio_inventory.json \\
-            --surah "${{ steps.request.outputs.surah_number }}" \\
-            --start-ayah "${{ steps.request.outputs.start_ayah }}" \\
+          python src/select_requested_quran_range.py \
+            --inventory output/official_verse_audio_inventory.json \
+            --surah "${{ steps.request.outputs.surah_number }}" \
+            --start-ayah "${{ steps.request.outputs.start_ayah }}" \
             --output output/quran_requested_range.json
           python - <<'PY'
           import json, os
           from pathlib import Path
           selected = json.loads(Path("output/quran_requested_range.json").read_text(encoding="utf-8"))
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"end_ayah={selected['end_ayah']}\\n")
+              output.write(f"end_ayah={selected['end_ayah']}\n")
           print(f"Selected opening ayahs {selected['start_ayah']}-{selected['end_ayah']} ({selected['duration_seconds']} seconds).")
           PY
 
