@@ -28,9 +28,13 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         if int(candidate["surah_number"]) != int(audio_item["surah_number"]):
             raise ValueError("Surah mismatch between batch and audio report.")
         candidate_by_number = {int(v["ayah"]): v for v in candidate["verses"]}
+        requested = audio_item.get("requested_verses")
         expected = audio_item.get("selected_verses")
-        if not isinstance(expected, list) or not expected or any(int(n) not in candidate_by_number for n in expected):
-            raise ValueError("Prepared audio must reference every requested ayah from the source candidate.")
+        candidate_numbers = [int(v["ayah"]) for v in candidate["verses"]]
+        if not isinstance(requested, list) or [int(n) for n in requested] != candidate_numbers:
+            raise ValueError("Prepared audio request must match every source candidate ayah in order.")
+        if not isinstance(expected, list) or not expected or [int(n) for n in expected] != [int(n) for n in requested[:len(expected)]]:
+            raise ValueError("Prepared audio must select a non-empty prefix of the requested ayahs.")
         if expected != list(range(int(expected[0]), int(expected[0]) + len(expected))):
             raise ValueError("Prepared audio ayahs must be a contiguous ordered passage.")
         if not audio_item.get("audio_file"):
