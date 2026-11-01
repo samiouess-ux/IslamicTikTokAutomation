@@ -125,7 +125,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
     if len({x["surah_number"] for x in ready}) != len(ready):
         raise ValueError("Prepared audio batch contains duplicate surahs.")
     report = {
-        "status": "multi_surah_audio_review_package_prepared" if len(ready) >= 2 else "insufficient_audio_candidates_prepared",
+        "status": "audio_review_package_prepared" if len(ready) >= target_count else "insufficient_audio_candidates_prepared",
         "candidate_count": len(batch.get("passages", [])),
         "target_count": target_count,
         "audio_prepared_count": len(ready),
