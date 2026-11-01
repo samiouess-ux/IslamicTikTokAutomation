@@ -53,7 +53,8 @@ jobs:
           REQUEST_TEXT: ${{ inputs.request_text }}
         run: |
           python - <<'PY'
-          import os
+          import os, sys
+          sys.path.insert(0, "src")
           from parse_telegram_quran_request import parse_quran_request
           request = parse_quran_request(os.environ["REQUEST_TEXT"])
           if request["end_ayah"] is None:
@@ -62,10 +63,10 @@ jobs:
                   "مثال: فيديو سورة الكهف الآيات 1-5"
               )
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"surah_number={request['surah_number']}\\n")
-              output.write(f"start_ayah={request['start_ayah']}\\n")
-              output.write(f"end_ayah={request['end_ayah']}\\n")
-              output.write(f"surah_name={request['surah_name']}\\n")
+              output.write(f"surah_number={request['surah_number']}\n")
+              output.write(f"start_ayah={request['start_ayah']}\n")
+              output.write(f"end_ayah={request['end_ayah']}\n")
+              output.write(f"surah_name={request['surah_name']}\n")
           PY
         id: request
         shell: bash
@@ -119,7 +120,7 @@ jobs:
               "hashtags_en": ["#Quran", "#QuranVerses", "#Islam"],
           }
           target = Path("output/quran_requested_caption.json")
-          target.write_text(json.dumps(caption, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          target.write_text(json.dumps(caption, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
 
       - name: Upload request preview and reports
@@ -171,7 +172,7 @@ jobs:
               raise SystemExit(0)
           text = (
               "تعذّر تحضير الفيديو المطلوب: " + os.environ.get("REQUEST_TEXT", "")[:180] +
-              "\\nتثبّت من اسم السورة وأرقام الآيات، وأن المقطع لا يتجاوز 65 ثانية. "
+              "\nتثبّت من اسم السورة وأرقام الآيات، وأن المقطع لا يتجاوز 65 ثانية. "
               "الفيديوهات تبقى للمراجعة فقط والنشر على TikTok يدوي."
           )
           payload = urllib.parse.urlencode({"chat_id": chat_id, "text": text}).encode()
