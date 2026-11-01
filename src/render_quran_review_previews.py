@@ -323,7 +323,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
 def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                      out: Path, font_path: str, surah_name: str) -> None:
-    """Create the approved minimal dark-marble circular opening cover."""
+    """Render the user's ornate emerald-marble and gold-medallion reference cover."""
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
@@ -331,54 +331,111 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
 
+    import math
     width, height = 1080, 1920
-    # Procedural emerald-black marble: deterministic, no external image assets.
-    noise = Image.effect_noise((270, 480), 22).resize((width, height), Image.Resampling.BICUBIC)
-    marble = ImageOps.colorize(noise, black="#020907", white="#123629").convert("RGBA")
+
+    # Layered emerald stone texture with irregular mineral veins.
+    noise = Image.effect_noise((360, 640), 34).resize(
+        (width, height), Image.Resampling.BICUBIC
+    )
+    marble = ImageOps.colorize(noise, black="#00130f", white="#174c3d").convert("RGBA")
     shade = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     shade_draw = ImageDraw.Draw(shade)
     for y in range(height):
-        alpha = int(34 + 62 * abs(y - height / 2) / (height / 2))
-        shade_draw.line((0, y, width, y), fill=(0, 0, 0, alpha))
+        edge = abs(y - height / 2) / (height / 2)
+        shade_draw.line((0, y, width, y), fill=(0, 0, 0, int(20 + 45 * edge)))
     image = Image.alpha_composite(marble, shade)
 
-    # Fine, restrained gold mineral veins around the perimeter.
     veins = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    vein_draw = ImageDraw.Draw(veins)
-    for index, start_x in enumerate((-180, 40, 870, 1120)):
-        points = []
-        for step in range(81):
-            y = step * (height - 1) / 80
-            x = start_x + 115 * __import__("math").sin(step / 8.0 + index * 1.7) + 28 * __import__("math").sin(step / 2.9 + index)
-            points.append((int(x), int(y)))
-        vein_draw.line(points, fill=(196, 151, 65, 55), width=3)
-    glow = veins.filter(ImageFilter.GaussianBlur(12))
-    image = Image.alpha_composite(image, glow)
+    vd = ImageDraw.Draw(veins)
+    for idx, (sx, phase, amp) in enumerate(((-90, .2, 115), (80, 1.8, 65),
+                                             (1020, 2.7, 100), (1180, 4.1, 80))):
+        pts = []
+        for step in range(161):
+            y = step * (height - 1) / 160
+            x = sx + amp * math.sin(step / 17 + phase) + 22 * math.sin(step / 4.7 + phase * 2)
+            pts.append((int(x), int(y)))
+        vd.line(pts, fill=(224, 174, 76, 150), width=5)
+        vd.line([(x + 5, y) for x, y in pts], fill=(255, 222, 145, 65), width=2)
+    image = Image.alpha_composite(image, veins.filter(ImageFilter.GaussianBlur(13)))
     image = Image.alpha_composite(image, veins)
     draw = ImageDraw.Draw(image)
 
-    gold = (220, 177, 91, 245)
-    gold_soft = (220, 177, 91, 115)
-    center_x, center_y = 540, 865
-    # Large, clean circular medallion; no lanterns, book, or crowded ornaments.
-    draw.ellipse((105, 430, 975, 1300), outline=gold, width=7)
-    draw.ellipse((121, 446, 959, 1284), outline=gold_soft, width=2)
-    draw.ellipse((137, 462, 943, 1268), outline=(220, 177, 91, 45), width=1)
+    gold = (244, 190, 83, 255)
+    gold_light = (255, 220, 137, 255)
+    gold_shadow = (132, 83, 27, 255)
 
-    title_font = ImageFont.truetype(font_path, 100, layout_engine=ImageFont.Layout.RAQM)
-    range_font = ImageFont.truetype(font_path, 58, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((center_x, center_y - 25), f"سورة {surah_name}", font=title_font,
-              fill=(242, 204, 119, 255), anchor="mm", direction="rtl", language="ar")
+    # Large centered circular medallion, matching the supplied reference proportions.
+    cx, cy, radius = 540, 825, 472
+    draw.ellipse((cx-radius, cy-radius, cx+radius, cy+radius),
+                 outline=gold_shadow, width=20)
+    draw.ellipse((cx-radius+8, cy-radius+8, cx+radius-8, cy+radius-8),
+                 outline=gold, width=10)
+    draw.ellipse((cx-radius+25, cy-radius+25, cx+radius-25, cy+radius-25),
+                 outline=gold_light, width=3)
+    draw.ellipse((cx-radius+38, cy-radius+38, cx+radius-38, cy+radius-38),
+                 outline=(222, 166, 69, 180), width=2)
+
+    # Symmetrical ornamental crown and lower flourish, kept outside the title area.
+    def flourish(y: int, flip: int = 1) -> None:
+        top = y
+        path = []
+        for i in range(121):
+            t = i / 120
+            x = cx - 180 + 360 * t
+            yy = top + flip * (58 * math.sin(math.pi * t) +
+                               15 * math.sin(4 * math.pi * t))
+            path.append((int(x), int(yy)))
+        draw.line(path, fill=gold, width=7)
+        draw.line([(x, y + (yy-y)*.82) for x, yy in path],
+                  fill=gold_light, width=3)
+        for side in (-1, 1):
+            for k in range(3):
+                x = cx + side * (28 + k * 34)
+                yy = y + flip * (22 + k * 7)
+                draw.arc((x-34, yy-38, x+34, yy+38), 195, 345,
+                         fill=gold_light, width=5)
+        draw.polygon([(cx, y-flip*88), (cx-23, y-flip*42),
+                      (cx, y-flip*18), (cx+23, y-flip*42)],
+                     outline=gold_light, fill=(5, 25, 19, 255))
+        draw.line((cx, y-flip*88, cx, y-flip*18), fill=gold, width=5)
+
+    flourish(385, 1)
+    flourish(1265, -1)
+
+    # Restrained star-like highlights at the four cardinal points.
+    for x, y in ((cx, cy-radius+3), (cx, cy+radius-3),
+                 (cx-radius+3, cy), (cx+radius-3, cy)):
+        draw.ellipse((x-13, y-13, x+13, y+13), fill=gold_light,
+                     outline=gold_shadow, width=3)
+        draw.line((x-24, y, x+24, y), fill=gold_light, width=2)
+        draw.line((x, y-24, x, y+24), fill=gold_light, width=2)
+
+    title_font = ImageFont.truetype(font_path, 142, layout_engine=ImageFont.Layout.RAQM)
+    prefix_font = ImageFont.truetype(font_path, 88, layout_engine=ImageFont.Layout.RAQM)
+    title = surah_name
+    title_box = draw.textbbox((0, 0), title, font=title_font,
+                              direction="rtl", language="ar")
+    if title_box[2] - title_box[0] > 790:
+        title_font = ImageFont.truetype(font_path, 112, layout_engine=ImageFont.Layout.RAQM)
+    draw.text((cx, cy-5), title, font=title_font, fill=gold_light,
+              anchor="mm", direction="rtl", language="ar")
+    draw.text((cx, cy-205), "سورة", font=prefix_font, fill=gold,
+              anchor="mm", direction="rtl", language="ar")
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     start_text = str(start_ayah).translate(digits)
     end_text = str(end_ayah).translate(digits)
-    range_text = f"الآيات {start_text}" if start_ayah == end_ayah else f"الآيات {start_text}–{end_text}"
-    # Small dark plaque overlaps the lower part of the circle, as in the approved reference.
-    draw.rounded_rectangle((285, 1120, 795, 1240), radius=34,
-                           fill=(2, 10, 8, 238), outline=gold, width=4)
-    draw.text((center_x, 1180), range_text, font=range_font,
-              fill=(250, 231, 185, 255), anchor="mm", direction="rtl", language="ar")
+    range_text = (f"الآيات {start_text}" if start_ayah == end_ayah
+                  else f"الآيات {start_text} - {end_text}")
+    plaque_font = ImageFont.truetype(font_path, 64, layout_engine=ImageFont.Layout.RAQM)
+    plaque = (205, 1080, 875, 1215)
+    draw.rounded_rectangle(plaque, radius=48, fill=(2, 17, 13, 255),
+                           outline=gold_shadow, width=13)
+    draw.rounded_rectangle((plaque[0]+9, plaque[1]+9, plaque[2]-9, plaque[3]-9),
+                           radius=40, outline=gold_light, width=5)
+    draw.text((cx, 1148), range_text, font=plaque_font, fill=(255, 231, 181, 255),
+              anchor="mm", direction="rtl", language="ar")
     image.save(out)
 
 
