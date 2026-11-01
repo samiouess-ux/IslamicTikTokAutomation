@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "purpose": "Review-only background candidates. This file is not an active/approved render catalog.",
+  "license_source": "https://help.pexels.com/hc/en-us/articles/360042295174-What-is-the-license-of-the-photos-and-videos-on-Pexels",
+  "license_summary": "Pexels states its uploaded photos/videos use the Pexels License and may be used free for personal and commercial purposes without attribution. Recheck the current license and clip page before downloading or enabling each asset.",
+  "activation_policy": "A candidate must have a captured direct MP4 download, verified file integrity, visual crop/contrast QA, and explicit user approval before it can be enabled in production.",
+  "candidates": [
+    {
+      "id": "pexels-ocean-shore-35036280",
+      "category": "sea",
+      "description": "Peaceful ocean waves on a sandy shoreline",
+      "creator": "Physical Pixel",
+      "source_page_url": "https://www.pexels.com/video/peaceful-ocean-waves-crashing-on-shoreline-35036280/",
+      "license": "Pexels License — page marked Free",
+      "dimensions": "2160x3840",
+      "aspect_ratio": "9:16",
+      "duration_seconds": 5,
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Vertical 9:16 source; verify the downloaded MP4 and visual contrast."
+    },
+    {
+      "id": "pexels-mountain-lake-37675265",
+      "category": "nature",
+      "description": "Serene mountain lake with pine forest",
+      "creator": "Sutha Hasan",
+      "source_page_url": "https://www.pexels.com/video/serene-mountain-lake-with-pine-forest-37675265/",
+      "license": "Pexels License — page marked Free",
+      "dimensions": "2160x3840",
+      "aspect_ratio": "9:16",
+      "duration_seconds": 10,
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Vertical 9:16 source; verify the downloaded MP4 and visual contrast."
+    },
+    {
+      "id": "pexels-sunset-sky-35477402",
+      "category": "sky",
+      "description": "Soft clouds illuminated by sunset",
+      "creator": "mohcen cherifi",
+      "source_page_url": "https://www.pexels.com/video/serene-sunset-sky-with-soft-clouds-35477402/",
+      "license": "Pexels License — page marked Free",
+      "dimensions": "2160x3840",
+      "aspect_ratio": "9:16",
+      "duration_seconds": 5,
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Vertical 9:16 source; verify the downloaded MP4 and visual contrast."
+    },
+    {
+      "id": "pexels-mountain-bridge-5903759",
+      "category": "architecture_nature",
+      "description": "Misty mountain bridge over a lake",
+      "creator": "Michele Esposito",
+      "source_page_url": "https://www.pexels.com/video/drone-footage-of-mountain-forest-and-a-bridge-above-the-lake-5903759/",
+      "license": "Pexels License — page marked Free",
+      "dimensions": "3840x2160",
+      "aspect_ratio": "16:9",
+      "duration_seconds": 13,
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Landscape 16:9 source; crop to 9:16 may lose the bridge/scene framing, so inspect a vertical crop before approval."
+    }
+  ]
+}
