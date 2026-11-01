@@ -111,3 +111,8 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Verified the repository default branch is `feature/telegram-review-notifications`, so the scheduled workflow is correctly located on the default branch.
 - Latest successful production build rendered Surah At-Tariq 86:12–13 in 14.55 seconds, 1080x1920, H.264 + original MP3. It was push-triggered; Telegram was skipped by design, so the next schedule event must verify actual delivery.
 - Do not spend time on optional background rotation before confirming that the original Telegram bot receives a real MP4.
+
+## Rotation fix — consecutive surah avoidance (2026-11-01)
+- The next candidate batch now excludes the surah from the most recent confirmed Telegram delivery, as well as every already-delivered ayah reference. This avoids immediate same-surah repetition without permanently banning a surah.
+- Regression coverage added. Await completion of runs `41306047454` and `41306050228` before calling the change tested.
+- Telegram delivery still requires an actual `schedule` or `workflow_dispatch` event; push-triggered CI is not delivery evidence.
