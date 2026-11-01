@@ -5,8 +5,9 @@ Last updated: 2026-11-01
 ## Autonomous agent plan and release gate (2026-11-01)
 - The active work roles, execution order, known blockers, and acceptance criteria are maintained in `AGENT_WORK_PLAN.md`.
 - This plan is authoritative for the next implementation steps on `feature/telegram-review-notifications`; it does not create separate paid agents or external infrastructure.
-- Current readiness remains **not verified**: the reviewed production workflow uses Arabic + Saheeh International English, while the user's latest requirement is Arabic + French; and an actual scheduled MP4 delivery to the original Telegram bot has not yet been evidenced.
-- Do not declare the engine ready until the translation requirement is reconciled in code/tests, a distinct-surah MP4 passes render checks at <=65 seconds, Telegram confirms `sendVideo` with a message ID, and delivery history is committed only afterward.
+- **Language is confirmed: Arabic + Saheeh International English. Keep English; French is not required and must not be reintroduced.** The existing translation catalog, renderer, and workflow already use English.
+- Current readiness remains **not verified** because an actual scheduled MP4 delivery to the original Telegram bot has not yet been evidenced.
+- Do not declare the engine ready until a distinct-surah MP4 passes render checks at <=65 seconds, Telegram confirms `sendVideo` with a message ID, and delivery history is committed only afterward.
 - TikTok publishing stays manual. Keep all changes on this branch; never modify `main`.
 
 
@@ -79,7 +80,7 @@ Theme: hope and ease after hardship.
 - Do not make repository changes beyond the agreed project scope.
 
 ## Research checkpoint (2026-10-31)
-- Earlier French translation research is retained only as historical context; French is no longer an output language.
+- Language decision reaffirmed on 2026-11-01: Arabic + Saheeh International English only. Ignore earlier French exploration; do not change the translation pipeline to French.
 - Candidate background source: Pexels videos. Its official license/help pages state that videos can be used and modified for commercial projects, subject to restrictions and third-party rights. Save the specific asset page and creator details when selecting a clip.
 - Recitation audio: reciter selected by user — Maher Al-Muaiqly (Hafs). The official King Fahd Complex page grants free public-use permission for the listed recordings in apps, websites, broadcast channels, and private/institutional works inside and outside Saudi Arabia. The official reciter page lists full-surah and verse-by-verse downloads. The exact Surah Ash-Sharh file has not yet been downloaded, listened to, or technically checked; do not embed it until that check is complete.
 - User's initial preferred reciters: Islam Sobhi or Yasser Al-Dosari. No reuse permission has been verified for their recordings. Quran.com states it cannot grant reuse rights; rights belong to the reciter or rights manager. A public reuse-permission candidate was found from the King Fahd Complex: Maher Al-Muaiqly (Hafs), with Surah Ash-Sharh listed on his official recitation page. User approval is still needed before switching reciter.
