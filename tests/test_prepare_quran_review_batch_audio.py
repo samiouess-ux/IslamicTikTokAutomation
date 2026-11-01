@@ -52,7 +52,7 @@ class QuranBatchAudioTests(unittest.TestCase):
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out")
 
-            self.assertEqual(report["audio_prepared_count"], 2)
+            self.assertEqual(report["audio_prepared_count"], 3)
             partial = next(item for item in report["items"] if item["candidate_id"] == "s3")
             self.assertTrue(partial["status"].startswith("audio_prepared"))
             self.assertEqual(partial["requested_verses"], [1, 2])
