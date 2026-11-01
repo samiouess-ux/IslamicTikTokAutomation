@@ -30,7 +30,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         candidate_by_number = {int(v["ayah"]): v for v in candidate["verses"]}
         expected = audio_item.get("selected_verses")
         if not isinstance(expected, list) or not expected or any(int(n) not in candidate_by_number for n in expected):
-            raise ValueError("Prepared audio selected ayahs are missing from the source candidate.")
+            raise ValueError("Prepared audio must reference every requested ayah from the source candidate.")
         if expected != list(range(int(expected[0]), int(expected[0]) + len(expected))):
             raise ValueError("Prepared audio ayahs must be a contiguous ordered passage.")
         if not audio_item.get("audio_file"):
