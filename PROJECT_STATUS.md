@@ -575,3 +575,9 @@ Theme: hope and ease after hardship.
 - The existing audio preparation still refuses any complete passage over 65 seconds; it does not trim an ayah. This is a safe interim improvement, not yet duration-aware variable-length selection. If a 3-ayah passage exceeds 65 seconds, the candidate is blocked and the workflow may fail rather than shortening it.
 - Ordinary push-triggered CI can validate this change but will not send Telegram; the temporary live-delivery marker remains separate.
 - Next: inspect CI for this commit, then implement/test duration-aware selection of the largest contiguous complete-ayah passage fitting 65 seconds, ensuring the exact selected list is propagated consistently to manifest, render, caption, and delivery history. Do not claim this dynamic behavior is implemented yet.
+
+
+## Correction: do not impose a fixed ayah count (2026-11-01)
+- User correctly pointed out that a fixed count of 3 ayahs is not the requirement; short surahs/passages may fit under 65 seconds and longer ones may not.
+- Reverted the temporary `--verses-per-passage 3` workflow change back to 2 in commit `48bc2a1fde80ce9b52dda16c3929f82cc6d0ec84`. This restores the previous setting only as a temporary safe rollback; fixed 2 is still not the desired final behavior.
+- Required implementation: choose complete contiguous ayahs dynamically based on measured official audio durations, allowing a whole short surah where it fits, and the longest suitable contiguous passage up to 65 seconds otherwise. Never trim an ayah. Ensure the exact selected verse list and paired Arabic/English text flow consistently into rendering, caption, and delivery history. Add tests for variable counts and exact 65-second boundary before enabling production.
