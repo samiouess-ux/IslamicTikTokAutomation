@@ -727,3 +727,11 @@ Theme: hope and ease after hardship.
 - The cover displays the Arabic surah name and exact selected ayah range in the established gold cartouche style. It fades away over the first ayah; original Quran audio starts at 0 seconds, with no silent lead-in and no audio modification.
 - Added renderer regression coverage for the cover image, exact ayah range passed to it, and FFmpeg alpha-fade overlay. The normal 1080x1920, MP3-preservation, <=65-second and review-only gates remain unchanged.
 - This is a code/test implementation checkpoint. Wait for the push-triggered Actions test/render run and inspect its artifact before calling the new visual verified or asking the user to use it. TikTok cover selection and publishing remain manual.
+
+
+## Background rotation render checkpoint (2026-11-01)
+- Push-triggered GitHub Actions run `41342769583` completed successfully on the active feature branch at commit `84479e96e8eb47caccea317c2bccd9f79b14723a`.
+- All job steps passed, including Quran catalog regression tests, diverse distinct-surah candidate selection, one-slot preparation, 9:16 review-only video rendering, and download/crop preparation of the four visually user-approved Pexels backgrounds with actual Quran overlay.
+- The daily review renderer now calculates a UTC day-and-slot rotation index for the scheduled slots (03:00, 11:00, 17:00 UTC) and selects the matching approved background. The selected background remains consistent across ayah segments within a single video.
+- The isolated request pipeline test also passed on this commit. The inventory artifact is `official-quran-audio-inventory-and-probe` (artifact ID `13097433352`).
+- Important boundary: this was a push-triggered validation run. The Telegram send, delivery-history record, and history sync steps were correctly skipped; this run does not prove a new Telegram delivery. The Pexels backgrounds are user-approved as visual candidates, but remain outside the separate production renderer's enabled assets until its own production/legibility gates are passed. TikTok posting remains manual.
