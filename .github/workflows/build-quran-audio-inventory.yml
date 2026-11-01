@@ -15,6 +15,8 @@ on:
       - "src/build_quran_draft_manifests.py"
       - "src/render_quran_review_previews.py"
       - "src/send_telegram.py"
+      - "src/record_quran_delivery.py"
+      - "tests/test_record_quran_delivery.py"
       - "tests/test_send_telegram.py"
       - "tests/test_render_quran_review_previews.py"
       - "tests/test_build_quran_draft_manifests.py"
@@ -30,7 +32,7 @@ on:
     - cron: "7 3,11,17 * * *"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   inventory:
@@ -125,6 +127,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_build_quran_draft_manifests.py' -v
           python -m unittest discover -s tests -p 'test_render_quran_review_previews.py' -v
           python -m unittest discover -s tests -p 'test_send_telegram.py' -v
+          python -m unittest discover -s tests -p 'test_record_quran_delivery.py' -v
       - name: Build a diverse Quran review candidate pool
         run: |
           python src/build_quran_review_batch.py \
@@ -132,6 +135,7 @@ jobs:
             --count 8 \
             --verses-per-passage 2 \
             --exclude-surah 94 \
+            --history data/quran_delivery_history.json \
             --seed "quran-daily-$(date -u +%F)" \
             --output output/quran_review_batch.json
           python - <<'PY'
@@ -282,7 +286,16 @@ jobs:
               "--caption", str(caption_path),
           ], check=True)
           print(f"Telegram confirmed scheduled video {slot + 1}/3. TikTok publishing remains manual.")
+          Path("output/delivered_candidate_id.txt").write_text(item["candidate_id"], encoding="utf-8")
           PY
+          python src/record_quran_delivery.py --history data/quran_delivery_history.json --batch output/quran_review_batch.json --candidate-id "$(cat output/delivered_candidate_id.txt)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/quran_delivery_history.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record delivered Quran review passage"
+            git push
+          fi
 
       - name: Notify Telegram if daily delivery fails
         if: failure() && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
