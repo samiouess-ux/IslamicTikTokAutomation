@@ -1,4 +1,6 @@
-"""Fetch the complete Saheeh International translation from AlQuran Cloud.
+"""Fetch the complete Saheeh International ENGLISH translation from AlQuran Cloud.
+
+The required video language is Arabic + English only; French is not part of this pipeline.
 
 The translation text is preserved verbatim and every ayah is keyed by its
 surah:ayah reference. Metadata and source attribution are embedded.
