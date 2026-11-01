@@ -449,3 +449,9 @@ Theme: hope and ease after hardship.
 - Commits in this implementation sequence: `6c0b7d53`, `35b464b4`, `75c17655`, `d3b650a5`, `4a546e55`, `63f1cdfc`, `8c22a764`, `312f1475`, `26ace894`, `6fff46a5`, `565075a7`, `f9e31cc5`, `5e71fd44`, `c720f70c`, `efa90daa`.
 - Verification still pending: GitHub Actions results for the new selector/parser tests and an end-to-end workflow run. No Worker has been deployed and no Telegram webhook has been set; therefore the bot does not yet execute requests from Telegram. A one-time Cloudflare Worker/KV setup, private secrets, and Telegram webhook registration remain necessary.
 - Whole-surah requests auto-select an opening passage; explicit ayah/range requests are exact. All outputs remain review-only; Telegram delivery is the only send destination and TikTok publishing remains manual/disabled.
+
+### On-demand request CI verification (2026-11-01)
+- The first CI attempt exposed a normalization mismatch for the Arabic phrase `الآية`: the parser normalizes `آ` to `ا`, so the marker was updated to accept `الاية`. The initial failing run was `41291158253`; it is not counted as a pass.
+- Corrected parser/selector suite run `41291299022` completed successfully. All steps passed: parser tests (including single ayah), automatic 65-second whole-ayah range-selection tests, authorized inbox tests, request-state deduplication tests, requested-passage tests, and single/daily review-renderer tests.
+- The new on-demand workflow YAML was accepted by GitHub Actions. Push-validation run `41291338533` completed with `skipped`, as intended because the workflow only processes actual `workflow_dispatch` requests; this validates that the workflow file was recognized, not that it rendered/sent a video.
+- Still not operational end-to-end: Cloudflare Worker/KV deployment, private Worker secrets, Telegram webhook registration, and a real Telegram request/MP4 receipt remain outstanding. No daily workflow or schedule was changed.
