@@ -1,161 +1,77 @@
-"""Safe daily orchestrator for a complete Quran/dua/dhikr review batch.
-
-Preflight is read-only. Rendering is opt-in and only starts after all three
-categories have eligible, validated manifests. No Telegram or TikTok actions.
-"""
-from __future__ import annotations
-
-import argparse
+"""Tests for the review-only daily orchestrator."""
 import json
-import subprocess
 import sys
-from datetime import date
+import tempfile
+import unittest
+from unittest.mock import patch
 from pathlib import Path
 
-from content_rotation import choose_manifest
-from validate_content_manifest import validate_content_manifest
-
-KINDS = ("quran", "dua", "dhikr")
-
-
-def read_json(path: Path) -> dict:
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise SystemExit(f"Cannot read JSON file {path}: {exc}") from exc
-    if not isinstance(value, dict):
-        raise SystemExit(f"Expected a JSON object in {path}.")
-    return value
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from orchestrator import build_plan, load_history
 
 
-def load_history(path: Path) -> dict:
-    if not path.exists():
-        return {"content": []}
-    value = read_json(path)
-    if not isinstance(value.get("content", []), list):
-        raise SystemExit("History field 'content' must be a list.")
-    return value
+class OrchestratorTests(unittest.TestCase):
+    def test_fails_closed_when_any_required_category_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / "quran.json").write_text(json.dumps({
+                "id": "q1", "content_type": "quran", "rotation_approved": True,
+                "publishing": {"approval_required": True, "auto_publish": False}
+            }), encoding="utf-8")
+            with patch("orchestrator.validate_content_manifest"):
+                with self.assertRaisesRegex(FileNotFoundError, "dua"):
+                    build_plan(folder, {"content": []}, "test-day")
 
+    def test_all_three_types_are_selected_and_validated_before_plan_returns(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            manifests = {}
+            for kind in ("quran", "dua", "dhikr"):
+                path = folder / f"{kind}.json"
+                path.write_text(json.dumps({
+                    "id": f"{kind}-1",
+                    "content_type": kind,
+                    "publishing": {"approval_required": True, "auto_publish": False},
+                }), encoding="utf-8")
+                manifests[kind] = path
+            def choose(_folder, kind, _recent, _key):
+                return manifests[kind]
+            with patch("orchestrator.choose_manifest", side_effect=choose), \
+                 patch("orchestrator.validate_content_manifest") as validate:
+                plan = build_plan(folder, {"content": []}, "test-day")
+            self.assertEqual([item["content_type"] for item in plan],
+                             ["quran", "dua", "dhikr"])
+            self.assertEqual(validate.call_count, 3)
+            self.assertEqual(len({item["content_id"] for item in plan}), 3)
 
-def build_plan(content_dir: Path, history: dict, day_key: str) -> list[dict]:
-    """Validate the entire three-category batch before returning any plan."""
-    recent = list(history.get("content", []))
-    plan: list[dict] = []
-    for index, kind in enumerate(KINDS):
-        manifest_path = choose_manifest(
-            content_dir, kind, recent, f"{day_key}:{index}:{kind}"
-        )
-        manifest = read_json(manifest_path)
-        if manifest.get("content_type") != kind:
-            raise SystemExit(
-                f"Manifest {manifest_path} must explicitly declare content_type={kind}."
-            )
-        validate_content_manifest(manifest)
-        publishing = manifest.get("publishing", {})
-        if publishing.get("approval_required") is not True:
-            raise SystemExit(f"Manual review must be required: {manifest_path}")
-        if publishing.get("auto_publish", False):
-            raise SystemExit(f"Auto-publish must remain disabled: {manifest_path}")
-        item_id = manifest.get("id")
-        if not isinstance(item_id, str) or not item_id:
-            raise SystemExit(f"Manifest has no stable id: {manifest_path}")
-        plan.append({
-            "content_type": kind,
-            "manifest": str(manifest_path),
-            "content_id": item_id,
-        })
-        recent.append(item_id)
-    return plan
+    def test_manifest_must_explicitly_match_requested_category(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            path = folder / "quran.json"
+            path.write_text(json.dumps({
+                "id": "q1",
+                "publishing": {"approval_required": True, "auto_publish": False},
+            }), encoding="utf-8")
+            with patch("orchestrator.choose_manifest", return_value=path), \
+                 patch("orchestrator.validate_content_manifest"):
+                with self.assertRaisesRegex(SystemExit, "must explicitly declare"):
+                    build_plan(folder, {"content": []}, "test-day")
 
+    def test_missing_history_starts_empty_without_creating_a_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "history.json"
+            history = load_history(path)
+            self.assertEqual(history, {"content": []})
+            self.assertFalse(path.exists())
 
-def render_plan(plan: list[dict], output_dir: Path) -> list[dict]:
-    """Render only after a complete preflight; each category uses its own engine."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    rendered: list[dict] = []
-    for item in plan:
-        output = output_dir / f"{item['content_type']}-{item['content_id']}.mp4"
-        renderer = (
-            "src/render_video_scenes.py"
-            if item["content_type"] == "quran"
-            else "src/render_dua_video.py"
-        )
-        subprocess.run(
-            [sys.executable, renderer, "--manifest", item["manifest"],
-             "--output", str(output)],
-            check=True,
-        )
-        if not output.is_file() or output.stat().st_size == 0:
-            raise SystemExit(f"Renderer did not produce a non-empty MP4: {output}")
-        rendered.append({**item, "output": str(output)})
-    return rendered
-
-
-def save_history(path: Path, history: dict, completed: list[dict]) -> None:
-    updated = dict(history)
-    updated["content"] = [
-        *history.get("content", []),
-        *[item["content_id"] for item in completed],
-    ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(updated, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Coordinate a complete Quran/dua/dhikr review batch."
-    )
-    parser.add_argument("--content-dir", type=Path, default=Path("content"))
-    parser.add_argument("--history", type=Path, default=Path("content/rotation_history.json"))
-    parser.add_argument("--output-dir", type=Path, default=Path("output/daily"))
-    parser.add_argument("--day", default=date.today().isoformat())
-    parser.add_argument(
-        "--render", action="store_true",
-        help="Render only after all three categories pass preflight.",
-    )
-    args = parser.parse_args()
-
-    try:
-        history = load_history(args.history)
-        plan = build_plan(args.content_dir, history, args.day)
-    except (FileNotFoundError, ValueError, LookupError, SystemExit) as exc:
-        print(json.dumps({
-            "status": "blocked",
-            "stage": "preflight",
-            "reason": str(exc),
-            "required_types": list(KINDS),
-            "rendered": [],
-            "telegram_sent": False,
-            "tiktok_published": False,
-        }, ensure_ascii=False, indent=2))
-        return 2
-
-    print(json.dumps({
-        "status": "ready_to_render" if args.render else "preflight_passed",
-        "day": args.day,
-        "videos": plan,
-        "telegram_sent": False,
-        "tiktok_published": False,
-    }, ensure_ascii=False, indent=2))
-    if not args.render:
-        print("Preflight only. Use --render to create the complete review batch.")
-        return 0
-
-    rendered = render_plan(plan, args.output_dir)
-    # Rotation history is updated only after all three renderers succeeded.
-    save_history(args.history, history, rendered)
-    print(json.dumps({
-        "status": "rendered_for_manual_review",
-        "videos": rendered,
-        "telegram_sent": False,
-        "tiktok_published": False,
-    }, ensure_ascii=False, indent=2))
-    return 0
+    def test_invalid_history_content_field_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "history.json"
+            path.write_text('{"content":"not-a-list"}', encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "must be a list"):
+                load_history(path)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    unittest.main()
