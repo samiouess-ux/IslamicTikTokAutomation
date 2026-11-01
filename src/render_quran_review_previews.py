@@ -335,7 +335,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     width, height = 1080, 1920
 
     # Layered emerald stone texture with irregular mineral veins.
-    noise = Image.effect_noise((540, 960), 52).resize(
+    noise = Image.effect_noise((540, 960), 22).resize(
         (width, height), Image.Resampling.BICUBIC
     )
     marble = ImageOps.colorize(noise, black="#000d0b", white="#24634b").convert("RGBA")
@@ -413,7 +413,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                           (cx-half, y)], outline=color, width=width_px)
         # Repeated interlaced petal arcs mirror left and right.
         for side in (-1, 1):
-            for k in range(4):
+            for k in range(2):
                 ox = cx + side * int((34 + 38*k) * scale)
                 oy = y + int((k % 2) * 8 * scale)
                 box = (ox-int(45*scale), oy-int(48*scale),
@@ -424,7 +424,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                          205 if side < 0 else 335, 335 if side < 0 else 475,
                          fill=gold_light, width=3)
         # Fine horizontal filigree rails.
-        for offset in (-18, 0, 18):
+        for offset in (-12, 12):
             draw.arc((cx-190*scale, y-55*scale+offset,
                       cx+190*scale, y+55*scale+offset),
                      195, 345, fill=gold, width=4)
@@ -434,7 +434,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
 
     # Stronger mineral veins with branching hairlines and luminous gold edges.
     for side in (-1, 1):
-        for branch in range(8):
+        for branch in range(4):
             start_x = 18 if side < 0 else width-18
             start_y = 90 + branch*245
             end_x = start_x + side*int(150 + 26*branch)
@@ -444,9 +444,9 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                         (start_x + bend, start_y+85),
                         (end_x-bend//2, start_y+170),
                         (end_x, end_y)]
-            draw.line(vein_pts, fill=(218, 159, 64, 245), width=5)
+            draw.line(vein_pts, fill=(218, 159, 64, 245), width=4)
             draw.line([(x+3, y-2) for x,y in vein_pts],
-                      fill=(255, 226, 158, 210), width=2)
+                      fill=(255, 226, 158, 170), width=1)
 
     # Restrained luminous highlights at the four cardinal points.
     for x, y in ((cx, cy-radius+3), (cx, cy+radius-3),
