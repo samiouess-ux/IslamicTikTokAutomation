@@ -40,6 +40,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         report_path.write_text(json.dumps(report), encoding="utf-8")
         return batch_path, report_path
 
+    @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
     @patch("render_quran_review_previews.probe", return_value={
         "duration_seconds": 28.0, "width": 1080, "height": 1920,
         "video_codec": "h264", "audio_codec": "mp3",
@@ -48,7 +50,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_renders_multiple_complete_distinct_review_previews(
-        self, _font, run, make_frame, _probe
+        self, _probe, _check_output, _download, _font, run, make_frame
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -68,6 +70,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(make_frame.call_args_list[0].args[-1], "مريم")
             self.assertEqual(make_frame.call_args_list[3].args[-1], "الغاشية")
             self.assertGreaterEqual(run.call_count, 8)
+            self.assertTrue(any("-stream_loop" in call.args[0] for call in run.call_args_list))
+            report_data = json.loads((root / "out" / "preview_report.json").read_text(encoding="utf-8"))
+            self.assertEqual(report_data["background_type"], "moving_video")
 
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_rejects_incomplete_audio_verse_coverage(self, _font):
