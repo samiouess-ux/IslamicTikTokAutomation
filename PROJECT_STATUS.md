@@ -501,3 +501,11 @@ Theme: hope and ease after hardship.
 - `src/send_telegram.py` uploads an MP4 through Telegram `sendVideo`, validates a non-empty file, 50 MB limit, caption length, and requires existing GitHub secrets. Secret values are not readable through the available GitHub interface and were not changed.
 - Next safe action: inspect the next actual scheduled run (or deliberately dispatch this existing production workflow) and verify render success, Telegram API confirmation in logs, and the delivery-history commit. Do not create a second bot or Cloudflare bridge. Do not mark ayahs delivered unless Telegram confirms the MP4 send.
 - Separate CI note: isolated parser test run `41291090647` failed in its single-ayah parser test; preceding run `41291083162` passed. This request-parser workflow is separate from the scheduled MP4 delivery path.
+
+
+## Final preview duration regression tests (2026-11-01)
+- Added direct tests for the renderer's real `probe()` validation: exactly 65.000 seconds is accepted, 65.001 seconds is rejected, and a non-1080x1920 output is rejected.
+- This tests the actual ffprobe result-validation function rather than a mocked render-level duration report.
+- Test commit: `51c2952759ab738b636d129be41e320573cebcdd`.
+- The test commit triggers the existing push-validation workflow. A green CI result will validate the regression tests; it will not count as Telegram MP4 delivery because push events skip Telegram.
+- Background rotation remains unresolved: the renderer still uses one previously approved Mixkit moving-video source. No unreviewed asset or extra cloud service was introduced.
