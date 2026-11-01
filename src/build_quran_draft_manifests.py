@@ -27,16 +27,20 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
             raise ValueError(f"Audio candidate missing from batch: {audio_item['candidate_id']}")
         if int(candidate["surah_number"]) != int(audio_item["surah_number"]):
             raise ValueError("Surah mismatch between batch and audio report.")
-        expected = [int(v["ayah"]) for v in candidate["verses"]]
-        if audio_item.get("selected_verses") != expected:
-            raise ValueError("Prepared audio does not contain every requested ayah in order.")
+        candidate_by_number = {int(v["ayah"]): v for v in candidate["verses"]}
+        expected = audio_item.get("selected_verses")
+        if not isinstance(expected, list) or not expected or any(int(n) not in candidate_by_number for n in expected):
+            raise ValueError("Prepared audio selected ayahs are missing from the source candidate.")
+        if expected != list(range(int(expected[0]), int(expected[0]) + len(expected))):
+            raise ValueError("Prepared audio ayahs must be a contiguous ordered passage.")
         if not audio_item.get("audio_file"):
             raise ValueError("Prepared audio file path is missing.")
+        selected_source = [candidate_by_number[int(n)] for n in expected]
         verses = [{
             "number": int(v["ayah"]),
             "arabic": v["arabic_uthmani"].lstrip("\ufeff"),
             "english": v["english_saheeh_international"],
-        } for v in candidate["verses"]]
+        } for v in selected_source]
         surah = int(candidate["surah_number"])
         from render_quran_review_previews import SURAH_NAMES
         if not 1 <= surah <= len(SURAH_NAMES):
@@ -51,7 +55,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
                 "surah_number": surah,
                 "surah_name_ar": surah_name_ar,
                 "verses": expected,
-                "references": [v["reference"] for v in candidate["verses"]],
+                "references": [v["reference"] for v in selected_source],
                 "arabic_source": "Quran Uthmani joined candidate catalog; not yet human-reviewed",
                 "translation_name": "Saheeh International",
                 "translation_rights_confirmed": False,
