@@ -106,3 +106,8 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Commit: `51c2952759ab738b636d129be41e320573cebcdd`.
 - Await the push-triggered CI result; this is test coverage only, not proof of Telegram delivery.
 - Keep the single approved background source unchanged until a second asset has verified usage rights and user approval.
+
+## Latest operational check (2026-11-01)
+- Verified the repository default branch is `feature/telegram-review-notifications`, so the scheduled workflow is correctly located on the default branch.
+- Latest successful production build rendered Surah At-Tariq 86:12–13 in 14.55 seconds, 1080x1920, H.264 + original MP3. It was push-triggered; Telegram was skipped by design, so the next schedule event must verify actual delivery.
+- Do not spend time on optional background rotation before confirming that the original Telegram bot receives a real MP4.
