@@ -618,3 +618,13 @@ Theme: hope and ease after hardship.
 - In that same run, official audio preparation and draft-manifest generation completed; the 9:16 render step was in progress at the time of this update.
 - Added a further regression test for selecting the longest processed whole-ayah prefix under 65 seconds (e.g. source 40s + 30s becomes 35s + 28s after safe edge-only silence reduction, so both complete ayahs fit). This is in run `41311817665`, which is queued/pending and must pass before the latest test set is fully verified.
 - The previous run `41311627871` failed only because a test expected JSON string keys before serialization while the in-memory Python report uses integer keys. Corrected in `bbf33b1e`; the production test step then passed in `41311768545`.
+
+
+### Real-candidate edge-silence render result (2026-11-01)
+- Production workflow run `41311768545` completed successfully, including the full audio/renderer regression suite, candidate preparation, draft manifest generation, 9:16 render, and artifact upload.
+- Actual selected passage: Surah Fussilat 41:1–5 (5 complete consecutive ayahs). The duration selector measured original source total 78.538s and processed whole-ayah total 63.008s, so five complete ayahs fit under the 65-second cap; no fixed 2/3-ayah count was imposed.
+- Final MP4: 62.912s, 1080x1920, H.264 video + MP3 audio. This is a push-triggered build, so Telegram delivery was skipped; the artifact was inspected locally and not sent.
+- Each of the five processed MP3s had no leading/trailing silence segment >=0.25s at -50 dB, confirming that the long edge pauses were reduced. The source sample previously had about 0.8–1.4s leading and 2.0–2.4s trailing silence per ayah.
+- The rendered frames show the Amiri Bold Arabic, double-line surah cartouche, gold circular ayah number, white Arabic text, and smaller Saheeh International English translation. This is a substantial improvement but still awaits the user's review.
+- Remaining CI work: validate the additional variable-length selector test and the draft-manifest processed-timing propagation on the latest head (runs after `41311768545`). Then perform one controlled Telegram review send, verify Telegram `ok: true` plus message_id and the exact 5-ayah history record, and remove the temporary tagged-push trigger.
+- Background caveat remains: only the one approved Mixkit waterfall scene is currently used. Palette tint varies, but real background scene rotation is not yet implemented.
