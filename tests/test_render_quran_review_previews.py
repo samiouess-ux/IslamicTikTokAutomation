@@ -74,7 +74,6 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             report_data = json.loads((root / "out" / "preview_report.json").read_text(encoding="utf-8"))
             self.assertEqual(report_data["background_type"], "moving_video")
 
-    @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
     @patch("render_quran_review_previews.probe", return_value={
@@ -102,6 +101,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
 
+    @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_rejects_incomplete_audio_verse_coverage(self, _font):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
