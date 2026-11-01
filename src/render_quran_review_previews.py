@@ -345,8 +345,11 @@ def main() -> None:
     parser.add_argument("--batch", type=Path, required=True)
     parser.add_argument("--audio-report", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, default=Path("output/quran_review_previews"))
+    parser.add_argument("--minimum-previews", type=int, default=2,
+                        help="Minimum number of distinct review previews required.")
     args = parser.parse_args()
-    print(json.dumps(render(args.batch, args.audio_report, args.output_dir), ensure_ascii=False, indent=2))
+    print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
+                            minimum_previews=args.minimum_previews), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
