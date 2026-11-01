@@ -400,7 +400,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
                         "english": verse["english_saheeh_international"]},
                        surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1])
-            audio = Path(item["audio_file"]).parent / f"{int(candidate['surah_number']):03d}_{int(verse['ayah']):03d}.mp3"
+            processed_audio = item.get("processed_audio_files", {}).get(str(int(verse["ayah"])))
+            audio = (Path(processed_audio) if processed_audio else
+                     Path(item["audio_file"]).parent / f"{int(candidate['surah_number']):03d}_{int(verse['ayah']):03d}.mp3")
             if not audio.is_file():
                 raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
             segment = work / f"segment_{index:02d}.mp4"
