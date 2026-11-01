@@ -49,13 +49,15 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - A previous push-triggered run built an artifact but skipped Telegram by design. A Telegram test message was previously received, but neither fact proves that the scheduled production MP4 has reached Telegram.
 - The GitHub integration available in this session exposes file reads/writes and some run/job inspection, but no workflow-dispatch action or general workflow-run listing action. A manual dispatch therefore cannot be honestly claimed from this session.
 
-## Important unresolved mismatch
+## Confirmed language decision (2026-11-01)
 
-The current workflow and project status configure **Arabic + Saheeh International English**. The user's latest stated content requirement is **Arabic + French translation**. The code/configuration must be changed and tested before claiming the French version is ready. Do not silently continue calling English the agreed final language.
+- The user has reaffirmed that the required output is **Arabic + Saheeh International English**.
+- Keep the existing English translation source (`en.sahih`), English renderer field, and English workflow checks. Do not migrate to French or add French as a third language.
+- The earlier French discussion is superseded. No translation-language migration is a pending task.
 
 ## Execution order and acceptance criteria
 
-1. **Resolve the language mismatch**: trace translation catalog, renderer, captions, tests, and workflow together; implement French consistently without damaging Quran Arabic/audio mapping. Acceptance: tests prove each rendered ayah is paired with the correct sourced French translation; no English remains in the public video/caption path unless explicitly required by a future user instruction.
+1. **Preserve the confirmed English translation path**: keep the Saheeh International English catalog and exact surah:ayah pairing; run its existing completeness and join tests. Do not change the language.
 2. **Validate candidate-to-video pipeline**: run existing automated tests and inspect the complete workflow logs. Acceptance: one non-Ash-Sharh distinct-surah MP4 is rendered, 9:16, exact contiguous ayahs, duration <=65 seconds, correct paired translation, and caption metadata.
 3. **Validate Telegram end-to-end**: use the existing scheduled/manual workflow path only. Acceptance: Telegram API returns `ok: true` with a message ID for the actual MP4, and the same passage is committed to delivery history afterward.
 4. **Validate repeated operation**: verify the next scheduled slot selects a different eligible passage and does not repeat delivered ayahs or the previous background when an approved alternative exists.
@@ -71,4 +73,4 @@ The current workflow and project status configure **Arabic + Saheeh Internationa
 
 ## Current release status
 
-**Not yet declared ready.** The actual scheduled MP4 delivery has not been proven in the evidence reviewed on 2026-11-01, and the French/English mismatch remains unresolved. Do not tell the user the engine is complete until both are fixed and the acceptance criteria above are met.
+**Not yet declared ready.** English is the confirmed language and there is no French/English mismatch to resolve. The actual scheduled MP4 delivery has not been proven in the evidence reviewed on 2026-11-01. Do not tell the user the engine is complete until the remaining delivery and repeated-operation acceptance criteria are met.
