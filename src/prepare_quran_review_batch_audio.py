@@ -100,6 +100,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             selected = []
             durations = {}
             processed_durations = {}
+            removed_edge_silence = {}
             processed_audio_files = {}
             files = []
             total = 0.0
@@ -137,6 +138,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 selected.append(number)
                 durations[number] = round(source_duration, 3)
                 processed_durations[str(number)] = round(processed_duration, 3)
+                removed_edge_silence[str(number)] = round(source_duration - processed_duration, 3)
                 processed_audio_files[str(number)] = str(processed_target)
                 files.append(processed_target)
                 total = proposed_total
@@ -149,6 +151,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     "requested_verses": requested,
                     "verse_durations_seconds": durations,
                     "processed_verse_durations_seconds": processed_durations,
+                    "edge_silence_removed_seconds": removed_edge_silence,
                     "complete_duration_seconds": round(total, 3),
                     "selected_verses": [],
                     "duration_seconds": 0,
@@ -179,6 +182,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "selected_verses": selected,
                 "verse_durations_seconds": durations,
                 "processed_verse_durations_seconds": processed_durations,
+                "edge_silence_removed_seconds": removed_edge_silence,
+                "inter_verse_silence_seconds": 0.24,
                 "processed_audio_files": processed_audio_files,
                 "duration_seconds": round(actual, 3),
                 "audio_file": str(combined),
