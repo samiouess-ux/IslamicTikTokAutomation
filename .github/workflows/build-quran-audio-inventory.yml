@@ -240,6 +240,8 @@ jobs:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python - <<'PY'
           import json
           import subprocess
@@ -284,7 +286,7 @@ jobs:
               changed = subprocess.run(["git", "diff", "--cached", "--quiet"])
               if changed.returncode == 1:
                   subprocess.run(["git", "commit", "-m", f"Record delivered Quran review passage {item['candidate_id']}"], check=True)
-                  subprocess.run(["git", "push"], check=True)
+                  subprocess.run(["git", "push", "origin", "HEAD:feature/telegram-review-notifications"], check=True)
               elif changed.returncode != 0:
                   raise SystemExit("Unable to inspect delivery-history changes.")
               print(f"Telegram confirmed video {index}/3: {item['candidate_id']}. TikTok publishing remains manual.")
