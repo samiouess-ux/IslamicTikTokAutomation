@@ -264,6 +264,24 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
+    # Validate all selected ayahs before downloading a background or loading
+    # fonts. A duration-limited passage may be a shorter prefix, not the whole
+    # candidate, but it must never skip or reorder ayahs.
+    report_items = {x["candidate_id"]: x for x in report.get("items", [])}
+    for candidate in batch.get("passages", []):
+        item = report_items.get(candidate["candidate_id"])
+        if not item or not item.get("status", "").startswith("audio_prepared"):
+            continue
+        requested = item.get("requested_verses")
+        candidate_numbers = [int(v["ayah"]) for v in candidate["verses"]]
+        if not isinstance(requested, list) or [int(n) for n in requested] != candidate_numbers:
+            raise ValueError("Audio requested ayahs do not match the source candidate.")
+        selected = item.get("selected_verses")
+        if (not isinstance(selected, list) or not selected
+                or [int(n) for n in selected] != candidate_numbers[:len(selected)]):
+            raise ValueError("Audio-selected ayahs do not match a non-empty requested prefix.")
+        if [int(n) for n in selected] != list(range(int(selected[0]), int(selected[0]) + len(selected))):
+            raise ValueError("Audio-selected ayahs are not contiguous; refusing preview.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
     background = output_dir / "approved_moving_background.mp4"
