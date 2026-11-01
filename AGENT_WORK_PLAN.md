@@ -212,3 +212,9 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - The artifact is available as GitHub Actions artifact 13087310229 (official-quran-audio-inventory-and-probe). The preview is not approved for production and Telegram delivery was skipped because the run was push-triggered.
 - Frame sampling confirmed the existing approved Mixkit waterfall design and current Arabic/English layout. The four Pexels candidates are still only staged metadata; no downloads, crop QA, or user approval have occurred.
 - Next: keep all approval gates closed; prepare visual previews for the four candidate backgrounds (including a 9:16 crop for the landscape bridge), then ask the user to approve/reject individual assets. Separately verify a scheduled Telegram send and exact history sync. Do not modify main or enable TikTok auto-publishing.
+
+
+## Background candidate review checkpoint (2026-11-01)
+- Run #154 (41315704678) passed, downloaded and ffprobe-validated all four staged Pexels MP4s, created center-cropped 9:16 still previews, and uploaded contact sheet/report in artifact 13087152545.
+- Initial visual observations: ocean bright (may need dark overlay); mountain lake visually strong; sunset calm; bridge center crop loses some landscape framing. These are observations only, not approvals.
+- Next: add a QA preview stage that composites the actual Quran text panel over each candidate and checks legibility/contrast, plus a short motion preview if practical. Keep all production flags false until user explicitly approves each one. Verify a scheduled (not push-triggered) Telegram delivery separately.
