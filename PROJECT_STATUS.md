@@ -2,6 +2,13 @@
 
 Last updated: 2026-11-01
 
+## Caption variation update (2026-11-01)
+- Updated the scheduled Telegram caption builder to include the exact ayah range in English and retain the Arabic surah/range caption.
+- Added three rotating, topic-relevant Arabic/English hashtag sets selected deterministically per passage, rather than repeating the same two tags on every video.
+- Workflow change commit: `f46f7912e1b8deaddef3e725ec2151f7b87fab95`.
+- The schedule remains 04:00, 12:00 and 18:00 Tunisia time (one video per slot). Telegram MP4 end-to-end delivery still needs a scheduled/dispatch run with a real Telegram message ID.
+- Background limitation identified: the current preview renderer still uses one approved moving-video source; palette accents vary, but full scene/background rotation is not yet implemented. Do not claim background variety is complete or introduce unreviewed external assets.
+
 ## Telegram delivery confirmation hardening (2026-11-01)
 - Tightened `src/send_telegram.py`: Telegram `ok: true` is no longer sufficient by itself; the response must also contain a positive integer `message_id` before the sender exits successfully.
 - Added a regression test proving an `ok: true` response without `message_id` is rejected. The workflow therefore cannot record delivery history on an incomplete Telegram response.
