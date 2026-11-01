@@ -163,7 +163,7 @@ def font_file() -> str:
 def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                           max_width: int = 820, max_lines: int = 5):
     """Fit every translation word by reducing font size; never truncate text."""
-    for size in (30, 28, 26, 24, 22):
+    for size in (32, 30, 28, 26, 24, 22):
         font = ImageFont.truetype(
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", size
         )
@@ -188,7 +188,7 @@ def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                      max_width: int = 850, max_lines: int = 4):
     """Fit the complete Uthmani ayah in a balanced block; never clip words."""
-    for size in (68, 64, 60, 56, 52, 48):
+    for size in (76, 72, 68, 64, 60, 56, 52, 48):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         lines, current = [], ""
         for word in text.split():
@@ -208,6 +208,47 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
     raise ValueError("Arabic ayah does not fit safely without clipping.")
 
 
+def bold_font_file() -> str:
+    result = subprocess.check_output(
+        ["fc-match", "-f", "%{file}", "Noto Naskh Arabic:style=Bold"], text=True
+    ).strip()
+    if not result or not Path(result).is_file():
+        raise RuntimeError("Noto Naskh Arabic Bold font is required for Quran title and verse numbers.")
+    return result
+
+
+def draw_surah_cartouche(draw: ImageDraw.ImageDraw, accent: tuple,
+                         center_x: int = 540, center_y: int = 465) -> None:
+    """Draw a restrained double-line Islamic cartouche around the surah title."""
+    outer = [
+        (center_x, center_y - 72), (center_x + 28, center_y - 54),
+        (center_x + 238, center_y - 54), (center_x + 270, center_y - 34),
+        (center_x + 292, center_y), (center_x + 270, center_y + 34),
+        (center_x + 238, center_y + 54), (center_x + 28, center_y + 54),
+        (center_x, center_y + 72), (center_x - 28, center_y + 54),
+        (center_x - 238, center_y + 54), (center_x - 270, center_y + 34),
+        (center_x - 292, center_y), (center_x - 270, center_y - 34),
+        (center_x - 238, center_y - 54), (center_x - 28, center_y - 54),
+    ]
+    inner = [
+        (center_x, center_y - 59), (center_x + 24, center_y - 43),
+        (center_x + 232, center_y - 43), (center_x + 255, center_y - 28),
+        (center_x + 273, center_y), (center_x + 255, center_y + 28),
+        (center_x + 232, center_y + 43), (center_x + 24, center_y + 43),
+        (center_x, center_y + 59), (center_x - 24, center_y + 43),
+        (center_x - 232, center_y + 43), (center_x - 255, center_y + 28),
+        (center_x - 273, center_y), (center_x - 255, center_y - 28),
+        (center_x - 232, center_y - 43), (center_x - 24, center_y - 43),
+    ]
+    draw.line(outer + [outer[0]], fill=(*accent, 230), width=3, joint="curve")
+    draw.line(inner + [inner[0]], fill=(*accent, 115), width=2, joint="curve")
+    for x in (center_x - 292, center_x + 292):
+        draw.ellipse((x - 8, center_y - 8, x + 8, center_y + 8),
+                     outline=(*accent, 220), width=2)
+        draw.ellipse((x - 2, center_y - 2, x + 2, center_y + 2),
+                     fill=(*accent, 220))
+
+
 def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
@@ -217,18 +258,22 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    # A gentle palette-tinted veil calms the moving footage without hiding it.
-    draw.rectangle((0, 0, 1080, 1920), fill=(*_top, 38))
-    # Compact, centered reading panel with enough contrast for both scripts.
-    draw.rounded_rectangle((76, 310, 1004, 1610), radius=54,
-                           fill=(3, 12, 18, 176), outline=(*accent, 220), width=3)
-    draw.rounded_rectangle((390, 355, 690, 405), radius=24,
-                           fill=(*accent, 35), outline=(*accent, 150), width=2)
+    # Calm the approved moving footage while leaving the scenery visible.
+    draw.rectangle((0, 0, 1080, 1920), fill=(*_top, 30))
+    # A slimmer, lighter reading panel gives the footage more room and avoids
+    # the oversized opaque-card appearance of the first preview.
+    draw.rounded_rectangle((82, 320, 998, 1600), radius=48,
+                           fill=(3, 12, 18, 148), outline=(*accent, 175), width=2)
+    draw.rounded_rectangle((94, 332, 986, 1588), radius=40,
+                           outline=(*accent, 55), width=1)
 
-    title_font = ImageFont.truetype(font_path, 62, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((540, 455), f"سورة {surah_name}", font=title_font, fill=accent,
+    title_font = ImageFont.truetype(bold_font_file(), 68, layout_engine=ImageFont.Layout.RAQM)
+    draw_surah_cartouche(draw, accent)
+    draw.text((540, 465), f"سورة {surah_name}", font=title_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
-    draw.line((180, 535, 900, 535), fill=(*accent, 190), width=2)
+    draw.line((210, 575, 870, 575), fill=(*accent, 155), width=2)
+    draw.polygon([(540, 568), (547, 575), (540, 582), (533, 575)],
+                 fill=(*accent, 190))
 
     arabic = verse.get("arabic")
     english = verse.get("english")
@@ -241,22 +286,25 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     start_y = 835 - block_height / 2
     for line_index, line in enumerate(lines):
         draw.text((540, start_y + line_index * line_height), line,
-                  font=body_font, fill=(255, 255, 250), anchor="mm",
+                  font=body_font, fill=(255, 255, 250, 255), anchor="mm",
                   direction="rtl", language="ar")
 
-    # Use a true circular ayah badge instead of decorative symbols around a number.
-    badge_y, badge_radius = 1135, 48
+    # The verse number remains a separate gold circular medallion.
+    badge_y, badge_radius = 1135, 49
     draw.ellipse((540 - badge_radius, badge_y - badge_radius,
                   540 + badge_radius, badge_y + badge_radius),
-                 fill=(*accent, 28), outline=(*accent, 255), width=4)
-    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
+                 fill=(*accent, 25), outline=(*accent, 245), width=4)
+    draw.ellipse((540 - badge_radius + 8, badge_y - badge_radius + 8,
+                  540 + badge_radius - 8, badge_y + badge_radius - 8),
+                 outline=(*accent, 115), width=2)
+    number_font = ImageFont.truetype(bold_font_file(), 40, layout_engine=ImageFont.Layout.RAQM)
     ayah_no = str(verse["number"]).translate(
         str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     )
     draw.text((540, badge_y), ayah_no, font=number_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
 
-    draw.line((180, 1220, 900, 1220), fill=(*accent, 150), width=2)
+    draw.line((210, 1220, 870, 1220), fill=(*accent, 135), width=2)
     english_font, en_lines, english_line_height = fit_translation_lines(
         draw, english, font_path, max_width=820, max_lines=5
     )
@@ -264,9 +312,9 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     english_start_y = 1390 - english_block_height / 2
     for line_index, line in enumerate(en_lines):
         draw.text((540, english_start_y + line_index * english_line_height),
-                  line, font=english_font, fill=(245, 246, 242),
+                  line, font=english_font, fill=(248, 249, 246, 255),
                   anchor="mm")
-    draw.line((300, 1535, 780, 1535), fill=(*accent, 120), width=2)
+    draw.line((330, 1535, 750, 1535), fill=(*accent, 105), width=2)
     image.save(out)
 
 def probe(path: Path) -> dict:
