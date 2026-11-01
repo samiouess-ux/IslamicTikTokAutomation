@@ -75,6 +75,33 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(report_data["background_type"], "moving_video")
 
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    @patch("render_quran_review_previews.probe", return_value={
+        "duration_seconds": 28.0, "width": 1080, "height": 1920,
+        "video_codec": "h264", "audio_codec": "mp3",
+    })
+    @patch("render_quran_review_previews.make_frame")
+    @patch("render_quran_review_previews.subprocess.run")
+    @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    def test_allows_one_requested_passage_when_explicitly_configured(
+        self, _font, _run, _frame, _probe, _check, _download
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            batch, report = self.fixtures(root)
+            batch_data = json.loads(batch.read_text(encoding="utf-8"))
+            report_data = json.loads(report.read_text(encoding="utf-8"))
+            batch_data["passages"] = batch_data["passages"][:1]
+            report_data["items"] = report_data["items"][:1]
+            batch.write_text(json.dumps(batch_data), encoding="utf-8")
+            report.write_text(json.dumps(report_data), encoding="utf-8")
+            result = render(batch, report, root / "out", minimum_previews=1)
+            self.assertEqual(result["preview_count"], 1)
+            self.assertFalse(result["production_approved"])
+            self.assertFalse(result["telegram_delivery"])
+            self.assertFalse(result["auto_publish"])
+
     def test_rejects_incomplete_audio_verse_coverage(self, _font):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
