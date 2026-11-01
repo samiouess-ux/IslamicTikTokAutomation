@@ -126,6 +126,28 @@ def build_review_batch(
     }
 
 
+def most_recent_delivered_surah(history: dict[str, Any]) -> int | None:
+    """Return the last successfully delivered surah, if delivery history exists."""
+    deliveries = history.get("deliveries", [])
+    if not isinstance(deliveries, list):
+        raise ValueError("Delivery history deliveries must be a list.")
+    if not deliveries:
+        return None
+    latest = deliveries[-1]
+    if not isinstance(latest, dict):
+        raise ValueError("Latest delivery history entry must be an object.")
+    value = latest.get("surah_number")
+    if value is None:
+        return None
+    try:
+        surah = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Latest delivery history surah_number must be an integer.") from exc
+    if not 1 <= surah <= 114:
+        raise ValueError("Latest delivery history surah_number must be between 1 and 114.")
+    return surah
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build a multi-surah Quran review candidate batch.")
     parser.add_argument("--catalog", type=Path, required=True)
@@ -141,7 +163,11 @@ def main() -> None:
     used_refs = history.get("ayah_references", [])
     if not isinstance(used_refs, list) or not all(isinstance(item, str) for item in used_refs):
         raise ValueError("Delivery history ayah_references must be a list of strings.")
-    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, args.exclude_surah, used_refs)
+    excluded_surahs = list(args.exclude_surah)
+    last_surah = most_recent_delivered_surah(history)
+    if last_surah is not None and last_surah not in excluded_surahs:
+        excluded_surahs.append(last_surah)
+    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
