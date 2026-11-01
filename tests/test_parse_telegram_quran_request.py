@@ -24,6 +24,12 @@ class TelegramQuranRequestParserTests(unittest.TestCase):
         self.assertEqual(result["surah_number"], 36)
         self.assertEqual((result["start_ayah"], result["end_ayah"]), (12, 12))
 
+    def test_single_ayah_request_is_supported(self):
+        result = parse_quran_request("نحب فيديو سورة الكهف الآية 5")
+        self.assertEqual(result["surah_number"], 18)
+        self.assertEqual((result["start_ayah"], result["end_ayah"]), (5, 5))
+        self.assertEqual(result["request_type"], "single_surah_passage")
+
     def test_unknown_surah_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "اسم السورة"):
             parse_quran_request("فيديو سورة غير موجودة")
