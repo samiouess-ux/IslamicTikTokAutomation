@@ -212,7 +212,8 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
-    _top, _bottom, accent = PALETTES[index % len(PALETTES)]
+    palette_index = (surah * 7 + int(verse.get("number", index + 1)) * 3 + index) % len(PALETTES)
+    _top, _bottom, accent = PALETTES[palette_index]
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
