@@ -151,3 +151,11 @@ These are the project's assigned work/review roles, not separately billed cloud 
 4. Investigate inter-ayah silence using source MP3 timing/waveforms. Reduce only verified non-recitation gaps while preserving every recitation sample; compare durations and listen to the output. Do not use blind silence removal, trimming, or time-stretching.
 5. Only after the user accepts the improved MP4, send one controlled review sample to the existing Telegram chat. Do not publish to TikTok; user approval and manual upload remain mandatory.
 6. Continue to verify scheduled 04:00, 12:00, and 18:00 Tunisia slots separately. A green push build is not proof that a scheduled Telegram send occurred.
+
+
+## Edge-pause reduction implementation and verification (2026-11-01)
+- Analyze the actual per-ayah MP3 edges at -50 dB; use the new synthetic MP3 regression test to verify that only leading/trailing silence is removed, a 0.12-second safety margin remains, and MP3 stream-copy is preserved.
+- Confirm `processed_audio_files` is propagated from audio preparation into the preview renderer and that the renderer actually uses those paths for each ayah. Do not use the combined passage file for visual scene boundaries; each whole ayah must remain aligned to its own screen.
+- Run the production workflow's complete audio and renderer regression suites. Inspect the newest render artifact and verify total duration <=65 seconds, correct selected contiguous ayahs, MP3 audio, and substantially shorter gaps between ayahs.
+- If the silence test fails or the detected edges risk cutting recitation, revert only the edge-trimming behavior and keep the diagnostic evidence; do not weaken the threshold or remove internal pauses blindly.
+- After CI and artifact review, update the user with the measured gap reduction. Only send a new Telegram sample after the revised visual/audio artifact has passed review; do not send on ordinary push runs.
