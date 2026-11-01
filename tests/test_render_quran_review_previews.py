@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_lines,
-                                            fit_arabic_lines, font_file, probe)
+                                            fit_arabic_lines, font_file, make_frame, probe)
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
@@ -34,6 +34,23 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertEqual(" ".join(lines), original)
         self.assertLessEqual(font.size, 30)
         self.assertGreaterEqual(line_height, 42)
+
+    def test_make_frame_has_refined_cartouche_and_gold_ayah_medallion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "frame.png"
+            make_frame(
+                {"number": 5, "arabic": "وَالضُّحَىٰ وَاللَّيْلِ إِذَا سَجَىٰ",
+                 "english": "By the morning brightness and by the night when it covers with darkness,"},
+                93, 0, output, font_file(), SURAH_NAMES[92]
+            )
+            with Image.open(output) as frame:
+                self.assertEqual(frame.size, (1080, 1920))
+                self.assertEqual(frame.mode, "RGBA")
+                # The top point of the double-line title cartouche and the
+                # separate circular ayah medallion must both be visibly drawn.
+                self.assertGreater(frame.getpixel((540, 393))[3], 200)
+                self.assertGreater(frame.getpixel((540, 1086))[3], 200)
+                self.assertIsNotNone(frame.getchannel("A").getbbox())
 
     # Covers both scheduled multi-video batches and isolated user requests.
     def fixtures(self, root: Path):
