@@ -27,7 +27,7 @@ class TelegramRequestStateTests(unittest.TestCase):
             state = record_update(load_state(path), 77)
             save_state(state, path)
             self.assertEqual(load_state(path), state)
-            self.assertTrue(path.read_bytes().endswith(b"\\n"))
+            self.assertTrue(path.read_bytes().endswith(b"\n"))
             self.assertFalse(path.with_suffix(".json.tmp").exists())
 
     def test_corrupt_state_fails_closed(self):
