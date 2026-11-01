@@ -21,6 +21,12 @@ Last updated: 2026-11-01
 - TikTok publishing remains manual-only; never enable automatic TikTok publishing. Do not modify `main`.
 
 
+## Latest verified run evidence (2026-11-01)
+- GitHub Actions run `41289938290` completed successfully through Quran-wide inventory, catalog joins, tests, one distinct-surah audio preparation, draft manifest, 9:16 preview render, and artifact upload (artifact `13076309641`).
+- It rendered a non-Ash-Sharh review candidate: Surah Muhammad (47), ayahs 16–17, file `quran_s047_016_017_REVIEW_ONLY.mp4`.
+- Telegram step 18 was **skipped** because this was a push-triggered run. No MP4 delivery is proven by this run. The successful mocked sender test is not a real Telegram send.
+- See `AGENT_WORK_PLAN.md` for the four operational roles, acceptance criteria, and next execution order.
+
 ## Project goal (current)
 Prepare **three distinct Quran videos per day** first. Each video contains the Quran in Arabic with authentic recitation and a paired English Saheeh International translation. Select different surahs/passages; do not repeat the Ash-Sharh prototype as the default. Each clip must contain complete consecutive ayahs and stay at or below 65 seconds.
 
