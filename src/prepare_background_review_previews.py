@@ -85,6 +85,17 @@ def build_contact_sheet(items: list[dict], output: Path) -> None:
     sheet.save(output, quality=90)
 
 
+def composite_overlay_preview(background_crop: Path, overlay_frame: Path, destination: Path) -> None:
+    """Composite the real transparent Quran layout over a candidate crop for legibility review."""
+    with Image.open(background_crop) as background, Image.open(overlay_frame) as overlay:
+        base = background.convert("RGBA").resize((540, 960), Image.Resampling.LANCZOS)
+        layer = overlay.convert("RGBA").resize((540, 960), Image.Resampling.LANCZOS)
+        if layer.getbbox() is None:
+            raise RuntimeError("Quran overlay frame is empty; refusing visual QA preview.")
+        base.alpha_composite(layer)
+        base.convert("RGB").save(destination, quality=92)
+
+
 def prepare(catalog_path: Path, output_dir: Path) -> dict:
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     candidates = catalog.get("candidates", [])
@@ -137,8 +148,27 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--catalog", default="data/background_candidates.json")
     parser.add_argument("--output-dir", default="output/background_review")
+    parser.add_argument("--overlay-frame", type=Path, help="Actual transparent Quran PNG frame from the current review render.")
     args = parser.parse_args()
     report = prepare(Path(args.catalog), Path(args.output_dir))
+    if args.overlay_frame:
+        if not args.overlay_frame.is_file():
+            raise FileNotFoundError(f"Actual Quran overlay frame not found: {args.overlay_frame}")
+        overlaid_items = []
+        for item in report["items"]:
+            crop = Path(item["preview_path"])
+            destination = Path(args.output_dir) / (item["id"] + "_quran_overlay.jpg")
+            composite_overlay_preview(crop, args.overlay_frame, destination)
+            overlaid_items.append({**item, "preview_path": str(destination),
+                                   "description": item["description"] + " — Quran text overlay"})
+        overlay_sheet = Path(args.output_dir) / "background_quran_overlay_contact_sheet.jpg"
+        build_contact_sheet(overlaid_items, overlay_sheet)
+        report["quran_overlay_contact_sheet"] = str(overlay_sheet)
+        report["quran_overlay_frame_source"] = str(args.overlay_frame)
+        report["overlay_legibility_review_required"] = True
+        (Path(args.output_dir) / "background_review_report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     print(f"Prepared {report['candidate_count']} review-only background crops.")
     print("No background was activated; explicit user approval is still required.")
 
