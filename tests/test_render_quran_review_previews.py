@@ -8,7 +8,8 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_lines,\n                                            fit_arabic_lines, font_file, probe)
+from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_lines,
+                                            fit_arabic_lines, font_file, probe)
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
