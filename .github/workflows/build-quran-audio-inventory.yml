@@ -245,6 +245,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python - <<'PY'
+          import hashlib
           import json
           import subprocess
           import sys
@@ -264,11 +265,26 @@ jobs:
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
               caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
               caption_path.parent.mkdir(parents=True, exist_ok=True)
+              surah_name = manifest["source"]["surah_name_ar"]
+              verse_numbers = manifest["source"]["verses"]
+              verse_range = f"{verse_numbers[0]}-{verse_numbers[-1]}"
+              # Rotate relevant tags reproducibly by passage so adjacent daily
+              # videos do not all receive the exact same hashtag set.
+              tag_sets = [
+                  (["#القرآن_الكريم", "#تلاوة", "#آيات_قرآنية", "#تدبر"],
+                   ["#Quran", "#QuranRecitation", "#Islam", "#ReflectOnQuran"]),
+                  (["#قرآن", "#ذكر_الله", "#نور_القرآن", "#تذكير"],
+                   ["#HolyQuran", "#Muslim", "#DailyReminder", "#QuranVerses"]),
+                  (["#آيات", "#القرآن", "#طمأنينة", "#اسلام"],
+                   ["#QuranDaily", "#IslamicReminder", "#Faith", "#Ayat"]),
+              ]
+              tag_index = int(hashlib.sha256(item["candidate_id"].encode("utf-8")).hexdigest()[:8], 16) % len(tag_sets)
+              hashtags_ar, hashtags_en = tag_sets[tag_index]
               caption = {
-                  "arabic_caption": manifest["caption"]["text"],
-                  "hashtags_ar": ["#القرآن_الكريم", "#تلاوة"],
-                  "english_caption": f"Quran recitation — Surah {manifest['source']['surah_name_ar']}",
-                  "hashtags_en": ["#Quran", "#QuranRecitation"],
+                  "arabic_caption": f"{manifest['caption']['text']} | استمع وتدبّر",
+                  "hashtags_ar": hashtags_ar,
+                  "english_caption": f"Quran recitation — Surah {surah_name} (verses {verse_range}). Listen and reflect.",
+                  "hashtags_en": hashtags_en,
               }
               caption_path.write_text(json.dumps(caption, ensure_ascii=False, indent=2), encoding="utf-8")
               subprocess.run([
