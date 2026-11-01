@@ -126,3 +126,11 @@ These are the project's assigned work/review roles, not separately billed cloud 
 ## Scheduled-run observation (2026-11-01, 13:24 Tunisia time)
 - A GitHub Actions run-history query filtered to `event=schedule` returned no runs for the active branch. The 12:00 Tunisia slot is therefore not confirmed as having executed, despite the cron entry being present.
 - Recheck after 18:00 Tunisia time. Do not alter push-trigger behavior to send videos, and do not claim Telegram delivery until the scheduled sender logs a real positive `message_id` and delivery history is committed.
+
+
+## One-off Telegram test procedure
+- Do not infer automatic operation from successful rendering or a green push CI run.
+- The existing workflow's Telegram step is intentionally skipped on normal pushes. For one controlled live test only, it accepts the exact commit-message marker `[telegram-live-test]`.
+- Test commit: `391924dae1c1b4d5826386876f6395e7beae4b6d` on `feature/telegram-review-notifications`.
+- Acceptance requires an actual Actions run plus Telegram API `ok: true` and positive `message_id`, followed by a committed delivery-history entry. After that, remove the temporary marker condition and verify scheduled operation separately.
+- If no run starts, stop feature development and diagnose why Actions did not launch. Never claim delivery based on mocked sender tests or artifact upload.
