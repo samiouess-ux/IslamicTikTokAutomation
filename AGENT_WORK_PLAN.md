@@ -191,3 +191,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - The official Pexels help page says its media is under the Pexels License and free for personal/commercial use without attribution. This is not treated as permission to enable the clips without checking the downloaded asset and current terms.
 - All four entries remain disabled: `direct_video_url=null`, `download_verified=false`, `approved=false`, `user_approved=false`. The bridge candidate is landscape 16:9 and must pass a 9:16 crop review. The existing production background and renderer are untouched until explicit approval.
 - Commit: `903dc3902d854edc030a3f74142cd0b886d43605`.
+
+## Archive resilience CI result (2026-11-01)
+- Verified run `41313825363` / #151 on `feature/telegram-review-notifications`: conclusion `success`.
+- Archive retry regression test passed; the official archive enumerated all 6,236 ayahs; translation, Uthmani candidate corpus, exact surah:ayah join, regression tests, eight distinct-surah candidate selection, one-slot audio preparation, manifest generation, and review-only vertical preview rendering all passed.
+- Telegram delivery and delivery-history steps were correctly skipped for the push event. No extra Telegram test was sent. A scheduled/manual run is still required to verify the next real delivery.
+- Background rotation remains pending; the four Pexels candidates are staged but not downloaded/verified/user-approved. Existing production renderer still uses the one previously approved Mixkit source.
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41313825363
