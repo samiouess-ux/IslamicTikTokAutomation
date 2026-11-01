@@ -226,3 +226,9 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Inspect actual rendered frames and validate the complete Arabic ayah text, ayah number, and translation layout; the current background contact sheet samples only one ayah frame and is not sufficient as full-video QA.
 - All four Pexels assets remain disabled and unapproved. Ask for explicit user approval individually before enabling any asset.
 - After visual QA, separately verify one scheduled Telegram send and history sync; then verify subsequent slots and distinct passage selection. Do not claim three daily videos from the one-video-per-slot implementation until schedule events and sends are evidenced.
+
+
+## Scheduled Telegram delivery checkpoint (2026-11-01)
+- User screenshot confirms the review bot received a video at 18:02 Tunisia time, following the 18:00 scheduled slot: Surah Az-Zukhruf, ayahs 1–7, displayed size 33.0 MB.
+- Caption includes Arabic title, hashtags, English description, and the manual-review-only notice. TikTok remains manual; never enable auto-publishing.
+- Treat this as one confirmed scheduled delivery only. Still verify the corresponding Actions run, Telegram delivery-history recording/sync, and later scheduled slots. Do not claim all three daily videos are reliable based on one receipt.
