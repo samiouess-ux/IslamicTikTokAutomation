@@ -134,7 +134,7 @@ jobs:
           python src/build_quran_review_batch.py \
             --catalog output/quran_joined_candidate.json \
             --count 8 \
-            --verses-per-passage 3 \
+            --verses-per-passage 2 \
             --exclude-surah 94 \
             --history data/quran_delivery_history.json \
             --seed "quran-daily-$(date -u +%F-%H)" \
