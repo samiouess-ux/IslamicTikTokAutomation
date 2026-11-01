@@ -11,7 +11,8 @@ class TelegramQuranRequestParserTests(unittest.TestCase):
         result = parse_quran_request("فيديو سورة الرحمن")
         self.assertEqual(result["surah_number"], 55)
         self.assertEqual(result["surah_name"], "الرحمن")
-        self.assertEqual((result["start_ayah"], result["end_ayah"]), (1, 1))
+        self.assertEqual(result["request_type"], "full_surah")
+        self.assertEqual((result["start_ayah"], result["end_ayah"]), (1, None))
 
     def test_arabic_name_and_arabic_indic_ayah_range(self):
         result = parse_quran_request("نحب فيديو سورة البقرة الآيات ١-٥")
