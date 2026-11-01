@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+import orchestrator
 from orchestrator import build_plan, load_history
 
 
@@ -70,6 +71,25 @@ class OrchestratorTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "must be a list"):
                 load_history(path)
 
+
+    def test_render_does_not_mark_content_as_delivered_or_mutate_history(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            history_path = folder / "history.json"
+            original_history = {"content": ["previous-item"]}
+            history_path.write_text(json.dumps(original_history), encoding="utf-8")
+            plan = [{"content_type": "quran", "manifest": "quran.json", "content_id": "new-item"}]
+            rendered = [{**plan[0], "output": "new-item.mp4"}]
+
+            with patch.object(sys, "argv", [
+                "orchestrator", "--history", str(history_path),
+                "--output-dir", str(folder / "out"), "--render",
+            ]), patch("orchestrator.build_plan", return_value=plan), patch(
+                "orchestrator.render_plan", return_value=rendered
+            ):
+                self.assertEqual(orchestrator.main(), 0)
+
+            self.assertEqual(json.loads(history_path.read_text(encoding="utf-8")), original_history)
 
 if __name__ == "__main__":
     unittest.main()
