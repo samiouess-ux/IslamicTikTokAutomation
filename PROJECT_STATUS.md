@@ -655,3 +655,9 @@ Theme: hope and ease after hardship.
 - Added `tests/test_build_official_audio_inventory.py` and wired it into the existing Actions workflow.
 - Commits: `7d7214eeff00e9239308439ff3f506ac7318743c`, `3181e2b2ed244e0497d1121bd36d8fe6d646ab47`, `9ed2f575b64eff3df5048bb799ddafa6885665b0`, `180fca4f55135f05a7e77b86ebb19cb43af934db`.
 - CI verification is pending. Background rotation remains unimplemented; no new external background is enabled.
+
+## Background candidates staged safely (2026-11-01)
+- Added `data/background_candidates.json` with four Pexels page references: sea, mountain lake, sunset sky, and mountain bridge.
+- Pexels' official help page states its uploaded media use the Pexels License and are free for personal/commercial use without attribution. Individual pages are marked Free. The bridge clip is 16:9 and needs a vertical crop check.
+- These are review candidates only: all `approved` and `user_approved` flags are false, direct MP4 URLs are empty, and download verification is false. The production renderer remains unchanged and cannot select them. No asset has been activated or sent to Telegram.
+- Commit: `903dc3902d854edc030a3f74142cd0b886d43605`.
