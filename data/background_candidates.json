@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "purpose": "Review-only background candidates. This file is not an active/approved render catalog.",
+  "purpose": "User-approved background assets awaiting integration into the production rotation; this catalog is not itself the active render catalog.",
   "license_source": "https://help.pexels.com/hc/en-us/articles/360042295174-What-is-the-license-of-the-photos-and-videos-on-Pexels",
   "license_summary": "Pexels states its uploaded photos/videos use the Pexels License and may be used free for personal and commercial purposes without attribution. Recheck the current license and clip page before downloading or enabling each asset.",
-  "activation_policy": "A candidate must have a captured direct MP4 download, verified file integrity, visual crop/contrast QA, and explicit user approval before it can be enabled in production. Recording a direct download URL alone does not mean downloaded, verified, approved, or active.",
+  "activation_policy": "All four candidates passed download/ffprobe verification and received explicit user visual approval on 2026-11-01. Production rotation must still integrate these entries and pass render/legibility tests before the current approved background is replaced.",
   "candidates": [
     {
       "id": "pexels-ocean-shore-35036280",
@@ -16,10 +16,10 @@
       "aspect_ratio": "9:16",
       "duration_seconds": 5,
       "direct_video_url": "https://videos.pexels.com/video-files/35036280/14841709_2160_3840_30fps.mp4",
-      "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Vertical 9:16 source; verify the downloaded MP4 and visual contrast."
+      "download_verified": true,
+      "approved": true,
+      "user_approved": true,
+      "notes": "User visually approved this candidate on 2026-11-01 after reviewing the 9:16 Quran overlay contact sheet. Download and ffprobe verification passed. Approved for integration into the production background rotation; not yet active until renderer integration is completed."
     },
     {
       "id": "pexels-mountain-lake-37675265",
@@ -32,10 +32,10 @@
       "aspect_ratio": "9:16",
       "duration_seconds": 10,
       "direct_video_url": "https://videos.pexels.com/video-files/37675265/15972208_2160_3840_30fps.mp4",
-      "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Vertical 9:16 source; verify the downloaded MP4 and visual contrast."
+      "download_verified": true,
+      "approved": true,
+      "user_approved": true,
+      "notes": "User visually approved this candidate on 2026-11-01 after reviewing the 9:16 Quran overlay contact sheet. Download and ffprobe verification passed. Approved for integration into the production background rotation; not yet active until renderer integration is completed."
     },
     {
       "id": "pexels-sunset-sky-35477402",
@@ -48,10 +48,10 @@
       "aspect_ratio": "9:16",
       "duration_seconds": 5,
       "direct_video_url": "https://videos.pexels.com/video-files/35477402/15029833_2160_3840_30fps.mp4",
-      "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Vertical 9:16 source; verify the downloaded MP4 and visual contrast."
+      "download_verified": true,
+      "approved": true,
+      "user_approved": true,
+      "notes": "User visually approved this candidate on 2026-11-01 after reviewing the 9:16 Quran overlay contact sheet. Download and ffprobe verification passed. Approved for integration into the production background rotation; not yet active until renderer integration is completed."
     },
     {
       "id": "pexels-mountain-bridge-5903759",
@@ -64,10 +64,10 @@
       "aspect_ratio": "16:9",
       "duration_seconds": 13,
       "direct_video_url": "https://videos.pexels.com/video-files/5903759/5903759-uhd_3840_2160_24fps.mp4",
-      "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Landscape 16:9 source; crop to 9:16 may lose the bridge/scene framing, so inspect a vertical crop before approval."
+      "download_verified": true,
+      "approved": true,
+      "user_approved": true,
+      "notes": "User visually approved this candidate on 2026-11-01 after reviewing the 9:16 Quran overlay contact sheet. Download and ffprobe verification passed. Approved for integration into the production background rotation; not yet active until renderer integration is completed."
     }
   ]
 }
