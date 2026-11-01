@@ -403,13 +403,59 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     flourish(385, 1)
     flourish(1265, -1)
 
-    # Restrained star-like highlights at the four cardinal points.
+    # Richer arabesque crown and foot: layered pointed petals and fine scrollwork.
+    def arabesque_medallion(y: int, scale: float = 1.0) -> None:
+        # Central pointed leaf with nested outlines.
+        for inset, color, width_px in ((0, gold_shadow, 12), (7, gold, 7), (13, gold_light, 3)):
+            half = int(112 * scale) - inset
+            rise = int(104 * scale) - inset
+            draw.polygon([(cx, y-rise), (cx+half, y), (cx, y+int(30*scale)),
+                          (cx-half, y)], outline=color, width=width_px)
+        # Repeated interlaced petal arcs mirror left and right.
+        for side in (-1, 1):
+            for k in range(4):
+                ox = cx + side * int((34 + 38*k) * scale)
+                oy = y + int((k % 2) * 8 * scale)
+                box = (ox-int(45*scale), oy-int(48*scale),
+                       ox+int(45*scale), oy+int(48*scale))
+                draw.arc(box, 205 if side < 0 else 335,
+                         335 if side < 0 else 475, fill=gold, width=6)
+                draw.arc((box[0]+7, box[1]+7, box[2]-7, box[3]-7),
+                         205 if side < 0 else 335, 335 if side < 0 else 475,
+                         fill=gold_light, width=3)
+        # Fine horizontal filigree rails.
+        for offset in (-18, 0, 18):
+            draw.arc((cx-190*scale, y-55*scale+offset,
+                      cx+190*scale, y+55*scale+offset),
+                     195, 345, fill=gold, width=4)
+
+    arabesque_medallion(383, 1.0)
+    arabesque_medallion(1267, 1.0)
+
+    # Stronger mineral veins with branching hairlines and luminous gold edges.
+    for side in (-1, 1):
+        for branch in range(5):
+            start_x = 18 if side < 0 else width-18
+            start_y = 170 + branch*360
+            end_x = start_x + side*int(115 + 22*branch)
+            end_y = min(height-20, start_y + 260)
+            bend = side * (35 + branch*7)
+            vein_pts = [(start_x, start_y),
+                        (start_x + bend, start_y+85),
+                        (end_x-bend//2, start_y+170),
+                        (end_x, end_y)]
+            draw.line(vein_pts, fill=(181, 124, 43, 220), width=3)
+            draw.line([(x+3, y-2) for x,y in vein_pts],
+                      fill=(255, 221, 143, 150), width=1)
+
+    # Restrained luminous highlights at the four cardinal points.
     for x, y in ((cx, cy-radius+3), (cx, cy+radius-3),
                  (cx-radius+3, cy), (cx+radius-3, cy)):
-        draw.ellipse((x-13, y-13, x+13, y+13), fill=gold_light,
-                     outline=gold_shadow, width=3)
-        draw.line((x-24, y, x+24, y), fill=gold_light, width=2)
-        draw.line((x, y-24, x, y+24), fill=gold_light, width=2)
+        draw.ellipse((x-18, y-18, x+18, y+18), fill=gold_light,
+                     outline=gold_shadow, width=4)
+        draw.ellipse((x-8, y-8, x+8, y+8), fill=(255, 248, 218, 255))
+        draw.line((x-31, y, x+31, y), fill=gold_light, width=3)
+        draw.line((x, y-31, x, y+31), fill=gold_light, width=3)
 
     title_font = ImageFont.truetype(font_path, 142, layout_engine=ImageFont.Layout.RAQM)
     prefix_font = ImageFont.truetype(font_path, 88, layout_engine=ImageFont.Layout.RAQM)
