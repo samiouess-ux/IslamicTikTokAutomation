@@ -1,8 +1,9 @@
 """Prepare audio for every distinct-surah review candidate in one batch.
 
-Downloads exact official verse files, probes each duration, and concatenates
-whole consecutive ayahs only. It never trims, time-stretches, or alters audio.
-This is a review package, not production approval or publication.
+Downloads exact official verse files, trims only detected leading/trailing
+silence with a safety margin, and stream-copies the MP3 recitation. Internal
+recitation and whole-ayah order remain untouched. This is a review package,
+not production approval or publication.
 """
 from __future__ import annotations
 
