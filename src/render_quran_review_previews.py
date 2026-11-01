@@ -160,6 +160,31 @@ def font_file() -> str:
     return result
 
 
+def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
+                          max_width: int = 820, max_lines: int = 5):
+    """Fit every translation word by reducing font size; never truncate text."""
+    for size in (30, 28, 26, 24, 22):
+        font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", size
+        )
+        lines, current = [], ""
+        for word in text.split():
+            if draw.textbbox((0, 0), word, font=font)[2] > max_width:
+                raise ValueError("A translation word is wider than the available text area.")
+            candidate = (current + " " + word).strip()
+            if draw.textbbox((0, 0), candidate, font=font)[2] <= max_width:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        if len(lines) <= max_lines:
+            return font, lines, max(42, size + 14)
+    raise ValueError("Translation does not fit without clipping, even at the minimum font size.")
+
+
 def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
@@ -174,7 +199,6 @@ def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, s
     title_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
     body_font = ImageFont.truetype(font_path, 66, layout_engine=ImageFont.Layout.RAQM)
     number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
-    english_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 30)
     draw.text((540, 320), f"سورة {surah_name}", font=title_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
     arabic = verse.get("arabic")
@@ -203,24 +227,12 @@ def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, s
     ayah_no = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw.text((540, 1120), f"۞ {ayah_no} ۞", font=number_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
-    # Translation is wrapped separately; all source words are retained.
-    en_lines, current = [], ""
-    for word in english.split():
-        candidate = (current + " " + word).strip()
-        if draw.textbbox((0,0), candidate, font=english_font)[2] <= 820:
-            current = candidate
-        else:
-            if current:
-                en_lines.append(current)
-            current = word
-    if current:
-        en_lines.append(current)
-    if len(en_lines) > 5:
-        raise ValueError(f"Translation for ayah {verse['number']} does not fit; refusing to clip.")
-    y = 1320 - (len(en_lines)-1)*48/2
+    # Fit the complete translation by stepping down the font size; never omit words.
+    english_font, en_lines, english_line_height = fit_translation_lines(draw, english, font_path)
+    y = 1320 - (len(en_lines)-1)*english_line_height/2
     for line in en_lines:
         draw.text((540, y), line, font=english_font, fill=(245,245,239), anchor="mm")
-        y += 48
+        y += english_line_height
     image.save(out)
 
 
