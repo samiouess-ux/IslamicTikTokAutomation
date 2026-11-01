@@ -19,6 +19,10 @@ def record_delivery(history: dict, passage: dict) -> dict:
     history["deliveries"].append({"candidate_id": passage.get("candidate_id"), "surah_number": passage.get("surah_number"), "ayah_references": refs, "delivered_at_utc": datetime.now(timezone.utc).isoformat()})
     return history
 
+def save_history(history: dict, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(history, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--history", type=Path, required=True)
@@ -31,8 +35,7 @@ def main() -> None:
     if len(matches) != 1:
         raise SystemExit("Could not identify exactly one delivered candidate in the batch.")
     record_delivery(history, matches[0])
-    args.history.parent.mkdir(parents=True, exist_ok=True)
-    args.history.write_text(json.dumps(history, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    save_history(history, args.history)
     print(f"Recorded {len(matches[0]['verses'])} delivered ayahs in persistent history.")
 
 if __name__ == "__main__":
