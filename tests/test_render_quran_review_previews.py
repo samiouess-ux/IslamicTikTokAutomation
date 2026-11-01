@@ -67,8 +67,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             audio_dir = root / "audio" / cid
             audio_dir.mkdir(parents=True)
             (audio_dir / "passage.mp3").write_bytes(b"placeholder")
+            processed_dir = audio_dir / "processed"
+            processed_dir.mkdir()
+            processed_audio_files = {}
             for n in range(start, start + 3):
                 (audio_dir / f"{surah:03d}_{n:03d}.mp3").write_bytes(b"whole ayah")
+                processed = processed_dir / f"{surah:03d}_{n:03d}.mp3"
+                processed.write_bytes(b"edge-silence-checked whole ayah")
+                processed_audio_files[str(n)] = str(processed)
             passages.append({
                 "candidate_id": cid, "surah_number": surah,
                 "verses": [
@@ -82,6 +88,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 "requested_verses": list(range(start, start + 3)),
                 "selected_verses": list(range(start, start + 3)),
                 "audio_file": str(audio_dir / "passage.mp3"),
+                "processed_audio_files": processed_audio_files,
             })
         batch = {"batch_status": "review_candidates_only", "passages": passages}
         report = {"rendering_allowed": False, "telegram_delivery": False,
@@ -122,6 +129,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(make_frame.call_args_list[3].args[-1], "الغاشية")
             self.assertGreaterEqual(run.call_count, 8)
             self.assertTrue(any("-stream_loop" in call.args[0] for call in run.call_args_list))
+            self.assertTrue(any("processed" in " ".join(call.args[0]) for call in run.call_args_list))
             report_data = json.loads((root / "out" / "preview_report.json").read_text(encoding="utf-8"))
             self.assertEqual(report_data["background_type"], "moving_video")
 
