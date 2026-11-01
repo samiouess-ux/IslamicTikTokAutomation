@@ -66,7 +66,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                self.assertGreater(frame.getpixel((540, 825))[3], 200)
+                self.assertEqual(frame.getpixel((540, 825))[3], 255)
+                # The opaque center panel must fully hide the first ayah beneath it.
+                self.assertEqual(frame.getpixel((540, 1000))[3], 255)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
     # Covers both scheduled multi-video batches and isolated user requests.
