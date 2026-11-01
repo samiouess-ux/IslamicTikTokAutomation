@@ -129,8 +129,12 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch, report = self.fixtures(root)
-            result = render(batch, report, root / "out")
+            result = render(batch, report, root / "out", background_rotation_index=2)
             self.assertEqual(result["preview_count"], 2)
+            self.assertEqual([x["background"]["id"] for x in result["items"]], [
+                "pexels-sunset-sky-35477402", "pexels-mountain-bridge-5903759"
+            ])
+            self.assertEqual(result["background_rotation_start_index"], 2)
             self.assertEqual({x["surah_number"] for x in result["items"]}, {19, 88})
             self.assertTrue(all(x["review_only"] for x in result["items"]))
             self.assertTrue(all(x["audio_codec"] == "mp3" for x in result["items"]))
