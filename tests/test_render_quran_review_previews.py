@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_lines,
-                                            fit_arabic_lines, font_file, make_frame, probe)
+                                            fit_arabic_lines, font_file, make_frame, make_intro_frame, probe)
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
@@ -59,6 +59,16 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertGreater(frame.getpixel((540, 1086))[3], 200)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
+    def test_intro_frame_shows_surah_and_exact_ayah_range(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "opening_cover.png"
+            make_intro_frame(93, 5, 8, output, font_file(), SURAH_NAMES[92])
+            with Image.open(output) as frame:
+                self.assertEqual(frame.size, (1080, 1920))
+                self.assertEqual(frame.mode, "RGBA")
+                self.assertGreater(frame.getpixel((540, 825))[3], 200)
+                self.assertIsNotNone(frame.getchannel("A").getbbox())
+
     # Covers both scheduled multi-video batches and isolated user requests.
     def fixtures(self, root: Path):
         passages, items = [], []
@@ -105,10 +115,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         "video_codec": "h264", "audio_codec": "mp3",
     })
     @patch("render_quran_review_previews.make_frame")
+    @patch("render_quran_review_previews.make_intro_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_renders_multiple_complete_distinct_review_previews(
-        self, _font, run, make_frame, _probe, _check_output, _download
+        self, _font, run, make_intro_frame, make_frame, _probe, _check_output, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -122,6 +133,13 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
             self.assertEqual(make_frame.call_count, 6)
+            self.assertEqual(make_intro_frame.call_count, 2)
+            self.assertEqual(make_intro_frame.call_args_list[0].args[:3], (19, 81, 83))
+            first_render_command = next(
+                call.args[0] for call in run.call_args_list
+                if "-loop" in call.args[0]
+            )
+            self.assertIn("fade=t=out:st=1.2:d=0.4:alpha=1", " ".join(first_render_command))
             self.assertEqual(SURAH_NAMES[18], "مريم")
             self.assertEqual(SURAH_NAMES[87], "الغاشية")
             self.assertEqual(SURAH_NAMES[110], "المسد")
@@ -140,10 +158,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         "video_codec": "h264", "audio_codec": "mp3",
     })
     @patch("render_quran_review_previews.make_frame")
+    @patch("render_quran_review_previews.make_intro_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_allows_one_requested_passage_when_explicitly_configured(
-        self, _font, _run, _frame, _probe, _check, _download
+        self, _font, _run, _intro, _frame, _probe, _check, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

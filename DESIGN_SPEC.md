@@ -72,3 +72,10 @@ Rotate between reviewed surahs and verse selections (single ayahs or consecutive
 - Reuse the approved Ash-Sharh render as the visual template/example, not as a fixed content source. Select surah title, verse number, exact Arabic, translation, and matching verse audio dynamically from validated Quran-wide sources.
 - Full-Quran coverage requires a versioned trusted Uthmani text corpus, a sourced translation corpus, and the official reuse-permitted verse-audio archive. Verify source identifiers, exact verse mapping, archive entry mapping, and rights before enabling a passage. Missing or mismatched data must fail closed, not silently narrow coverage to the two sample surahs.
 - Keep the approved 9:16/1080x1920/30fps design, gold ornate surah cartouche, independent gold verse medallions, white Arabic, smaller English translation, varied approved backgrounds, authentic matching recitation, no music/synthetic audio, no public reciter attribution, and manual review.
+
+
+## Opening cover frame (2026-11-01)
+- Every Quran review video begins with a short, elegant 9:16 opening cover showing "القرآن الكريم", the Arabic surah name, and the exact selected ayah range in Arabic numerals.
+- Use the established gold cartouche and calm dark panel; preserve the existing ayah layout after the cover fades.
+- Target cover display: 1.6 seconds with a gentle 0.4-second alpha fade. The original recitation starts at video time 0; do not insert silence, delay, trim, or alter audio.
+- The first frame is the TikTok cover candidate. TikTok publishing remains manual; the user chooses the cover in the TikTok app.

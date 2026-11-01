@@ -133,6 +133,9 @@ SURAH_NAMES = [
 APPROVED_BACKGROUND_URL = "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4"
 BACKGROUND_SOURCE = "Mixkit — Waterfall Between Green Hills (previously user-approved)"
 
+INTRO_DURATION_SECONDS = 1.6
+INTRO_FADE_SECONDS = 0.4
+
 PALETTES = [
     ((12, 31, 46), (25, 68, 75), (220, 190, 125)),
     ((31, 24, 48), (67, 47, 82), (226, 203, 151)),
@@ -317,6 +320,52 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw.line((330, 1535, 750, 1535), fill=(*accent, 105), width=2)
     image.save(out)
 
+
+def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
+                     out: Path, font_path: str, surah_name: str) -> None:
+    """Create a short opening cover; Quran audio still begins at t=0."""
+    if not features.check("raqm"):
+        raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
+    if not 1 <= surah_number <= len(SURAH_NAMES):
+        raise ValueError(f"Invalid surah number: {surah_number}")
+    if start_ayah < 1 or end_ayah < start_ayah:
+        raise ValueError("Opening cover needs a valid, ordered ayah range.")
+
+    palette_index = (surah_number * 7 + start_ayah * 3) % len(PALETTES)
+    _top, _bottom, accent = PALETTES[palette_index]
+    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    # Nearly opaque reading panel cleanly hides the first ayah until the
+    # opening title fades away, while the original recitation plays from t=0.
+    draw.rounded_rectangle((82, 350, 998, 1570), radius=54,
+                           fill=(3, 12, 18, 246), outline=(*accent, 235), width=3)
+    draw.rounded_rectangle((98, 366, 982, 1554), radius=44,
+                           outline=(*accent, 105), width=2)
+
+    label_font = ImageFont.truetype(font_path, 48, layout_engine=ImageFont.Layout.RAQM)
+    title_font = ImageFont.truetype(font_path, 88, layout_engine=ImageFont.Layout.RAQM)
+    range_font = ImageFont.truetype(font_path, 58, layout_engine=ImageFont.Layout.RAQM)
+
+    draw.text((540, 585), "القرآن الكريم", font=label_font, fill=(248, 245, 232, 255),
+              anchor="mm", direction="rtl", language="ar")
+    draw_surah_cartouche(draw, accent, center_x=540, center_y=825)
+    draw.text((540, 825), f"سورة {surah_name}", font=title_font, fill=accent,
+              anchor="mm", direction="rtl", language="ar")
+    draw.line((240, 1010, 840, 1010), fill=(*accent, 180), width=2)
+    draw.polygon([(540, 1002), (548, 1010), (540, 1018), (532, 1010)],
+                 fill=(*accent, 220))
+
+    digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+    start_text = str(start_ayah).translate(digits)
+    end_text = str(end_ayah).translate(digits)
+    range_text = f"الآيات {start_text}" if start_ayah == end_ayah else f"الآيات {start_text}–{end_text}"
+    draw.text((540, 1190), range_text, font=range_font, fill=(250, 248, 239, 255),
+              anchor="mm", direction="rtl", language="ar")
+    draw.line((350, 1350, 730, 1350), fill=(*accent, 125), width=2)
+    image.save(out)
+
+
 def probe(path: Path) -> dict:
     raw = subprocess.check_output([
         "ffprobe", "-v", "error", "-show_entries",
@@ -406,17 +455,36 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             if not audio.is_file():
                 raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
             segment = work / f"segment_{index:02d}.mp4"
-            subprocess.run([
+            command = [
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
                 "-stream_loop", "-1", "-i", str(background), "-i", str(audio), "-i", str(frame),
-                "-filter_complex",
-                "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
-                "[bg][2:v]overlay=0:0:format=auto[v]",
+            ]
+            if index == 0:
+                # The opening title is an overlay on the first ayah segment.
+                # It adds no silent lead-in and does not change the audio stream.
+                intro = work / "opening_cover.png"
+                make_intro_frame(surah_number, int(numbers[0]), int(numbers[-1]),
+                                 intro, font_path, SURAH_NAMES[surah_number - 1])
+                command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
+                filter_complex = (
+                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
+                    "[bg][2:v]overlay=0:0:format=auto[verse];"
+                    "[3:v]format=rgba,fade=t=out:st=1.2:d=0.4:alpha=1[intro];"
+                    "[verse][intro]overlay=0:0:format=auto[v]"
+                )
+            else:
+                filter_complex = (
+                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
+                    "[bg][2:v]overlay=0:0:format=auto[v]"
+                )
+            command.extend([
+                "-filter_complex", filter_complex,
                 "-map", "[v]", "-map", "1:a:0",
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                 "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest",
                 "-movflags", "+faststart", str(segment)
-            ], check=True)
+            ])
+            subprocess.run(command, check=True)
             segments.append(segment)
         concat = work / "segments.txt"
         concat.write_text("".join(f"file '{p.resolve()}'\n" for p in segments), encoding="utf-8")
@@ -450,7 +518,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "auto_publish": False,
         "background_type": "moving_video",
         "background_source": BACKGROUND_SOURCE,
-        "note": "Moving video background with transparent Arabic/English overlays. Text, translation, exact recitation, and reuse rights still require human review.",
+        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0},
+        "note": "A short surah-and-ayah opening cover fades over the first ayah while the original recitation starts at t=0; the video remains review-only.",
     }
     (output_dir / "preview_report.json").write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return result

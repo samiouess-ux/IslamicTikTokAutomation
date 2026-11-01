@@ -242,3 +242,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - This proves a real scheduled send and history sync for this slot only. It does not prove three daily slots are reliable over multiple days. Each scheduled slot still creates one video; TikTok remains manual.
 - The four Pexels candidates have passed download/ffprobe and overlay-preview preparation, but their final visual review and explicit per-background user approval are still outstanding. Keep all four disabled; the approved Mixkit waterfall remains the only production background.
 - Next actions: (1) inspect the actual Quran overlay contact sheet and representative frames for text/number/translation legibility, (2) ask the user to approve or reject candidate backgrounds individually before enabling any, and (3) continue verifying later scheduled slots and exact history sync. Do not add cloud services, bots, or auto-publishing.
+
+
+## Newly agreed task — Quran opening cover (2026-11-01)
+- Implement a short opening cover as the first video image: Arabic Quran label, surah name, and exact selected ayah range, in the approved gold cartouche / dark panel visual style.
+- Keep the cover to about 1.6 seconds with a gentle fade; start the original recitation at t=0 so there is no added silence and no change to Quran audio.
+- The first frame should be usable as the TikTok cover candidate, selected manually by the user inside TikTok.
+- Add tests and inspect a fresh review-only artifact before acceptance. Do not send an extra Telegram test, enable TikTok auto-publishing, change delivery schedules, or modify main.

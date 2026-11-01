@@ -720,3 +720,10 @@ Theme: hope and ease after hardship.
 - Full inventory, 6,236-entry Arabic/translation/audio join, regression tests, eight-surah candidate pool, one-slot audio preparation, manifest generation, review MP4 rendering, and background QA preview steps all passed in the same run.
 - This confirms one additional successful scheduled slot and exact delivery-history sync. It does not yet prove that all three daily slots run reliably over multiple days. Only one video is generated per scheduled slot; TikTok remains manual.
 - The run artifact is `13092647613`. The four Pexels backgrounds remain QA candidates only; none is user-approved or enabled in production.
+
+
+## Quran opening cover implementation (2026-11-01)
+- Added a short surah-title opening cover to the review renderer on `feature/telegram-review-notifications`.
+- The cover displays the Arabic surah name and exact selected ayah range in the established gold cartouche style. It fades away over the first ayah; original Quran audio starts at 0 seconds, with no silent lead-in and no audio modification.
+- Added renderer regression coverage for the cover image, exact ayah range passed to it, and FFmpeg alpha-fade overlay. The normal 1080x1920, MP3-preservation, <=65-second and review-only gates remain unchanged.
+- This is a code/test implementation checkpoint. Wait for the push-triggered Actions test/render run and inspect its artifact before calling the new visual verified or asking the user to use it. TikTok cover selection and publishing remain manual.
