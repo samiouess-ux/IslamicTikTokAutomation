@@ -638,3 +638,13 @@ Theme: hope and ease after hardship.
 - Sampled frames at 2, 14, 40, and 56 seconds show the refined double-line gold surah cartouche, Amiri Bold Arabic, separate gold circular ayah number, and smaller English translation. The long sampled ayah fits within the frame; visual review is still required from the user.
 - The underlying scene is still the one previously approved Mixkit waterfall. Palette tint varies by surah/ayah, but actual scene/background rotation is not implemented because no additional background has both verified reuse rights and explicit user approval.
 - A further regression test for choosing the longest processed whole-ayah prefix under 65 seconds was added after the successful run. Latest validation run `41312075159` must complete before that newest test is called CI-verified.
+
+
+## Telegram review sample delivery confirmed (2026-11-01)
+- One improved review-only MP4 was successfully sent to the existing Telegram bot by workflow run `41312274181`. Telegram returned `ok: true`, `message_id=28`, video size `34.6 MB`; the file contained Surah Fussilat 41:1–5. TikTok publishing remained manual.
+- The send succeeded and the workflow printed `Recorded 5 actually delivered ayahs`, but its same-step Git push for history was rejected because concurrent documentation commits had advanced the branch after the workflow checkout. No video resend was needed.
+- Repaired `data/quran_delivery_history.json` directly on the current feature branch in commit `ec2fe6bd`, adding exactly `41:1`–`41:5` with the delivery timestamp from the confirmed run. The current history now contains 11:1–2 and 41:1–5.
+- The failed overall job also sent a misleading failure alert after the video had already arrived. The user was informed. Hardened the workflow in commit `503a4a39`: video send, history recording, and branch sync are now separate steps; history sync fetches and rebases on the current feature branch before pushing; the failure alert is conditioned on the Telegram send step itself not succeeding.
+- Removed the temporary `[telegram-live-test]` push trigger. Future Telegram sends are restricted to scheduled runs or explicit workflow dispatch; ordinary code pushes do not send videos.
+- Latest workflow validation run `41312848189` is a normal push run after this workflow change; Telegram send/record/sync steps are correctly skipped for push events.
+- Still pending: verify the scheduled 04:00 / 12:00 / 18:00 Tunisia runs independently, and build a real pool of multiple rights-verified, user-approved background scenes. The currently approved waterfall remains the only actual scene; palette tint variation is not scene rotation.
