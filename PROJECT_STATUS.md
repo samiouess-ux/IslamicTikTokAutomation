@@ -590,3 +590,13 @@ Theme: hope and ease after hardship.
 - User correctly pointed out that a fixed count of 3 ayahs is not the requirement; short surahs/passages may fit under 65 seconds and longer ones may not.
 - Reverted the temporary `--verses-per-passage 3` workflow change back to 2 in commit `48bc2a1fde80ce9b52dda16c3929f82cc6d0ec84`. This restores the previous setting only as a temporary safe rollback; fixed 2 is still not the desired final behavior.
 - Required implementation: choose complete contiguous ayahs dynamically based on measured official audio durations, allowing a whole short surah where it fits, and the longest suitable contiguous passage up to 65 seconds otherwise. Never trim an ayah. Ensure the exact selected verse list and paired Arabic/English text flow consistently into rendering, caption, and delivery history. Add tests for variable counts and exact 65-second boundary before enabling production.
+
+
+## Quran review-preview visual redesign — first implementation (2026-11-01)
+- Updated `src/render_quran_review_previews.py` on `feature/telegram-review-notifications` (never `main`): replaced the oversized translucent frame with a more compact centered reading panel, stronger contrast, clearer title hierarchy, a true gold circular ayah-number badge, and a better-separated English translation area.
+- Arabic text now uses adaptive Amiri/Naskh-compatible font sizing and complete-word wrapping; it refuses to clip the ayah. Added regression test `test_arabic_layout_keeps_every_word_and_fits_compact_block`.
+- Palette tint is now derived from surah and ayah as well as the ayah index, so the same approved moving footage receives different calm color treatments across passages.
+- Code commits: `f19aa7e5` (layout), `a3338608` (Arabic layout test), `0ec7c8c2` (test import correction), `2ebc6e04` (surah/ayah palette variation).
+- The renderer regression suite passed in production workflow run `41310945442` at the catalog regression-test step; its render step was still running at the time of this note. The subsequent palette commit run `41311053908` was queued/pending and must also be checked before declaring the latest revision validated.
+- Important limitation: the underlying background is still the one previously approved Mixkit waterfall clip. Palette variation is not genuine scene rotation. No additional background was added without rights verification and the user's approval.
+- This is a first visual improvement iteration, not final design approval. Inspect the resulting MP4 before asking the user to accept it. Audio inter-ayah pause reduction is still a separate unresolved task. Push-triggered CI does not send Telegram MP4s.
