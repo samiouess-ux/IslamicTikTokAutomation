@@ -10,6 +10,7 @@ from render_quran_review_previews import render, SURAH_NAMES
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
+    # Covers both scheduled multi-video batches and isolated user requests.
     def fixtures(self, root: Path):
         passages, items = [], []
         for surah, start in ((19, 81), (88, 21)):
