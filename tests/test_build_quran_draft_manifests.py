@@ -26,7 +26,7 @@ class DraftManifestTests(unittest.TestCase):
             "rendering_allowed": False,
             "auto_publish": False,
             "items": [
-                {"candidate_id": "a", "surah_number": 19, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "requested_verses": [4, 5], "selected_verses": [4, 5], "verse_durations_seconds": {4: 15.2, 5: 17.1}, "audio_file": "a.mp3", "duration_seconds": 32.5},
+                {"candidate_id": "a", "surah_number": 19, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "requested_verses": [4, 5], "selected_verses": [4, 5], "verse_durations_seconds": {4: 15.2, 5: 17.1}, "processed_verse_durations_seconds": {"4": 13.2, "5": 14.7}, "edge_silence_removed_seconds": {"4": 2.0, "5": 2.4}, "inter_verse_silence_seconds": 0.24, "audio_file": "a.mp3", "duration_seconds": 27.9},
                 {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "requested_verses": [4, 5], "selected_verses": [4, 5], "verse_durations_seconds": {4: 13.0, 5: 15.0}, "audio_file": "b.mp3", "duration_seconds": 28.0},
             ],
         }
@@ -41,6 +41,12 @@ class DraftManifestTests(unittest.TestCase):
                 self.assertFalse(data["publishing"]["auto_publish"])
                 self.assertFalse(data["preflight"]["rendering_allowed"])
                 self.assertEqual([v["number"] for v in data["verses"]], [4, 5])
+                if data["id"] == "a":
+                    self.assertEqual(data["audio"]["source_verse_durations_seconds"], {"4": 15.2, "5": 17.1})
+                    self.assertEqual(data["audio"]["processed_verse_durations_seconds"], {"4": 13.2, "5": 14.7})
+                    self.assertEqual(data["audio"]["edge_silence_removed_seconds"], {"4": 2.0, "5": 2.4})
+                    self.assertEqual(data["audio"]["inter_verse_silence_seconds"], 0.24)
+                    self.assertIn("leading/trailing silence", data["audio"]["notes"])
             self.assertEqual(data["source"]["surah_name_ar"], "الغاشية")
             self.assertIn("سورة الغاشية", data["caption"]["text"])
 
