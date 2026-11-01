@@ -185,56 +185,88 @@ def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
     raise ValueError("Translation does not fit without clipping, even at the minimum font size.")
 
 
-def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, surah_name: str) -> None:
+def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
+                     max_width: int = 850, max_lines: int = 4):
+    """Fit the complete Uthmani ayah in a balanced block; never clip words."""
+    for size in (68, 64, 60, 56, 52, 48):
+        font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
+        lines, current = [], ""
+        for word in text.split():
+            candidate = (current + " " + word).strip()
+            bounds = draw.textbbox((0, 0), candidate, font=font,
+                                   direction="rtl", language="ar")
+            if bounds[2] - bounds[0] <= max_width:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+        if len(lines) <= max_lines:
+            return font, lines, max(72, int(size * 1.48))
+    raise ValueError("Arabic ayah does not fit safely without clipping.")
+
+
+def make_frame(verse: dict, surah: int, index: int, out: Path,
+               font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
-    top, bottom, accent = PALETTES[index % len(PALETTES)]
-    # Transparent text/decorative layer: the moving stock video remains visible underneath.
+    _top, _bottom, accent = PALETTES[index % len(PALETTES)]
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((64, 250, 1016, 1570), radius=42,
-                           fill=(0, 0, 0, 72), outline=(*accent, 235), width=3)
-    draw.line((170, 390, 910, 390), fill=(*accent, 220), width=2)
-    draw.line((170, 1500, 910, 1500), fill=(*accent, 220), width=2)
-    title_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
-    body_font = ImageFont.truetype(font_path, 66, layout_engine=ImageFont.Layout.RAQM)
-    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((540, 320), f"سورة {surah_name}", font=title_font, fill=accent,
+
+    # A gentle palette-tinted veil calms the moving footage without hiding it.
+    draw.rectangle((0, 0, 1080, 1920), fill=(*_top, 38))
+    # Compact, centered reading panel with enough contrast for both scripts.
+    draw.rounded_rectangle((76, 310, 1004, 1610), radius=54,
+                           fill=(3, 12, 18, 176), outline=(*accent, 220), width=3)
+    draw.rounded_rectangle((390, 355, 690, 405), radius=24,
+                           fill=(*accent, 35), outline=(*accent, 150), width=2)
+
+    title_font = ImageFont.truetype(font_path, 62, layout_engine=ImageFont.Layout.RAQM)
+    draw.text((540, 455), f"سورة {surah_name}", font=title_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
+    draw.line((180, 535, 900, 535), fill=(*accent, 190), width=2)
+
     arabic = verse.get("arabic")
     english = verse.get("english")
-    if not isinstance(arabic, str) or not arabic.strip() or not isinstance(english, str) or not english.strip():
+    if (not isinstance(arabic, str) or not arabic.strip()
+            or not isinstance(english, str) or not english.strip()):
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
-    # Wrap Arabic without deleting, normalizing, or rewriting any characters.
-    lines, current = [], ""
-    for word in arabic.split():
-        candidate = (current + " " + word).strip()
-        if draw.textbbox((0, 0), candidate, font=body_font, direction="rtl", language="ar")[2] <= 820:
-            current = candidate
-        else:
-            if current:
-                lines.append(current)
-            current = word
-    if current:
-        lines.append(current)
-    if len(lines) > 6:
-        raise ValueError(f"Arabic ayah {verse['number']} does not fit; refusing to clip.")
-    line_h = 112
-    start_y = 790 - (len(lines)-1)*line_h/2
-    for i, line in enumerate(lines):
-        draw.text((540, start_y+i*line_h), line, font=body_font, fill=(255,255,248),
-                  anchor="mm", direction="rtl", language="ar")
-    ayah_no = str(verse["number"]).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
-    draw.text((540, 1120), f"۞ {ayah_no} ۞", font=number_font, fill=accent,
-              anchor="mm", direction="rtl", language="ar")
-    # Fit the complete translation by stepping down the font size; never omit words.
-    english_font, en_lines, english_line_height = fit_translation_lines(draw, english, font_path)
-    y = 1320 - (len(en_lines)-1)*english_line_height/2
-    for line in en_lines:
-        draw.text((540, y), line, font=english_font, fill=(245,245,239), anchor="mm")
-        y += english_line_height
-    image.save(out)
 
+    body_font, lines, line_height = fit_arabic_lines(draw, arabic, font_path)
+    block_height = (len(lines) - 1) * line_height
+    start_y = 835 - block_height / 2
+    for line_index, line in enumerate(lines):
+        draw.text((540, start_y + line_index * line_height), line,
+                  font=body_font, fill=(255, 255, 250), anchor="mm",
+                  direction="rtl", language="ar")
+
+    # Use a true circular ayah badge instead of decorative symbols around a number.
+    badge_y, badge_radius = 1135, 48
+    draw.ellipse((540 - badge_radius, badge_y - badge_radius,
+                  540 + badge_radius, badge_y + badge_radius),
+                 fill=(*accent, 28), outline=(*accent, 255), width=4)
+    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
+    ayah_no = str(verse["number"]).translate(
+        str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+    )
+    draw.text((540, badge_y), ayah_no, font=number_font, fill=accent,
+              anchor="mm", direction="rtl", language="ar")
+
+    draw.line((180, 1220, 900, 1220), fill=(*accent, 150), width=2)
+    english_font, en_lines, english_line_height = fit_translation_lines(
+        draw, english, font_path, max_width=820, max_lines=5
+    )
+    english_block_height = (len(en_lines) - 1) * english_line_height
+    english_start_y = 1390 - english_block_height / 2
+    for line_index, line in enumerate(en_lines):
+        draw.text((540, english_start_y + line_index * english_line_height),
+                  line, font=english_font, fill=(245, 246, 242),
+                  anchor="mm")
+    draw.line((300, 1535, 780, 1535), fill=(*accent, 120), width=2)
+    image.save(out)
 
 def probe(path: Path) -> dict:
     raw = subprocess.check_output([
