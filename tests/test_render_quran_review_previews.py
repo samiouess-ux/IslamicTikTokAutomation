@@ -8,7 +8,7 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from render_quran_review_previews import render, SURAH_NAMES, fit_translation_lines
+from render_quran_review_previews import render, SURAH_NAMES, fit_translation_lines, probe
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
@@ -128,6 +128,48 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             report.write_text(json.dumps(data), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "do not match"):
                 render(batch, report, root / "out")
+
+    @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
+        "format": {"duration": "65.000"},
+        "streams": [
+            {"codec_name": "h264", "width": 1080, "height": 1920},
+            {"codec_name": "mp3"}
+        ],
+    }))
+    def test_probe_accepts_exactly_65_seconds(self, _check):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "preview.mp4"
+            path.write_bytes(b"video")
+            info = probe(path)
+            self.assertEqual(info["duration_seconds"], 65.0)
+
+    @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
+        "format": {"duration": "65.001"},
+        "streams": [
+            {"codec_name": "h264", "width": 1080, "height": 1920},
+            {"codec_name": "mp3"}
+        ],
+    }))
+    def test_probe_rejects_video_longer_than_65_seconds(self, _check):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "preview.mp4"
+            path.write_bytes(b"video")
+            with self.assertRaisesRegex(RuntimeError, "outside allowed range"):
+                probe(path)
+
+    @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
+        "format": {"duration": "24.5"},
+        "streams": [
+            {"codec_name": "h264", "width": 720, "height": 1280},
+            {"codec_name": "mp3"}
+        ],
+    }))
+    def test_probe_rejects_non_vertical_video(self, _check):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "preview.mp4"
+            path.write_bytes(b"video")
+            with self.assertRaisesRegex(RuntimeError, "not 1080x1920"):
+                probe(path)
 
 
 if __name__ == "__main__":
