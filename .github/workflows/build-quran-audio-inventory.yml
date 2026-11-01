@@ -235,15 +235,13 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      # Temporary one-off review send requested by the user; remove the tagged-push gate after confirmation.
       - name: Send one review-only video to Telegram for manual approval
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[telegram-live-test]'))
+        id: telegram_send
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python - <<'PY'
           import hashlib
           import json
@@ -268,8 +266,6 @@ jobs:
               surah_name = manifest["source"]["surah_name_ar"]
               verse_numbers = manifest["source"]["verses"]
               verse_range = f"{verse_numbers[0]}-{verse_numbers[-1]}"
-              # Rotate relevant tags reproducibly by passage so adjacent daily
-              # videos do not all receive the exact same hashtag set.
               tag_sets = [
                   (["#القرآن_الكريم", "#تلاوة", "#آيات_قرآنية", "#تدبر"],
                    ["#Quran", "#QuranRecitation", "#Islam", "#ReflectOnQuran"]),
@@ -292,8 +288,20 @@ jobs:
                   "--video", item["file"],
                   "--caption", str(caption_path),
               ], check=True)
-              # Persist each confirmed send immediately so a later failure cannot
-              # make already-delivered ayahs appear unused on the next run.
+              print(f"Telegram confirmed scheduled video {index}/1: {item['candidate_id']}. TikTok publishing remains manual.")
+          PY
+
+      - name: Record Telegram-confirmed Quran delivery history
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
+          for item in report["items"]:
               subprocess.run([
                   sys.executable, "src/record_quran_delivery.py",
                   "--history", "data/quran_delivery_history.json",
@@ -301,18 +309,21 @@ jobs:
                   "--audio-report", "output/quran_batch_audio_report.json",
                   "--candidate-id", item["candidate_id"],
               ], check=True)
-              subprocess.run(["git", "add", "data/quran_delivery_history.json"], check=True)
-              changed = subprocess.run(["git", "diff", "--cached", "--quiet"])
-              if changed.returncode == 1:
-                  subprocess.run(["git", "commit", "-m", f"Record delivered Quran review passage {item['candidate_id']}"], check=True)
-                  subprocess.run(["git", "push", "origin", "HEAD:feature/telegram-review-notifications"], check=True)
-              elif changed.returncode != 0:
-                  raise SystemExit("Unable to inspect delivery-history changes.")
-              print(f"Telegram confirmed scheduled video {index}/1: {item['candidate_id']}. TikTok publishing remains manual.")
           PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/quran_delivery_history.json
+          git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery"
 
-      - name: Notify Telegram if daily delivery fails
-        if: failure() && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[telegram-live-test]')))
+      - name: Sync confirmed Quran delivery history to active branch
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+        run: |
+          git fetch origin feature/telegram-review-notifications
+          git rebase origin/feature/telegram-review-notifications
+          git push origin HEAD:refs/heads/feature/telegram-review-notifications
+
+      - name: Notify Telegram if video preparation or delivery fails
+        if: failure() && steps.telegram_send.outcome != 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
@@ -331,7 +342,7 @@ jobs:
               raise SystemExit(0)
           payload = urllib.parse.urlencode({
               "chat_id": chat_id,
-              "text": "⚠️ فشل إرسال دفعة فيديوهات القرآن اليوم. الفيديوهات محفوظة في GitHub Actions Artifacts لمدة 30 يومًا. افتح سجل التشغيل لمعرفة السبب."
+              "text": "⚠️ تعذّر تجهيز أو إرسال فيديو القرآن اليوم. افتح سجل التشغيل لمعرفة السبب."
           }).encode()
           request = urllib.request.Request(
               f"https://api.telegram.org/bot{token}/sendMessage",
