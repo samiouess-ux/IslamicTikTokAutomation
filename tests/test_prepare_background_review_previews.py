@@ -44,14 +44,16 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
                 self.assertNotEqual(result.getpixel((270, 480)), (20, 80, 120))
 
 
-    def test_prepare_refuses_any_candidate_already_marked_approved(self):
+    def test_prepare_rejects_approved_candidate_without_explicit_user_approval(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
         catalog["candidates"][0]["approved"] = True
+        catalog["candidates"][0]["user_approved"] = False
+        catalog["candidates"][0]["download_verified"] = True
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             catalog_path = root / "catalog.json"
             catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
-            with self.assertRaisesRegex(RuntimeError, "disabled, unverified"):
+            with self.assertRaisesRegex(RuntimeError, "explicit user approval"):
                 prepare(catalog_path, root / "output")
 
 
