@@ -36,7 +36,7 @@ class RequestedPassageTests(unittest.TestCase):
 
     def test_rejects_ayah_beyond_actual_surah_length(self):
         with self.assertRaisesRegex(ValueError, "30 ayahs"):
-            build_requested_batch(self.joined, 67, 1, 31)
+            build_requested_batch(self.joined, 67, 22, 31)
 
     def test_rejects_invalid_or_oversized_range(self):
         for args in ((67, 0, 2), (67, 4, 3), (67, 1, 11), (115, 1, 2)):
