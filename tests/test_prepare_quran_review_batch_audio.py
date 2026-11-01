@@ -64,7 +64,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(partial["requested_verses"], [1, 2, 3])
             self.assertEqual(partial["selected_verses"], [1])
             self.assertEqual(partial["duration_seconds"], 40.0)
-            self.assertEqual(partial["processed_verse_durations_seconds"], {"1": 40.0})
+            self.assertEqual(partial["processed_verse_durations_seconds"], {1: 40.0})
             self.assertTrue(Path(partial["processed_audio_files"]["1"]).is_file())
             self.assertEqual(report["distinct_surah_count"], 3)
             self.assertFalse(report["rendering_allowed"])
