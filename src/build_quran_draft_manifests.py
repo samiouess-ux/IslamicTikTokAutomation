@@ -50,6 +50,8 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         if not 1 <= surah <= len(SURAH_NAMES):
             raise ValueError(f"Invalid Quran surah number: {surah}")
         surah_name_ar = SURAH_NAMES[surah - 1]
+        source_durations = audio_item["verse_durations_seconds"]
+        processed_durations = audio_item.get("processed_verse_durations_seconds") or source_durations
         manifest = {
             "id": candidate["candidate_id"],
             "content_type": "quran",
@@ -69,14 +71,16 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
                 "required": True,
                 "kind": "quran_recitation",
                 "production_audio_file": audio_item["audio_file"],
-                "processed_verse_durations_seconds": {str(k): v for k, v in audio_item["verse_durations_seconds"].items()},
-                "inter_verse_silence_seconds": 0.0,
+                "source_verse_durations_seconds": {str(k): v for k, v in source_durations.items()},
+                "processed_verse_durations_seconds": {str(k): v for k, v in processed_durations.items()},
+                "edge_silence_removed_seconds": audio_item.get("edge_silence_removed_seconds", {}),
+                "inter_verse_silence_seconds": float(audio_item.get("inter_verse_silence_seconds", 0.24)),
                 "approved": False,
                 "preview_only": False,
                 "exact_recording_user_reviewed": False,
                 "rights_verified": False,
                 "music_allowed": False,
-                "notes": "Official archive files concatenated whole, in ayah order, without trimming or time-stretching. Listen to this exact file and verify reuse rights before rendering.",
+                "notes": "Official whole-ayah MP3 files remain in order. Only detected leading/trailing silence is reduced with a 0.12-second safety margin; internal recitation is untouched and MP3 frames are stream-copied. Listen to this exact file and verify reuse rights before rendering.",
             },
             "visual": {
                 "format": "9:16",
