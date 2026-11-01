@@ -136,7 +136,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     break
                 selected.append(number)
                 durations[number] = round(source_duration, 3)
-                processed_durations[number] = round(processed_duration, 3)
+                processed_durations[str(number)] = round(processed_duration, 3)
                 processed_audio_files[str(number)] = str(processed_target)
                 files.append(processed_target)
                 total = proposed_total
