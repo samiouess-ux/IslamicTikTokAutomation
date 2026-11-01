@@ -72,6 +72,49 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertFalse(report["auto_publish"])
             self.assertTrue(all(not item.get("audio_approved", True) for item in report["items"]))
 
+    def test_selects_longest_processed_ayah_prefix_under_65_seconds(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            batch = {
+                "batch_status": "review_candidates_only",
+                "rendering_allowed": False,
+                "auto_publish": False,
+                "passages": [{
+                    "candidate_id": "variable-length",
+                    "surah_number": 41,
+                    "verses": [{"ayah": 1}, {"ayah": 2}, {"ayah": 3}],
+                }],
+            }
+            inventory = {
+                "mapped_verse_count": 6236,
+                "verses": {f"41:{n}": f"41-{n}.mp3" for n in (1, 2, 3)},
+            }
+            batch_path, inventory_path = root / "batch.json", root / "inventory.json"
+            batch_path.write_text(json.dumps(batch), encoding="utf-8")
+            inventory_path.write_text(json.dumps(inventory), encoding="utf-8")
+
+            def fake_run(command, **kwargs):
+                Path(command[-1]).write_bytes(b"combined")
+                return None
+
+            trimmed = iter([35.0, 28.0, 9.0])
+            def fake_trim(source, destination, source_duration):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(b"trimmed")
+                return next(trimmed)
+
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
+                 patch.object(module, "probe", side_effect=[40.0, 30.0, 10.0, 63.0]), \
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
+                 patch.object(module.subprocess, "run", side_effect=fake_run):
+                report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
+
+            item = report["items"][0]
+            self.assertEqual(item["selected_verses"], [1, 2])
+            self.assertEqual(item["duration_seconds"], 63.0)
+            self.assertEqual(item["processed_verse_durations_seconds"], {1: 35.0, 2: 28.0})
+            self.assertEqual(set(item["processed_audio_files"]), {"1", "2"})
+
     def test_trim_edge_silence_keeps_mp3_and_preserves_the_recitation_body(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
