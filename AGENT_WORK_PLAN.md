@@ -61,6 +61,14 @@ The current workflow and project status configure **Arabic + Saheeh Internationa
 4. **Validate repeated operation**: verify the next scheduled slot selects a different eligible passage and does not repeat delivered ayahs or the previous background when an approved alternative exists.
 5. **Only then declare the engine ready**: three daily slots are operational, each sends one distinct review MP4 to the original Telegram bot; user review and manual TikTok posting remain mandatory.
 
+## Latest pipeline evidence (2026-11-01)
+
+- GitHub Actions run `41289938290` completed successfully on the active branch at commit `78687c5988f69fc7d21c0d666e0f3dd47ad9082c`.
+- The workflow built a non-Ash-Sharh candidate: Surah Muhammad (47), ayahs 16–17, and rendered `quran_s047_016_017_REVIEW_ONLY.mp4` as a vertical 9:16 review preview.
+- The inventory, translation corpus, Arabic candidate corpus, exact-key join, regression tests, audio preparation, manifest generation, render, and artifact upload all completed successfully. Artifact ID: `13076309641`.
+- The Telegram send step was **skipped**, not failed and not successful. The run was a push-triggered run; the workflow only sends for `schedule` or `workflow_dispatch`. Therefore this run proves a distinct-surah preview can be rendered, but does not prove MP4 delivery.
+- The mocked sender unit test returned a fake Telegram message ID in the test; it is not a real Telegram delivery.
+
 ## Current release status
 
 **Not yet declared ready.** The actual scheduled MP4 delivery has not been proven in the evidence reviewed on 2026-11-01, and the French/English mismatch remains unresolved. Do not tell the user the engine is complete until both are fixed and the acceptance criteria above are met.
