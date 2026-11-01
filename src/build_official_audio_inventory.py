@@ -9,31 +9,67 @@ import json
 import re
 import sys
 from pathlib import Path
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from remotezip import RemoteZip
 
 ARCHIVE_URL = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
-ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
+ENTRY_RE = re.compile(r"(?:^|/)10-(\\d{3})(\\d{3})-A08\\.mp3$", re.IGNORECASE)
 EXPECTED_VERSES = 6236
+
+
+def create_archive_session() -> requests.Session:
+    """Use bounded timeouts and retry transient archive-host/network failures."""
+    retry = Retry(
+        total=4,
+        connect=4,
+        read=4,
+        status=4,
+        backoff_factor=1.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset({"GET", "HEAD"}),
+        respect_retry_after_header=True,
+    )
+    adapter = HTTPAdapter(max_retries=retry, pool_connections=2, pool_maxsize=2)
+    session = requests.Session()
+    session.headers.update({"User-Agent": "IslamicTikTokAutomation/1.0"})
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
 
 
 def build_inventory() -> dict:
     mapped: dict[str, str] = {}
     unmatched: list[str] = []
     duplicates: dict[str, list[str]] = {}
-    with RemoteZip(ARCHIVE_URL) as archive:
-        for name in archive.namelist():
-            match = ENTRY_RE.search(name)
-            if not match:
-                continue
-            surah, ayah = map(int, match.groups())
-            if not (1 <= surah <= 114 and 1 <= ayah <= 286):
-                unmatched.append(name)
-                continue
-            key = f"{surah}:{ayah}"
-            if key in mapped:
-                duplicates.setdefault(key, [mapped[key]]).append(name)
-            else:
-                mapped[key] = name
+    session = create_archive_session()
+    try:
+        # A 1 MiB initial range reduces extra round trips to the remote ZIP host.
+        # Timeouts are per connection/read; transient failures are retried by the
+        # mounted adapter. An unavailable host still fails closed.
+        with RemoteZip(
+            ARCHIVE_URL,
+            session=session,
+            timeout=(20, 60),
+            initial_buffer_size=1024 * 1024,
+        ) as archive:
+            for name in archive.namelist():
+                match = ENTRY_RE.search(name)
+                if not match:
+                    continue
+                surah, ayah = map(int, match.groups())
+                if not (1 <= surah <= 114 and 1 <= ayah <= 286):
+                    unmatched.append(name)
+                    continue
+                key = f"{surah}:{ayah}"
+                if key in mapped:
+                    duplicates.setdefault(key, [mapped[key]]).append(name)
+                else:
+                    mapped[key] = name
+    finally:
+        session.close()
 
     missing = []
     # Validate the archive inventory against canonical surah verse counts.
@@ -67,5 +103,5 @@ if __name__ == "__main__":
     destination = Path(sys.argv[1] if len(sys.argv) > 1 else "output/official_verse_audio_inventory.json")
     destination.parent.mkdir(parents=True, exist_ok=True)
     inventory = build_inventory()
-    destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
     print(f"Validated archive mapping for {inventory['mapped_verse_count']} verses: {destination}")
