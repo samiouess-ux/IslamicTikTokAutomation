@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import urllib.request
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, features
 
@@ -129,6 +130,9 @@ SURAH_NAMES = [
     "الناس"
 ]
 
+APPROVED_BACKGROUND_URL = "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4"
+BACKGROUND_SOURCE = "Mixkit — Waterfall Between Green Hills (previously user-approved)"
+
 PALETTES = [
     ((12, 31, 46), (25, 68, 75), (220, 190, 125)),
     ((31, 24, 48), (67, 47, 82), (226, 203, 151)),
@@ -150,18 +154,13 @@ def make_frame(verse: dict, surah: int, index: int, out: Path, font_path: str, s
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     top, bottom, accent = PALETTES[index % len(PALETTES)]
-    image = Image.new("RGB", (1080, 1920))
+    # Transparent text/decorative layer: the moving stock video remains visible underneath.
+    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    # Draw one horizontal line per row; this avoids millions of slow Python
-    # per-pixel assignments while keeping the same smooth vertical gradient.
-    for y in range(1920):
-        t = y / 1919
-        color = tuple(round(top[channel] * (1-t) + bottom[channel] * t) for channel in range(3))
-        draw.line((0, y, 1079, y), fill=color)
-    # Minimal geometric frame generated locally; no external background asset.
-    draw.rounded_rectangle((64, 250, 1016, 1570), radius=42, outline=accent, width=3)
-    draw.line((170, 390, 910, 390), fill=accent, width=2)
-    draw.line((170, 1500, 910, 1500), fill=accent, width=2)
+    draw.rounded_rectangle((64, 250, 1016, 1570), radius=42,
+                           fill=(0, 0, 0, 72), outline=(*accent, 235), width=3)
+    draw.line((170, 390, 910, 390), fill=(*accent, 220), width=2)
+    draw.line((170, 1500, 910, 1500), fill=(*accent, 220), width=2)
     title_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
     body_font = ImageFont.truetype(font_path, 66, layout_engine=ImageFont.Layout.RAQM)
     number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
@@ -243,6 +242,23 @@ def render(batch_path: Path, report_path: Path, output_dir: Path) -> dict:
         raise ValueError("Delivery and publishing must remain disabled.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
+    background = output_dir / "approved_moving_background.mp4"
+    request = urllib.request.Request(APPROVED_BACKGROUND_URL, headers={"User-Agent": "IslamicTikTokAutomation/1.0"})
+    with urllib.request.urlopen(request, timeout=90) as response, background.open("wb") as target:
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            target.write(chunk)
+    if background.stat().st_size < 100_000:
+        raise RuntimeError("Approved moving background download is missing or unexpectedly small.")
+    background_probe = subprocess.check_output([
+        "ffprobe", "-v", "error", "-select_streams", "v:0",
+        "-show_entries", "stream=codec_name,width,height", "-of", "json", str(background)
+    ], text=True)
+    background_streams = json.loads(background_probe).get("streams", [])
+    if not background_streams or background_streams[0].get("codec_name") not in {"h264", "hevc", "vp9", "av1"}:
+        raise RuntimeError("Approved background is not a valid moving video stream.")
     report_items = {x["candidate_id"]: x for x in report.get("items", [])}
     previews = []
     for candidate in batch.get("passages", []):
@@ -270,11 +286,14 @@ def render(batch_path: Path, report_path: Path, output_dir: Path) -> dict:
             segment = work / f"segment_{index:02d}.mp4"
             subprocess.run([
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                "-loop", "1", "-framerate", "30", "-i", str(frame),
-                "-i", str(audio), "-map", "0:v:0", "-map", "1:a:0",
-                "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
-                "-pix_fmt", "yuv420p", "-tune", "stillimage",
-                "-c:a", "copy", "-shortest", "-movflags", "+faststart", str(segment)
+                "-stream_loop", "-1", "-i", str(background), "-i", str(audio), "-i", str(frame),
+                "-filter_complex",
+                "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
+                "[bg][2:v]overlay=0:0:format=auto[v]",
+                "-map", "[v]", "-map", "1:a:0",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest",
+                "-movflags", "+faststart", str(segment)
             ], check=True)
             segments.append(segment)
         concat = work / "segments.txt"
@@ -307,7 +326,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path) -> dict:
         "production_approved": False,
         "telegram_delivery": False,
         "auto_publish": False,
-        "note": "Procedural graphic previews only. Text, translation, exact recitation, and reuse rights still require human review.",
+        "background_type": "moving_video",
+        "background_source": BACKGROUND_SOURCE,
+        "note": "Moving video background with transparent Arabic/English overlays. Text, translation, exact recitation, and reuse rights still require human review.",
     }
     (output_dir / "preview_report.json").write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return result
