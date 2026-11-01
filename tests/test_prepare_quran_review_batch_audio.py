@@ -55,7 +55,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(report["audio_prepared_count"], 3)
             partial = next(item for item in report["items"] if item["candidate_id"] == "s3")
             self.assertTrue(partial["status"].startswith("audio_prepared"))
-            self.assertEqual(partial["requested_verses"], [1, 2])
+            self.assertEqual(partial["requested_verses"], [1, 2, 3])
             self.assertEqual(partial["selected_verses"], [1])
             self.assertEqual(partial["duration_seconds"], 40.0)
             self.assertEqual(report["distinct_surah_count"], 3)
