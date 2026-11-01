@@ -12,6 +12,7 @@ on:
       - "tests/test_telegram_request_inbox.py"
       - "src/render_quran_review_previews.py"
       - "tests/test_render_quran_review_previews.py"
+      - ".github/workflows/test-quran-request.yml"
   workflow_dispatch:
 
 permissions:
