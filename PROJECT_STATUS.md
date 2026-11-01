@@ -2,6 +2,14 @@
 
 Last updated: 2026-11-01
 
+## Autonomous agent plan and release gate (2026-11-01)
+- The active work roles, execution order, known blockers, and acceptance criteria are maintained in `AGENT_WORK_PLAN.md`.
+- This plan is authoritative for the next implementation steps on `feature/telegram-review-notifications`; it does not create separate paid agents or external infrastructure.
+- Current readiness remains **not verified**: the reviewed production workflow uses Arabic + Saheeh International English, while the user's latest requirement is Arabic + French; and an actual scheduled MP4 delivery to the original Telegram bot has not yet been evidenced.
+- Do not declare the engine ready until the translation requirement is reconciled in code/tests, a distinct-surah MP4 passes render checks at <=65 seconds, Telegram confirms `sendVideo` with a message ID, and delivery history is committed only afterward.
+- TikTok publishing stays manual. Keep all changes on this branch; never modify `main`.
+
+
 ## Latest delivery-slot correction and render fixes (2026-11-01)
 - This section supersedes older schedule notes below: the required schedule is **one distinct Quran review video at each Tunisia slot: 04:00, 12:00, and 18:00** (GitHub cron: `0 3,11,17 * * *` UTC). GitHub may delay scheduled starts under load.
 - Each scheduled run prepares one video only; it must not expect a three-video batch.
