@@ -1,0 +1,28 @@
+"""Safety checks for staged, review-only background candidates."""
+import json
+import re
+import unittest
+from pathlib import Path
+
+
+class BackgroundCandidateTests(unittest.TestCase):
+    def test_four_candidates_have_matching_pexels_direct_mp4_sources(self):
+        catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(catalog["candidates"]), 4)
+        for item in catalog["candidates"]:
+            source_id = item["id"].rsplit("-", 1)[-1]
+            url = item["direct_video_url"]
+            self.assertTrue(url.startswith("https://videos.pexels.com/video-files/"))
+            self.assertRegex(url, rf"/video-files/{re.escape(source_id)}/[^/]+\\.mp4$")
+            self.assertIn(source_id, item["source_page_url"])
+
+    def test_candidates_remain_disabled_until_download_and_user_review(self):
+        catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
+        for item in catalog["candidates"]:
+            self.assertFalse(item["download_verified"])
+            self.assertFalse(item["approved"])
+            self.assertFalse(item["user_approved"])
+
+
+if __name__ == "__main__":
+    unittest.main()
