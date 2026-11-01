@@ -121,3 +121,8 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Surah rotation code and regression tests passed in runs `41306047454` (#92) and `41306050228` (#14). Build output was Surah At-Tariq 86:12–13, 14.55 seconds, 1080x1920, review-only.
 - Artifact upload succeeded. Telegram step was skipped on push; wait for the next scheduled run to prove actual MP4 delivery and persistent history recording.
 - Background library rotation remains pending; only the existing Mixkit waterfall source is currently used.
+
+
+## Scheduled-run observation (2026-11-01, 13:24 Tunisia time)
+- A GitHub Actions run-history query filtered to `event=schedule` returned no runs for the active branch. The 12:00 Tunisia slot is therefore not confirmed as having executed, despite the cron entry being present.
+- Recheck after 18:00 Tunisia time. Do not alter push-trigger behavior to send videos, and do not claim Telegram delivery until the scheduled sender logs a real positive `message_id` and delivery history is committed.
