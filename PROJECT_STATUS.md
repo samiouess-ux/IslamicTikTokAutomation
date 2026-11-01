@@ -528,3 +528,10 @@ Theme: hope and ease after hardship.
 - Added regression tests for selecting the last delivered surah, empty history, and invalid history values.
 - Source commit: `003ee2693c5a86cac61fd4bc5b432953e67c4f39`; test commit: `cdbbeeff260cb546fe103304789936f8bf449287`.
 - Validation is currently running: production workflow run `41306047454` (#92) and test workflow run `41306050228` (#14). Their outcomes must be checked before marking this change verified. These are push-triggered runs, so Telegram delivery is expected to be skipped.
+
+## Validation result — consecutive-surah rotation (2026-11-01)
+- Production build run `41306047454` (#92) completed successfully. The updated batch selector ran against the full Quran candidate catalog; the run prepared and rendered Surah At-Tariq (86), ayahs 12–13, as a 14.55-second 1080x1920 review-only MP4.
+- Test run `41306050228` (#14) completed successfully. The regression suite includes the new history rotation checks, renderer duration/format checks, Telegram sender safety checks, and delivery-history tests.
+- Artifact `13082954368` was uploaded successfully. The Telegram send step was skipped because this was a push-triggered run. Therefore no actual Telegram delivery or history update was confirmed by this run.
+- Background rotation is still not implemented: the renderer continues using the one previously approved Mixkit waterfall clip. No claim of 15–20 integrated backgrounds is made.
+- Commits for code/tests/docs: `003ee2693c5a86cac61fd4bc5b432953e67c4f39`, `cdbbeeff260cb546fe103304789936f8bf449287`, `10f7c22815b8aea5cead2d9af697e1def5fb0659`, `69f48a5b82210c153f30bf0b600877ac141c8083`.
