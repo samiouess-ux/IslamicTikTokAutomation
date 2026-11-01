@@ -66,8 +66,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                self.assertEqual(frame.getpixel((540, 825))[3], 255)
-                # The opaque center panel must fully hide the first ayah beneath it.
+                # The cover is now a full-frame dark marble image, not a transparent panel.
+                self.assertEqual(frame.getpixel((10, 10))[3], 255)
+                # The circular medallion has a visible gold outline.
+                self.assertGreater(frame.getpixel((540, 430))[3], 200)
+                # The opaque center hides the first ayah beneath the opening cover.
                 self.assertEqual(frame.getpixel((540, 1000))[3], 255)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
