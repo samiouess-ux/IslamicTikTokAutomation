@@ -509,3 +509,11 @@ Theme: hope and ease after hardship.
 - Test commit: `51c2952759ab738b636d129be41e320573cebcdd`.
 - The test commit triggers the existing push-validation workflow. A green CI result will validate the regression tests; it will not count as Telegram MP4 delivery because push events skip Telegram.
 - Background rotation remains unresolved: the renderer still uses one previously approved Mixkit moving-video source. No unreviewed asset or extra cloud service was introduced.
+
+## Simplified execution directive and latest CI verification (2026-11-01)
+- Recorded the user's instruction to stop unnecessary technical back-and-forth and prioritize a single working engine using the existing GitHub Actions workflow and original Telegram bot. No new cloud service, bot, webhook, paid agent, or orchestrator is to be introduced.
+- Priority is now strictly: varied verified Quran candidate -> complete <=65-second MP4 render -> real Telegram sendVideo confirmation with message_id -> delivery-history commit -> verify next-slot non-repetition. Optional background-library expansion is secondary to this end-to-end path.
+- The Agent 1–4 entries are internal review responsibilities, not separate autonomous agents. This is stated explicitly to avoid implying that independent agents are running.
+- Latest production build run 41305424879 (run #91, push event, commit 51c2952759ab738b636d129be41e320573cebcdd) completed successfully. Inventory, translation, catalog checks, tests, candidate preparation, manifest generation, render, and artifact upload all passed. Telegram send and failure-notification steps were skipped because this was a push event. This confirms a successful build, not a real Telegram MP4 delivery.
+- Latest isolated request test run 41305424858 (run #31) also completed successfully. Earlier parser failures are superseded by this passing test run for the current tested commit.
+- The connected GitHub actions available in this session do not expose a workflow-dispatch operation. Do not claim a manual dispatch or real Telegram delivery until an actual schedule/dispatch run provides Telegram's message_id.
