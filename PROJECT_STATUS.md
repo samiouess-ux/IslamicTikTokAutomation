@@ -703,3 +703,10 @@ Theme: hope and ease after hardship.
 - Important limitation: the run generated one distinct-surah preview, not three videos in one run; Telegram send/history steps were skipped because this was a push-triggered run. This run does not prove a new Telegram delivery or daily schedule operation.
 - Visual contact sheet needs further review: the overlay sample is a single ayah frame and should be checked for complete Quran text/ayah-number rendering and contrast before treating the design as accepted. The main preview also remains review-only.
 - Next: inspect the actual preview frames and full video content, resolve any text/layout issue, then verify a scheduled Telegram delivery separately. Preserve all approval gates and manual TikTok posting.
+
+
+## First scheduled Telegram delivery confirmed (2026-11-01)
+- User confirmed receipt in the Telegram review bot at 18:02 Tunisia time, shortly after the 18:00 scheduled slot.
+- Received review video: Surah Az-Zukhruf, ayahs 1–7; Telegram displayed 33.0 MB. Caption includes Arabic title, varied hashtags, English description, and the manual-review-only notice.
+- This is the first user-confirmed scheduled-slot delivery in this verification cycle. It confirms that a scheduled video reached the user's Telegram chat; it does not by itself verify the Actions run ID, delivery-history sync, or reliability of all three daily slots.
+- TikTok publishing remains manual and requires the user's personal approval. Continue monitoring later scheduled slots and confirm the GitHub run/history record before declaring the schedule fully reliable.
