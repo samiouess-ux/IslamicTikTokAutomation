@@ -26,7 +26,7 @@ def _ordered_surahs(joined: dict[str, Any]) -> list[int]:
 def build_review_batch(
     joined: dict[str, Any],
     count: int = 5,
-    verses_per_passage: int = 3,
+    verses_per_passage: int | None = None,
     seed: str = "quran-review-batch",
     excluded_surahs: Iterable[int] = (),
     used_ayah_references: Iterable[str] = (),
@@ -35,8 +35,8 @@ def build_review_batch(
         raise ValueError("Input catalog must remain blocked from rendering.")
     if joined.get("status") != "complete_join_candidate_requires_human_review_and_recording_approval":
         raise ValueError("Input must be the complete joined review candidate catalog.")
-    if count < 1 or verses_per_passage < 1:
-        raise ValueError("count and verses_per_passage must be positive.")
+    if count < 1 or (verses_per_passage is not None and verses_per_passage < 1):
+        raise ValueError("count and optional verses_per_passage must be positive.")
     corpus = joined.get("verses")
     if not isinstance(corpus, dict) or len(corpus) != joined.get("expected_verse_count"):
         raise ValueError("Joined corpus is incomplete or its verse count does not match.")
@@ -63,14 +63,30 @@ def build_review_batch(
             for key in corpus
             if int(key.split(":")[0]) == surah
         )
-        if len(available) < verses_per_passage:
-            raise ValueError(f"Surah {surah} has fewer than {verses_per_passage} catalogued verses.")
-        # Choose an unused contiguous window; never silently recycle delivered ayahs.
-        windows = [available[i:i + verses_per_passage] for i in range(len(available) - verses_per_passage + 1)
-                   if available[i:i + verses_per_passage] == list(range(available[i], available[i] + verses_per_passage))
-                   and not any(f"{surah}:{ayah}" in used_refs for ayah in available[i:i + verses_per_passage])]
-        if not windows:
-            raise ValueError(f"Surah {surah} has no unused contiguous window of {verses_per_passage} verses.")
+        # Production mode supplies the entire remaining contiguous suffix;
+        # audio preparation then chooses its longest whole-ayah prefix <=65s.
+        # The optional fixed-size argument is retained only for legacy unit tests.
+        window_size = verses_per_passage
+        if window_size is None:
+            starts = [
+                i for i, ayah in enumerate(available)
+                if available[i:] == list(range(ayah, available[-1] + 1))
+                and not any(f"{surah}:{n}" in used_refs for n in available[i:])
+            ]
+            if not starts:
+                raise ValueError(f"Surah {surah} has no unused contiguous ayah suffix.")
+            start_index = starts[0]
+            numbers = available[start_index:]
+        else:
+            if len(available) < window_size:
+                raise ValueError(f"Surah {surah} has fewer than {window_size} catalogued verses.")
+            windows = [available[i:i + window_size] for i in range(len(available) - window_size + 1)
+                       if available[i:i + window_size] == list(range(available[i], available[i] + window_size))
+                       and not any(f"{surah}:{ayah}" in used_refs for ayah in available[i:i + window_size])]
+            if not windows:
+                raise ValueError(f"Surah {surah} has no unused contiguous window of {window_size} verses.")
+            local_digest = hashlib.sha256(f"{seed}:{surah}".encode("utf-8")).digest()
+            numbers = windows[int.from_bytes(local_digest[:4], "big") % len(windows)]
         local_digest = hashlib.sha256(f"{seed}:{surah}".encode("utf-8")).digest()
         numbers = windows[int.from_bytes(local_digest[:4], "big") % len(windows)]
         verses = []
@@ -116,7 +132,7 @@ def build_review_batch(
         "seed": seed,
         "candidate_count": len(passages),
         "distinct_surah_count": len({item["surah_number"] for item in passages}),
-        "verses_per_passage": verses_per_passage,
+        "verses_per_passage": verses_per_passage,\n        "passage_selection": "full_unused_contiguous_suffix_then_duration_limit" if verses_per_passage is None else "legacy_fixed_count",
         "source_catalog_status": joined["status"],
         "rendering_allowed": False,
         "auto_publish": False,
@@ -153,7 +169,7 @@ def main() -> None:
     parser.add_argument("--catalog", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("output/quran_review_batch.json"))
     parser.add_argument("--count", type=int, default=5)
-    parser.add_argument("--verses-per-passage", type=int, default=3)
+    parser.add_argument("--verses-per-passage", type=int, default=None)
     parser.add_argument("--seed", default="quran-review-batch")
     parser.add_argument("--exclude-surah", type=int, action="append", default=[])
     parser.add_argument("--history", type=Path, help="JSON delivery history of previously delivered ayah references.")
