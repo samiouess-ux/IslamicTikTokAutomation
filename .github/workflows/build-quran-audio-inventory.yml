@@ -9,6 +9,8 @@ on:
     branches: [feature/telegram-review-notifications]
     paths:
       - "src/build_official_audio_inventory.py"
+      - "data/background_candidates.json"
+      - "tests/test_background_candidates.py"
       - "src/prepare_official_quran_passage.py"
       - "src/prepare_quran_review_batch_audio.py"
       - "src/build_quran_review_batch.py"
@@ -51,6 +53,8 @@ jobs:
           python -m pip install --disable-pip-version-check remotezip pillow
       - name: Test official archive retry and filename mapping safeguards
         run: python -m unittest discover -s tests -p 'test_build_official_audio_inventory.py' -v
+      - name: Validate staged background source URLs and disabled approval gates
+        run: python -m unittest discover -s tests -p 'test_background_candidates.py' -v
       - name: Inspect official archive and validate complete verse mapping
         run: |
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
