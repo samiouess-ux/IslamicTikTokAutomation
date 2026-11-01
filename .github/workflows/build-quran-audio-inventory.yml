@@ -27,7 +27,7 @@ on:
       - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
   schedule:
-    - cron: "0 3,11,17 * * *"
+    - cron: "7 3,11,17 * * *"
 
 permissions:
   contents: read
@@ -235,6 +235,7 @@ jobs:
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SCHEDULED_CRON: ${{ github.event.schedule }}
         run: |
           python - <<'PY'
           import json
@@ -250,11 +251,19 @@ jobs:
               raise SystemExit("Telegram batch must contain three distinct surahs.")
           if len(report["items"]) != 3:
               raise SystemExit("Expected exactly three prepared videos.")
-          utc_hour = datetime.now(timezone.utc).hour
-          slot_by_hour = {3: 0, 11: 1, 17: 2}
-          if utc_hour not in slot_by_hour:
-              raise SystemExit(f"Unexpected scheduled UTC hour {utc_hour}; refusing to send the wrong daily slot.")
-          item = report["items"][slot_by_hour[utc_hour]]
+          scheduled_cron = __import__("os").environ.get("SCHEDULED_CRON", "").strip()
+          slot_by_cron = {"7 3 * * *": 0, "7 11 * * *": 1, "7 17 * * *": 2}
+          if scheduled_cron:
+              if scheduled_cron not in slot_by_cron:
+                  raise SystemExit(f"Unexpected scheduled cron {scheduled_cron!r}; refusing to send the wrong daily slot.")
+              slot = slot_by_cron[scheduled_cron]
+          else:
+              utc_hour = datetime.now(timezone.utc).hour
+              slot_by_hour = {3: 0, 11: 1, 17: 2}
+              if utc_hour not in slot_by_hour:
+                  raise SystemExit(f"Manual run at unexpected UTC hour {utc_hour}; use a scheduled run for automatic delivery.")
+              slot = slot_by_hour[utc_hour]
+          item = report["items"][slot]
           captions_dir = Path("output/telegram_captions")
           captions_dir.mkdir(parents=True, exist_ok=True)
           manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
