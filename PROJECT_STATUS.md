@@ -2,12 +2,10 @@
 
 Last updated: 2026-10-31
 
-## Project goal
-Prepare two vertical Islamic reminder videos per day:
-- one Arabic version
-- one English version
+## Project goal (current)
+Prepare **three distinct Quran videos per day** first. Each video contains the Quran in Arabic with authentic recitation and a paired English Saheeh International translation. Select different surahs/passages; do not repeat the Ash-Sharh prototype as the default. Each clip must contain complete consecutive ayahs and stay at or below 65 seconds.
 
-Video content may be a complete surah, a selected sequence of verses, or a single verse. Every video must include a ready-to-review caption identifying the surah and verse range, with suitable Arabic and English description and relevant hashtags. Do not include the reciter's name in the video or public caption. The user must review and approve every video before publishing. Automatic publishing is disabled.
+The engine sends the three review-only MP4s and ready-to-use captions to Telegram. The user personally reviews, downloads, and publishes manually to TikTok. TikTok auto-publishing is permanently disabled for this workflow. Dua and dhikr are later optional content categories; their absence must never block Quran production.
 
 ## Agreed video style
 - Format: vertical 9:16, target 1080x1920, 30 FPS.
