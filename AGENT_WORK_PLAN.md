@@ -232,3 +232,13 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - User screenshot confirms the review bot received a video at 18:02 Tunisia time, following the 18:00 scheduled slot: Surah Az-Zukhruf, ayahs 1–7, displayed size 33.0 MB.
 - Caption includes Arabic title, hashtags, English description, and the manual-review-only notice. TikTok remains manual; never enable auto-publishing.
 - Treat this as one confirmed scheduled delivery only. Still verify the corresponding Actions run, Telegram delivery-history recording/sync, and later scheduled slots. Do not claim all three daily videos are reliable based on one receipt.
+
+
+## Latest scheduled delivery and history-sync checkpoint (2026-11-01, reconciled)
+- Scheduled run #159 (`41329118203`) completed successfully on the active feature branch at 17:02:53 UTC (18:02:53 Tunisia time).
+- The engine selected Surah Az-Zukhruf (43), ayahs 1–7, rendered a 60.15-second 1080x1920 H.264/MP3 review video, and Telegram `sendVideo` returned `ok: true` with real `message_id=30` (33.0 MB). The user confirmed receipt in Telegram.
+- The workflow recorded exactly the seven delivered ayahs (43:1–43:7) and successfully synced `data/quran_delivery_history.json` to this branch in commit `18bed634d52a90e113dacfa478419788e17cad77`.
+- `PROJECT_STATUS.md` has the matching detailed checkpoint. This section supersedes older statements above that say no scheduled MP4 delivery or history sync has yet been verified.
+- This proves a real scheduled send and history sync for this slot only. It does not prove three daily slots are reliable over multiple days. Each scheduled slot still creates one video; TikTok remains manual.
+- The four Pexels candidates have passed download/ffprobe and overlay-preview preparation, but their final visual review and explicit per-background user approval are still outstanding. Keep all four disabled; the approved Mixkit waterfall remains the only production background.
+- Next actions: (1) inspect the actual Quran overlay contact sheet and representative frames for text/number/translation legibility, (2) ask the user to approve or reject candidate backgrounds individually before enabling any, and (3) continue verifying later scheduled slots and exact history sync. Do not add cloud services, bots, or auto-publishing.
