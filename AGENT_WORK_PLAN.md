@@ -205,3 +205,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Added tests/test_background_candidates.py and wired it into the existing inventory workflow. It validates the Pexels direct URL path/source page identity and ensures all approval flags remain false.
 - Latest CI run at time of writing: 41314687147 / #152, still in progress. Check the final result before closing this task.
 - Schedule audit: no schedule event was present at 14:08 UTC on 2026-11-01; next configured cron is 17:00 UTC (18:00 Tunisia). Verify it separately; do not use a push event to claim Telegram delivery.
+
+
+## Latest successful render checkpoint (2026-11-01)
+- Run #153 (41314717304) is green. It produced a distinct-surah review-only preview for Ar-Rahman 55:1–10 (57.65s, 1080×1920, H.264/MP3); audio processing reduced measured inter-ayah silence to 0.24s while preserving internal recitation audio.
+- The artifact is available as GitHub Actions artifact 13087310229 (official-quran-audio-inventory-and-probe). The preview is not approved for production and Telegram delivery was skipped because the run was push-triggered.
+- Frame sampling confirmed the existing approved Mixkit waterfall design and current Arabic/English layout. The four Pexels candidates are still only staged metadata; no downloads, crop QA, or user approval have occurred.
+- Next: keep all approval gates closed; prepare visual previews for the four candidate backgrounds (including a 9:16 crop for the landscape bridge), then ask the user to approve/reject individual assets. Separately verify a scheduled Telegram send and exact history sync. Do not modify main or enable TikTok auto-publishing.
