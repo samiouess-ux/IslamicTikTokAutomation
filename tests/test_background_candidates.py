@@ -13,7 +13,7 @@ class BackgroundCandidateTests(unittest.TestCase):
             source_id = item["id"].rsplit("-", 1)[-1]
             url = item["direct_video_url"]
             self.assertTrue(url.startswith("https://videos.pexels.com/video-files/"))
-            self.assertRegex(url, rf"/video-files/{re.escape(source_id)}/[^/]+\\.mp4$")
+            self.assertRegex(url, rf"/video-files/{re.escape(source_id)}/[^/]+\.mp4$")
             self.assertIn(source_id, item["source_page_url"])
 
     def test_candidates_remain_disabled_until_download_and_user_review(self):
