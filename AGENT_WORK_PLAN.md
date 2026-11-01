@@ -249,3 +249,11 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Keep the cover to about 1.6 seconds with a gentle fade; start the original recitation at t=0 so there is no added silence and no change to Quran audio.
 - The first frame should be usable as the TikTok cover candidate, selected manually by the user inside TikTok.
 - Add tests and inspect a fresh review-only artifact before acceptance. Do not send an extra Telegram test, enable TikTok auto-publishing, change delivery schedules, or modify main.
+
+
+## Background rotation validation passed (2026-11-01)
+- Run `41342769583` passed on `feature/telegram-review-notifications` at `84479e96e8eb47caccea317c2bccd9f79b14723a`.
+- Quran catalog regression, distinct-surah candidate preparation, scheduled-slot preparation, 9:16 review rendering, and all four approved-background crop/overlay preview steps passed.
+- Daily review renderer computes background rotation from UTC day + scheduled slot (03:00 / 11:00 / 17:00 UTC); one chosen background stays stable through all ayah segments of a video.
+- Telegram send/history steps were skipped because this was a push event. Do not claim a fresh Telegram delivery from this run. Continue to verify the next scheduled send and its exact delivery-history sync.
+- The four backgrounds are visually approved by the user, but do not treat this review-renderer milestone as activation in the separate production renderer. Preserve manual TikTok posting and all production approval gates.
