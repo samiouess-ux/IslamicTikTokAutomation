@@ -185,3 +185,9 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Added `tests/test_build_official_audio_inventory.py` and wired it into the existing Actions workflow.
 - Commits: `7d7214eeff00e9239308439ff3f506ac7318743c`, corrected escaping `3181e2b2ed244e0497d1121bd36d8fe6d646ab47`, tests `9ed2f575b64eff3df5048bb799ddafa6885665b0`, workflow `180fca4f55135f05a7e77b86ebb19cb43af934db`, status record `1ae2b3c514648607eb4ecb076472a55231071efc`.
 - Await the push-triggered run to verify retry behavior and the complete downstream pipeline. This change does not implement background rotation and does not authorize any new background asset.
+
+## Background candidate staging (2026-11-01)
+- Added `data/background_candidates.json` containing four individually referenced Pexels candidates (sea, mountain lake, sunset sky, mountain bridge), with creator, source page, page-reported dimensions/aspect ratio/duration, and license provenance.
+- The official Pexels help page says its media is under the Pexels License and free for personal/commercial use without attribution. This is not treated as permission to enable the clips without checking the downloaded asset and current terms.
+- All four entries remain disabled: `direct_video_url=null`, `download_verified=false`, `approved=false`, `user_approved=false`. The bridge candidate is landscape 16:9 and must pass a 9:16 crop review. The existing production background and renderer are untouched until explicit approval.
+- Commit: `903dc3902d854edc030a3f74142cd0b886d43605`.
