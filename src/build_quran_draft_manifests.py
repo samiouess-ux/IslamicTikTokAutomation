@@ -34,7 +34,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         if not isinstance(requested, list) or [int(n) for n in requested] != candidate_numbers:
             raise ValueError("Prepared audio request must match every source candidate ayah in order.")
         if not isinstance(expected, list) or not expected or [int(n) for n in expected] != [int(n) for n in requested[:len(expected)]]:
-            raise ValueError("Prepared audio must select a non-empty prefix of the requested ayahs.")
+            raise ValueError("Prepared audio must select a non-empty contiguous prefix of the requested ayahs.")
         if expected != list(range(int(expected[0]), int(expected[0]) + len(expected))):
             raise ValueError("Prepared audio ayahs must be a contiguous ordered passage.")
         if not audio_item.get("audio_file"):
