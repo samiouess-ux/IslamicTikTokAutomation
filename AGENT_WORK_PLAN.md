@@ -142,3 +142,12 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Test commit: `391924dae1c1b4d5826386876f6395e7beae4b6d` on `feature/telegram-review-notifications`.
 - Acceptance requires an actual Actions run plus Telegram API `ok: true` and positive `message_id`, followed by a committed delivery-history entry. After that, remove the temporary marker condition and verify scheduled operation separately.
 - If no run starts, stop feature development and diagnose why Actions did not launch. Never claim delivery based on mocked sender tests or artifact upload.
+
+
+## Immediate next actions after first visual redesign (2026-11-01)
+1. Check production workflow runs `41310945442` and `41311053908`. Require the Arabic layout regression test, full render, and artifact upload to pass. A push-triggered run must not be described as Telegram delivery.
+2. Inspect the rendered MP4 frame-by-frame (including long Arabic ayahs) before calling the layout acceptable. Confirm the gold surah title, legible white Arabic, true gold circular ayah number, smaller complete Saheeh International English translation, 1080x1920 dimensions, and <=65-second duration.
+3. Keep background claims precise: current source is still the one approved Mixkit waterfall. Palette tint varies by surah/ayah but is not scene rotation. Build a real rotation pool only from distinct assets with verified rights and explicit user approval; never silently substitute unreviewed stock media.
+4. Investigate inter-ayah silence using source MP3 timing/waveforms. Reduce only verified non-recitation gaps while preserving every recitation sample; compare durations and listen to the output. Do not use blind silence removal, trimming, or time-stretching.
+5. Only after the user accepts the improved MP4, send one controlled review sample to the existing Telegram chat. Do not publish to TikTok; user approval and manual upload remain mandatory.
+6. Continue to verify scheduled 04:00, 12:00, and 18:00 Tunisia slots separately. A green push build is not proof that a scheduled Telegram send occurred.
