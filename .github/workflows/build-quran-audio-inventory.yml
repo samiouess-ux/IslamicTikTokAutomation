@@ -297,6 +297,7 @@ jobs:
                   sys.executable, "src/record_quran_delivery.py",
                   "--history", "data/quran_delivery_history.json",
                   "--batch", "output/quran_review_batch.json",
+                  "--audio-report", "output/quran_batch_audio_report.json",
                   "--candidate-id", item["candidate_id"],
               ], check=True)
               subprocess.run(["git", "add", "data/quran_delivery_history.json"], check=True)
