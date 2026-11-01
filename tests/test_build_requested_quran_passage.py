@@ -1,7 +1,7 @@
-import sys, unittest
+import json, sys, tempfile, unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_requested_quran_passage import build_requested_batch
+from build_requested_quran_passage import build_requested_batch, save_batch
 
 class RequestedPassageTests(unittest.TestCase):
     # Keep this isolated request path fail-closed and independent of the daily batch.
@@ -19,6 +19,13 @@ class RequestedPassageTests(unittest.TestCase):
         self.assertFalse(batch["rendering_allowed"])
         self.assertFalse(passage["approval"]["ready_to_render"])
         self.assertFalse(batch["auto_publish"])
+    def test_saved_batch_is_valid_json_with_real_newline(self):
+        batch = build_requested_batch(self.joined, 67, 1, 2)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "nested" / "request.json"
+            save_batch(batch, path)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), batch)
+            self.assertTrue(path.read_bytes().endswith(b"\\n"))
     def test_rejects_missing_ayah(self):
         with self.assertRaisesRegex(ValueError, "absent"):
             build_requested_batch(self.joined, 67, 4, 6)
