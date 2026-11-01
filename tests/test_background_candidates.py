@@ -16,12 +16,12 @@ class BackgroundCandidateTests(unittest.TestCase):
             self.assertRegex(url, rf"/video-files/{re.escape(source_id)}/[^/]+\.mp4$")
             self.assertIn(source_id, item["source_page_url"])
 
-    def test_candidates_remain_disabled_until_download_and_user_review(self):
+    def test_candidates_are_user_approved_and_verified_for_rotation_integration(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
         for item in catalog["candidates"]:
-            self.assertFalse(item["download_verified"])
-            self.assertFalse(item["approved"])
-            self.assertFalse(item["user_approved"])
+            self.assertTrue(item["download_verified"])
+            self.assertTrue(item["approved"])
+            self.assertTrue(item["user_approved"])
 
 
 if __name__ == "__main__":
