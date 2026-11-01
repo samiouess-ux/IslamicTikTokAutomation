@@ -30,20 +30,17 @@ class OrchestratorTests(unittest.TestCase):
                 self.assertEqual(count, 3)
                 return manifests
 
-            with patch("orchestrator.choose_manifests", side_effect=choose_many), \\
-                 patch("orchestrator.validate_content_manifest") as validate:
+            with patch("orchestrator.choose_manifests", side_effect=choose_many) as choose, patch("orchestrator.validate_content_manifest") as validate:
                 plan = build_plan(folder, {"content": []}, "test-day")
 
-            self.assertEqual([item["content_type"] for item in plan],
-                             ["quran", "quran", "quran"])
+            self.assertEqual([item["content_type"] for item in plan], ["quran", "quran", "quran"])
             self.assertEqual(validate.call_count, 3)
             self.assertEqual(len({item["content_id"] for item in plan}), 3)
 
     def test_missing_quran_manifest_blocks_incomplete_three_video_batch(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
-            with patch("orchestrator.choose_manifests",
-                       side_effect=FileNotFoundError("only one Quran manifest")):
+            with patch("orchestrator.choose_manifests", side_effect=FileNotFoundError("only one Quran manifest")):
                 with self.assertRaisesRegex(FileNotFoundError, "only one Quran"):
                     build_plan(folder, {"content": []}, "test-day")
 
@@ -55,8 +52,7 @@ class OrchestratorTests(unittest.TestCase):
                 "id": "q1",
                 "publishing": {"approval_required": True, "auto_publish": False},
             }), encoding="utf-8")
-            with patch("orchestrator.choose_manifests", return_value=[path]), \\
-                 patch("orchestrator.validate_content_manifest"):
+            with patch("orchestrator.choose_manifests", return_value=[path]), patch("orchestrator.validate_content_manifest"):
                 with self.assertRaisesRegex(SystemExit, "must explicitly declare"):
                     build_plan(folder, {"content": []}, "test-day", video_count=1)
 
