@@ -1,4 +1,4 @@
-"""Tests for the review-only daily orchestrator."""
+"""Tests for the Quran-only review orchestrator."""
 import json
 import sys
 import tempfile
@@ -12,40 +12,42 @@ from orchestrator import build_plan, load_history
 
 
 class OrchestratorTests(unittest.TestCase):
-    def test_fails_closed_when_any_required_category_is_missing(self):
+    def test_selects_three_distinct_quran_manifests_without_dua_or_dhikr(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
-            (folder / "quran.json").write_text(json.dumps({
-                "id": "q1", "content_type": "quran", "rotation_approved": True,
-                "publishing": {"approval_required": True, "auto_publish": False}
-            }), encoding="utf-8")
-            with patch("orchestrator.validate_content_manifest"):
-                with self.assertRaisesRegex(FileNotFoundError, "dua"):
-                    build_plan(folder, {"content": []}, "test-day")
-
-    def test_all_three_types_are_selected_and_validated_before_plan_returns(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            folder = Path(tmp)
-            manifests = {}
-            for kind in ("quran", "dua", "dhikr"):
-                path = folder / f"{kind}.json"
+            manifests = []
+            for index in range(3):
+                path = folder / f"quran-{index}.json"
                 path.write_text(json.dumps({
-                    "id": f"{kind}-1",
-                    "content_type": kind,
+                    "id": f"quran-{index}",
+                    "content_type": "quran",
                     "publishing": {"approval_required": True, "auto_publish": False},
                 }), encoding="utf-8")
-                manifests[kind] = path
-            def choose(_folder, kind, _recent, _key):
-                return manifests[kind]
-            with patch("orchestrator.choose_manifest", side_effect=choose), \
+                manifests.append(path)
+
+            def choose_many(_folder, kind, count, _recent, _key):
+                self.assertEqual(kind, "quran")
+                self.assertEqual(count, 3)
+                return manifests
+
+            with patch("orchestrator.choose_manifests", side_effect=choose_many), \\
                  patch("orchestrator.validate_content_manifest") as validate:
                 plan = build_plan(folder, {"content": []}, "test-day")
+
             self.assertEqual([item["content_type"] for item in plan],
-                             ["quran", "dua", "dhikr"])
+                             ["quran", "quran", "quran"])
             self.assertEqual(validate.call_count, 3)
             self.assertEqual(len({item["content_id"] for item in plan}), 3)
 
-    def test_manifest_must_explicitly_match_requested_category(self):
+    def test_missing_quran_manifest_blocks_incomplete_three_video_batch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            with patch("orchestrator.choose_manifests",
+                       side_effect=FileNotFoundError("only one Quran manifest")):
+                with self.assertRaisesRegex(FileNotFoundError, "only one Quran"):
+                    build_plan(folder, {"content": []}, "test-day")
+
+    def test_manifest_must_explicitly_match_quran_category(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             path = folder / "quran.json"
@@ -53,10 +55,10 @@ class OrchestratorTests(unittest.TestCase):
                 "id": "q1",
                 "publishing": {"approval_required": True, "auto_publish": False},
             }), encoding="utf-8")
-            with patch("orchestrator.choose_manifest", return_value=path), \
+            with patch("orchestrator.choose_manifests", return_value=[path]), \\
                  patch("orchestrator.validate_content_manifest"):
                 with self.assertRaisesRegex(SystemExit, "must explicitly declare"):
-                    build_plan(folder, {"content": []}, "test-day")
+                    build_plan(folder, {"content": []}, "test-day", video_count=1)
 
     def test_missing_history_starts_empty_without_creating_a_file(self):
         with tempfile.TemporaryDirectory() as tmp:
