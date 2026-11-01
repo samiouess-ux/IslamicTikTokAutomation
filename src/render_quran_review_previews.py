@@ -283,10 +283,13 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         item = report_items.get(candidate["candidate_id"])
         if not item or not item.get("status", "").startswith("audio_prepared"):
             continue
-        verses = candidate["verses"]
-        numbers = [int(v["ayah"]) for v in verses]
-        if item.get("selected_verses") != numbers:
-            raise ValueError("Audio and exact ayah list do not match; refusing preview.")
+        candidate_by_number = {int(v["ayah"]): v for v in candidate["verses"]}
+        numbers = item.get("selected_verses")
+        if not isinstance(numbers, list) or not numbers or any(int(n) not in candidate_by_number for n in numbers):
+            raise ValueError("Audio-selected ayahs are missing from the source candidate; refusing preview.")
+        if numbers != list(range(int(numbers[0]), int(numbers[0]) + len(numbers))):
+            raise ValueError("Audio-selected ayahs are not contiguous; refusing preview.")
+        verses = [candidate_by_number[int(n)] for n in numbers]
         work = output_dir / candidate["candidate_id"]
         work.mkdir(parents=True, exist_ok=True)
         segments = []
