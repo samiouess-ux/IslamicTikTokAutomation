@@ -48,7 +48,7 @@ class QuranBatchAudioTests(unittest.TestCase):
                 return None
 
             with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
-                 patch.object(module, "probe", side_effect=[12.0, 14.0, 26.0, 13.0, 15.0, 28.0, 40.0, 30.0, 26.0]), \
+                 patch.object(module, "probe", side_effect=[12.0, 14.0, 26.0, 13.0, 15.0, 28.0, 40.0, 30.0, 40.0]), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out")
 
