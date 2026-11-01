@@ -117,6 +117,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "candidate_id": candidate["candidate_id"],
                 "surah_number": surah,
                 "status": "audio_prepared_requires_exact_recording_listen_and_user_review",
+                "requested_verses": requested,
                 "selected_verses": selected,
                 "verse_durations_seconds": durations,
                 "duration_seconds": round(actual, 3),
