@@ -11,7 +11,7 @@ import json
 import subprocess
 import urllib.request
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, features
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, features
 
 SURAH_NAMES = [
     "الفاتحة",
@@ -323,7 +323,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
 def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                      out: Path, font_path: str, surah_name: str) -> None:
-    """Create a short opening cover; Quran audio still begins at t=0."""
+    """Create the approved minimal dark-marble circular opening cover."""
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
@@ -331,38 +331,54 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
 
-    palette_index = (surah_number * 7 + start_ayah * 3) % len(PALETTES)
-    _top, _bottom, accent = PALETTES[palette_index]
-    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    width, height = 1080, 1920
+    # Procedural emerald-black marble: deterministic, no external image assets.
+    noise = Image.effect_noise((270, 480), 22).resize((width, height), Image.Resampling.BICUBIC)
+    marble = ImageOps.colorize(noise, black="#020907", white="#123629").convert("RGBA")
+    shade = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    shade_draw = ImageDraw.Draw(shade)
+    for y in range(height):
+        alpha = int(34 + 62 * abs(y - height / 2) / (height / 2))
+        shade_draw.line((0, y, width, y), fill=(0, 0, 0, alpha))
+    image = Image.alpha_composite(marble, shade)
+
+    # Fine, restrained gold mineral veins around the perimeter.
+    veins = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    vein_draw = ImageDraw.Draw(veins)
+    for index, start_x in enumerate((-180, 40, 870, 1120)):
+        points = []
+        for step in range(81):
+            y = step * (height - 1) / 80
+            x = start_x + 115 * __import__("math").sin(step / 8.0 + index * 1.7) + 28 * __import__("math").sin(step / 2.9 + index)
+            points.append((int(x), int(y)))
+        vein_draw.line(points, fill=(196, 151, 65, 55), width=3)
+    glow = veins.filter(ImageFilter.GaussianBlur(12))
+    image = Image.alpha_composite(image, glow)
+    image = Image.alpha_composite(image, veins)
     draw = ImageDraw.Draw(image)
 
-    # Nearly opaque reading panel cleanly hides the first ayah until the
-    # opening title fades away, while the original recitation plays from t=0.
-    draw.rounded_rectangle((82, 350, 998, 1570), radius=54,
-                           fill=(3, 12, 18, 255), outline=(*accent, 255), width=3)
-    draw.rounded_rectangle((98, 366, 982, 1554), radius=44,
-                           outline=(*accent, 105), width=2)
+    gold = (220, 177, 91, 245)
+    gold_soft = (220, 177, 91, 115)
+    center_x, center_y = 540, 865
+    # Large, clean circular medallion; no lanterns, book, or crowded ornaments.
+    draw.ellipse((105, 430, 975, 1300), outline=gold, width=7)
+    draw.ellipse((121, 446, 959, 1284), outline=gold_soft, width=2)
+    draw.ellipse((137, 462, 943, 1268), outline=(220, 177, 91, 45), width=1)
 
-    label_font = ImageFont.truetype(font_path, 48, layout_engine=ImageFont.Layout.RAQM)
-    title_font = ImageFont.truetype(font_path, 88, layout_engine=ImageFont.Layout.RAQM)
+    title_font = ImageFont.truetype(font_path, 100, layout_engine=ImageFont.Layout.RAQM)
     range_font = ImageFont.truetype(font_path, 58, layout_engine=ImageFont.Layout.RAQM)
-
-    draw.text((540, 585), "القرآن الكريم", font=label_font, fill=(248, 245, 232, 255),
-              anchor="mm", direction="rtl", language="ar")
-    draw_surah_cartouche(draw, accent, center_x=540, center_y=825)
-    draw.text((540, 825), f"سورة {surah_name}", font=title_font, fill=accent,
-              anchor="mm", direction="rtl", language="ar")
-    draw.line((240, 1010, 840, 1010), fill=(*accent, 180), width=2)
-    draw.polygon([(540, 1002), (548, 1010), (540, 1018), (532, 1010)],
-                 fill=(*accent, 220))
+    draw.text((center_x, center_y - 25), f"سورة {surah_name}", font=title_font,
+              fill=(242, 204, 119, 255), anchor="mm", direction="rtl", language="ar")
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     start_text = str(start_ayah).translate(digits)
     end_text = str(end_ayah).translate(digits)
     range_text = f"الآيات {start_text}" if start_ayah == end_ayah else f"الآيات {start_text}–{end_text}"
-    draw.text((540, 1190), range_text, font=range_font, fill=(250, 248, 239, 255),
-              anchor="mm", direction="rtl", language="ar")
-    draw.line((350, 1350, 730, 1350), fill=(*accent, 125), width=2)
+    # Small dark plaque overlaps the lower part of the circle, as in the approved reference.
+    draw.rounded_rectangle((285, 1120, 795, 1240), radius=34,
+                           fill=(2, 10, 8, 238), outline=gold, width=4)
+    draw.text((center_x, 1180), range_text, font=range_font,
+              fill=(250, 231, 185, 255), anchor="mm", direction="rtl", language="ar")
     image.save(out)
 
 
