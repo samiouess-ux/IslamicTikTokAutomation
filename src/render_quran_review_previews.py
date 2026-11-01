@@ -188,7 +188,7 @@ def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                      max_width: int = 850, max_lines: int = 4):
     """Fit the complete Uthmani ayah in a balanced block; never clip words."""
-    for size in (76, 72, 68, 64, 60, 56, 52, 48):
+    for size in (96, 90, 84, 78, 72, 66, 60, 56, 52, 48):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         lines, current = [], ""
         for word in text.split():
@@ -210,10 +210,10 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 
 def bold_font_file() -> str:
     result = subprocess.check_output(
-        ["fc-match", "-f", "%{file}", "Noto Naskh Arabic:style=Bold"], text=True
+        ["fc-match", "-f", "%{file}", "Amiri:style=Bold"], text=True
     ).strip()
     if not result or not Path(result).is_file():
-        raise RuntimeError("Noto Naskh Arabic Bold font is required for Quran title and verse numbers.")
+        raise RuntimeError("Amiri Bold font is required for Quran title and verse numbers.")
     return result
 
 
