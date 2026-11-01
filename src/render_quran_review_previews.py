@@ -141,6 +141,16 @@ PALETTES = [
 ]
 
 
+def download_background(url: str, destination: Path) -> None:
+    request = urllib.request.Request(url, headers={"User-Agent": "IslamicTikTokAutomation/1.0"})
+    with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as target:
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            target.write(chunk)
+
+
 def font_file() -> str:
     result = subprocess.check_output(
         ["fc-match", "-f", "%{file}", "Noto Naskh Arabic"], text=True
@@ -243,13 +253,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
     background = output_dir / "approved_moving_background.mp4"
-    request = urllib.request.Request(APPROVED_BACKGROUND_URL, headers={"User-Agent": "IslamicTikTokAutomation/1.0"})
-    with urllib.request.urlopen(request, timeout=90) as response, background.open("wb") as target:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            target.write(chunk)
+    download_background(APPROVED_BACKGROUND_URL, background)
     if background.stat().st_size < 100_000:
         raise RuntimeError("Approved moving background download is missing or unexpectedly small.")
     background_probe = subprocess.check_output([
