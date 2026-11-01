@@ -685,3 +685,11 @@ Theme: hope and ease after hardship.
 - Sampled frames show the existing approved Mixkit waterfall background, gold surah cartouche, white Arabic ayah text, gold circular ayah badge, and smaller Saheeh International English translation. This is a preview of the existing approved background, not a test of the four newly staged Pexels backgrounds.
 - The Pexels candidates remain disabled/unverified/unapproved. The manifest and preview remain review-only: audio rights, exact Arabic/translation content, and production rendering are not approved. No Telegram send or delivery-history step ran because this was a push event.
 - Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41314717304
+
+
+## Background preview package verified (2026-11-01)
+- Run #154 (41315704678) completed successfully on feature/telegram-review-notifications.
+- Downloaded all four staged Pexels clips to the ephemeral GitHub Actions runner, validated video streams with ffprobe, extracted center-cropped 9:16 still previews, and uploaded the contact sheet plus review report as part of artifact 13087152545 (official-quran-audio-inventory-and-probe; 41,134,275 bytes).
+- Verified source dimensions/durations: ocean 2160x3840 / 5.874s; mountain lake 2160x3840 / 10.11s; sunset 2160x3840 / 5.639s; mountain bridge 3840x2160 / 12.948s. The bridge is landscape and its center crop loses some original framing.
+- All candidates remain not approved and not production-enabled. The contact sheet is only a first-frame crop review; overlay contrast and motion review remain outstanding. No Telegram send/history step ran because this was a push-triggered run.
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41315704678
