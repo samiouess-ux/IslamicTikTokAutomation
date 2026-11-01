@@ -42,10 +42,10 @@ def trim_edge_silence(source: Path, destination: Path, source_duration: float,
         raise RuntimeError(f"Unable to inspect edge silence in {source}: {detection.stderr[-1000:]}")
 
     starts = [float(value) for value in re.findall(
-        r"silence_start:\\s*([0-9.]+)", detection.stderr
+        r"silence_start:\s*([0-9.]+)", detection.stderr
     )]
     ends = [float(value) for value in re.findall(
-        r"silence_end:\\s*([0-9.]+)", detection.stderr
+        r"silence_end:\s*([0-9.]+)", detection.stderr
     )]
     trim_start = 0.0
     trim_end = source_duration
