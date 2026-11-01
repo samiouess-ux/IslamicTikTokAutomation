@@ -9,6 +9,7 @@ on:
       - "src/parse_telegram_quran_request.py"
       - "src/select_requested_quran_range.py"
       - "tests/test_select_requested_quran_range.py"
+      - "cloudflare/telegram-bridge/worker.js"
       - "tests/test_parse_telegram_quran_request.py"
       - "src/telegram_request_inbox.py"
       - "tests/test_telegram_request_inbox.py"
@@ -33,6 +34,8 @@ jobs:
           python-version: "3.12"
       - name: Install rendering test dependencies
         run: python -m pip install --disable-pip-version-check pillow remotezip
+      - name: Check Cloudflare webhook bridge JavaScript syntax
+        run: node --input-type=module --check < cloudflare/telegram-bridge/worker.js
       - name: Test Telegram request parser
         run: python -m unittest discover -s tests -p 'test_parse_telegram_quran_request.py' -v
       - name: Test safe ayah-range selection for whole-surah requests
