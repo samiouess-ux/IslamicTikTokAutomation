@@ -218,3 +218,11 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Run #154 (41315704678) passed, downloaded and ffprobe-validated all four staged Pexels MP4s, created center-cropped 9:16 still previews, and uploaded contact sheet/report in artifact 13087152545.
 - Initial visual observations: ocean bright (may need dark overlay); mountain lake visually strong; sunset calm; bridge center crop loses some landscape framing. These are observations only, not approvals.
 - Next: add a QA preview stage that composites the actual Quran text panel over each candidate and checks legibility/contrast, plus a short motion preview if practical. Keep all production flags false until user explicitly approves each one. Verify a scheduled (not push-triggered) Telegram delivery separately.
+
+
+## Run #158 follow-up (2026-11-01)
+- CI run `41317460948` passed after fixing the background overlay preview path lookup. Artifact `13087478281` contains the 57.65s Surah Ar-Rahman 55:1–10 review MP4 and the four-background overlay contact sheet/report.
+- Review-only status is unchanged: no Quran audio/rendering/production approval, no Telegram send on this push event, and no TikTok auto-publishing.
+- Inspect actual rendered frames and validate the complete Arabic ayah text, ayah number, and translation layout; the current background contact sheet samples only one ayah frame and is not sufficient as full-video QA.
+- All four Pexels assets remain disabled and unapproved. Ask for explicit user approval individually before enabling any asset.
+- After visual QA, separately verify one scheduled Telegram send and history sync; then verify subsequent slots and distinct passage selection. Do not claim three daily videos from the one-video-per-slot implementation until schedule events and sends are evidenced.
