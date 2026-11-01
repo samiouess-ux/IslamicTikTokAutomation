@@ -323,7 +323,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "telegram_delivery": False,
             "auto_publish": False,
         })
-    if len(previews) < 2 or len({p["surah_number"] for p in previews}) != len(previews):
+    if len(previews) < minimum_previews or len({p["surah_number"] for p in previews}) != len(previews):
         raise RuntimeError("At least two distinct-surah previews are required.")
     result = {
         "status": "review_only_previews_rendered",
