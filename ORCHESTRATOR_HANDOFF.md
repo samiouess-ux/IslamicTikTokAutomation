@@ -268,3 +268,7 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Fixed the Arabic single-ayah marker normalization (`الآية` becomes `الاية` after parser normalization). Initial failing CI run `41291158253`; corrected suite run `41291299022` passed every step, including the new 65-second range selector tests and all existing request/render tests.
 - Added a push-only syntax-validation trigger to `.github/workflows/telegram-quran-request.yml`; the job is explicitly skipped for push events and runs only for manual workflow dispatch on the active feature branch. GitHub recognized the workflow; validation run `41291338533` concluded `skipped` as designed.
 - Do not call the bot live yet: Worker/KV deployment, secrets, webhook registration, and a real Telegram MP4 request are still pending. The daily schedule/workflow remains untouched.
+
+### Final request bridge code test (2026-11-01)
+- Request CI run `41291401349` passed all steps, including Node syntax validation of the Cloudflare Worker, parser, automatic 65-second range selector, inbox authorization/deduplication, requested passage builder, and review-renderer tests.
+- The new workflow was recognized by GitHub Actions and push-validation was skipped as designed. No end-to-end workflow dispatch or Telegram MP4 delivery has been tested; Cloudflare/KV/webhook setup remains the only user-side deployment gate.
