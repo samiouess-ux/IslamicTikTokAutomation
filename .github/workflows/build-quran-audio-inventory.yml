@@ -149,7 +149,7 @@ jobs:
           assert batch["telegram_delivery"] is False
           assert batch["auto_publish"] is False
           assert all(item["approval"]["ready_to_render"] is False for item in batch["passages"])
-          print("Prepared five distinct-surah passages for human review only.")
+          print("Prepared eight distinct-surah passages for human review only.")
           PY
       - name: Prepare audio for three distinct-surah review candidates
         run: |
