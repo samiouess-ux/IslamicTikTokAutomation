@@ -648,3 +648,10 @@ Theme: hope and ease after hardship.
 - Removed the temporary `[telegram-live-test]` push trigger. Future Telegram sends are restricted to scheduled runs or explicit workflow dispatch; ordinary code pushes do not send videos.
 - Latest workflow validation run `41312848189` is a normal push run after this workflow change; Telegram send/record/sync steps are correctly skipped for push events.
 - Still pending: verify the scheduled 04:00 / 12:00 / 18:00 Tunisia runs independently, and build a real pool of multiple rights-verified, user-approved background scenes. The currently approved waterfall remains the only actual scene; palette tint variation is not scene rotation.
+
+## Official archive network resilience (2026-11-01)
+- Investigated failed run `41312848189`, job `124866668534`: the official Quran archive host timed out during TCP connection to `download.qurancomplex.gov.sa`; the archive mapping did not fail validation. Downstream steps were skipped because inventory is a required gate.
+- Added bounded request timeouts, retry/backoff for transient connection/read and HTTP 429/5xx failures, a larger initial ZIP range request, and a project User-Agent. The inventory still fails closed if the official source remains unavailable.
+- Added `tests/test_build_official_audio_inventory.py` and wired it into the existing Actions workflow.
+- Commits: `7d7214eeff00e9239308439ff3f506ac7318743c`, `3181e2b2ed244e0497d1121bd36d8fe6d646ab47`, `9ed2f575b64eff3df5048bb799ddafa6885665b0`, `180fca4f55135f05a7e77b86ebb19cb43af934db`.
+- CI verification is pending. Background rotation remains unimplemented; no new external background is enabled.
