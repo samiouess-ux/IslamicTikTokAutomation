@@ -1,0 +1,183 @@
+name: Telegram on-demand Quran video request
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_text:
+        description: "Arabic request, e.g. فيديو سورة الكهف الآيات 1-5"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-quran-request-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  render-request:
+    if: github.ref == 'refs/heads/feature/telegram-review-notifications'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install audio and rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core
+          python -m pip install --disable-pip-version-check remotezip pillow
+
+      - name: Build official Quran audio inventory
+        run: python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
+
+      - name: Build complete Arabic and translation catalogs
+        run: |
+          python src/build_quran_translation_catalog.py --output output/saheeh_international_translation.json
+          python src/build_quran_uthmani_catalog.py --output output/quran_uthmani_candidate.json
+          python src/build_quran_video_catalog.py \
+            --arabic output/quran_uthmani_candidate.json \
+            --translation output/saheeh_international_translation.json \
+            --audio output/official_verse_audio_inventory.json \
+            --output output/quran_joined_candidate.json
+
+      - name: Parse and validate the Telegram request
+        env:
+          REQUEST_TEXT: ${{ inputs.request_text }}
+        run: |
+          python - <<'PY'
+          import os
+          from parse_telegram_quran_request import parse_quran_request
+          request = parse_quran_request(os.environ["REQUEST_TEXT"])
+          if request["end_ayah"] is None:
+              raise SystemExit(
+                  "حدّد الآيات باش ما نبعثولكش سورة كاملة تتجاوز 65 ثانية. "
+                  "مثال: فيديو سورة الكهف الآيات 1-5"
+              )
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"surah_number={request['surah_number']}\\n")
+              output.write(f"start_ayah={request['start_ayah']}\\n")
+              output.write(f"end_ayah={request['end_ayah']}\\n")
+              output.write(f"surah_name={request['surah_name']}\\n")
+          PY
+        id: request
+        shell: bash
+
+      - name: Build the exact requested passage as a review-only candidate
+        run: |
+          python src/build_requested_quran_passage.py \
+            --catalog output/quran_joined_candidate.json \
+            --surah "${{ steps.request.outputs.surah_number }}" \
+            --start-ayah "${{ steps.request.outputs.start_ayah }}" \
+            --end-ayah "${{ steps.request.outputs.end_ayah }}" \
+            --output output/quran_requested_batch.json
+
+      - name: Prepare whole-ayah official audio and enforce 65-second limit
+        run: |
+          python src/prepare_quran_review_batch_audio.py \
+            --batch output/quran_requested_batch.json \
+            --inventory output/official_verse_audio_inventory.json \
+            --output-dir output/quran_requested_audio \
+            --report output/quran_requested_audio_report.json \
+            --target-count 1
+
+      - name: Generate a review-only draft manifest
+        run: |
+          python src/build_quran_draft_manifests.py \
+            --batch output/quran_requested_batch.json \
+            --audio-report output/quran_requested_audio_report.json \
+            --output-dir output/quran_requested_manifests \
+            --report output/quran_requested_manifest_report.json
+
+      - name: Render one vertical review-only MP4
+        run: |
+          python src/render_quran_review_previews.py \
+            --batch output/quran_requested_batch.json \
+            --audio-report output/quran_requested_audio_report.json \
+            --output-dir output/quran_requested_previews \
+            --minimum-previews 1
+
+      - name: Prepare Telegram caption with surah name and hashtags
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest_report = json.loads(Path("output/quran_requested_manifest_report.json").read_text(encoding="utf-8"))
+          item = manifest_report["items"][0]
+          manifest = json.loads(Path(item["manifest"]).read_text(encoding="utf-8"))
+          caption = {
+              "arabic_caption": manifest["caption"]["text"],
+              "hashtags_ar": ["#القرآن_الكريم", "#تدبر", "#آيات"],
+              "english_caption": f"Quran — Surah {manifest['source']['surah_name_ar']} ({', '.join(map(str, manifest['source']['verses']))})",
+              "hashtags_en": ["#Quran", "#QuranVerses", "#Islam"],
+          }
+          target = Path("output/quran_requested_caption.json")
+          target.write_text(json.dumps(caption, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+          PY
+
+      - name: Upload request preview and reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-quran-request-${{ github.run_id }}
+          path: |
+            output/quran_requested_previews/*.mp4
+            output/quran_requested_previews/preview_report.json
+            output/quran_requested_caption.json
+            output/quran_requested_batch.json
+            output/quran_requested_audio_report.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Send requested review-only MP4 to the requesting Telegram chat
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/quran_requested_previews/preview_report.json").read_text(encoding="utf-8"))
+          if report.get("preview_count") != 1 or report.get("auto_publish") is not False:
+              raise SystemExit("Expected exactly one review-only MP4; TikTok auto-publishing must remain disabled.")
+          item = report["items"][0]
+          if item.get("review_only") is not True or item.get("duration_seconds", 999) > 65:
+              raise SystemExit("Requested video did not pass review-only/65-second checks.")
+          Path("output/requested_video_path.txt").write_text(item["file"], encoding="utf-8")
+          PY
+          VIDEO="$(cat output/requested_video_path.txt)"
+          python src/send_telegram.py --video "$VIDEO" --caption output/quran_requested_caption.json
+
+      - name: Notify the authorized Telegram chat if request processing fails
+        if: failure()
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REQUEST_TEXT: ${{ inputs.request_text }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          token = os.environ.get("TG_BOT_TOKEN", "").strip()
+          chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+          if not token or not chat_id:
+              print("Telegram failure notice skipped: credentials unavailable.")
+              raise SystemExit(0)
+          text = (
+              "تعذّر تحضير الفيديو المطلوب: " + os.environ.get("REQUEST_TEXT", "")[:180] +
+              "\\nتثبّت من اسم السورة وأرقام الآيات، وأن المقطع لا يتجاوز 65 ثانية. "
+              "الفيديوهات تبقى للمراجعة فقط والنشر على TikTok يدوي."
+          )
+          payload = urllib.parse.urlencode({"chat_id": chat_id, "text": text}).encode()
+          req = urllib.request.Request(f"https://api.telegram.org/bot{token}/sendMessage", data=payload)
+          with urllib.request.urlopen(req, timeout=20) as response:
+              result = json.loads(response.read().decode())
+          if not result.get("ok"):
+              raise SystemExit("Telegram did not accept the failure notice.")
+          PY
