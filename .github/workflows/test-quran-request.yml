@@ -1,0 +1,30 @@
+name: Test isolated Quran request pipeline
+
+on:
+  push:
+    branches: [feature/telegram-review-notifications]
+    paths:
+      - "src/build_requested_quran_passage.py"
+      - "tests/test_build_requested_quran_passage.py"
+      - "src/render_quran_review_previews.py"
+      - "tests/test_render_quran_review_previews.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  request-pipeline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install rendering test dependencies
+        run: python -m pip install --disable-pip-version-check pillow
+      - name: Test exact requested Quran passages
+        run: python -m unittest discover -s tests -p 'test_build_requested_quran_passage.py' -v
+      - name: Test single and daily review rendering modes
+        run: python -m unittest discover -s tests -p 'test_render_quran_review_previews.py' -v
