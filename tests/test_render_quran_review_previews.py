@@ -50,7 +50,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     def test_renders_multiple_complete_distinct_review_previews(
-        self, _probe, _check_output, _download, _font, run, make_frame
+        self, _font, run, make_frame, _probe, _check_output, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
