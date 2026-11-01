@@ -2,6 +2,17 @@
 
 Last updated: 2026-11-01
 
+## Latest delivery-slot correction and render fixes (2026-11-01)
+- This section supersedes older schedule notes below: the required schedule is **one distinct Quran review video at each Tunisia slot: 04:00, 12:00, and 18:00** (GitHub cron: `0 3,11,17 * * *` UTC). GitHub may delay scheduled starts under load.
+- Each scheduled run prepares one video only; it must not expect a three-video batch.
+- Fixed `src/build_quran_draft_manifests.py`: its old minimum of two manifests contradicted the one-video-per-slot workflow. It now accepts one prepared distinct-surah draft while retaining all review/production gates. Added a one-manifest regression test.
+- A subsequent run exposed a long Saheeh translation that exceeded the renderer's fixed five-line layout. Updated `src/render_quran_review_previews.py` to step down the translation font size while preserving every word; it refuses clipping if the text still cannot fit. Added a wrapping regression test.
+- Relevant commits: `99fd01bba9a149ec136398d12f36127fe0503eb1` (single manifest), `0eeabe3c07fa4c1dd92bd4478d1a9f8225059bad` (single-manifest test), `78687c5988f69fc7d21c0d666e0f3dd47ad9082c` (translation fitting), `ff1cf0e2955fc5a2e9ea8cddd3d80521826473a1` (translation test).
+- Test workflow `test-quran-request.yml` run `41289938456` passed. Full scheduled-pipeline validation run `41289938290` is still being checked; do not declare the renderer or Telegram delivery verified until it completes.
+- Telegram delivery is not proven by push-triggered tests. The user confirmed a Telegram test message, but the first scheduled MP4 delivery still needs an actual Telegram API confirmation and a successful delivery-history push.
+- TikTok publishing remains manual-only; never enable automatic TikTok publishing. Do not modify `main`.
+
+
 ## Project goal (current)
 Prepare **three distinct Quran videos per day** first. Each video contains the Quran in Arabic with authentic recitation and a paired English Saheeh International translation. Select different surahs/passages; do not repeat the Ash-Sharh prototype as the default. Each clip must contain complete consecutive ayahs and stay at or below 65 seconds.
 
