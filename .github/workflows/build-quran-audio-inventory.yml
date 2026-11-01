@@ -159,7 +159,7 @@ jobs:
             --inventory output/official_verse_audio_inventory.json \
             --output-dir output/quran_batch_audio \
             --report output/quran_batch_audio_report.json \
-            --target-count 3
+            --target-count 1
           python - <<'PY'
           import json
           from pathlib import Path
@@ -200,7 +200,7 @@ jobs:
           python src/render_quran_review_previews.py \
             --batch output/quran_review_batch.json \
             --audio-report output/quran_batch_audio_report.json \
-            --output-dir output/quran_review_previews \\
+            --output-dir output/quran_review_previews \
             --minimum-previews 1
           python - <<'PY'
           import json
