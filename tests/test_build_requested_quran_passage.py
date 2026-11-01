@@ -4,6 +4,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from build_requested_quran_passage import build_requested_batch
 
 class RequestedPassageTests(unittest.TestCase):
+    # Keep this isolated request path fail-closed and independent of the daily batch.
     def setUp(self):
         self.joined = {"rendering_allowed": False,
             "status": "complete_join_candidate_requires_human_review_and_recording_approval",
