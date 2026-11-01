@@ -198,3 +198,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Telegram delivery and delivery-history steps were correctly skipped for the push event. No extra Telegram test was sent. A scheduled/manual run is still required to verify the next real delivery.
 - Background rotation remains pending; the four Pexels candidates are staged but not downloaded/verified/user-approved. Existing production renderer still uses the one previously approved Mixkit source.
 - Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41313825363
+
+## Pexels direct-source capture and CI guard (2026-11-01)
+- Captured the direct MP4 destinations by following the Pexels page's own Free download link for all four staged candidate clips. Source-page IDs and direct MP4 path IDs match.
+- data/background_candidates.json now stores direct URLs, but every candidate remains disabled and unverified. Do not feed these URLs into production manifests or change the active background until actual downloads pass file-integrity/ffprobe checks, vertical crop/contrast review is completed, and the user explicitly approves the selected assets.
+- Added tests/test_background_candidates.py and wired it into the existing inventory workflow. It validates the Pexels direct URL path/source page identity and ensures all approval flags remain false.
+- Latest CI run at time of writing: 41314687147 / #152, still in progress. Check the final result before closing this task.
+- Schedule audit: no schedule event was present at 14:08 UTC on 2026-11-01; next configured cron is 17:00 UTC (18:00 Tunisia). Verify it separately; do not use a push event to claim Telegram delivery.
