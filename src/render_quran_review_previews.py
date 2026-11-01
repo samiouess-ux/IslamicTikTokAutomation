@@ -131,7 +131,8 @@ SURAH_NAMES = [
 ]
 
 APPROVED_BACKGROUND_URL = "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4"
-BACKGROUND_SOURCE = "Mixkit — Waterfall Between Green Hills (previously user-approved)"
+BACKGROUND_SOURCE = "Mixkit — Waterfall Between Green Hills (fallback; retained until candidate rotation passes render QA)"
+BACKGROUND_CATALOG = Path("data/background_candidates.json")
 
 INTRO_DURATION_SECONDS = 1.6
 INTRO_FADE_SECONDS = 0.4
@@ -504,6 +505,43 @@ def probe(path: Path) -> dict:
             "video_codec": video["codec_name"], "audio_codec": audio["codec_name"]}
 
 
+def load_approved_backgrounds(catalog_path: Path = BACKGROUND_CATALOG) -> list[dict]:
+    """Return only candidates explicitly approved and download-verified in the catalog."""
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    approved = [
+        item for item in catalog.get("candidates", [])
+        if item.get("approved") is True
+        and item.get("user_approved") is True
+        and item.get("download_verified") is True
+        and str(item.get("direct_video_url", "")).startswith("https://videos.pexels.com/video-files/")
+    ]
+    if not approved:
+        raise RuntimeError("No fully verified and user-approved background candidates are available.")
+    return approved
+
+
+def prepare_moving_background(candidate: dict, destination: Path) -> dict:
+    """Download and validate one approved moving background before rendering."""
+    download_background(candidate["direct_video_url"], destination)
+    if destination.stat().st_size < 100_000:
+        raise RuntimeError(f"Background download is missing or unexpectedly small: {candidate['id']}")
+    raw = subprocess.check_output([
+        "ffprobe", "-v", "error", "-select_streams", "v:0",
+        "-show_entries", "stream=codec_name,width,height", "-of", "json", str(destination)
+    ], text=True)
+    streams = json.loads(raw).get("streams", [])
+    if not streams or streams[0].get("codec_name") not in {"h264", "hevc", "vp9", "av1"}:
+        raise RuntimeError(f"Background is not a valid moving video stream: {candidate['id']}")
+    return {
+        "id": candidate["id"],
+        "description": candidate.get("description", candidate["id"]),
+        "source_page_url": candidate.get("source_page_url", ""),
+        "codec": streams[0].get("codec_name"),
+        "width": streams[0].get("width"),
+        "height": streams[0].get("height"),
+    }
+
+
 def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -533,17 +571,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             raise ValueError("Audio-selected ayahs are not contiguous; refusing preview.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
-    background = output_dir / "approved_moving_background.mp4"
-    download_background(APPROVED_BACKGROUND_URL, background)
-    if background.stat().st_size < 100_000:
-        raise RuntimeError("Approved moving background download is missing or unexpectedly small.")
-    background_probe = subprocess.check_output([
-        "ffprobe", "-v", "error", "-select_streams", "v:0",
-        "-show_entries", "stream=codec_name,width,height", "-of", "json", str(background)
-    ], text=True)
-    background_streams = json.loads(background_probe).get("streams", [])
-    if not background_streams or background_streams[0].get("codec_name") not in {"h264", "hevc", "vp9", "av1"}:
-        raise RuntimeError("Approved background is not a valid moving video stream.")
+    approved_backgrounds = load_approved_backgrounds()
+    prepared_backgrounds = {}
     report_items = {x["candidate_id"]: x for x in report.get("items", [])}
     previews = []
     for candidate in batch.get("passages", []):
@@ -559,6 +588,16 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         verses = [candidate_by_number[int(n)] for n in numbers]
         work = output_dir / candidate["candidate_id"]
         work.mkdir(parents=True, exist_ok=True)
+        # Stable rotation: each distinct passage uses the next approved background.
+        background_candidate = approved_backgrounds[len(previews) % len(approved_backgrounds)]
+        if background_candidate["id"] not in prepared_backgrounds:
+            bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
+            bg_path.parent.mkdir(parents=True, exist_ok=True)
+            prepared_backgrounds[background_candidate["id"]] = prepare_moving_background(
+                background_candidate, bg_path
+            )
+            prepared_backgrounds[background_candidate["id"]]["path"] = str(bg_path)
+        background = Path(prepared_backgrounds[background_candidate["id"]]["path"])
         segments = []
         for index, verse in enumerate(verses):
             frame = work / f"ayah_{int(verse['ayah']):03d}.png"
@@ -618,6 +657,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "candidate_id": candidate["candidate_id"],
             "surah_number": int(candidate["surah_number"]),
             "verses": numbers,
+            "background": prepared_backgrounds[background_candidate["id"]],
             "file": str(output),
             **info,
             "review_only": True,
@@ -636,7 +676,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "telegram_delivery": False,
         "auto_publish": False,
         "background_type": "moving_video",
-        "background_source": BACKGROUND_SOURCE,
+        "background_source": "User-approved Pexels rotation",
+        "background_rotation": [prepared_backgrounds[k] for k in prepared_backgrounds],
+        "background_rotation_enabled": True,
         "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0},
         "note": "A short surah-and-ayah opening cover fades over the first ayah while the original recitation starts at t=0; the video remains review-only.",
     }
