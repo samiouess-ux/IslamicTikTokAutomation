@@ -87,8 +87,6 @@ def build_review_batch(
                 raise ValueError(f"Surah {surah} has no unused contiguous window of {window_size} verses.")
             local_digest = hashlib.sha256(f"{seed}:{surah}".encode("utf-8")).digest()
             numbers = windows[int.from_bytes(local_digest[:4], "big") % len(windows)]
-        local_digest = hashlib.sha256(f"{seed}:{surah}".encode("utf-8")).digest()
-        numbers = windows[int.from_bytes(local_digest[:4], "big") % len(windows)]
         verses = []
         for number in numbers:
             key = f"{surah}:{number}"
