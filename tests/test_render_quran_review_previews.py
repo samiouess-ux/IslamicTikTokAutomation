@@ -102,7 +102,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["auto_publish"])
 
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
-    def test_rejects_incomplete_audio_verse_coverage(self, _font):
+    @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    def test_rejects_incomplete_audio_verse_coverage(self, _check, _download, _font):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch, report = self.fixtures(root)
