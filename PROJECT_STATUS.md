@@ -535,3 +535,10 @@ Theme: hope and ease after hardship.
 - Artifact `13082954368` was uploaded successfully. The Telegram send step was skipped because this was a push-triggered run. Therefore no actual Telegram delivery or history update was confirmed by this run.
 - Background rotation is still not implemented: the renderer continues using the one previously approved Mixkit waterfall clip. No claim of 15–20 integrated backgrounds is made.
 - Commits for code/tests/docs: `003ee2693c5a86cac61fd4bc5b432953e67c4f39`, `cdbbeeff260cb546fe103304789936f8bf449287`, `10f7c22815b8aea5cead2d9af697e1def5fb0659`, `69f48a5b82210c153f30bf0b600877ac141c8083`.
+
+
+## Scheduled-run check (2026-11-01, 13:24 Tunisia time)
+- Queried the branch's GitHub Actions run history specifically for `event=schedule`; no scheduled runs were returned. The latest visible production/test runs remain push-triggered, with Telegram skipped by design.
+- The configured cron remains `0 3,11,17 * * *` UTC (04:00, 12:00, 18:00 Tunisia time). The 12:00 Tunisia slot has not been evidenced in Actions history as of this check.
+- Next verification point is the 18:00 Tunisia slot. Confirm the scheduled event, sender step, real positive Telegram `message_id`, and subsequent delivery-history commit before declaring end-to-end delivery.
+- No code or workflow trigger was changed to force a Telegram send. No new bot, cloud service, or TikTok publishing path was added.
