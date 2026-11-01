@@ -377,3 +377,14 @@ Theme: hope and ease after hardship.
 - Integration run `41288335048` was triggered by a push before the final delivery-loop optimization. At last inspection it had successfully completed archive inventory, full Saheeh translation, Uthmani corpus, exact-key catalog join, catalog tests, diverse candidate selection, whole-ayah audio preparation, and draft-manifest generation; the three-preview rendering step was still running. It was a push-triggered validation run, so its Telegram delivery step is not eligible to run. Check its final outcome before claiming end-to-end rendering success.
 - Latest workflow-delivery implementation commit: `37d92d402701a90408e504263b79ff49a63cc591`. It has not yet been verified by a scheduled or manually dispatched run that actually sends all three videos to Telegram.
 - No automatic TikTok publishing is enabled.
+
+
+### Confirmed integration preview run (2026-11-01)
+- GitHub Actions run `41288335048` completed successfully end-to-end through the preview and artifact-upload stages. The Telegram-send step was correctly skipped because this was a push-triggered validation, not a scheduled/manual delivery event.
+- It verified the full Quran data pipeline and rendered exactly three distinct-surah review-only MP4s:
+  - Al-Mulk 67:26–27 — 37.616 seconds.
+  - At-Takwir 81:15–16 — 16.588 seconds.
+  - Al-Alaq 96:2–3 — 15.543 seconds.
+- All three were verified as 1080x1920, H.264 video with the original MP3 audio stream, and below the 65-second limit. All are explicitly marked review-only; audio/production approval remains false.
+- Uploaded artifact: `official-quran-audio-inventory-and-probe`, artifact ID `13076490971`, retention 30 days. This confirms preview generation, not Telegram delivery.
+- The final delivery workflow update is commit `37d92d402701a90408e504263b79ff49a63cc591`; it consolidates the three daily sends into one daily run and records each confirmed Telegram delivery immediately. Await a schedule/manual-dispatch run to verify the Telegram send and persistent history update.
