@@ -226,11 +226,17 @@ jobs:
                   raise SystemExit("Preview must preserve original MP3 audio stream.")
           print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
           PY
-      - name: Download and prepare review-only background crop previews
+      - name: Download and prepare review-only background crop previews with actual Quran overlay
         run: |
+          overlay_frame="$(find output/quran_review_previews -type f -name 'ayah_*.png' | sort | head -n 1)"
+          if [ -z "$overlay_frame" ]; then
+            echo "No actual rendered Quran overlay frame was produced."
+            exit 1
+          fi
           python src/prepare_background_review_previews.py \
             --catalog data/background_candidates.json \
-            --output-dir output/background_review
+            --output-dir output/background_review \
+            --overlay-frame "$overlay_frame"
           python - <<'PY'
           import json
           from pathlib import Path
@@ -239,7 +245,9 @@ jobs:
               raise SystemExit("Background review package must contain four disabled candidates.")
           if not all(item["download_probe_verified"] and item["user_approved"] is False for item in report["items"]):
               raise SystemExit("A candidate download/probe check failed or an approval gate changed.")
-          print("Prepared four verified source downloads and 9:16 crop previews; none is production-approved.")
+          if report.get("overlay_legibility_review_required") is not True or not Path(report.get("quran_overlay_contact_sheet", "")).is_file():
+              raise SystemExit("Actual Quran overlay contact sheet is missing.")
+          print("Prepared four verified source downloads, 9:16 crops, and actual Quran-overlay legibility previews; none is production-approved.")
           PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
