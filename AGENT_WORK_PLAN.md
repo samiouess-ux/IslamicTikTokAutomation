@@ -2,6 +2,12 @@
 
 Last updated: 2026-11-01
 
+## Telegram delivery confirmation hardening (2026-11-01)
+- Sender now requires both Telegram API `ok: true` and a positive integer `message_id`; otherwise it exits unsuccessfully and delivery history is not recorded.
+- Added a regression test for the missing-message-ID response.
+- Commits: `6b159c9f4703fb52f6998a8de62fe4206a0fe91b` (sender), `eb4a6d1b585023bfee08014e83147f9e48083cfd` (test).
+- Real Telegram MP4 delivery is still unverified; this hardening is not evidence of a successful send.
+
 ## Operating rules
 
 - Repository: `samiouess-ux/IslamicTikTokAutomation`.
