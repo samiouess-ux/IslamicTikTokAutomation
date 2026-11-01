@@ -47,8 +47,14 @@ class QuranBatchAudioTests(unittest.TestCase):
                 Path(command[-1]).write_bytes(b"combined")
                 return None
 
+            def fake_trim(source, destination, source_duration):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(b"trimmed")
+                return source_duration
+
             with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
                  patch.object(module, "probe", side_effect=[12.0, 14.0, 26.0, 13.0, 15.0, 28.0, 40.0, 30.0, 40.0]), \
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out")
 
@@ -58,11 +64,44 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(partial["requested_verses"], [1, 2, 3])
             self.assertEqual(partial["selected_verses"], [1])
             self.assertEqual(partial["duration_seconds"], 40.0)
+            self.assertEqual(partial["processed_verse_durations_seconds"], {"1": 40.0})
+            self.assertTrue(Path(partial["processed_audio_files"]["1"]).is_file())
             self.assertEqual(report["distinct_surah_count"], 3)
             self.assertFalse(report["rendering_allowed"])
             self.assertFalse(report["telegram_delivery"])
             self.assertFalse(report["auto_publish"])
             self.assertTrue(all(not item.get("audio_approved", True) for item in report["items"]))
+
+    def test_trim_edge_silence_keeps_mp3_and_preserves_the_recitation_body(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "source.mp3"
+            destination = root / "trimmed.mp3"
+            module.subprocess.run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono:d=0.8",
+                "-f", "lavfi", "-i", "sine=frequency=440:sample_rate=44100:duration=1.0",
+                "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono:d=1.0",
+                "-filter_complex", "[0:a][1:a][2:a]concat=n=3:v=0:a=1[out]",
+                "-map", "[out]", "-c:a", "libmp3lame", "-q:a", "2", str(source)
+            ], check=True)
+            original_duration = module.probe(source)
+            trimmed_duration = module.trim_edge_silence(source, destination, original_duration)
+            codec = module.subprocess.check_output([
+                "ffprobe", "-v", "error", "-select_streams", "a:0",
+                "-show_entries", "stream=codec_name", "-of", "default=nw=1:nk=1",
+                str(destination)
+            ], text=True).strip()
+            self.assertEqual(codec, "mp3")
+            self.assertLess(trimmed_duration, original_duration - 1.0)
+            self.assertGreater(trimmed_duration, 1.0)
+            check = module.subprocess.run([
+                "ffmpeg", "-hide_banner", "-i", str(destination),
+                "-af", "silencedetect=noise=-50dB:d=0.25", "-f", "null", "-"
+            ], capture_output=True, text=True)
+            self.assertEqual(check.returncode, 0)
+            self.assertNotIn("silence_start: 0", check.stderr)
+            self.assertNotIn("silence_end:", check.stderr)
 
     def test_rejects_non_review_only_batch(self):
         with tempfile.TemporaryDirectory() as tmp:
