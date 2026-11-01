@@ -152,7 +152,7 @@ jobs:
           assert all(item["approval"]["ready_to_render"] is False for item in batch["passages"])
           print("Prepared eight distinct-surah passages for human review only.")
           PY
-      - name: Prepare audio for three distinct-surah review candidates
+      - name: Prepare one distinct-surah video for this scheduled slot
         run: |
           python src/prepare_quran_review_batch_audio.py \
             --batch output/quran_review_batch.json \
