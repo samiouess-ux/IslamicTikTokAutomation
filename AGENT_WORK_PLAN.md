@@ -1,5 +1,17 @@
 # Agent work plan — IslamicTikTokAutomation
 
+## User directive — simplify and finish the engine (2026-11-01)
+
+This directive takes priority over optional enhancements and exploratory work:
+- Stop sending the user repeated technical questions when the repository, logs, or tests can answer them. Make safe engineering decisions independently and fix ordinary implementation/test failures directly.
+- Do not expand the architecture. One existing GitHub Actions engine + the original Telegram bot only; no new cloud services, bots, webhooks, orchestrators, paid agents, or user-operated infrastructure.
+- Do not restart or replace working components. Preserve the proven Quran prototype and generalize it to other verified surahs/ayahs.
+- The immediate deliverable is a valid varied Quran MP4 (Arabic + Saheeh International English, <=65 seconds, whole contiguous ayahs, no music) delivered by sendVideo to the existing Telegram chat. TikTok remains manual.
+- Prioritize end-to-end operation over optional background-library expansion, new categories, or cosmetic refactoring. Fix blockers in order: candidate selection/content integrity -> render -> Telegram send -> delivery-history commit -> next-slot non-repetition.
+- Test each concrete fix, inspect the actual Actions result, and update PROJECT_STATUS.md. Never call a preview/build/test a completed delivery unless Telegram confirms a real message_id.
+- Work only on feature/telegram-review-notifications. Never modify main.
+- The available Agent 1–4 entries are review responsibilities, not separate autonomous agents; do not imply independent agents are running.
+
 Last updated: 2026-11-01
 
 ## Caption variation update (2026-11-01)
