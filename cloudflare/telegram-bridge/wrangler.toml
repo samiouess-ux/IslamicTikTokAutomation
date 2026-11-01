@@ -2,7 +2,6 @@ name = "islamic-quran-telegram-bridge"
 main = "worker.js"
 compatibility_date = "2026-10-01"
 
-# Create a KV namespace, then replace the placeholder ID and bind it here.
 [[kv_namespaces]]
 binding = "TELEGRAM_UPDATES"
-id = "REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID"
+id = "4f185c10146e4cdbbd9b782f9dcb7c04"
