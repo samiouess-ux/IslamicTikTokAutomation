@@ -32,6 +32,18 @@ class TelegramDeliveryTests(unittest.TestCase):
             self.assertIn("sendVideo",request.full_url)
             self.assertIn(b"FAKE-MP4-BYTES",request.data)
             self.assertIn("لم يتم النشر على TikTok".encode(),request.data)
+    def test_success_without_message_id_is_not_confirmed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp); video=p/"review.mp4"; caption=p/"caption.json"
+            video.write_bytes(b"FAKE-MP4-BYTES")
+            caption.write_text(json.dumps({"english_caption":"Review"}),encoding="utf-8")
+            class Response:
+                def __enter__(self): return self
+                def __exit__(self,*args): return False
+                def read(self): return b'{"ok":true,"result":{"video":{"file_id":"x"}}}'
+            with patch("send_telegram.urllib.request.urlopen", return_value=Response()):
+                with self.assertRaisesRegex(RuntimeError,"message_id"):
+                    send_video(video,caption,"token","chat-id")
     def test_over_50mb_fails_before_network(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp); video=p/"review.mp4"; caption=p/"caption.json"
