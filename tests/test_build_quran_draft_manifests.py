@@ -50,7 +50,7 @@ class DraftManifestTests(unittest.TestCase):
             "rendering_allowed": False,
             "auto_publish": False,
             "items": [
-                {"candidate_id": "slot", "surah_number": 47, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "selected_verses": [4, 5], "verse_durations_seconds": {4: 12.0, 5: 13.0}, "audio_file": "slot.mp3", "duration_seconds": 25.0},
+                {"candidate_id": "slot", "surah_number": 47, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "requested_verses": [4, 5], "selected_verses": [4, 5], "verse_durations_seconds": {4: 12.0, 5: 13.0}, "audio_file": "slot.mp3", "duration_seconds": 25.0},
             ],
         }
         with tempfile.TemporaryDirectory() as tmp:
@@ -71,7 +71,7 @@ class DraftManifestTests(unittest.TestCase):
             {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared", "selected_verses": [4, 5], "verse_durations_seconds": {4: 6, 5: 6}, "audio_file": "b.mp3", "duration_seconds": 12},
         ]}
         with tempfile.TemporaryDirectory() as tmp:
-            with self.assertRaisesRegex(ValueError, "every requested ayah"):
+            with self.assertRaisesRegex(ValueError, "prefix"):
                 build_draft_manifests(batch, report, Path(tmp))
 
 
