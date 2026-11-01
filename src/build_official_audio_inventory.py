@@ -16,7 +16,7 @@ from urllib3.util.retry import Retry
 from remotezip import RemoteZip
 
 ARCHIVE_URL = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
-ENTRY_RE = re.compile(r"(?:^|/)10-(\\d{3})(\\d{3})-A08\\.mp3$", re.IGNORECASE)
+ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
 EXPECTED_VERSES = 6236
 
 
@@ -103,5 +103,5 @@ if __name__ == "__main__":
     destination = Path(sys.argv[1] if len(sys.argv) > 1 else "output/official_verse_audio_inventory.json")
     destination.parent.mkdir(parents=True, exist_ok=True)
     inventory = build_inventory()
-    destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Validated archive mapping for {inventory['mapped_verse_count']} verses: {destination}")
