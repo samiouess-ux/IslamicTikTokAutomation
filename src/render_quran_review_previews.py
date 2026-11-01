@@ -243,7 +243,7 @@ def probe(path: Path) -> dict:
             "video_codec": video["codec_name"], "audio_codec": audio["codec_name"]}
 
 
-def render(batch_path: Path, report_path: Path, output_dir: Path) -> dict:
+def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if batch.get("batch_status") != "review_candidates_only" or report.get("rendering_allowed") is not False:
