@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+from datetime import datetime, timezone
 import urllib.request
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, features
@@ -542,11 +543,13 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
     }
 
 
-def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2) -> dict:
+def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if minimum_previews < 1:
         raise ValueError("minimum_previews must be positive.")
+    if background_rotation_index < 0:
+        raise ValueError("background_rotation_index must be non-negative.")
     if batch.get("batch_status") != "review_candidates_only" or report.get("rendering_allowed") is not False:
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
@@ -589,7 +592,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         work = output_dir / candidate["candidate_id"]
         work.mkdir(parents=True, exist_ok=True)
         # Stable rotation: each distinct passage uses the next approved background.
-        background_candidate = approved_backgrounds[len(previews) % len(approved_backgrounds)]
+        background_candidate = approved_backgrounds[(background_rotation_index + len(previews)) % len(approved_backgrounds)]
         if background_candidate["id"] not in prepared_backgrounds:
             bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
             bg_path.parent.mkdir(parents=True, exist_ok=True)
@@ -679,6 +682,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "background_source": "User-approved Pexels rotation",
         "background_rotation": [prepared_backgrounds[k] for k in prepared_backgrounds],
         "background_rotation_enabled": True,
+        "background_rotation_start_index": background_rotation_index % len(approved_backgrounds),
         "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0},
         "note": "A short surah-and-ayah opening cover fades over the first ayah while the original recitation starts at t=0; the video remains review-only.",
     }
@@ -693,9 +697,17 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("output/quran_review_previews"))
     parser.add_argument("--minimum-previews", type=int, default=2,
                         help="Minimum number of distinct review previews required.")
+    parser.add_argument("--background-rotation-index", type=int, default=None,
+                        help="Starting index for the approved background rotation; defaults to a daily UTC schedule slot.")
     args = parser.parse_args()
+    rotation_index = args.background_rotation_index
+    if rotation_index is None:
+        now = datetime.now(timezone.utc)
+        slot = {3: 0, 11: 1, 17: 2}.get(now.hour, now.hour % 3)
+        rotation_index = (int(now.strftime("%j")) * 3 + slot) % 4
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
-                            minimum_previews=args.minimum_previews), ensure_ascii=False, indent=2))
+                            minimum_previews=args.minimum_previews,
+                            background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
