@@ -159,3 +159,12 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Run the production workflow's complete audio and renderer regression suites. Inspect the newest render artifact and verify total duration <=65 seconds, correct selected contiguous ayahs, MP3 audio, and substantially shorter gaps between ayahs.
 - If the silence test fails or the detected edges risk cutting recitation, revert only the edge-trimming behavior and keep the diagnostic evidence; do not weaken the threshold or remove internal pauses blindly.
 - After CI and artifact review, update the user with the measured gap reduction. Only send a new Telegram sample after the revised visual/audio artifact has passed review; do not send on ordinary push runs.
+
+
+## Measured preview and audio-gap result (2026-11-01)
+- Run `41311768545` completed successfully and produced artifact `13085413677`. The generated Surah Fussilat candidate supplied ayahs 1–54; the duration selector chose whole consecutive ayahs 1–5 for a 62.912-second 1080×1920 H.264/MP3 review MP4.
+- Audio measurement on the artifact: raw combined recitation 78.446s; processed combined recitation 63.007s. The four raw inter-ayah silences measured 3.266–3.558s; after edge-only silence handling they measured 0.260–0.267s. A 0.12s safety margin remains at each detected file edge; do not reduce this margin or process internal silence without new listening evidence.
+- Sampled frames confirm the revised Amiri Bold typography, ornate double-line gold surah cartouche, gold circular ayah badge, white Arabic, and smaller Saheeh International English. This is a review preview, not user acceptance or production approval.
+- Telegram was skipped on this push run. Do not resend or publish this artifact automatically.
+- Latest follow-up run `41312075159` is validating the newer longest-processed-prefix regression test. Check its final conclusion before marking that test covered.
+- Remaining visual gap: only the approved Mixkit waterfall scene is available. Keep scene rotation blocked until additional sources have both verified reuse rights and explicit user approval. Palette tint variation must not be described as true background rotation.
