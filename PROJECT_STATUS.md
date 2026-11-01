@@ -1,6 +1,6 @@
 # Project status — IslamicTikTokAutomation
 
-Last updated: 2026-10-31
+Last updated: 2026-11-01
 
 ## Project goal (current)
 Prepare **three distinct Quran videos per day** first. Each video contains the Quran in Arabic with authentic recitation and a paired English Saheeh International translation. Select different surahs/passages; do not repeat the Ash-Sharh prototype as the default. Each clip must contain complete consecutive ayahs and stay at or below 65 seconds.
