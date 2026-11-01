@@ -710,3 +710,13 @@ Theme: hope and ease after hardship.
 - Received review video: Surah Az-Zukhruf, ayahs 1–7; Telegram displayed 33.0 MB. Caption includes Arabic title, varied hashtags, English description, and the manual-review-only notice.
 - This is the first user-confirmed scheduled-slot delivery in this verification cycle. It confirms that a scheduled video reached the user's Telegram chat; it does not by itself verify the Actions run ID, delivery-history sync, or reliability of all three daily slots.
 - TikTok publishing remains manual and requires the user's personal approval. Continue monitoring later scheduled slots and confirm the GitHub run/history record before declaring the schedule fully reliable.
+
+
+## Second scheduled Telegram delivery and history sync verified (2026-11-01)
+- Scheduled GitHub Actions run #159 (`41329118203`) completed successfully on `feature/telegram-review-notifications` at 17:02:53 UTC (18:02:53 Tunisia time).
+- The engine selected Surah Az-Zukhruf (43), ayahs 1–7, and rendered a 60.15-second 1080x1920 H.264/MP3 review video, within the 65-second cap.
+- Telegram `sendVideo` returned `ok: true` with real `message_id=30` and a 33.0 MB video. This matches the user's Telegram receipt at 18:02.
+- The workflow then recorded exactly the seven selected ayahs (43:1–43:7) and successfully committed/synced `data/quran_delivery_history.json` back to the active feature branch (`18bed634d52a90e113dacfa478419788e17cad77`).
+- Full inventory, 6,236-entry Arabic/translation/audio join, regression tests, eight-surah candidate pool, one-slot audio preparation, manifest generation, review MP4 rendering, and background QA preview steps all passed in the same run.
+- This confirms one additional successful scheduled slot and exact delivery-history sync. It does not yet prove that all three daily slots run reliably over multiple days. Only one video is generated per scheduled slot; TikTok remains manual.
+- The run artifact is `13092647613`. The four Pexels backgrounds remain QA candidates only; none is user-approved or enabled in production.
