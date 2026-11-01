@@ -35,6 +35,10 @@ def build_requested_batch(joined: dict, surah: int, start_ayah: int, end_ayah: i
                 "background_licensed_and_user_approved": False, "ready_to_render": False,
                 "ready_to_publish": False}}]}
 
+def save_batch(batch: dict, output: Path) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(batch, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--catalog", type=Path, required=True)
@@ -45,8 +49,7 @@ def main():
     args = parser.parse_args()
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
     batch = build_requested_batch(joined, args.surah, args.start_ayah, args.end_ayah)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(batch, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    save_batch(batch, args.output)
     print(f"Prepared {batch['passages'][0]['candidate_id']} as a review-only request.")
 
 if __name__ == "__main__":
