@@ -156,7 +156,7 @@ def main() -> None:
             raise FileNotFoundError(f"Actual Quran overlay frame not found: {args.overlay_frame}")
         overlaid_items = []
         for item in report["items"]:
-            crop = Path(item["preview_path"])
+            crop = Path(args.output_dir) / (item["id"] + "_vertical_crop.jpg")
             destination = Path(args.output_dir) / (item["id"] + "_quran_overlay.jpg")
             composite_overlay_preview(crop, args.overlay_frame, destination)
             overlaid_items.append({**item, "preview_path": str(destination),
