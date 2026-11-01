@@ -168,3 +168,13 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Telegram was skipped on this push run. Do not resend or publish this artifact automatically.
 - Latest follow-up run `41312075159` is validating the newer longest-processed-prefix regression test. Check its final conclusion before marking that test covered.
 - Remaining visual gap: only the approved Mixkit waterfall scene is available. Keep scene rotation blocked until additional sources have both verified reuse rights and explicit user approval. Palette tint variation must not be described as true background rotation.
+
+
+## Post-delivery workflow hardening and next work (2026-11-01)
+- Confirmed Telegram sample: run `41312274181`, `message_id=28`, Surah Fussilat 41:1–5. The history was repaired on the feature branch after the workflow's stale-checkout push was rejected.
+- Workflow is now split into Telegram send, history record, and history sync. History sync fetches and rebases onto `origin/feature/telegram-review-notifications` before push. Failure alerts now depend on the Telegram send step failing, not later history-sync failures.
+- Temporary tagged-push trigger has been removed; ordinary pushes must never send videos. Only cron schedule and explicit workflow dispatch may deliver.
+- Verify the current workflow-change run `41312848189` finishes green. Do not send another Telegram test video.
+- Next visual task: create a small candidate pool of distinct nature/sky/landscape background clips from rights-cleared sources, upload a review artifact with thumbnails and source/license details, then add only explicitly user-approved assets to the rotation catalog. The existing asset chooser must fail closed if no approved non-recent background exists.
+- Next operational task: independently verify the scheduled 04:00, 12:00, and 18:00 Tunisia slots. One controlled Telegram sample proves one send path, not three daily scheduled sends.
+- Keep manual TikTok publishing and the no-auto-publish gate unchanged.
