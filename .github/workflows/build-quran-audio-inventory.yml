@@ -29,7 +29,8 @@ on:
       - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
   schedule:
-    - cron: "7 3 * * *"
+    # Tunisia (UTC+1): 04:00, 12:00, 18:00 local time.
+    - cron: "0 3,11,17 * * *"
 
 permissions:
   contents: write
@@ -136,7 +137,7 @@ jobs:
             --verses-per-passage 2 \
             --exclude-surah 94 \
             --history data/quran_delivery_history.json \
-            --seed "quran-daily-$(date -u +%F)" \
+            --seed "quran-daily-$(date -u +%F-%H)" \
             --output output/quran_review_batch.json
           python - <<'PY'
           import json
@@ -163,7 +164,7 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_batch_audio_report.json").read_text(encoding="utf-8"))
-          if report["audio_prepared_count"] != 3:
+          if report["audio_prepared_count"] != 1:
               raise SystemExit("Exactly three distinct-surah audio candidates must be prepared for the daily target.")
           if report["distinct_surah_count"] != report["audio_prepared_count"]:
               raise SystemExit("Audio candidates must come from distinct surahs.")
@@ -182,7 +183,7 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_draft_manifest_report.json").read_text(encoding="utf-8"))
-          if report["manifest_count"] != 3 or report["manifest_count"] != report["distinct_surah_count"]:
+          if report["manifest_count"] != 1 or report["manifest_count"] != report["distinct_surah_count"]:
               raise SystemExit("Expected exactly three distinct-surah draft manifests.")
           if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Draft manifests must remain blocked from rendering and delivery.")
@@ -199,12 +200,13 @@ jobs:
           python src/render_quran_review_previews.py \
             --batch output/quran_review_batch.json \
             --audio-report output/quran_batch_audio_report.json \
-            --output-dir output/quran_review_previews
+            --output-dir output/quran_review_previews \\
+            --minimum-previews 1
           python - <<'PY'
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
-          if report["preview_count"] != 3 or report["production_approved"]:
+          if report["preview_count"] != 1 or report["production_approved"]:
               raise SystemExit("Expected exactly three review-only previews with production approval disabled.")
           if report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Telegram delivery and auto-publishing must remain disabled.")
@@ -234,7 +236,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Send three review-only videos to Telegram for manual approval
+      - name: Send one review-only video to Telegram for manual approval
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
@@ -250,9 +252,9 @@ jobs:
 
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
-          if report.get("preview_count") != 3 or report.get("auto_publish") is not False:
+          if report.get("preview_count") != 1 or report.get("auto_publish") is not False:
               raise SystemExit("Telegram delivery requires exactly three review-only videos and disabled auto-publishing.")
-          if len({item["surah_number"] for item in report["items"]}) != 3 or len(report["items"]) != 3:
+          if len({item["surah_number"] for item in report["items"]}) != 1 or len(report["items"]) != 1:
               raise SystemExit("Daily Telegram batch must contain exactly three distinct surahs.")
           batch_ids = {item["candidate_id"] for item in batch.get("passages", [])}
           for index, item in enumerate(report["items"], start=1):
@@ -289,7 +291,7 @@ jobs:
                   subprocess.run(["git", "push", "origin", "HEAD:feature/telegram-review-notifications"], check=True)
               elif changed.returncode != 0:
                   raise SystemExit("Unable to inspect delivery-history changes.")
-              print(f"Telegram confirmed video {index}/3: {item['candidate_id']}. TikTok publishing remains manual.")
+              print(f"Telegram confirmed scheduled video {index}/1: {item['candidate_id']}. TikTok publishing remains manual.")
           PY
 
       - name: Notify Telegram if daily delivery fails
