@@ -235,6 +235,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      # Temporary one-off review send requested by the user; remove the tagged-push gate after confirmation.
       - name: Send one review-only video to Telegram for manual approval
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[telegram-live-test]'))
         env:
