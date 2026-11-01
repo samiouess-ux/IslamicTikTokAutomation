@@ -611,3 +611,10 @@ Theme: hope and ease after hardship.
 - Added synthetic-MP3 regression coverage for edge-only silence handling and MP3 preservation, and renderer coverage to assert that processed per-ayah files are used.
 - Validation status at this note: isolated request pipeline run `41311627949` passed, but this is not the audio/render suite. Production workflow run `41311627871` is queued behind an earlier render; full audio tests and latest render still need a green result. Do not claim the pause fix or latest visual design is CI-verified until that run completes.
 - No Telegram MP4 was sent by these push-triggered runs. The original approved waterfall remains the only underlying scene; palette tints vary, but genuine scene rotation is still pending distinct rights-cleared and user-approved assets.
+
+
+### Edge-pause CI validation update (2026-11-01)
+- Production workflow run `41311768545` passed the full catalog/audio/renderer regression-test step, including the synthetic MP3 edge-silence test and the renderer test that checks processed per-ayah paths.
+- In that same run, official audio preparation and draft-manifest generation completed; the 9:16 render step was in progress at the time of this update.
+- Added a further regression test for selecting the longest processed whole-ayah prefix under 65 seconds (e.g. source 40s + 30s becomes 35s + 28s after safe edge-only silence reduction, so both complete ayahs fit). This is in run `41311817665`, which is queued/pending and must pass before the latest test set is fully verified.
+- The previous run `41311627871` failed only because a test expected JSON string keys before serialization while the in-memory Python report uses integer keys. Corrected in `bbf33b1e`; the production test step then passed in `41311768545`.
