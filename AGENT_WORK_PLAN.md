@@ -87,3 +87,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 ## Current release status
 
 **Not yet declared ready.** English is the confirmed language and there is no French/English mismatch to resolve. The actual scheduled MP4 delivery has not been proven in the evidence reviewed on 2026-11-01. Do not tell the user the engine is complete until the remaining delivery and repeated-operation acceptance criteria are met.
+
+
+## Final duration-gate test coverage (2026-11-01)
+- Added focused regression tests against the renderer's actual ffprobe-based `probe()`: accept exactly 65.000 seconds, reject 65.001 seconds, and reject non-1080x1920 dimensions.
+- Commit: `51c2952759ab738b636d129be41e320573cebcdd`.
+- Await the push-triggered CI result; this is test coverage only, not proof of Telegram delivery.
+- Keep the single approved background source unchanged until a second asset has verified usage rights and user approval.
