@@ -246,7 +246,9 @@ def probe(path: Path) -> dict:
 def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
-    if minimum_previews < 1:\n        raise ValueError("minimum_previews must be positive.")\n    if batch.get("batch_status") != "review_candidates_only" or report.get("rendering_allowed") is not False:
+    if minimum_previews < 1:
+        raise ValueError("minimum_previews must be positive.")
+    if batch.get("batch_status") != "review_candidates_only" or report.get("rendering_allowed") is not False:
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
