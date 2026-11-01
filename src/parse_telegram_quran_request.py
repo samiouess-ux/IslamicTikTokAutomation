@@ -51,16 +51,17 @@ def parse_quran_request(message: str) -> dict:
     surah = names.get(requested_name)
     if surah is None:
         raise ValueError("ما تعرفتش على اسم السورة. ابعث الاسم العربي الصحيح.")
+    has_range = match.group("start") is not None
     start = int(match.group("start") or 1)
-    end = int(match.group("end") or start)
-    if start < 1 or end < start or end - start > 9:
+    end = int(match.group("end")) if has_range else None
+    if start < 1 or (has_range and (end < start or end - start > 9)):
         raise ValueError("الطلب لازم يكون من آية إلى 10 آيات متتالية.")
     return {
         "surah_number": surah,
         "surah_name": SURAH_NAMES[surah - 1],
         "start_ayah": start,
         "end_ayah": end,
-        "request_type": "single_surah_passage",
+        "request_type": "single_surah_passage" if has_range else "full_surah",
         "status": "parsed_only_not_rendered_not_sent",
         "rendering_allowed": False,
         "telegram_delivery": False,
