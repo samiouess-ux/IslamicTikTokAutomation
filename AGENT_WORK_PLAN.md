@@ -116,3 +116,8 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - The next candidate batch now excludes the surah from the most recent confirmed Telegram delivery, as well as every already-delivered ayah reference. This avoids immediate same-surah repetition without permanently banning a surah.
 - Regression coverage added. Await completion of runs `41306047454` and `41306050228` before calling the change tested.
 - Telegram delivery still requires an actual `schedule` or `workflow_dispatch` event; push-triggered CI is not delivery evidence.
+
+## Latest CI verification (2026-11-01)
+- Surah rotation code and regression tests passed in runs `41306047454` (#92) and `41306050228` (#14). Build output was Surah At-Tariq 86:12–13, 14.55 seconds, 1080x1920, review-only.
+- Artifact upload succeeded. Telegram step was skipped on push; wait for the next scheduled run to prove actual MP4 delivery and persistent history recording.
+- Background library rotation remains pending; only the existing Mixkit waterfall source is currently used.
