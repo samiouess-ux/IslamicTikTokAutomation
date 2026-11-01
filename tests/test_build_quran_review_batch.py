@@ -2,7 +2,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_quran_review_batch import build_review_batch
+from build_quran_review_batch import build_review_batch, most_recent_delivered_surah
 
 class BatchTests(unittest.TestCase):
     def test_never_reuses_previously_delivered_ayahs(self):
@@ -16,6 +16,18 @@ class BatchTests(unittest.TestCase):
         result = build_review_batch(source, count=4, verses_per_passage=2, seed="history-test", excluded_surahs=[2], used_ayah_references=used)
         selected = [verse["reference"] for passage in result["passages"] for verse in passage["verses"]]
         self.assertTrue(set(selected).isdisjoint(used))
+
+    def test_excludes_most_recently_delivered_surah(self):
+        history = {"deliveries": [
+            {"candidate_id": "old", "surah_number": 18},
+            {"candidate_id": "latest", "surah_number": 86},
+        ]}
+        self.assertEqual(most_recent_delivered_surah(history), 86)
+        self.assertIsNone(most_recent_delivered_surah({"deliveries": []}))
+
+    def test_rejects_invalid_latest_surah_in_history(self):
+        with self.assertRaisesRegex(ValueError, "between 1 and 114"):
+            most_recent_delivered_surah({"deliveries": [{"surah_number": 115}]})
 
     def test_builds_distinct_surahs(self):
         verses = {}
