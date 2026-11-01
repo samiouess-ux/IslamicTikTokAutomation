@@ -30,8 +30,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "7 3 * * *"
-    - cron: "7 11 * * *"
-    - cron: "7 17 * * *"
 
 permissions:
   contents: write
@@ -241,63 +239,56 @@ jobs:
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          SCHEDULED_CRON: ${{ github.event.schedule }}
         run: |
           python - <<'PY'
           import json
           import subprocess
           import sys
-          from datetime import datetime, timezone
           from pathlib import Path
 
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
+          batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
           if report.get("preview_count") != 3 or report.get("auto_publish") is not False:
               raise SystemExit("Telegram delivery requires exactly three review-only videos and disabled auto-publishing.")
-          if len({item["surah_number"] for item in report["items"]}) != 3:
-              raise SystemExit("Telegram batch must contain three distinct surahs.")
-          if len(report["items"]) != 3:
-              raise SystemExit("Expected exactly three prepared videos.")
-          scheduled_cron = __import__("os").environ.get("SCHEDULED_CRON", "").strip()
-          slot_by_cron = {"7 3 * * *": 0, "7 11 * * *": 1, "7 17 * * *": 2}
-          if scheduled_cron:
-              if scheduled_cron not in slot_by_cron:
-                  raise SystemExit(f"Unexpected scheduled cron {scheduled_cron!r}; refusing to send the wrong daily slot.")
-              slot = slot_by_cron[scheduled_cron]
-          else:
-              utc_hour = datetime.now(timezone.utc).hour
-              slot_by_hour = {3: 0, 11: 1, 17: 2}
-              if utc_hour not in slot_by_hour:
-                  raise SystemExit(f"Manual run at unexpected UTC hour {utc_hour}; use a scheduled run for automatic delivery.")
-              slot = slot_by_hour[utc_hour]
-          item = report["items"][slot]
-          captions_dir = Path("output/telegram_captions")
-          captions_dir.mkdir(parents=True, exist_ok=True)
-          manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          caption_path = captions_dir / f"{item['candidate_id']}.json"
-          caption = {
-              "arabic_caption": manifest["caption"]["text"],
-              "hashtags_ar": ["#القرآن_الكريم", "#تلاوة"],
-              "english_caption": f"Quran recitation — Surah {manifest['source']['surah_name_ar']}",
-              "hashtags_en": ["#Quran", "#QuranRecitation"],
-          }
-          caption_path.write_text(json.dumps(caption, ensure_ascii=False, indent=2), encoding="utf-8")
-          subprocess.run([
-              sys.executable, "src/send_telegram.py",
-              "--video", item["file"],
-              "--caption", str(caption_path),
-          ], check=True)
-          print(f"Telegram confirmed scheduled video {slot + 1}/3. TikTok publishing remains manual.")
-          Path("output/delivered_candidate_id.txt").write_text(item["candidate_id"], encoding="utf-8")
+          if len({item["surah_number"] for item in report["items"]}) != 3 or len(report["items"]) != 3:
+              raise SystemExit("Daily Telegram batch must contain exactly three distinct surahs.")
+          batch_ids = {item["candidate_id"] for item in batch.get("passages", [])}
+          for index, item in enumerate(report["items"], start=1):
+              if item.get("candidate_id") not in batch_ids:
+                  raise SystemExit("Preview candidate is not present in the source batch.")
+              manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
+              caption_path.parent.mkdir(parents=True, exist_ok=True)
+              caption = {
+                  "arabic_caption": manifest["caption"]["text"],
+                  "hashtags_ar": ["#القرآن_الكريم", "#تلاوة"],
+                  "english_caption": f"Quran recitation — Surah {manifest['source']['surah_name_ar']}",
+                  "hashtags_en": ["#Quran", "#QuranRecitation"],
+              }
+              caption_path.write_text(json.dumps(caption, ensure_ascii=False, indent=2), encoding="utf-8")
+              subprocess.run([
+                  sys.executable, "src/send_telegram.py",
+                  "--video", item["file"],
+                  "--caption", str(caption_path),
+              ], check=True)
+              # Persist each confirmed send immediately so a later failure cannot
+              # make already-delivered ayahs appear unused on the next run.
+              subprocess.run([
+                  sys.executable, "src/record_quran_delivery.py",
+                  "--history", "data/quran_delivery_history.json",
+                  "--batch", "output/quran_review_batch.json",
+                  "--candidate-id", item["candidate_id"],
+              ], check=True)
+              subprocess.run(["git", "add", "data/quran_delivery_history.json"], check=True)
+              changed = subprocess.run(["git", "diff", "--cached", "--quiet"])
+              if changed.returncode == 1:
+                  subprocess.run(["git", "commit", "-m", f"Record delivered Quran review passage {item['candidate_id']}"], check=True)
+                  subprocess.run(["git", "push"], check=True)
+              elif changed.returncode != 0:
+                  raise SystemExit("Unable to inspect delivery-history changes.")
+              print(f"Telegram confirmed video {index}/3: {item['candidate_id']}. TikTok publishing remains manual.")
           PY
-          python src/record_quran_delivery.py --history data/quran_delivery_history.json --batch output/quran_review_batch.json --candidate-id "$(cat output/delivered_candidate_id.txt)"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/quran_delivery_history.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Record delivered Quran review passage"
-            git push
-          fi
 
       - name: Notify Telegram if daily delivery fails
         if: failure() && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
