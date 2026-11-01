@@ -44,6 +44,26 @@ class DraftManifestTests(unittest.TestCase):
             self.assertEqual(data["source"]["surah_name_ar"], "الغاشية")
             self.assertIn("سورة الغاشية", data["caption"]["text"])
 
+    def test_builds_single_review_only_manifest_for_one_video_slot(self):
+        batch = {"batch_status": "review_candidates_only", "passages": [candidate("slot", 47)]}
+        report = {
+            "rendering_allowed": False,
+            "auto_publish": False,
+            "items": [
+                {"candidate_id": "slot", "surah_number": 47, "status": "audio_prepared_requires_exact_recording_listen_and_user_review", "selected_verses": [4, 5], "verse_durations_seconds": {4: 12.0, 5: 13.0}, "audio_file": "slot.mp3", "duration_seconds": 25.0},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            result = build_draft_manifests(batch, report, Path(tmp))
+            self.assertEqual(len(result), 1)
+            data = json.loads(Path(result[0]["manifest"]).read_text(encoding="utf-8"))
+            self.assertFalse(data["audio"]["approved"])
+            self.assertFalse(data["audio"]["rights_verified"])
+            self.assertFalse(data["rotation_approved"])
+            self.assertFalse(data["publishing"]["auto_publish"])
+            self.assertFalse(data["publishing"]["telegram_delivery"])
+            self.assertFalse(data["preflight"]["rendering_allowed"])
+
     def test_rejects_missing_ayah_from_audio(self):
         batch = {"batch_status": "review_candidates_only", "passages": [candidate("a", 19), candidate("b", 88)]}
         report = {"rendering_allowed": False, "auto_publish": False, "items": [
