@@ -44,6 +44,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             })
             items.append({
                 "candidate_id": cid, "status": "audio_prepared_requires_review",
+                "requested_verses": list(range(start, start + 3)),
                 "selected_verses": list(range(start, start + 3)),
                 "audio_file": str(audio_dir / "passage.mp3"),
             })
@@ -119,14 +120,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
-    def test_rejects_incomplete_audio_verse_coverage(self, _check, _download, _font):
+    def test_rejects_non_prefix_audio_verse_selection_before_rendering(self, _check, _download, _font):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch, report = self.fixtures(root)
             data = json.loads(report.read_text(encoding="utf-8"))
-            data["items"][0]["selected_verses"] = [81, 82]
+            data["items"][0]["selected_verses"] = [81, 83]
             report.write_text(json.dumps(data), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "do not match"):
+            with self.assertRaisesRegex(ValueError, "requested prefix"):
                 render(batch, report, root / "out")
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
