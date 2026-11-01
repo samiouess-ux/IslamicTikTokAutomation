@@ -64,7 +64,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(partial["requested_verses"], [1, 2, 3])
             self.assertEqual(partial["selected_verses"], [1])
             self.assertEqual(partial["duration_seconds"], 40.0)
-            self.assertEqual(partial["processed_verse_durations_seconds"], {"1": 40.0})
+            self.assertEqual(partial["processed_verse_durations_seconds"], {1: 40.0})
             self.assertTrue(Path(partial["processed_audio_files"]["1"]).is_file())
             self.assertEqual(report["distinct_surah_count"], 3)
             self.assertFalse(report["rendering_allowed"])
@@ -112,7 +112,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             item = report["items"][0]
             self.assertEqual(item["selected_verses"], [1, 2])
             self.assertEqual(item["duration_seconds"], 63.0)
-            self.assertEqual(item["processed_verse_durations_seconds"], {"1": 35.0, "2": 28.0})
+            self.assertEqual(item["processed_verse_durations_seconds"], {1: 35.0, 2: 28.0})
             self.assertEqual(set(item["processed_audio_files"]), {"1", "2"})
 
     def test_trim_edge_silence_keeps_mp3_and_preserves_the_recitation_body(self):
