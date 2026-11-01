@@ -1,5 +1,14 @@
 # Project status — IslamicTikTokAutomation
 
+## Verified Telegram MP4 delivery and exact-history correction (2026-11-01)
+- Controlled live test run `41309830990` completed successfully. The existing Telegram bot accepted the actual MP4 through `sendVideo` with `ok: true` and `message_id=27` (28.1 MiB). This is a real delivery, unlike mocked tests or artifact uploads.
+- The delivered review video is Surah Hud (11), ayahs 1–2, 40.046 seconds, 1080×1920, H.264 video + original MP3 recitation. The source candidate contains 123 ayahs, but the audio selector correctly chose only the first two complete ayahs under the 65-second limit.
+- Audit caught a delivery-history bug: the recorder had marked the full 123-ayah source candidate as delivered instead of the two ayahs actually included in the MP4. The history was corrected to only `11:1` and `11:2`.
+- Fixed `src/record_quran_delivery.py` to require the audio report and record only its exact `selected_verses` contiguous prefix. Updated the workflow to pass that report and added regression tests proving a two-ayah selection never marks the remaining candidate ayahs as delivered.
+- The updated history and code are on `feature/telegram-review-notifications`. Test run `41310129350` passed the catalog/test phase including the new delivery-history regression tests; run `41310167242` is checking the workflow-file update.
+- Do not send this same test video again. It is already in Telegram for the user's manual review. TikTok publishing remains manual.
+- A one-off live send is proven; automatic scheduled delivery at all three daily slots is still not proven. Earlier schedule query found no scheduled runs, so do not declare the daily schedule operational yet.
+
 Last updated: 2026-11-01
 
 ## Caption variation update (2026-11-01)
