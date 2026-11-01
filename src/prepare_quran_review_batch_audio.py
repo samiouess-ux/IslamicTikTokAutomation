@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -26,6 +27,52 @@ def probe(path: Path) -> float:
     if value <= 0:
         raise ValueError(f"Invalid audio duration: {path}")
     return value
+
+
+
+def trim_edge_silence(source: Path, destination: Path, source_duration: float,
+                      keep_seconds: float = 0.12) -> float:
+    """Remove only detected leading/trailing silence; preserve MP3 frames and inner recitation."""
+    detection = subprocess.run([
+        "ffmpeg", "-hide_banner", "-i", str(source),
+        "-af", "silencedetect=noise=-50dB:d=0.25",
+        "-f", "null", "-"
+    ], capture_output=True, text=True)
+    if detection.returncode != 0:
+        raise RuntimeError(f"Unable to inspect edge silence in {source}: {detection.stderr[-1000:]}")
+
+    starts = [float(value) for value in re.findall(
+        r"silence_start:\\s*([0-9.]+)", detection.stderr
+    )]
+    ends = [float(value) for value in re.findall(
+        r"silence_end:\\s*([0-9.]+)", detection.stderr
+    )]
+    trim_start = 0.0
+    trim_end = source_duration
+
+    if starts and ends and starts[0] <= 0.05:
+        trim_start = max(0.0, ends[0] - keep_seconds)
+    if starts and ends and ends[-1] >= source_duration - 0.08:
+        trim_end = min(source_duration, starts[-1] + keep_seconds)
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if trim_start <= 0.02 and trim_end >= source_duration - 0.02:
+        shutil.copyfile(source, destination)
+        return source_duration
+    if trim_end - trim_start < 0.5:
+        raise ValueError(f"Edge-silence detection left too little recitation in {source}")
+
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", f"{trim_start:.3f}", "-i", str(source),
+        "-t", f"{trim_end - trim_start:.3f}",
+        "-map", "0:a:0", "-c:a", "copy", "-avoid_negative_ts", "make_zero",
+        str(destination)
+    ], check=True)
+    processed_duration = probe(destination)
+    if processed_duration <= 0 or processed_duration > source_duration + 0.10:
+        raise ValueError(f"Unexpected duration after edge-silence handling: {destination}")
+    return processed_duration
 
 
 def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, target_count: int = 3) -> dict:
@@ -51,6 +98,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             surah = int(candidate["surah_number"])
             selected = []
             durations = {}
+            processed_durations = {}
+            processed_audio_files = {}
             files = []
             total = 0.0
             candidate_dir = output_dir / str(candidate["candidate_id"])
@@ -71,18 +120,24 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 target = candidate_dir / f"{surah:03d}_{number:03d}.mp3"
                 with archive.open(member) as source, target.open("wb") as dest:
                     shutil.copyfileobj(source, dest)
-                duration = probe(target)
-                proposed_total = total + duration
-                if duration > MAX_SECONDS and not selected:
+                source_duration = probe(target)
+                processed_target = candidate_dir / "processed" / f"{surah:03d}_{number:03d}.mp3"
+                processed_duration = trim_edge_silence(target, processed_target, source_duration)
+                proposed_total = total + processed_duration
+                if processed_duration > MAX_SECONDS and not selected:
                     target.unlink(missing_ok=True)
+                    processed_target.unlink(missing_ok=True)
                     blocked_reason = "blocked_single_ayah_exceeds_65_seconds"
                     break
                 if proposed_total > MAX_SECONDS:
                     target.unlink(missing_ok=True)
+                    processed_target.unlink(missing_ok=True)
                     break
                 selected.append(number)
-                durations[number] = round(duration, 3)
-                files.append(target)
+                durations[number] = round(source_duration, 3)
+                processed_durations[number] = round(processed_duration, 3)
+                processed_audio_files[str(number)] = str(processed_target)
+                files.append(processed_target)
                 total = proposed_total
 
             if not selected:
@@ -92,6 +147,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     "status": blocked_reason or "blocked_no_complete_ayah_fits_65_seconds",
                     "requested_verses": requested,
                     "verse_durations_seconds": durations,
+                    "processed_verse_durations_seconds": processed_durations,
                     "complete_duration_seconds": round(total, 3),
                     "selected_verses": [],
                     "duration_seconds": 0,
@@ -121,6 +177,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "requested_verses": requested,
                 "selected_verses": selected,
                 "verse_durations_seconds": durations,
+                "processed_verse_durations_seconds": processed_durations,
+                "processed_audio_files": processed_audio_files,
                 "duration_seconds": round(actual, 3),
                 "audio_file": str(combined),
                 "archive_members": [members[f"{surah}:{n}"] for n in selected],
@@ -139,7 +197,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "audio_prepared_count": len(ready),
         "distinct_surah_count": len({x["surah_number"] for x in ready}),
         "maximum_seconds": MAX_SECONDS,
-        "audio_processing": "longest_contiguous_whole_ayah_prefix_under_65_seconds_stream_copy_no_trimming_no_time_stretch",
+        "audio_processing": "longest_contiguous_whole_ayah_prefix_under_65_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
+        "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",
         "items": results,
         "rendering_allowed": False,
         "telegram_delivery": False,
