@@ -693,3 +693,13 @@ Theme: hope and ease after hardship.
 - Verified source dimensions/durations: ocean 2160x3840 / 5.874s; mountain lake 2160x3840 / 10.11s; sunset 2160x3840 / 5.639s; mountain bridge 3840x2160 / 12.948s. The bridge is landscape and its center crop loses some original framing.
 - All candidates remain not approved and not production-enabled. The contact sheet is only a first-frame crop review; overlay contrast and motion review remain outstanding. No Telegram send/history step ran because this was a push-triggered run.
 - Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41315704678
+
+
+## Run #158 — overlay preview and candidate-background QA (2026-11-01)
+- Run `41317460948` completed successfully on commit `115940fbb519c37306611381b35626fd906905d6` on `feature/telegram-review-notifications`. The previous `preview_path` KeyError is fixed; the background-QA stage now completes.
+- Artifact `13087478281` contains the full Quran inventory/corpora, a review-only Surah Ar-Rahman 55:1–10 MP4 (57.65s, 1080×1920, H.264/MP3), audio report, and four Pexels background stills composited with an actual Quran overlay.
+- Audio report: 10 complete ayahs selected; processed passage duration 57.861s; measured inter-ayah silence 0.24s. The candidate remains explicitly unapproved and blocked from production/Telegram.
+- Four Pexels files passed download and ffprobe checks; overlay contact sheet is generated. This is a QA artifact only: all four backgrounds still have `visual_approval=false`, `production_enabled=false`, and `user_approved=false`. Do not enable any of them without the user's explicit per-background approval.
+- Important limitation: the run generated one distinct-surah preview, not three videos in one run; Telegram send/history steps were skipped because this was a push-triggered run. This run does not prove a new Telegram delivery or daily schedule operation.
+- Visual contact sheet needs further review: the overlay sample is a single ayah frame and should be checked for complete Quran text/ayah-number rendering and contrast before treating the design as accepted. The main preview also remains review-only.
+- Next: inspect the actual preview frames and full video content, resolve any text/layout issue, then verify a scheduled Telegram delivery separately. Preserve all approval gates and manual TikTok posting.
