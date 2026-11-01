@@ -542,3 +542,11 @@ Theme: hope and ease after hardship.
 - The configured cron remains `0 3,11,17 * * *` UTC (04:00, 12:00, 18:00 Tunisia time). The 12:00 Tunisia slot has not been evidenced in Actions history as of this check.
 - Next verification point is the 18:00 Tunisia slot. Confirm the scheduled event, sender step, real positive Telegram `message_id`, and subsequent delivery-history commit before declaring end-to-end delivery.
 - No code or workflow trigger was changed to force a Telegram send. No new bot, cloud service, or TikTok publishing path was added.
+
+
+## One-off live Telegram test trigger (2026-11-01)
+- The user correctly challenged the assumption that a cron schedule alone proves unattended delivery. The workflow had successful push-triggered builds, but Telegram was skipped on every push; no real scheduled sendVideo/message_id had been evidenced.
+- Added a narrowly scoped one-time test condition to the existing workflow: Telegram send and failure notice also run only when a push commit message contains `[telegram-live-test]`. This avoids enabling Telegram delivery on ordinary code pushes.
+- Trigger commit: `391924dae1c1b4d5826386876f6395e7beae4b6d` on `feature/telegram-review-notifications`. Because the workflow file itself is in the push path filter, this commit should launch the test run.
+- This is a trigger configuration change, not proof that a run started or a video arrived. Verify the run's event, render, Telegram `sendVideo` response with a real positive `message_id`, and delivery-history commit. If successful, immediately remove the temporary tagged-push condition so ordinary pushes do not send videos.
+- If the run does not start, investigate Actions scheduling/enabled state and repository workflow permissions before adding more engine features. No `main` changes, new bot, Cloudflare, webhook, or TikTok auto-publishing.
