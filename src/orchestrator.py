@@ -90,21 +90,6 @@ def render_plan(plan: list[dict], output_dir: Path) -> list[dict]:
     return rendered
 
 
-def save_history(path: Path, history: dict, completed: list[dict]) -> None:
-    updated = dict(history)
-    updated["content"] = [
-        *history.get("content", []),
-        *[item["content_id"] for item in completed],
-    ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(updated, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    temporary.replace(path)
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Coordinate a Quran-only daily review batch."
@@ -148,10 +133,12 @@ def main() -> int:
         return 0
 
     rendered = render_plan(plan, args.output_dir)
-    save_history(args.history, history, rendered)
+    # Rendering is not delivery. Do not consume rotation history here:
+    # the production Telegram workflow records ayahs only after API confirmation.
     print(json.dumps({
         "status": "rendered_for_manual_review",
         "videos": rendered,
+        "history_updated": False,
         "telegram_sent": False,
         "tiktok_published": False,
     }, ensure_ascii=False, indent=2))
