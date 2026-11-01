@@ -3,11 +3,16 @@ from __future__ import annotations
 import argparse, json
 from pathlib import Path
 
+from parse_telegram_quran_request import SURAH_AYAH_COUNTS
+
+
 def build_requested_batch(joined: dict, surah: int, start_ayah: int, end_ayah: int) -> dict:
     if joined.get("rendering_allowed") is not False or joined.get("status") != "complete_join_candidate_requires_human_review_and_recording_approval":
         raise ValueError("Only the complete, review-gated joined catalog is accepted.")
     if not 1 <= surah <= 114 or start_ayah < 1 or end_ayah < start_ayah or end_ayah - start_ayah > 9:
         raise ValueError("Request must be one surah and a range of 1–10 consecutive ayahs.")
+    if end_ayah > SURAH_AYAH_COUNTS[surah - 1]:
+        raise ValueError(f"Requested ayah exceeds the {SURAH_AYAH_COUNTS[surah - 1]} ayahs in this surah.")
     corpus = joined.get("verses")
     refs = [f"{surah}:{ayah}" for ayah in range(start_ayah, end_ayah + 1)]
     verses = []
@@ -35,9 +40,11 @@ def build_requested_batch(joined: dict, surah: int, start_ayah: int, end_ayah: i
                 "background_licensed_and_user_approved": False, "ready_to_render": False,
                 "ready_to_publish": False}}]}
 
+
 def save_batch(batch: dict, output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(batch, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -51,6 +58,7 @@ def main():
     batch = build_requested_batch(joined, args.surah, args.start_ayah, args.end_ayah)
     save_batch(batch, args.output)
     print(f"Prepared {batch['passages'][0]['candidate_id']} as a review-only request.")
+
 
 if __name__ == "__main__":
     main()
