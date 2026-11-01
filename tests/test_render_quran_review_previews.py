@@ -5,11 +5,25 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from PIL import Image, ImageDraw
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from render_quran_review_previews import render, SURAH_NAMES
+from render_quran_review_previews import render, SURAH_NAMES, fit_translation_lines
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
+    def test_long_translation_is_fitted_without_dropping_words(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        original = " ".join(["translation"] * 30)
+        font, lines, line_height = fit_translation_lines(
+            draw, original, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+        )
+        self.assertLessEqual(len(lines), 5)
+        self.assertEqual(" ".join(lines), original)
+        self.assertLessEqual(font.size, 30)
+        self.assertGreaterEqual(line_height, 42)
+
     # Covers both scheduled multi-video batches and isolated user requests.
     def fixtures(self, root: Path):
         passages, items = [], []
