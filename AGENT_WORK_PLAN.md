@@ -96,6 +96,14 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - The Telegram send step was **skipped**, not failed and not successful. The run was a push-triggered run; the workflow only sends for `schedule` or `workflow_dispatch`. Therefore this run proves a distinct-surah preview can be rendered, but does not prove MP4 delivery.
 - The mocked sender unit test returned a fake Telegram message ID in the test; it is not a real Telegram delivery.
 
+## Live Telegram delivery and history correction (2026-11-01)
+- Run `41309830990` completed a controlled real Telegram `sendVideo`; Telegram returned `ok: true` and `message_id=27`. The sent MP4 was Surah Hud 11:1–2, 40.046 seconds, 1080×1920, H.264 + original MP3.
+- The source candidate spans Hud 1–123, while the duration selector chose only 1–2. The first recorder implementation incorrectly persisted all 123 candidate ayahs. This was caught during log audit, not hidden.
+- Corrected `data/quran_delivery_history.json` to list only 11:1 and 11:2. Updated `record_quran_delivery.py` to require the audio report and record only `selected_verses`; updated the workflow invocation and regression tests.
+- Test run `41310129350` passed the test phase including the new selected-prefix tests. Workflow update run `41310167242` is pending/running validation. Confirm its final result before calling this correction fully CI-verified.
+- Do not resend the same test MP4. The existing Telegram message is already delivered for manual review.
+- This proves one real MP4 send only. The scheduled 04:00/12:00/18:00 operation still needs an actual scheduled event and confirmed delivery-history commit.
+
 ## Current release status
 
 **Not yet declared ready.** English is the confirmed language and there is no French/English mismatch to resolve. The actual scheduled MP4 delivery has not been proven in the evidence reviewed on 2026-11-01. Do not tell the user the engine is complete until the remaining delivery and repeated-operation acceptance criteria are met.
