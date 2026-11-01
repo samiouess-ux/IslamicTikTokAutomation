@@ -42,7 +42,7 @@ def parse_quran_request(message: str) -> dict:
     cleaned = _clean(message)
     cleaned = re.sub(r"^(?:(?:اريد|نحب|اعمل|حضر)\s+)?(?:فيديو\s+)?سورة\s+", "", cleaned)
     match = re.fullmatch(
-        r"(?P<name>.+?)(?:\s+(?:الايات|الآية|اية|آية|من)\s*(?P<start>\d+)(?:\s*(?:-|الى|إلى|ل)\s*(?P<end>\d+))?)?",
+        r"(?P<name>.+?)(?:\s+(?:الايات|الاية|الآية|اية|آية|من)\s*(?P<start>\d+)(?:\s*(?:-|الى|إلى|ل)\s*(?P<end>\d+))?)?",
         cleaned,
     )
     if not match:
