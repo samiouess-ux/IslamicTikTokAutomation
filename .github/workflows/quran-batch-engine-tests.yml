@@ -9,10 +9,14 @@ on:
       - "src/render_video_scenes.py"
       - "src/render_quran_review_batch.py"
       - "src/validate_content_manifest.py"
+      - "src/orchestrator.py"
+      - "src/content_rotation.py"
       - "tests/test_build_quran_review_batch.py"
       - "tests/test_build_quran_video_catalog.py"
       - "tests/test_quran_visual_templates.py"
       - "tests/test_render_quran_review_batch.py"
+      - "tests/test_orchestrator.py"
+      - "tests/test_content_rotation.py"
       - ".github/workflows/quran-batch-engine-tests.yml"
   workflow_dispatch:
 
@@ -42,7 +46,9 @@ jobs:
             src/build_quran_video_catalog.py \
             src/render_video_scenes.py \
             src/render_quran_review_batch.py \
-            src/validate_content_manifest.py
+            src/validate_content_manifest.py \
+            src/orchestrator.py \
+            src/content_rotation.py
       - name: Run Quran catalog, batch and visual template tests
         run: |
           python -m unittest -v \
@@ -50,6 +56,8 @@ jobs:
             tests/test_build_quran_video_catalog.py \
             tests/test_quran_visual_templates.py \
             tests/test_render_quran_review_batch.py
+      - name: Test Quran-only daily orchestrator
+        run: python -m unittest discover -s tests -p 'test_orchestrator.py' -v
       - name: Confirm workflow is test-only
         run: |
           ! grep -Eq "send_telegram|upload_to_tiktok|publish" .github/workflows/quran-batch-engine-tests.yml
