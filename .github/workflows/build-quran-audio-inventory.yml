@@ -165,7 +165,7 @@ jobs:
           from pathlib import Path
           report = json.loads(Path("output/quran_batch_audio_report.json").read_text(encoding="utf-8"))
           if report["audio_prepared_count"] != 1:
-              raise SystemExit("Exactly three distinct-surah audio candidates must be prepared for the daily target.")
+              raise SystemExit("Exactly one distinct-surah audio candidate must be prepared for this scheduled slot.")
           if report["distinct_surah_count"] != report["audio_prepared_count"]:
               raise SystemExit("Audio candidates must come from distinct surahs.")
           if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
@@ -184,7 +184,7 @@ jobs:
           from pathlib import Path
           report = json.loads(Path("output/quran_draft_manifest_report.json").read_text(encoding="utf-8"))
           if report["manifest_count"] != 1 or report["manifest_count"] != report["distinct_surah_count"]:
-              raise SystemExit("Expected exactly three distinct-surah draft manifests.")
+              raise SystemExit("Expected exactly one distinct-surah draft manifest for this scheduled slot.")
           if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Draft manifests must remain blocked from rendering and delivery.")
           for item in report["items"]:
@@ -207,7 +207,7 @@ jobs:
           from pathlib import Path
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
           if report["preview_count"] != 1 or report["production_approved"]:
-              raise SystemExit("Expected exactly three review-only previews with production approval disabled.")
+              raise SystemExit("Expected exactly one review-only preview with production approval disabled.")
           if report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Telegram delivery and auto-publishing must remain disabled.")
           for item in report["items"]:
@@ -253,9 +253,9 @@ jobs:
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
           if report.get("preview_count") != 1 or report.get("auto_publish") is not False:
-              raise SystemExit("Telegram delivery requires exactly three review-only videos and disabled auto-publishing.")
+              raise SystemExit("Telegram delivery requires exactly one review-only video and disabled auto-publishing.")
           if len({item["surah_number"] for item in report["items"]}) != 1 or len(report["items"]) != 1:
-              raise SystemExit("Daily Telegram batch must contain exactly three distinct surahs.")
+              raise SystemExit("Each scheduled Telegram slot must contain exactly one distinct surah.")
           batch_ids = {item["candidate_id"] for item in batch.get("passages", [])}
           for index, item in enumerate(report["items"], start=1):
               if item.get("candidate_id") not in batch_ids:
