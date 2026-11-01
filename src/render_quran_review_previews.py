@@ -335,10 +335,10 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     width, height = 1080, 1920
 
     # Layered emerald stone texture with irregular mineral veins.
-    noise = Image.effect_noise((360, 640), 34).resize(
+    noise = Image.effect_noise((540, 960), 52).resize(
         (width, height), Image.Resampling.BICUBIC
     )
-    marble = ImageOps.colorize(noise, black="#00130f", white="#174c3d").convert("RGBA")
+    marble = ImageOps.colorize(noise, black="#000d0b", white="#24634b").convert("RGBA")
     shade = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     shade_draw = ImageDraw.Draw(shade)
     for y in range(height):
@@ -355,9 +355,9 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
             y = step * (height - 1) / 160
             x = sx + amp * math.sin(step / 17 + phase) + 22 * math.sin(step / 4.7 + phase * 2)
             pts.append((int(x), int(y)))
-        vd.line(pts, fill=(224, 174, 76, 150), width=5)
-        vd.line([(x + 5, y) for x, y in pts], fill=(255, 222, 145, 65), width=2)
-    image = Image.alpha_composite(image, veins.filter(ImageFilter.GaussianBlur(13)))
+        vd.line(pts, fill=(230, 177, 79, 205), width=7)
+        vd.line([(x + 5, y) for x, y in pts], fill=(255, 225, 157, 115), width=3)
+    image = Image.alpha_composite(image, veins.filter(ImageFilter.GaussianBlur(18)))
     image = Image.alpha_composite(image, veins)
     draw = ImageDraw.Draw(image)
 
@@ -434,19 +434,19 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
 
     # Stronger mineral veins with branching hairlines and luminous gold edges.
     for side in (-1, 1):
-        for branch in range(5):
+        for branch in range(8):
             start_x = 18 if side < 0 else width-18
-            start_y = 170 + branch*360
-            end_x = start_x + side*int(115 + 22*branch)
-            end_y = min(height-20, start_y + 260)
-            bend = side * (35 + branch*7)
+            start_y = 90 + branch*245
+            end_x = start_x + side*int(150 + 26*branch)
+            end_y = min(height-20, start_y + 310)
+            bend = side * (48 + branch*11)
             vein_pts = [(start_x, start_y),
                         (start_x + bend, start_y+85),
                         (end_x-bend//2, start_y+170),
                         (end_x, end_y)]
-            draw.line(vein_pts, fill=(181, 124, 43, 220), width=3)
+            draw.line(vein_pts, fill=(218, 159, 64, 245), width=5)
             draw.line([(x+3, y-2) for x,y in vein_pts],
-                      fill=(255, 221, 143, 150), width=1)
+                      fill=(255, 226, 158, 210), width=2)
 
     # Restrained luminous highlights at the four cardinal points.
     for x, y in ((cx, cy-radius+3), (cx, cy+radius-3),
