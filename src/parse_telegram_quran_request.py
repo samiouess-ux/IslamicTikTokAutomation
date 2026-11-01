@@ -38,8 +38,7 @@ def parse_quran_request(message: str) -> dict:
     if not isinstance(message, str) or not message.strip():
         raise ValueError("ابعث اسم السورة، مثال: فيديو سورة الرحمن")
     cleaned = _clean(message)
-    cleaned = re.sub(r"^(?:اريد|أريد|نحب|اعمل|حضّر|حضر|فيديو)\s*", "", cleaned)
-    cleaned = re.sub(r"^سورة\s+", "", cleaned)
+    cleaned = re.sub(r"^(?:(?:اريد|نحب|اعمل|حضر)\s+)?(?:فيديو\s+)?سورة\s+", "", cleaned)
     match = re.fullmatch(
         r"(?P<name>.+?)(?:\s+(?:الايات|اية|من)\s*(?P<start>\d+)\s*(?:-|الى|إلى|ل)\s*(?P<end>\d+))?",
         cleaned,
