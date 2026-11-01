@@ -263,3 +263,8 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - New tests: `tests/test_select_requested_quran_range.py` and single-ayah parser coverage. `.github/workflows/test-quran-request.yml` now installs `remotezip` and runs the selector tests.
 - Not yet live: Worker deployment, KV namespace binding, Worker secrets, and Telegram `setWebhook` have not been configured because the assistant has no access to the user's Cloudflare account or private credentials. Do not say the Telegram bot is operational until setup and a real MP4 request/receipt are confirmed.
 - CI verification is still pending at this checkpoint. Check the request-test workflow before relying on the code; then do one real end-to-end test with a user request. Daily schedule and existing daily Telegram delivery remain untouched. TikTok publishing remains manual/disabled.
+
+### On-demand bridge CI follow-up (2026-11-01)
+- Fixed the Arabic single-ayah marker normalization (`الآية` becomes `الاية` after parser normalization). Initial failing CI run `41291158253`; corrected suite run `41291299022` passed every step, including the new 65-second range selector tests and all existing request/render tests.
+- Added a push-only syntax-validation trigger to `.github/workflows/telegram-quran-request.yml`; the job is explicitly skipped for push events and runs only for manual workflow dispatch on the active feature branch. GitHub recognized the workflow; validation run `41291338533` concluded `skipped` as designed.
+- Do not call the bot live yet: Worker/KV deployment, secrets, webhook registration, and a real Telegram MP4 request are still pending. The daily schedule/workflow remains untouched.
