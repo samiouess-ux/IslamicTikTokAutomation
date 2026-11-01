@@ -386,3 +386,16 @@ Theme: hope and ease after hardship.
 - All three were verified as 1080x1920, H.264 video with the original MP3 audio stream, and below the 65-second limit. All are explicitly marked review-only; audio/production approval remains false.
 - Uploaded artifact: `official-quran-audio-inventory-and-probe`, artifact ID `13076490971`, retention 30 days. This confirms preview generation, not Telegram delivery.
 - The final delivery workflow update is commit `37d92d402701a90408e504263b79ff49a63cc591`; it consolidates the three daily sends into one daily run and records each confirmed Telegram delivery immediately. Await a schedule/manual-dispatch run to verify the Telegram send and persistent history update.
+
+
+## Daily three-video render verification (2026-11-01)
+- GitHub repository metadata confirms `feature/telegram-review-notifications` is the repository's default branch. Therefore its `schedule` trigger is eligible to run without modifying `main`.
+- Daily schedule is `07 03 * * *` (03:07 UTC / 04:07 Tunisia time), and one run builds three different Quran review videos together.
+- GitHub Actions run `41288444911` completed successfully on commit `37d92d402701a90408e504263b79ff49a63cc591`. It rebuilt the full 6,236-verse Arabic/English/audio candidate catalog, selected three distinct surahs, prepared whole-ayah audio, and rendered three review-only MP4s.
+- Verified outputs: Al-Mulk 67:26–27 (37.616s), At-Takwir 81:15–16 (16.588s), Al-Alaq 96:2–3 (15.543s); all 1080x1920 H.264 video with MP3 audio; all under 65 seconds.
+- Artifact `official-quran-audio-inventory-and-probe`, ID `13076490971`, contains MP4s, audio, manifests, and reports; retained for 30 days.
+- This run was triggered by a code push, so the Telegram delivery and failure-notification steps were correctly skipped. No claim of Telegram delivery is made from this run. The next scheduled run is the first automatic end-to-end Telegram delivery attempt.
+- The delivery step sends all three review-only MP4s sequentially to Telegram, then records each confirmed ayah delivery in `data/quran_delivery_history.json` and pushes that history to this default feature branch. The workflow has `contents: write` permission. The history file is initially absent and is created only after the first confirmed Telegram delivery.
+- The daily candidate builder reads this persisted history and avoids reusing previously delivered ayahs. It excludes the already-used Ash-Sharh prototype from the daily rotation.
+- Telegram secrets cannot be inspected through the available GitHub interface; successful delivery still depends on valid `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository secrets.
+- The renderer currently uses the previously user-approved Mixkit waterfall moving background with palette variations; distinct backgrounds per video are not yet implemented. Audio/text/translation and reuse approvals remain human review items. TikTok auto-publishing remains disabled.
