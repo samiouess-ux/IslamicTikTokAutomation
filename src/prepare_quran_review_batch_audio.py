@@ -59,7 +59,9 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             # Probe consecutive whole ayahs in order. Keep the longest prefix
             # whose measured source duration fits the 65-second limit. A short
             # surah naturally remains whole when its complete duration fits.
-            requested = []
+            # Keep the complete source request, even when the 65-second cap
+            # means only a contiguous prefix can be selected for this video.
+            requested = [int(verse["ayah"]) for verse in candidate["verses"]]
             for verse in candidate["verses"]:
                 number = int(verse["ayah"])
                 key = f"{surah}:{number}"
@@ -70,7 +72,6 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 with archive.open(member) as source, target.open("wb") as dest:
                     shutil.copyfileobj(source, dest)
                 duration = probe(target)
-                requested.append(number)
                 proposed_total = total + duration
                 if duration > MAX_SECONDS and not selected:
                     target.unlink(missing_ok=True)
