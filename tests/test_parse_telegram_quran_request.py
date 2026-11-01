@@ -32,6 +32,15 @@ class TelegramQuranRequestParserTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "10 آيات"):
             parse_quran_request("سورة البقرة الآيات 1-11")
 
+    def test_ayah_beyond_surah_length_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "يتجاوز آخر آية"):
+            parse_quran_request("سورة الفاتحة الآيات 1-8")
+
+    def test_full_surah_request_starts_with_valid_first_ayah(self):
+        result = parse_quran_request("فيديو سورة الكوثر")
+        self.assertEqual(result["surah_number"], 108)
+        self.assertEqual(result["start_ayah"], 1)
+
     def test_parser_never_approves_rendering_or_delivery(self):
         result = parse_quran_request("سورة الفاتحة")
         self.assertFalse(result["rendering_allowed"])
