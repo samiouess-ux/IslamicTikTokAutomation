@@ -7,6 +7,8 @@ on:
       - "src/build_requested_quran_passage.py"
       - "tests/test_build_requested_quran_passage.py"
       - "src/parse_telegram_quran_request.py"
+      - "src/select_requested_quran_range.py"
+      - "tests/test_select_requested_quran_range.py"
       - "tests/test_parse_telegram_quran_request.py"
       - "src/telegram_request_inbox.py"
       - "tests/test_telegram_request_inbox.py"
@@ -30,9 +32,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install rendering test dependencies
-        run: python -m pip install --disable-pip-version-check pillow
+        run: python -m pip install --disable-pip-version-check pillow remotezip
       - name: Test Telegram request parser
         run: python -m unittest discover -s tests -p 'test_parse_telegram_quran_request.py' -v
+      - name: Test safe ayah-range selection for whole-surah requests
+        run: python -m unittest discover -s tests -p 'test_select_requested_quran_range.py' -v
       - name: Test authorized Telegram inbox
         run: python -m unittest discover -s tests -p 'test_telegram_request_inbox.py' -v
       - name: Test Telegram request persistence and deduplication
