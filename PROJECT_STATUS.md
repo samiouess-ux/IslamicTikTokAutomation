@@ -667,3 +667,12 @@ Theme: hope and ease after hardship.
 - All 17 inventory job steps that were expected to execute passed, including the retry/filename regression test, complete 6,236-entry official audio mapping, full Saheeh translation corpus, Uthmani candidate corpus, exact-key join, catalog tests, eight-distinct-surah candidate pool, one distinct-surah audio preparation, draft manifest generation, and review-only 9:16 preview render.
 - Telegram send/history steps were skipped because this was a push event, not a scheduled/manual delivery event. No new video was sent. This confirms the archive fix and preparation pipeline; it does not yet prove the next scheduled Telegram delivery.
 - Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41313825363
+
+## Background source URL verification (2026-11-01)
+- Re-opened all four staged Pexels clip pages and followed each page's own Free download link to capture the direct MP4 URL. The links resolve to videos.pexels.com/video-files assets whose path IDs match the four source page IDs.
+- Added the exact direct MP4 URLs to data/background_candidates.json; this is metadata only. All four remain download_verified=false, approved=false, and user_approved=false. The production renderer and current approved Mixkit background remain unchanged.
+- Added tests/test_background_candidates.py to check source-page/direct-file ID consistency and ensure approval gates remain closed. Added the test to the existing workflow's push path filter and CI steps.
+- Commits: a7388a7 (URLs), b014ad9 (test + workflow), 9b426bf / e596498 (regex correction).
+- CI run 41314687147 / #152 was observed in progress at 14:09 UTC; wait for its final conclusion before marking the new test verified.
+- External page checks: ocean https://www.pexels.com/video/peaceful-ocean-waves-crashing-on-shoreline-35036280/, lake https://www.pexels.com/video/serene-mountain-lake-with-pine-forest-37675265/, sunset https://www.pexels.com/video/serene-sunset-sky-with-soft-clouds-35477402/, bridge https://www.pexels.com/video/drone-footage-of-mountain-forest-and-a-bridge-above-the-lake-5903759/. Pexels pages label the clips free; the bridge is 16:9 and still needs a crop review.
+- Scheduled-run audit at 14:08 UTC found no event=schedule runs on the active branch yet; the next cron slot is 17:00 UTC / 18:00 Tunisia. The only workflow_dispatch run found was an older 2026-10-31 run. Scheduled Telegram delivery is not yet verified.
