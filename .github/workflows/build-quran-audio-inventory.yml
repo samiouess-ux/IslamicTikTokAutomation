@@ -281,7 +281,7 @@ jobs:
               "--video", item["file"],
               "--caption", str(caption_path),
           ], check=True)
-          print(f"Telegram confirmed scheduled video {slot_by_hour[utc_hour] + 1}/3. TikTok publishing remains manual.")
+          print(f"Telegram confirmed scheduled video {slot + 1}/3. TikTok publishing remains manual.")
           PY
 
       - name: Notify Telegram if daily delivery fails
