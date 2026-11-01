@@ -676,3 +676,12 @@ Theme: hope and ease after hardship.
 - CI run 41314687147 / #152 was observed in progress at 14:09 UTC; wait for its final conclusion before marking the new test verified.
 - External page checks: ocean https://www.pexels.com/video/peaceful-ocean-waves-crashing-on-shoreline-35036280/, lake https://www.pexels.com/video/serene-mountain-lake-with-pine-forest-37675265/, sunset https://www.pexels.com/video/serene-sunset-sky-with-soft-clouds-35477402/, bridge https://www.pexels.com/video/drone-footage-of-mountain-forest-and-a-bridge-above-the-lake-5903759/. Pexels pages label the clips free; the bridge is 16:9 and still needs a crop review.
 - Scheduled-run audit at 14:08 UTC found no event=schedule runs on the active branch yet; the next cron slot is 17:00 UTC / 18:00 Tunisia. The only workflow_dispatch run found was an older 2026-10-31 run. Scheduled Telegram delivery is not yet verified.
+
+
+## Distinct-surah preview render verification (2026-11-01)
+- Corrected the background-candidate URL test regex; the earlier run #152 failed only on an over-escaped dot in the test expression, not on any source URL or Quran data.
+- Run #153 (41314717304) completed successfully on feature/telegram-review-notifications. The archive retry test, all 6,236 ayah mappings, Saheeh International corpus, Uthmani candidate corpus, exact-key join, catalog regression tests, diverse candidate selection, audio preparation, draft manifest generation, 9:16 render, and artifact upload all passed.
+- Artifact 13087310229 contains the review MP4 quran_s055_001_078_REVIEW_ONLY.mp4: Surah Ar-Rahman (55), ayahs 1–10, 57.65 seconds, 1080×1920, H.264 + MP3. Whole consecutive ayahs were selected under the 65-second cap. The audio report measures 0.24 seconds of inter-ayah silence after edge-only silence processing; no internal silence was removed.
+- Sampled frames show the existing approved Mixkit waterfall background, gold surah cartouche, white Arabic ayah text, gold circular ayah badge, and smaller Saheeh International English translation. This is a preview of the existing approved background, not a test of the four newly staged Pexels backgrounds.
+- The Pexels candidates remain disabled/unverified/unapproved. The manifest and preview remain review-only: audio rights, exact Arabic/translation content, and production rendering are not approved. No Telegram send or delivery-history step ran because this was a push event.
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41314717304
