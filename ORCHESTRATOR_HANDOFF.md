@@ -234,3 +234,14 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Rotation code exists, but no manifest is currently confirmed eligible for production rotation: Al-Ikhlas remains an unapproved candidate; Ash-Sharh 94:1–8 is preview-only; only the exact 94:5–6 recording has user listening approval.
 - Keep the rotation approval gate strict. Prepare more exact, rights-cleared Quran audio candidates and distinct approved backgrounds/layouts for user review. Then implement/test a batch of three separately rendered MP4s and confirm actual Telegram receipt.
 - Never enable TikTok auto-publishing. Daily/Friday schedules remain disabled until batch rendering and real Telegram delivery are proven.
+
+
+## Orchestrator history-safety correction (2026-11-01)
+- Updated `src/orchestrator.py` so a render-only run never writes rotation/delivery history. Rendering is not Telegram delivery; only the production workflow's Telegram API confirmation path may record delivered ayahs.
+- Added a regression test proving `--render` leaves the existing history file unchanged.
+- Commits: orchestrator fix `d58002f9648f7d40935d45d3443719dcf18ca92e`; regression test `fda4325c500293021eb791b17ebe3e35bababc2d`.
+- GitHub Actions run `41289246850` completed successfully on the active feature branch. Compile, Quran catalog/batch/visual tests, all orchestrator tests including the new history-safety test, and the test-only workflow guard passed.
+- The production daily Quran workflow remains unchanged and independent of this helper orchestrator. Latest push-triggered integration run `41288831454` succeeded through three review previews and artifact upload; Telegram was correctly skipped for a push event.
+- The user's successful Telegram test message confirms bot/chat reachability only, not delivery of three MP4s. The next scheduled batch attempt is 2026-11-02 at 03:07 UTC (04:07 Tunisia time); verify three Telegram send confirmations and history updates before declaring daily delivery proven.
+- Known visual gap remains: all three preview videos use the same approved Mixkit waterfall source with palette variations. True background rotation requires additional separately licensed and user-approved background assets.
+- No TikTok auto-publishing is enabled; user review and manual posting remain mandatory.
