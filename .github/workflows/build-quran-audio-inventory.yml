@@ -11,6 +11,8 @@ on:
       - "src/build_official_audio_inventory.py"
       - "data/background_candidates.json"
       - "tests/test_background_candidates.py"
+      - "src/prepare_background_review_previews.py"
+      - "tests/test_prepare_background_review_previews.py"
       - "src/prepare_official_quran_passage.py"
       - "src/prepare_quran_review_batch_audio.py"
       - "src/build_quran_review_batch.py"
@@ -54,7 +56,9 @@ jobs:
       - name: Test official archive retry and filename mapping safeguards
         run: python -m unittest discover -s tests -p 'test_build_official_audio_inventory.py' -v
       - name: Validate staged background source URLs and disabled approval gates
-        run: python -m unittest discover -s tests -p 'test_background_candidates.py' -v
+        run: |
+          python -m unittest discover -s tests -p 'test_background_candidates.py' -v
+          python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
       - name: Inspect official archive and validate complete verse mapping
         run: |
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
@@ -222,6 +226,21 @@ jobs:
                   raise SystemExit("Preview must preserve original MP3 audio stream.")
           print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
           PY
+      - name: Download and prepare review-only background crop previews
+        run: |
+          python src/prepare_background_review_previews.py \
+            --catalog data/background_candidates.json \
+            --output-dir output/background_review
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/background_review/background_review_report.json").read_text(encoding="utf-8"))
+          if report["candidate_count"] != 4 or report["production_enabled"] is not False or report["user_approval_required"] is not True:
+              raise SystemExit("Background review package must contain four disabled candidates.")
+          if not all(item["download_probe_verified"] and item["user_approved"] is False for item in report["items"]):
+              raise SystemExit("A candidate download/probe check failed or an approval gate changed.")
+          print("Prepared four verified source downloads and 9:16 crop previews; none is production-approved.")
+          PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
         with:
@@ -238,6 +257,8 @@ jobs:
             output/quran_draft_manifest_report.json
             output/quran_review_previews/*.mp4
             output/quran_review_previews/preview_report.json
+            output/background_review/*.jpg
+            output/background_review/background_review_report.json
           if-no-files-found: error
           retention-days: 30
 
