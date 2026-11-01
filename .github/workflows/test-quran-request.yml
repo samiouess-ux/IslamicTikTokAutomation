@@ -6,6 +6,8 @@ on:
     paths:
       - "src/build_requested_quran_passage.py"
       - "tests/test_build_requested_quran_passage.py"
+      - "src/parse_telegram_quran_request.py"
+      - "tests/test_parse_telegram_quran_request.py"
       - "src/render_quran_review_previews.py"
       - "tests/test_render_quran_review_previews.py"
   workflow_dispatch:
@@ -24,6 +26,8 @@ jobs:
           python-version: "3.12"
       - name: Install rendering test dependencies
         run: python -m pip install --disable-pip-version-check pillow
+      - name: Test Telegram request parser
+        run: python -m unittest discover -s tests -p 'test_parse_telegram_quran_request.py' -v
       - name: Test exact requested Quran passages
         run: python -m unittest discover -s tests -p 'test_build_requested_quran_passage.py' -v
       - name: Test single and daily review rendering modes
