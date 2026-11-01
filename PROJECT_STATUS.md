@@ -399,3 +399,13 @@ Theme: hope and ease after hardship.
 - The daily candidate builder reads this persisted history and avoids reusing previously delivered ayahs. It excludes the already-used Ash-Sharh prototype from the daily rotation.
 - Telegram secrets cannot be inspected through the available GitHub interface; successful delivery still depends on valid `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository secrets.
 - The renderer currently uses the previously user-approved Mixkit waterfall moving background with palette variations; distinct backgrounds per video are not yet implemented. Audio/text/translation and reuse approvals remain human review items. TikTok auto-publishing remains disabled.
+
+## Handover update — 2026-11-01 (latest verified checkpoint)
+- User confirmed that the Telegram bot receives a test message successfully. This confirms the test-message path and that the bot/chat setup is reachable; it does not by itself prove that the scheduled three-MP4 delivery has completed.
+- Latest workflow run checked: `41288831454` (run #77), commit `ee1481ead4d4151b1ded3bbd850ffa344b2dff60`, event `push`, conclusion `success`. All inventory, translation, catalog, candidate selection, audio preparation, manifest, preview-render, and artifact steps passed.
+- In that push-triggered run, Telegram delivery and failure-notification steps were correctly skipped by their event guards. This is expected and is not a delivery failure.
+- Three distinct-surah previews were previously verified in run `41288444911`: Al-Mulk 67:26–27 (37.616s), At-Takwir 81:15–16 (16.588s), and Al-Alaq 96:2–3 (15.543s), all vertical 1080x1920 and below 65 seconds.
+- Daily schedule remains `03:07 UTC` (04:07 Tunisia local time). Since the 2026-11-01 scheduled time has passed, the next scheduled attempt is 2026-11-02 at 04:07 Tunisia time. The scheduled run must be inspected for three Telegram API confirmations and a successful delivery-history push before declaring automatic video delivery proven.
+- User explicitly confirmed Telegram test-message receipt; use that confirmation as context, but continue to distinguish it from actual MP4 batch delivery.
+- The active branch remains `feature/telegram-review-notifications`; do not modify `main`. TikTok publishing remains manual and disabled.
+- Known remaining visual gap: all three recent previews still use the same approved Mixkit waterfall source with palette changes; true distinct background rotation is not yet implemented.
