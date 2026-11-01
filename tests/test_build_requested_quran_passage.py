@@ -25,7 +25,7 @@ class RequestedPassageTests(unittest.TestCase):
             path = Path(directory) / "nested" / "request.json"
             save_batch(batch, path)
             self.assertEqual(json.loads(path.read_text(encoding="utf-8")), batch)
-            self.assertTrue(path.read_bytes().endswith(b"\\n"))
+            self.assertTrue(path.read_bytes().endswith(b"\n"))
     def test_rejects_missing_ayah(self):
         with self.assertRaisesRegex(ValueError, "absent"):
             build_requested_batch(self.joined, 67, 4, 6)
