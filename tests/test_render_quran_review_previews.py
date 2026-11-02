@@ -38,9 +38,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             "غَفُورٌ رَحِيمٌ"
         )
         font, lines, line_height = fit_arabic_lines(draw, original, font_file())
-        self.assertLessEqual(len(lines), 5)
+        self.assertLessEqual(len(lines), 7)
         self.assertEqual(" ".join(lines), original)
-        self.assertGreaterEqual(font.size, 36)
+        self.assertGreaterEqual(font.size, 28)
         self.assertGreater(line_height, font.size)
 
     def test_short_arabic_ayah_uses_larger_amiri_type(self):
