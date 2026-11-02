@@ -1,3 +1,11 @@
+## Renderer layout fix verified (2026-11-02)
+- Latest active-branch commit `c1cec3fbd246871fbd856542ae95c1bc039d2645` passed the full push-triggered inventory workflow run `41491587024` (conclusion `success`). The previously failing 9:16 preview render now passed, as did background crop/overlay previews and artifact upload.
+- The isolated Quran request pipeline run `41491586953` also completed successfully; all its test steps passed.
+- Both runs were `push` events. Telegram reservation/send/history/sync steps were skipped by design; no video was sent by these validations.
+- Checked `data/quran_delivery_pending.json`: file is absent on the active branch at this checkpoint, so there is no recorded unresolved reservation in repository state.
+- Translation layout now permits up to eight lines and smaller fallback fonts while preserving all words; the renderer still fails closed rather than clipping. This validates the automated render path, not final human visual approval.
+- Existing cron-job.org schedule remains 04:10, 12:10, 18:10 Africa/Tunis. No schedule, trigger, bot, or `main` changes were made. Next: review the uploaded preview artifact and await the next existing scheduled delivery; do not manually dispatch a test send.
+
 ## Latest validation — duplicate-send safeguards and full preview pipeline (2026-11-02)
 - GitHub Actions run `41476070230` completed with conclusion `success` on the active branch. It validated the new Telegram reservation and sender safety tests, Tunisia-local Friday detection, weekday-aware candidate preparation, 9:16 preview rendering, background crop preview, and artifact upload.
 - This was a push-triggered validation run. Telegram reservation/send/history/sync steps were correctly skipped; no new Telegram video was sent by this run.
