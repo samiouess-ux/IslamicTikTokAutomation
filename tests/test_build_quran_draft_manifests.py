@@ -70,6 +70,25 @@ class DraftManifestTests(unittest.TestCase):
             self.assertFalse(data["publishing"]["telegram_delivery"])
             self.assertFalse(data["preflight"]["rendering_allowed"])
 
+    def test_builds_later_part_from_contiguous_slice_of_same_candidate(self):
+        batch = {"batch_status": "review_candidates_only", "passages": [candidate("source", 19)]}
+        report = {"rendering_allowed": False, "auto_publish": False, "items": [
+            {"candidate_id": "source_part_002", "source_candidate_id": "source",
+             "part_index": 2, "part_count": 2, "surah_number": 19,
+             "status": "audio_prepared_requires_review", "requested_verses": [4, 5],
+             "selected_verses": [5], "verse_durations_seconds": {5: 12.0},
+             "audio_file": "part2.mp3", "duration_seconds": 12.0},
+        ]}
+        with tempfile.TemporaryDirectory() as tmp:
+            result = build_draft_manifests(batch, report, Path(tmp))
+            data = json.loads(Path(result[0]["manifest"]).read_text(encoding="utf-8"))
+            self.assertEqual(data["id"], "source_part_002")
+            self.assertEqual(data["source_candidate_id"], "source")
+            self.assertEqual(data["part_index"], 2)
+            self.assertEqual([v["number"] for v in data["verses"]], [5])
+            self.assertEqual(data["audio"]["production_audio_file"], "part2.mp3")
+            self.assertFalse(data["preflight"]["rendering_allowed"])
+
     def test_rejects_missing_ayah_from_audio(self):
         batch = {"batch_status": "review_candidates_only", "passages": [candidate("a", 19), candidate("b", 88)]}
         report = {"rendering_allowed": False, "auto_publish": False, "items": [
