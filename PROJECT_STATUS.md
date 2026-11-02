@@ -1,3 +1,11 @@
+## Telegram duplicate-send protection (2026-11-02)
+- Sender change: `src/send_telegram.py` no longer retries transport failures or HTTP 5xx responses because Telegram may have accepted a video before the response was lost. An explicit HTTP 429 may be retried once.
+- Added `src/quran_delivery_attempt.py` and `tests/test_quran_delivery_attempt.py`. The workflow now reserves the exact candidate and ayah references in `data/quran_delivery_pending.json`, commits/pushes that reservation before calling Telegram, then records confirmed history and removes the reservation only after the sender receives `ok: true` plus a valid `message_id`.
+- If the result is ambiguous or history sync fails, the pending reservation remains on the branch. A later workflow_dispatch is blocked before another send. This is intentionally fail-closed and may pause automated delivery until the pending attempt is reconciled against the Telegram chat.
+- Regression tests for the new reservation ledger and sender's ambiguous-error behavior passed in GitHub Actions run `41475084051` (commit `4c944465b0a3820212b8620073a1838979712739`). That run is push-triggered: Telegram send/history steps are skipped; it is not a real Telegram delivery test. Full render/background/artifact steps are still being validated.
+- This reduces automatic duplicate risk but does not create an atomic transaction across Telegram and GitHub; do not claim mathematically guaranteed exactly-once delivery.
+- External `cron-job.org` remains unchanged: user-confirmed 04:10, 12:10, 18:10 Africa/Tunis. Never add a second scheduler. TikTok publishing remains manual. Translation remains Arabic + Saheeh International English; French is not required.
+
 ## Tunisia Friday detection and full weekday pipeline validation (2026-11-02)
 - Added `src/tunisian_day_status.py` as the single timezone-aware source for the workflow's local weekday/date/time outputs.
 - Added `tests/test_build_quran_tunisian_day_status.py` covering Friday detection at the UTC/Tunisia date boundary, Friday daytime, Monday, and rejection of naive datetimes.
