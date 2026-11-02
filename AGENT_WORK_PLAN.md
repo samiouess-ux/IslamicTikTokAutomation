@@ -1,3 +1,9 @@
+## Latest workflow validation — 2026-11-02
+- Run `41476070230` passed Telegram workflow contract tests, regression tests, candidate/audio prep, 9:16 rendering, background previews, and artifact upload. Telegram steps were skipped because this was a push event.
+- Only post-checkout cleanup remained in progress at the last check. No real Telegram delivery or reservation commit/push was exercised.
+- Continue next with a careful code review of the reservation/finalization steps and wait for the next normal Cron-triggered workflow to exercise the live send path. Do not manually dispatch a test.
+- Keep cron-job.org exactly as configured: 04:10, 12:10, 18:10 Africa/Tunis.
+
 ## Follow-up validation status (2026-11-02)
 - Run `41475084051` passed the full push validation through 9:16 rendering, background previews, and artifact upload. Telegram send/history were skipped by design.
 - Static workflow contract tests in `tests/test_telegram_workflow_safety.py` passed in run `41476070230`; its full pipeline remains in progress.
