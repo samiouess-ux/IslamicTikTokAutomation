@@ -1,3 +1,9 @@
+## Latest validation update — 2026-11-02
+- Run `41475084051` completed successfully on `4c944465b0a3820212b8620073a1838979712739`, including new reservation and ambiguous-send tests, candidate/audio prep, 9:16 render, background crop preview, and artifact upload. Telegram steps were skipped because this was a push event.
+- Added static workflow contract tests in `tests/test_telegram_workflow_safety.py`; those tests passed in run `41476070230`. That run's remaining render/background/artifact checks are still pending.
+- Do not treat either push run as proof that the live reservation commit/push or Telegram delivery has been exercised.
+- Preserve cron-job.org 04:10, 12:10, 18:10 Africa/Tunis. No change to Cron, no extra scheduler, no TikTok auto-posting, no French translation.
+
 ## Latest continuation checkpoint — Telegram duplicate-send protection (2026-11-02)
 - Active branch only: `feature/telegram-review-notifications`; never modify `main`.
 - Added reservation helper `src/quran_delivery_attempt.py` and tests `tests/test_quran_delivery_attempt.py`.
