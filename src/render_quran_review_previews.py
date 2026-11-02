@@ -166,9 +166,15 @@ def font_file() -> str:
 
 
 def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                          max_width: int = 820, max_lines: int = 5):
-    """Fit every translation word by reducing font size; never truncate text."""
-    for size in (32, 30, 28, 26, 24, 22):
+                          max_width: int = 820, max_lines: int = 8):
+    """Fit the complete translation in the lower text area; never truncate it.
+
+    Long English translations can wrap to more lines and use a smaller font.
+    The eight-line fallback is vertically bounded around the translation area's
+    center, leaving the ayah medallion and footer divider unobstructed.
+    """
+    last_line_count = 0
+    for size in (32, 30, 28, 26, 24, 22, 20, 18, 16):
         font = ImageFont.truetype(
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", size
         )
@@ -185,9 +191,13 @@ def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                 current = word
         if current:
             lines.append(current)
+        last_line_count = len(lines)
         if len(lines) <= max_lines:
-            return font, lines, max(42, size + 14)
-    raise ValueError("Translation does not fit without clipping, even at the minimum font size.")
+            return font, lines, max(30, size + 12)
+    raise ValueError(
+        f"Translation needs {last_line_count} lines; it cannot fit safely "
+        "inside the reserved area without clipping."
+    )
 
 
 def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
@@ -316,7 +326,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
     draw.line((210, 1220, 870, 1220), fill=(*accent, 135), width=2)
     english_font, en_lines, english_line_height = fit_translation_lines(
-        draw, english, font_path, max_width=820, max_lines=5
+        draw, english, font_path, max_width=820, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
     english_start_y = 1390 - english_block_height / 2
