@@ -153,22 +153,23 @@ jobs:
         run: |
           if [ "$IS_FRIDAY" = "true" ]; then
             echo "Friday mode: Surah Al-Kahf only; continue from the first unused ayah."
-            python src/build_quran_review_batch.py \\
-              --catalog output/quran_joined_candidate.json \\
-              --count 1 \\
-              --only-surah 18 \\
-              --sequential-unused \\
-              --history data/quran_delivery_history.json \\
-              --seed "quran-friday-$(date -u +%F-%H)" \\
+            python src/build_quran_review_batch.py \
+              --catalog output/quran_joined_candidate.json \
+              --count 1 \
+              --only-surah 18 \
+              --sequential-unused \
+              --history data/quran_delivery_history.json \
+              --seed "quran-friday-$(date -u +%F-%H)" \
               --output output/quran_review_batch.json
           else
             echo "Regular Quran mode: eight diverse surahs; exclude Al-Kahf outside Friday."
-            python src/build_quran_review_batch.py \\
-              --catalog output/quran_joined_candidate.json \\
-              --count 8 \\
-              --exclude-surah 18 \\
-              --history data/quran_delivery_history.json \\
-              --seed "quran-daily-$(date -u +%F-%H)" \\
+            python src/build_quran_review_batch.py \
+              --catalog output/quran_joined_candidate.json \
+              --count 8 \
+              --exclude-surah 18 \
+              --exclude-surah 94 \
+              --history data/quran_delivery_history.json \
+              --seed "quran-daily-$(date -u +%F-%H)" \
               --output output/quran_review_batch.json
           fi
           python - <<'PY'
