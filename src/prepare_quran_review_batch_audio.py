@@ -14,6 +14,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from remotezip import RemoteZip
+from quran_audio_parts import partition_contiguous_ayahs
 
 DEFAULT_ARCHIVE = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 MIN_SECONDS = 0.0
@@ -93,27 +94,24 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         raise ValueError("Audio inventory has no verse mapping.")
     output_dir.mkdir(parents=True, exist_ok=True)
     results = []
+    prepared_candidates = 0
     with RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE)) as archive:
         for candidate in batch.get("passages", []):
-            if sum(item["status"].startswith("audio_prepared") for item in results) >= target_count:
+            if prepared_candidates >= target_count:
                 break
             surah = int(candidate["surah_number"])
-            selected = []
+            requested_verses = [int(verse["ayah"]) for verse in candidate["verses"]]
+            candidate_dir = output_dir / str(candidate["candidate_id"])
+            candidate_dir.mkdir(parents=True, exist_ok=True)
             durations = {}
             processed_durations = {}
             removed_edge_silence = {}
             processed_audio_files = {}
-            files = []
-            total = 0.0
-            candidate_dir = output_dir / str(candidate["candidate_id"])
-            candidate_dir.mkdir(parents=True, exist_ok=True)
             blocked_reason = None
-            # Probe consecutive whole ayahs in order. Keep the longest prefix
-            # whose measured source duration fits the 65-second limit. A short
-            # surah naturally remains whole when its complete duration fits.
-            # Keep the complete source request, even when the 65-second cap
-            # means only a contiguous prefix can be selected for this video.
-            requested = [int(verse["ayah"]) for verse in candidate["verses"]]
+
+            # Fetch and inspect every requested whole ayah. Partition only after
+            # all measured processed durations are known, so later clips are not
+            # lost merely because the first clip reached the 65-second cap.
             for verse in candidate["verses"]:
                 number = int(verse["ayah"])
                 key = f"{surah}:{number}"
@@ -126,38 +124,24 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 source_duration = probe(target)
                 processed_target = candidate_dir / "processed" / f"{surah:03d}_{number:03d}.mp3"
                 processed_duration = trim_edge_silence(target, processed_target, source_duration)
-                proposed_total = total + processed_duration
-                if processed_duration > MAX_SECONDS and not selected:
-                    target.unlink(missing_ok=True)
-                    processed_target.unlink(missing_ok=True)
-                    blocked_reason = "blocked_single_ayah_exceeds_65_seconds"
-                    break
-                if proposed_total > MAX_SECONDS:
-                    target.unlink(missing_ok=True)
-                    processed_target.unlink(missing_ok=True)
-                    break
-                selected.append(number)
                 durations[number] = round(source_duration, 3)
                 processed_durations[number] = round(processed_duration, 3)
                 removed_edge_silence[str(number)] = round(source_duration - processed_duration, 3)
                 processed_audio_files[str(number)] = str(processed_target)
-                files.append(processed_target)
-                total = proposed_total
 
-            if not selected:
+            parts, remaining = partition_contiguous_ayahs(
+                candidate["verses"], processed_durations, MAX_SECONDS
+            )
+            if not parts:
                 results.append({
                     "candidate_id": candidate["candidate_id"],
+                    "source_candidate_id": candidate["candidate_id"],
                     "surah_number": surah,
-                    "status": blocked_reason or "blocked_no_complete_ayah_range_under_65_seconds",
-                    "requested_verses": requested,
-                    "verse_durations_seconds": durations,
-                    "processed_verse_durations_seconds": processed_durations,
-                    "edge_silence_removed_seconds": removed_edge_silence,
-                    "complete_duration_seconds": round(total, 3),
+                    "status": "blocked_single_ayah_exceeds_65_seconds" if remaining else "blocked_no_complete_ayah_range_under_65_seconds",
+                    "requested_verses": requested_verses,
                     "selected_verses": [],
-                    "remaining_verses": requested,
+                    "remaining_verses": requested_verses,
                     "passage_complete": False,
-                    "continuation_policy": "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
                     "duration_seconds": 0,
                     "audio_file": None,
                     "audio_approved": False,
@@ -166,74 +150,70 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     "auto_publish": False,
                 })
                 continue
-            if total <= 0:
-                results.append({
-                    "candidate_id": candidate["candidate_id"],
-                    "surah_number": surah,
-                    "status": "blocked_no_complete_ayah_range_under_65_seconds",
-                    "requested_verses": requested,
-                    "verse_durations_seconds": durations,
-                    "processed_verse_durations_seconds": processed_durations,
-                    "edge_silence_removed_seconds": removed_edge_silence,
-                    "complete_duration_seconds": round(total, 3),
-                    "selected_verses": [],
-                    "duration_seconds": 0,
-                    "audio_file": None,
-                    "audio_approved": False,
-                    "rendering_allowed": False,
-                    "telegram_delivery": False,
-                    "auto_publish": False,
-                })
-                continue
-            # Concatenate whole MP3 files in order; stream copy avoids re-encoding.
-            list_file = candidate_dir / "concat.txt"
-            list_file.write_text("".join(f"file '{p.resolve()}'\n" for p in files), encoding="utf-8")
-            combined = candidate_dir / "passage.mp3"
-            subprocess.run([
-                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                "-f", "concat", "-safe", "0", "-i", str(list_file.resolve()),
-                "-c", "copy", str(combined.resolve())
-            ], check=True)
-            actual = probe(combined)
-            if actual > MAX_SECONDS or actual <= 0:
-                raise ValueError(
-                    f"Concatenated candidate duration {actual:.3f}s is outside "
-                    f"0-65 seconds: {candidate['candidate_id']}"
+
+            for part_index, part_verses in enumerate(parts, start=1):
+                selected = [int(verse["ayah"]) for verse in part_verses]
+                part_id = f"{candidate['candidate_id']}_part_{part_index:03d}"
+                part_dir = candidate_dir / f"part_{part_index:03d}"
+                part_dir.mkdir(parents=True, exist_ok=True)
+                files = [Path(processed_audio_files[str(number)]) for number in selected]
+                list_file = part_dir / "concat.txt"
+                list_file.write_text(
+                    "".join(f"file '{p.resolve()}'\\n" for p in files),
+                    encoding="utf-8",
                 )
-            results.append({
-                "candidate_id": candidate["candidate_id"],
-                "surah_number": surah,
-                "status": "audio_prepared_requires_exact_recording_listen_and_user_review",
-                "requested_verses": requested,
-                "selected_verses": selected,
-                "remaining_verses": requested[len(selected):],
-                "passage_complete": len(selected) == len(requested),
-                "continuation_policy": "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
-                "verse_durations_seconds": durations,
-                "processed_verse_durations_seconds": processed_durations,
-                "edge_silence_removed_seconds": removed_edge_silence,
-                "inter_verse_silence_seconds": 0.24,
-                "processed_audio_files": processed_audio_files,
-                "duration_seconds": round(actual, 3),
-                "audio_file": str(combined),
-                "archive_members": [members[f"{surah}:{n}"] for n in selected],
-                "audio_approved": False,
-                "rendering_allowed": False,
-                "telegram_delivery": False,
-                "auto_publish": False,
-            })
+                combined = part_dir / "passage.mp3"
+                subprocess.run([
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-f", "concat", "-safe", "0", "-i", str(list_file.resolve()),
+                    "-c", "copy", str(combined.resolve())
+                ], check=True)
+                actual = probe(combined)
+                if actual <= 0 or actual > MAX_SECONDS:
+                    raise ValueError(
+                        f"Concatenated part duration {actual:.3f}s is outside "
+                        f"0-65 seconds: {part_id}"
+                    )
+                last_position = requested_verses.index(selected[-1]) + 1
+                results.append({
+                    "candidate_id": part_id,
+                    "source_candidate_id": candidate["candidate_id"],
+                    "part_index": part_index,
+                    "part_count": len(parts),
+                    "surah_number": surah,
+                    "status": "audio_prepared_requires_exact_recording_listen_and_user_review",
+                    "requested_verses": requested_verses,
+                    "selected_verses": selected,
+                    "remaining_verses": requested_verses[last_position:],
+                    "passage_complete": last_position == len(requested_verses),
+                    "continuation_policy": "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
+                    "verse_durations_seconds": {n: durations[n] for n in selected},
+                    "processed_verse_durations_seconds": {n: processed_durations[n] for n in selected},
+                    "edge_silence_removed_seconds": {str(n): removed_edge_silence[str(n)] for n in selected},
+                    "inter_verse_silence_seconds": 0.0,
+                    "processed_audio_files": {str(n): processed_audio_files[str(n)] for n in selected},
+                    "duration_seconds": round(actual, 3),
+                    "audio_file": str(combined),
+                    "archive_members": [members[f"{surah}:{n}"] for n in selected],
+                    "audio_approved": False,
+                    "rendering_allowed": False,
+                    "telegram_delivery": False,
+                    "auto_publish": False,
+                })
+            prepared_candidates += 1
     ready = [x for x in results if x["status"].startswith("audio_prepared")]
-    if len({x["surah_number"] for x in ready}) != len(ready):
-        raise ValueError("Prepared audio batch contains duplicate surahs.")
+    if len({x["source_candidate_id"] for x in ready}) != len({x["source_candidate_id"] for x in ready}):
+        raise ValueError("Prepared audio report contains duplicate source candidates.")
     report = {
         "status": "audio_review_package_prepared" if len(ready) >= target_count else "insufficient_audio_candidates_prepared",
         "candidate_count": len(batch.get("passages", [])),
         "target_count": target_count,
-        "audio_prepared_count": len(ready),
+        "audio_prepared_count": prepared_candidates,
         "distinct_surah_count": len({x["surah_number"] for x in ready}),
+        "preview_part_count": len(ready),
         "minimum_seconds": MIN_SECONDS,
         "maximum_seconds": MAX_SECONDS,
-        "audio_processing": "longest_contiguous_whole_ayah_prefix_up_to_65_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
+        "audio_processing": "consecutive_whole_ayah_parts_up_to_65_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
         "continuation_policy": "Unselected ayahs remain explicitly listed and are not marked used. The next batch starts again at the first ayah absent from confirmed delivery history; only confirmed delivery advances the sequence.",
         "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",
         "items": results,
