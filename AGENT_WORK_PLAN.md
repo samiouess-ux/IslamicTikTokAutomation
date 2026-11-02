@@ -1,3 +1,11 @@
+## Latest validation and next blocker (2026-11-02)
+- Tunisia Friday detection was extracted to `src/tunisian_day_status.py` and is covered by fixed-date tests for Friday, Monday, and the UTC/Tunisia midnight boundary.
+- Workflow run `41473125589` passed the complete push-validation path through preview rendering and background crop preparation. Telegram steps were skipped by design because it was a push event.
+- Friday builder unit test passed in run `41466300540`; full Friday end-to-end send remains untested.
+- The external cron-job.org schedule is user-confirmed as 04:10, 12:10, and 18:10 Africa/Tunis; do not change it. No additional scheduler is to be added.
+- Next engineering priority: make Telegram send/history recovery safe against duplicate sends after an ambiguous send or failed history push. Do not promise exactly-once behavior across Telegram and GitHub without a durable reservation/reconciliation design.
+- Translation stays Arabic + Saheeh International English. French is not required. TikTok publishing remains manual.
+
 # Agent work plan — IslamicTikTokAutomation
 
 ## User directive — simplify and finish the engine (2026-11-01)
