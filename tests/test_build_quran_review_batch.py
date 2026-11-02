@@ -17,6 +17,28 @@ class BatchTests(unittest.TestCase):
         selected = [verse["reference"] for passage in result["passages"] for verse in passage["verses"]]
         self.assertTrue(set(selected).isdisjoint(used))
 
+    def test_friday_mode_keeps_al_kahf_and_starts_at_first_unused_ayah(self):
+        verses = {}
+        for ayah in range(1, 7):
+            key = f"18:{ayah}"
+            verses[key] = {"arabic_uthmani": f"AR {key}", "english_saheeh_international": f"EN {key}", "audio_archive_member": f"{key}.mp3"}
+        source = {
+            "status": "complete_join_candidate_requires_human_review_and_recording_approval",
+            "rendering_allowed": False,
+            "expected_verse_count": len(verses),
+            "verses": verses,
+        }
+        result = build_review_batch(
+            source, count=1, seed="friday-1", used_ayah_references=["18:1", "18:2"],
+            only_surahs=[18], sequential_unused=True,
+        )
+        self.assertEqual(result["candidate_count"], 1)
+        self.assertEqual(result["passages"][0]["surah_number"], 18)
+        self.assertEqual(result["passages"][0]["verse_numbers"], [3, 4, 5, 6])
+        self.assertEqual(result["passage_selection"], "first_unused_contiguous_suffix_then_65_second_duration_limit")
+        self.assertFalse(result["rendering_allowed"])
+        self.assertFalse(result["telegram_delivery"])
+        self.assertFalse(result["auto_publish"])
     def test_excludes_most_recently_delivered_surah(self):
         history = {"deliveries": [
             {"candidate_id": "old", "surah_number": 18},
