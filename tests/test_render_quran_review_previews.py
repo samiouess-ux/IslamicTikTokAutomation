@@ -8,6 +8,7 @@ from unittest.mock import patch
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+import render_quran_review_previews as renderer
 from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_lines,
                                             fit_arabic_lines, fit_surah_title_font, font_file,
                                             make_frame, make_intro_frame, probe)
@@ -101,7 +102,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         path = font_file()
         for surah_name in SURAH_NAMES:
             title = f"سورة {surah_name}"
-            font = fit_surah_title_font(draw, title, path)
+            font = renderer.fit_surah_title_font(draw, title, path)
             bounds = draw.textbbox((540, 465), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
             self.assertLessEqual(bounds[2] - bounds[0], 500, title)
