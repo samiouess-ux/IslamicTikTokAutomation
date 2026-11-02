@@ -53,7 +53,7 @@ class QuranBatchAudioTests(unittest.TestCase):
                 return source_duration
 
             with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
-                 patch.object(module, "probe", side_effect=[16.0, 17.0, 26.0, 13.0, 20.0, 20.0, 40.0, 33.0, 39.0, 40.0, 40.0, 40.0]), \
+                 patch.object(module, "probe", side_effect=lambda p: ({"s1": 33.0, "s2": 39.0, "s3": 40.0}[Path(p).parents[1].name] if Path(p).name == "passage.mp3" else {"001_001.mp3": 16.0, "001_002.mp3": 17.0, "002_001.mp3": 26.0, "002_002.mp3": 13.0, "003_001.mp3": 20.0, "003_002.mp3": 20.0, "003_003.mp3": 40.0}[Path(p).name])), \
                  patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out")
