@@ -279,6 +279,19 @@ def draw_surah_cartouche(draw: ImageDraw.ImageDraw, accent: tuple,
                      fill=(*accent, 220))
 
 
+def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
+                          center: tuple = (540, 465), max_width: int = 500,
+                          max_height: int = 64):
+    """Keep the complete surah title inside the cartouche's clear inner area."""
+    for size in (68, 64, 60, 56, 52, 48, 44, 40):
+        font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
+        bounds = draw.textbbox(center, text, font=font, anchor="mm",
+                               direction="rtl", language="ar")
+        if bounds[2] - bounds[0] <= max_width and bounds[3] - bounds[1] <= max_height:
+            return font
+    raise ValueError("Surah title cannot fit inside its cartouche without clipping.")
+
+
 def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
@@ -297,9 +310,10 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw.rounded_rectangle((94, 332, 986, 1588), radius=40,
                            outline=(*accent, 55), width=1)
 
-    title_font = ImageFont.truetype(bold_font_file(), 68, layout_engine=ImageFont.Layout.RAQM)
+    title_text = f"سورة {surah_name}"
+    title_font = fit_surah_title_font(draw, title_text, bold_font_file())
     draw_surah_cartouche(draw, accent)
-    draw.text((540, 465), f"سورة {surah_name}", font=title_font, fill=accent,
+    draw.text((540, 465), title_text, font=title_font, fill=accent,
               anchor="mm", direction="rtl", language="ar")
     draw.line((210, 575, 870, 575), fill=(*accent, 155), width=2)
     draw.polygon([(540, 568), (547, 575), (540, 582), (533, 575)],
