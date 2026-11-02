@@ -1,3 +1,11 @@
+## Latest checkpoint — complete preview validation (2026-11-02)
+- Run `41476070230` completed successfully. Regression tests, Tunisia Friday helper, weekday candidate generation, preview rendering, background crop preview, and artifact upload all passed.
+- Trigger was `push`; Telegram reservation, send, history record and sync were skipped by design. This was not an end-to-end Telegram send.
+- Reservation ledger: `src/quran_delivery_attempt.py`; pending path `data/quran_delivery_pending.json`; tests `tests/test_quran_delivery_attempt.py` and `tests/test_telegram_workflow_safety.py`.
+- Sender no longer retries transport errors or HTTP 5xx (ambiguous outcome); explicit HTTP 429 can retry once. Unresolved pending attempt blocks later automatic sends.
+- Next: inspect the next existing cron-job.org dispatch (04:10 / 12:10 / 18:10 Africa/Tunis) to verify reserve-before-send and confirmed-history finalization. Never manually dispatch a video for test; never modify Cron; never touch `main`.
+- No claim of exactly-once guarantee; Telegram and GitHub cannot be committed atomically.
+
 ## Latest workflow validation — 2026-11-02
 - Run `41476070230` passed the static Telegram workflow contract tests, candidate and audio preparation, 9:16 rendering, background crop previews, and artifact upload. Catalog/regression tests also passed.
 - Telegram reservation/send/history steps were skipped because this was a push event; no Telegram message was sent.
