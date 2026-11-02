@@ -50,6 +50,24 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertEqual(lines, ["حم"])
         self.assertGreaterEqual(font.size, 90)
 
+    def test_long_arabic_ayah_shrinks_to_stay_below_surah_title(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        long_ayah = (
+            "إِنَّمَا الْمُؤْمِنُونَ الَّذِينَ آمَنُوا بِاللَّهِ وَرَسُولِهِ "
+            "وَإِذَا كَانُوا مَعَهُ عَلَىٰ أَمْرٍ جَامِعٍ لَمْ يَذْهَبُوا "
+            "حَتَّىٰ يَسْتَأْذِنُوهُ ۚ إِنَّ الَّذِينَ يَسْتَأْذِنُونَكَ "
+            "أُولَٰئِكَ الَّذِينَ يُؤْمِنُونَ بِاللَّهِ وَرَسُولِهِ ۚ "
+            "فَإِذَا اسْتَأْذَنُوكَ لِبَعْضِ شَأْنِهِمْ فَأْذَنْ لِمَنْ "
+            "شِئْتَ مِنْهُمْ وَاسْتَغْفِرْ لَهُمُ اللَّهَ ۚ إِنَّ اللَّهَ "
+            "غَفُورٌ رَحِيمٌ"
+        )
+        short_font, _, _ = fit_arabic_lines(draw, "حم", font_file())
+        long_font, lines, line_height = fit_arabic_lines(draw, long_ayah, font_file())
+        self.assertEqual(" ".join(lines), long_ayah)
+        self.assertLess(long_font.size, short_font.size)
+        self.assertLessEqual((len(lines) - 1) * line_height, 390)
+
     def test_long_translation_is_fitted_without_dropping_words(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
