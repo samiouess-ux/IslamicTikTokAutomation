@@ -780,3 +780,14 @@ Theme: hope and ease after hardship.
 - Do NOT activate the daily schedule yet. The actual MP4 build and size are now verified (23.5 MiB, 31.846 seconds, 1080x1920), but the latest successful run was a push event and skipped Telegram send/history steps. A controlled real Telegram MP4 delivery and history sync are still mandatory acceptance gates. Once those pass, add a native GitHub Actions cron of `10 3,11,17 * * *` UTC (04:10, 12:10, 18:10 Tunisia, UTC+1) to this workflow, then verify each scheduled delivery and history update. GitHub scheduled starts may be delayed under load.
 - The latest candidate was Surah Al-Ahzab 33:43-44, not the old Ash-Sharh-only prototype. This confirms the review candidate selector can produce a different surah in this build, but does not alone prove long-term no-repeat behavior; verify history exclusion over confirmed deliveries.
 - No TikTok auto-publishing is enabled. User continues to approve/download/post manually.
+
+
+## External Cron and confirmed Telegram delivery (2026-11-02, supersedes earlier scheduler notes)
+- User-confirmed external scheduler is cron-job.org, job Quran Video Scheduler, enabled in Africa/Tunis at 04:10, 12:10, and 18:10. It POSTs GitHub Actions workflow_dispatch to this active branch. Preserve this configuration exactly; do not add a native GitHub schedule or another scheduler.
+- A real workflow-dispatch run 41463758861 started at 2026-11-02T14:37:44Z on branch feature/telegram-review-notifications (commit 5df43a84162eef13b6b52aab3b4a346518e41b2b). This is evidence the external Cron dispatch reached GitHub.
+- The run completed successfully. Distinct-surah rendering, review background preparation, Telegram send, delivery-history recording, and history sync all completed successfully.
+- User independently confirmed receiving the MP4 in Telegram: Surah Al-Ahzab, ayahs 43-44, ocean background, about 30 seconds. The generated artifact was measured at 31.846 seconds, 1080x1920, H.264 with MP3 audio, 24,643,323 bytes (about 23.5 MiB), below the Telegram 50 MiB limit.
+- Confirmed history now includes 33:43 and 33:44, with delivery timestamp 2026-11-02T14:40:54.387854+00:00; history sync to the active branch succeeded. The selector must continue excluding these delivered ayahs.
+- This supersedes the earlier incorrect statements that no external scheduler was evidenced and that a controlled Telegram delivery/history sync was still pending. Earlier notes are retained as historical checkpoints, not current state.
+- Acceptance achieved for one real external-Cron-to-Telegram cycle. Continue verifying future scheduled slots and no-repeat behavior; this single success does not prove every daily slot or the 65-second maximum across all content.
+- No TikTok auto-publishing. User downloads/reviews and posts manually.
