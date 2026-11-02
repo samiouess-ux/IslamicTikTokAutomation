@@ -86,6 +86,34 @@ class BatchTests(unittest.TestCase):
         self.assertFalse(result["telegram_delivery"])
         self.assertFalse(result["auto_publish"])
 
+    def test_continuation_skips_gaps_and_later_delivered_ayahs(self):
+        verses = {}
+        for ayah in range(1, 7):
+            key = f"18:{ayah}"
+            verses[key] = {
+                "arabic_uthmani": f"AR {key}",
+                "english_saheeh_international": f"EN {key}",
+                "audio_archive_member": f"{key}.mp3",
+            }
+        source = {
+            "status": "complete_join_candidate_requires_human_review_and_recording_approval",
+            "rendering_allowed": False,
+            "expected_verse_count": len(verses),
+            "verses": verses,
+        }
+        result = build_review_batch(
+            source, count=1, seed="gap-continuation",
+            used_ayah_references=["18:1", "18:2", "18:4"],
+            only_surahs=[18], sequential_unused=True,
+        )
+        self.assertEqual(result["passages"][0]["verse_numbers"], [5, 6])
+        selected = {
+            verse["reference"]
+            for passage in result["passages"]
+            for verse in passage["verses"]
+        }
+        self.assertTrue(selected.isdisjoint({"18:1", "18:2", "18:4"}))
+
     def test_excludes_most_recently_delivered_surah(self):
         history = {"deliveries": [
             {"candidate_id": "old", "surah_number": 18},
