@@ -24,32 +24,32 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str) -
     chunks.extend([video_path.read_bytes(), f"\r\n--{boundary}--\r\n".encode("ascii")])
     body = b"".join(chunks)
     url = f"https://api.telegram.org/bot{token.strip()}/sendVideo"
-    result = None
-    delays = (5, 15, 30)
-    for attempt in range(len(delays) + 1):
-        request = urllib.request.Request(
-            url, data=body,
-            headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
-            method="POST",
-        )
-        try:
+    request = urllib.request.Request(
+        url, data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        # A 429 is an explicit Telegram rejection and can be retried safely.
+        # 5xx and transport failures are ambiguous: Telegram may have accepted
+        # the upload before the response was lost. Never resend automatically.
+        if exc.code == 429:
+            retry_after = exc.headers.get("Retry-After", "5")
+            wait = max(1, int(retry_after)) if retry_after.isdigit() else 5
+            print(f"Telegram explicitly rate-limited the request; retrying once in {wait}s.")
+            time.sleep(wait)
             with urllib.request.urlopen(request, timeout=180) as response:
                 result = json.loads(response.read().decode("utf-8"))
-            break
-        except urllib.error.HTTPError as exc:
-            retryable = exc.code == 429 or 500 <= exc.code <= 599
-            if not retryable or attempt == len(delays):
-                raise
-            retry_after = exc.headers.get("Retry-After")
-            wait = max(int(retry_after), delays[attempt]) if retry_after and retry_after.isdigit() else delays[attempt]
-            print(f"Telegram returned HTTP {exc.code}; retrying in {wait}s (attempt {attempt + 2}/4).")
-            time.sleep(wait)
-        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
-            if attempt == len(delays):
-                raise
-            wait = delays[attempt]
-            print(f"Telegram network error: {exc}; retrying in {wait}s (attempt {attempt + 2}/4).")
-            time.sleep(wait)
+        else:
+            raise
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+        raise RuntimeError(
+            "Telegram send outcome is unknown after a transport failure; "
+            "the pending reservation must be reconciled before another send."
+        ) from exc
     if result is None:
         raise RuntimeError("Telegram delivery failed after four attempts.")
     if not result.get("ok") or not isinstance(result.get("result"), dict): raise RuntimeError("Telegram API did not confirm delivery.")
