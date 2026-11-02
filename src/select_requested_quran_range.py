@@ -13,7 +13,11 @@ import tempfile
 from pathlib import Path
 
 from remotezip import RemoteZip
-from prepare_quran_review_batch_audio import DEFAULT_ARCHIVE, MAX_SECONDS
+from prepare_quran_review_batch_audio import DEFAULT_ARCHIVE
+
+# Manual Telegram surah requests may use the full approved video limit.
+# The scheduled batch selector has a separate shorter 30–40s target window.
+MAX_SECONDS = 65.0
 from parse_telegram_quran_request import SURAH_AYAH_COUNTS
 
 
