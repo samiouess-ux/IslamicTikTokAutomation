@@ -1,3 +1,13 @@
+## Latest continuation checkpoint — 2026-11-02
+- Latest active branch commit: `bd3eff8e4343c1d02046e958465cbaf20ad73139`.
+- New helper: `src/tunisian_day_status.py`; tests: `tests/test_build_quran_tunisian_day_status.py`.
+- Workflow run `41473125589` passed all push-validation steps through 9:16 preview rendering and background crop preview. Telegram send/history steps were skipped because event was `push`.
+- Friday builder selection test passed in run `41466300540`; timezone helper tests passed in `41473125589`. No full real-Friday Telegram delivery has been run.
+- Do not change cron-job.org: user-confirmed schedule is 04:10, 12:10, 18:10 Africa/Tunis.
+- Translation remains Arabic + Saheeh International English; French is explicitly not required. TikTok publishing remains manual.
+- Next: inspect Telegram send/history crash recovery and add a tested duplicate-send guard without adding services, changing Cron, or changing the existing bot. Be explicit that a Telegram send and Git push cannot be made atomic; design safe reconciliation for ambiguous sends.
+- Preserve all existing code and work only on `feature/telegram-review-notifications`; never modify `main`.
+
 # Orchestrator handoff — Islamic video engine
 
 Active repository: `samiouess-ux/IslamicTikTokAutomation`
