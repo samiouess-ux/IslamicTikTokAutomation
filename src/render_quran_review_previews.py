@@ -597,31 +597,35 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
     # Validate all selected ayahs before downloading a background or loading
     # fonts. A duration-limited passage may be a shorter prefix, not the whole
     # candidate, but it must never skip or reorder ayahs.
-    report_items = {x["candidate_id"]: x for x in report.get("items", [])}
-    for candidate in batch.get("passages", []):
-        item = report_items.get(candidate["candidate_id"])
-        if not item or not item.get("status", "").startswith("audio_prepared"):
+    candidates = {x["candidate_id"]: x for x in batch.get("passages", [])}
+    report_items = report.get("items", [])
+    for item in report_items:
+        if not item.get("status", "").startswith("audio_prepared"):
             continue
+        source_candidate_id = item.get("source_candidate_id", item["candidate_id"])
+        candidate = candidates.get(source_candidate_id)
+        if not candidate:
+            raise ValueError("Audio part references a missing source candidate.")
         requested = item.get("requested_verses")
         candidate_numbers = [int(v["ayah"]) for v in candidate["verses"]]
         if not isinstance(requested, list) or [int(n) for n in requested] != candidate_numbers:
             raise ValueError("Audio requested ayahs do not match the source candidate.")
         selected = item.get("selected_verses")
-        if (not isinstance(selected, list) or not selected
-                or [int(n) for n in selected] != candidate_numbers[:len(selected)]):
-            raise ValueError("Audio-selected ayahs do not match a non-empty requested prefix.")
+        start = candidate_numbers.index(int(selected[0])) if isinstance(selected, list) and selected and int(selected[0]) in candidate_numbers else -1
+        if (start < 0 or [int(n) for n in selected] != candidate_numbers[start:start + len(selected)]):
+            raise ValueError("Audio-selected ayahs do not match a contiguous requested slice.")
         if [int(n) for n in selected] != list(range(int(selected[0]), int(selected[0]) + len(selected))):
             raise ValueError("Audio-selected ayahs are not contiguous; refusing preview.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
     approved_backgrounds = load_approved_backgrounds()
     prepared_backgrounds = {}
-    report_items = {x["candidate_id"]: x for x in report.get("items", [])}
     previews = []
-    for candidate in batch.get("passages", []):
-        item = report_items.get(candidate["candidate_id"])
-        if not item or not item.get("status", "").startswith("audio_prepared"):
+    for item in report_items:
+        if not item.get("status", "").startswith("audio_prepared"):
             continue
+        source_candidate_id = item.get("source_candidate_id", item["candidate_id"])
+        candidate = candidates[source_candidate_id]
         candidate_by_number = {int(v["ayah"]): v for v in candidate["verses"]}
         numbers = item.get("selected_verses")
         if not isinstance(numbers, list) or not numbers or any(int(n) not in candidate_by_number for n in numbers):
@@ -629,7 +633,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         if numbers != list(range(int(numbers[0]), int(numbers[0]) + len(numbers))):
             raise ValueError("Audio-selected ayahs are not contiguous; refusing preview.")
         verses = [candidate_by_number[int(n)] for n in numbers]
-        work = output_dir / candidate["candidate_id"]
+        part_id = item["candidate_id"]
+        work = output_dir / part_id
         work.mkdir(parents=True, exist_ok=True)
         # Stable rotation: each distinct passage uses the next approved background.
         background_candidate = approved_backgrounds[(background_rotation_index + len(previews)) % len(approved_backgrounds)]
@@ -689,7 +694,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             segments.append(segment)
         concat = work / "segments.txt"
         concat.write_text("".join(f"file '{p.resolve()}'\n" for p in segments), encoding="utf-8")
-        output = output_dir / f"{candidate['candidate_id']}_REVIEW_ONLY.mp4"
+        output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
         subprocess.run([
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-f", "concat", "-safe", "0", "-i", str(concat),
@@ -697,7 +702,10 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         ], check=True)
         info = probe(output)
         previews.append({
-            "candidate_id": candidate["candidate_id"],
+            "candidate_id": part_id,
+            "source_candidate_id": source_candidate_id,
+            "part_index": int(item.get("part_index", 1)),
+            "part_count": int(item.get("part_count", 1)),
             "surah_number": int(candidate["surah_number"]),
             "verses": numbers,
             "background": prepared_backgrounds[background_candidate["id"]],
@@ -709,8 +717,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "telegram_delivery": False,
             "auto_publish": False,
         })
-    if len(previews) < minimum_previews or len({p["surah_number"] for p in previews}) != len(previews):
-        raise RuntimeError("At least two distinct-surah previews are required.")
+    if len(previews) < minimum_previews:
+        raise RuntimeError(f"At least {minimum_previews} review previews are required.")
     result = {
         "status": "review_only_previews_rendered",
         "preview_count": len(previews),
