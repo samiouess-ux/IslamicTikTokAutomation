@@ -1,4 +1,12 @@
 ## Latest verification and next action (2026-11-02)
+- Renderer fix verified on `c1cec3fbd246871fbd856542ae95c1bc039d2645`: workflow run `41491587024` completed successfully through preview render, background overlay previews, and artifact upload.
+- Isolated request-pipeline run `41491586953` also completed successfully with all tests passing.
+- Both runs were `push` events; Telegram reservation/send/history steps were skipped. No new Telegram MP4 was sent.
+- `data/quran_delivery_pending.json` is absent on the active branch at this checkpoint.
+- Translation wrapping now allows up to eight lines with smaller font fallback while preserving words; render no longer fails on the two previously observed layout overflow cases. Human visual review of artifact remains required.
+- Next: inspect the latest artifact visually and continue monitoring only the existing cron-job.org slots 04:10, 12:10, 18:10 Africa/Tunis. Do not manually dispatch test sends, change Cron, add infrastructure, or modify `main`.
+
+## Latest verification and next action (2026-11-02)
 - Latest push validation run `41476070230`: success. Regression tests, Tunisia-local weekday logic, candidate preparation, 9:16 render, background crop preview, and artifacts passed.
 - Telegram send steps were skipped because this was a push event; no Telegram delivery was tested in this run.
 - Next step: observe the next existing Cron dispatch and verify pending reservation is committed before Telegram, then successful delivery is recorded and pending cleared. Do not trigger a manual send.
