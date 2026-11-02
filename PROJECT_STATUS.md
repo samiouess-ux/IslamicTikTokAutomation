@@ -1,3 +1,11 @@
+## Latest validation — duplicate-send safeguards and full preview pipeline (2026-11-02)
+- GitHub Actions run `41476070230` completed with conclusion `success` on the active branch. It validated the new Telegram reservation and sender safety tests, Tunisia-local Friday detection, weekday-aware candidate preparation, 9:16 preview rendering, background crop preview, and artifact upload.
+- This was a push-triggered validation run. Telegram reservation/send/history/sync steps were correctly skipped; no new Telegram video was sent by this run.
+- New reservation ledger and sender behavior remain fail-closed: an unresolved pending attempt blocks later automatic sends; transport/5xx ambiguity is not retried. This lowers duplicate risk but does not guarantee atomic exactly-once delivery across GitHub and Telegram.
+- Latest known branch HEAD before this documentation checkpoint: `3fa3ad5213c4763e7b667798962677f2b63c97f3`.
+- Preserve existing cron-job.org schedule exactly: 04:10, 12:10, 18:10 Africa/Tunis. Do not modify Cron, add another scheduler, or change `main`.
+- Next real-world validation is to observe the next already-scheduled Cron-triggered run and verify the pending reservation is pushed before Telegram send, then the confirmed history is pushed and pending file cleared. Do not manually dispatch a send just for testing.
+
 ## Latest workflow contract validation (2026-11-02)
 - Run `41476070230` passed the new static Telegram workflow safety contract tests, catalog/regression tests, candidate/audio preparation, 9:16 rendering, background crop previews, and artifact upload.
 - Telegram reservation/send/history steps were skipped because this was a push event. No video was sent.
