@@ -1,3 +1,11 @@
+## Current safety blocker — Telegram duplicate-send protection (2026-11-02)
+- Sender does not retry transport failures or HTTP 5xx because the Telegram outcome may be ambiguous; only an explicit HTTP 429 is retried once.
+- A pending reservation is committed to the active branch before send. Confirmed Telegram delivery finalizes the history and clears the reservation. An unresolved reservation blocks future automatic sends until reconciled against Telegram.
+- New helper/tests are in `src/quran_delivery_attempt.py` and `tests/test_quran_delivery_attempt.py`. Unit tests passed in run `41475084051`; this is a push validation run, not a Telegram send.
+- This fail-closed design reduces duplicate risk but can pause the schedule if outcome is ambiguous; Telegram and GitHub are not one atomic transaction.
+- Keep cron-job.org exactly as user configured: 04:10, 12:10, 18:10 Africa/Tunis. No second scheduler. Arabic + Saheeh International English; no French. TikTok posting manual only.
+- Next: wait for run `41475084051` to finish and inspect full render/artifact validation. Do not initiate a test Telegram send.
+
 ## Latest validation and next blocker (2026-11-02)
 - Tunisia Friday detection was extracted to `src/tunisian_day_status.py` and is covered by fixed-date tests for Friday, Monday, and the UTC/Tunisia midnight boundary.
 - Workflow run `41473125589` passed the complete push-validation path through preview rendering and background crop preparation. Telegram steps were skipped by design because it was a push event.
