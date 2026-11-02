@@ -59,20 +59,18 @@ class QuranBatchAudioTests(unittest.TestCase):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out")
 
             self.assertEqual(report["audio_prepared_count"], 3)
-            partial = next(item for item in report["items"] if item["candidate_id"] == "s3")
-            self.assertTrue(partial["status"].startswith("audio_prepared"))
-            self.assertEqual(partial["requested_verses"], [1, 2, 3])
-            self.assertEqual(partial["selected_verses"], [1, 2])
-            self.assertEqual(partial["remaining_verses"], [3])
-            self.assertFalse(partial["passage_complete"])
-            self.assertEqual(
-                partial["continuation_policy"],
-                "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
-            )
-            self.assertEqual(partial["duration_seconds"], 40.0)
+            self.assertEqual(report["preview_part_count"], 4)
+            partials = [item for item in report["items"] if item["source_candidate_id"] == "s3"]
+            self.assertEqual([item["selected_verses"] for item in partials], [[1, 2], [3]])
+            self.assertEqual(partials[0]["requested_verses"], [1, 2, 3])
+            self.assertEqual(partials[0]["remaining_verses"], [3])
+            self.assertFalse(partials[0]["passage_complete"])
+            self.assertTrue(partials[1]["passage_complete"])
+            self.assertEqual(partials[0]["part_count"], 2)
+            self.assertEqual(partials[0]["duration_seconds"], 40.0)
             self.assertIn("only confirmed delivery advances the sequence", report["continuation_policy"])
-            self.assertEqual(partial["processed_verse_durations_seconds"], {1: 20.0, 2: 20.0})
-            self.assertTrue(Path(partial["processed_audio_files"]["1"]).is_file())
+            self.assertEqual(partials[0]["processed_verse_durations_seconds"], {1: 20.0, 2: 20.0})
+            self.assertTrue(Path(partials[0]["processed_audio_files"]["1"]).is_file())
             self.assertEqual(report["distinct_surah_count"], 3)
             self.assertFalse(report["rendering_allowed"])
             self.assertFalse(report["telegram_delivery"])
