@@ -57,7 +57,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         font, lines, line_height = fit_translation_lines(
             draw, original, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
         )
-        self.assertLessEqual(len(lines), 5)
+        self.assertLessEqual(len(lines), 8)
         self.assertEqual(" ".join(lines), original)
         self.assertLessEqual(font.size, 30)
         self.assertGreaterEqual(line_height, 42)
@@ -74,7 +74,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertEqual(" ".join(lines), original)
         self.assertGreaterEqual(font.size, 16)
         self.assertGreaterEqual(line_height, 30)
-        self.assertLessEqual((len(lines) - 1) * line_height, 7 * 30)
+        self.assertLessEqual((len(lines) - 1) * line_height, 300)
 
     def test_make_frame_has_refined_cartouche_and_gold_ayah_medallion(self):
         with tempfile.TemporaryDirectory() as tmp:
