@@ -1,3 +1,13 @@
+## Tunisia Friday detection and full weekday pipeline validation (2026-11-02)
+- Added `src/tunisian_day_status.py` as the single timezone-aware source for the workflow's local weekday/date/time outputs.
+- Added `tests/test_build_quran_tunisian_day_status.py` covering Friday detection at the UTC/Tunisia date boundary, Friday daytime, Monday, and rejection of naive datetimes.
+- Updated the workflow to use this helper and run its tests. GitHub Actions run `41473125589` completed **successfully** on `feature/telegram-review-notifications` at `bd3eff8e4343c1d02046e958465cbaf20ad73139`.
+- In that run, the complete weekday-aware pipeline succeeded through catalog checks, Tunisia day detection, candidate selection, audio preparation, draft manifest, 9:16 rendering, background crop preview, and artifact upload.
+- The run was push-triggered. Telegram send, delivery-history recording, and history sync were correctly skipped; this run did not send a video and is not evidence of another Telegram delivery.
+- Friday selection itself remains covered by the builder unit test; the new date helper is independently tested with fixed Friday dates. No real Friday Telegram run has been triggered.
+- External `cron-job.org` configuration was not accessed or changed. Its user-confirmed slots remain 04:10, 12:10, and 18:10 Africa/Tunis. TikTok posting remains manual. English Saheeh International remains the agreed translation; French is not required.
+- Remaining delivery-safety concern: Telegram `sendVideo` and GitHub history commit are two separate systems. If Telegram accepts a video but the subsequent history push fails, an automatic retry could potentially send a duplicate. The current workflow has a per-branch concurrency group, but that alone does not make the cross-system send+commit atomic. Do not claim exactly-once delivery until this recovery window is addressed and tested.
+
 # Project status — IslamicTikTokAutomation
 
 ## Verified Telegram MP4 delivery and exact-history correction (2026-11-01)
