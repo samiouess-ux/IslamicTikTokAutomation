@@ -96,7 +96,7 @@ class DraftManifestTests(unittest.TestCase):
             {"candidate_id": "b", "surah_number": 88, "status": "audio_prepared", "selected_verses": [4, 5], "verse_durations_seconds": {4: 6, 5: 6}, "audio_file": "b.mp3", "duration_seconds": 12},
         ]}
         with tempfile.TemporaryDirectory() as tmp:
-            with self.assertRaisesRegex(ValueError, "prefix"):
+            with self.assertRaisesRegex(ValueError, "request must match|contiguous slice"):
                 build_draft_manifests(batch, report, Path(tmp))
 
 
