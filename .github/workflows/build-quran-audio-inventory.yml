@@ -136,27 +136,67 @@ jobs:
           python -m unittest discover -s tests -p 'test_render_quran_review_previews.py' -v
           python -m unittest discover -s tests -p 'test_send_telegram.py' -v
           python -m unittest discover -s tests -p 'test_record_quran_delivery.py' -v
-      - name: Build a diverse Quran review candidate pool
+      - name: Detect Friday using Tunisia local time
+        id: tunisian_day
         run: |
-          python src/build_quran_review_batch.py \
-            --catalog output/quran_joined_candidate.json \
-            --count 8 \
-            --exclude-surah 94 \
-            --history data/quran_delivery_history.json \
-            --seed "quran-daily-$(date -u +%F-%H)" \
-            --output output/quran_review_batch.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          now = datetime.now(ZoneInfo("Africa/Tunis"))
+          print(f"is_friday={'true' if now.weekday() == 4 else 'false'}")
+          print(f"local_date={now.date().isoformat()}")
+          print(f"local_time={now.strftime('%H:%M:%S')}")
+          PY
+      - name: Build weekday-aware Quran review candidate
+        env:
+          IS_FRIDAY: ${{ steps.tunisian_day.outputs.is_friday }}
+        run: |
+          if [ "$IS_FRIDAY" = "true" ]; then
+            echo "Friday mode: Surah Al-Kahf only; continue from the first unused ayah."
+            python src/build_quran_review_batch.py \\
+              --catalog output/quran_joined_candidate.json \\
+              --count 1 \\
+              --only-surah 18 \\
+              --sequential-unused \\
+              --history data/quran_delivery_history.json \\
+              --seed "quran-friday-$(date -u +%F-%H)" \\
+              --output output/quran_review_batch.json
+          else
+            echo "Regular Quran mode: eight diverse surahs; exclude Al-Kahf outside Friday."
+            python src/build_quran_review_batch.py \\
+              --catalog output/quran_joined_candidate.json \\
+              --count 8 \\
+              --exclude-surah 18 \\
+              --history data/quran_delivery_history.json \\
+              --seed "quran-daily-$(date -u +%F-%H)" \\
+              --output output/quran_review_batch.json
+          fi
           python - <<'PY'
           import json
+          import os
           from pathlib import Path
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
-          assert batch["candidate_count"] == 8
-          assert batch["distinct_surah_count"] == 8
-          assert 94 not in [item["surah_number"] for item in batch["passages"]]
-          assert batch["rendering_allowed"] is False
-          assert batch["telegram_delivery"] is False
-          assert batch["auto_publish"] is False
-          assert all(item["approval"]["ready_to_render"] is False for item in batch["passages"])
-          print("Prepared eight distinct-surah passages for human review only.")
+          if os.environ.get("IS_FRIDAY") == "true":
+              if batch["candidate_count"] != 1 or batch["distinct_surah_count"] != 1:
+                  raise SystemExit("Friday must prepare exactly one Surah Al-Kahf candidate per scheduled slot.")
+              if batch["passages"][0]["surah_number"] != 18:
+                  raise SystemExit("Friday candidate must be Surah Al-Kahf.")
+              history_path = Path("data/quran_delivery_history.json")
+              history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else {}
+              used = set(history.get("ayah_references", []))
+              first_unused = next((n for n in range(1, 111) if f"18:{n}" not in used), None)
+              if first_unused is None or batch["passages"][0]["verse_numbers"][0] != first_unused:
+                  raise SystemExit("Friday Al-Kahf must continue from the first unused ayah.")
+          else:
+              if batch["candidate_count"] != 8 or batch["distinct_surah_count"] != 8:
+                  raise SystemExit("Regular days must prepare eight distinct-surah candidates.")
+              if 18 in [item["surah_number"] for item in batch["passages"]]:
+                  raise SystemExit("Surah Al-Kahf is reserved for Friday mode.")
+          if batch["rendering_allowed"] is not False or batch["telegram_delivery"] is not False or batch["auto_publish"] is not False:
+              raise SystemExit("Candidate batch safety gates must remain disabled.")
+          if not all(item["approval"]["ready_to_render"] is False for item in batch["passages"]):
+              raise SystemExit("Candidate batch unexpectedly includes a render-approved passage.")
+          print(f"Prepared {batch['candidate_count']} candidate(s); Friday mode={os.environ.get('IS_FRIDAY')}.")
           PY
       - name: Prepare one distinct-surah video for this scheduled slot
         run: |
