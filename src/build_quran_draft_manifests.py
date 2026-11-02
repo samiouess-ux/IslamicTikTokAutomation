@@ -130,7 +130,7 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         created.append({"candidate_id": audio_item["candidate_id"], "source_candidate_id": source_candidate_id, "part_index": int(audio_item.get("part_index", 1)), "surah_number": surah, "verses": expected, "manifest": str(path), "rendering_allowed": False})
     if not created:
-        raise ValueError("At least one prepared distinct-surah audio draft is required for this scheduled slot.")
+        raise ValueError("At least one prepared whole-ayah audio part is required for this scheduled slot.")
     if len({item["candidate_id"] for item in created}) != len(created):
         raise ValueError("Draft manifests must have unique part identifiers.")
     return created
