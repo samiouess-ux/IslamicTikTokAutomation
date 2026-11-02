@@ -31,7 +31,7 @@ def build_review_batch(
     excluded_surahs: Iterable[int] = (),
     used_ayah_references: Iterable[str] = (),
     only_surahs: Iterable[int] | None = None,
-    sequential_unused: bool = False,
+    sequential_unused: bool = True,
 ) -> dict[str, Any]:
     if joined.get("rendering_allowed") is not False:
         raise ValueError("Input catalog must remain blocked from rendering.")
@@ -192,7 +192,7 @@ def main() -> None:
     parser.add_argument("--seed", default="quran-review-batch")
     parser.add_argument("--exclude-surah", type=int, action="append", default=[])
     parser.add_argument("--only-surah", type=int, action="append", default=None, help="Restrict candidates to the specified surah(s).")
-    parser.add_argument("--sequential-unused", action="store_true", help="Start at the first unused ayah instead of a seeded random suffix.")
+    parser.add_argument("--seeded-unused", action="store_true", help="Legacy option: choose a seeded random unused suffix instead of the first unused ayah.")
     parser.add_argument("--history", type=Path, help="JSON delivery history of previously delivered ayah references.")
     args = parser.parse_args()
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
@@ -204,7 +204,7 @@ def main() -> None:
     last_surah = most_recent_delivered_surah(history)
     if args.only_surah is None and last_surah is not None and last_surah not in excluded_surahs:
         excluded_surahs.append(last_surah)
-    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs, args.only_surah, args.sequential_unused)
+    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs, args.only_surah, not args.seeded_unused)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
