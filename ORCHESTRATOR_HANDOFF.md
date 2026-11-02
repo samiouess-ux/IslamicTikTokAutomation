@@ -298,3 +298,10 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Regression tests verify a 44-second three-ayah selection, a 12-second complete short passage, and blocking a 66-second single ayah. Existing edge-only silence trimming and MP3 stream-copy safeguards remain.
 - Validation run 41465562249 completed successfully through candidate generation, draft manifests, 9:16 review rendering, and background preparation. It was a push event, so it did not send to Telegram or change delivery history.
 - Next development item: Friday-only Surah Al-Kahf selection across the daily slots, with complete ayah boundaries, max 65 seconds, and delivered-ayah history exclusion. Preserve cron-job.org as configured; do not add or change a scheduler.
+
+
+## Friday Al-Kahf logic (2026-11-02; end-to-end workflow check pending)
+- Workflow now detects Friday using Africa/Tunis local time. Friday candidates are restricted to Surah Al-Kahf (18), start at the first unused ayah in sequence, and allow the same surah to continue across the three daily Cron slots while history prevents ayah repeats.
+- Non-Friday candidate selection still produces eight diverse surahs and excludes both Al-Kahf (18) and Ash-Sharh (94).
+- Regression test run 41466300540 passed, including the new sequential Al-Kahf test. Full workflow validation run 41466486385 is pending; it is push-triggered and must not send Telegram.
+- Keep the external cron-job.org schedule untouched. Do not add GitHub native schedule. TikTok remains manual only.
