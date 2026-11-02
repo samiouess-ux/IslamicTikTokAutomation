@@ -23,6 +23,26 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertGreaterEqual(font.size, 48)
         self.assertGreater(line_height, font.size)
 
+    def test_long_quran_ayah_uses_readable_fallback_without_dropping_words(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        # A long, complete Uthmani ayah (An-Nur 24:62) exercises the fallback
+        # that the scheduled render previously lacked.
+        original = (
+            "إِنَّمَا الْمُؤْمِنُونَ الَّذِينَ آمَنُوا بِاللَّهِ وَرَسُولِهِ "
+            "وَإِذَا كَانُوا مَعَهُ عَلَىٰ أَمْرٍ جَامِعٍ لَمْ يَذْهَبُوا "
+            "حَتَّىٰ يَسْتَأْذِنُوهُ ۚ إِنَّ الَّذِينَ يَسْتَأْذِنُونَكَ "
+            "أُولَٰئِكَ الَّذِينَ يُؤْمِنُونَ بِاللَّهِ وَرَسُولِهِ ۚ "
+            "فَإِذَا اسْتَأْذَنُوكَ لِبَعْضِ شَأْنِهِمْ فَأْذَنْ لِمَنْ "
+            "شِئْتَ مِنْهُمْ وَاسْتَغْفِرْ لَهُمُ اللَّهَ ۚ إِنَّ اللَّهَ "
+            "غَفُورٌ رَحِيمٌ"
+        )
+        font, lines, line_height = fit_arabic_lines(draw, original, font_file())
+        self.assertLessEqual(len(lines), 5)
+        self.assertEqual(" ".join(lines), original)
+        self.assertGreaterEqual(font.size, 36)
+        self.assertGreater(line_height, font.size)
+
     def test_short_arabic_ayah_uses_larger_amiri_type(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
