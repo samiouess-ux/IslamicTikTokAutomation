@@ -1,3 +1,11 @@
+## Latest checkpoint — renderer fix passed (2026-11-02)
+- Active branch HEAD `c1cec3fbd246871fbd856542ae95c1bc039d2645`.
+- Inventory/preview workflow run `41491587024`: completed `success`; translation layout/render, background overlay previews, and artifact upload all passed.
+- Isolated request pipeline run `41491586953`: completed `success`; all test steps passed.
+- Both were push-triggered. Telegram reserve/send/history/sync steps were skipped; do not describe this as a Telegram delivery.
+- `data/quran_delivery_pending.json` is absent at this checkpoint (404 from branch file lookup); no unresolved reservation is currently recorded in repository state.
+- Next: inspect the uploaded review artifact for actual visual quality, then monitor the next existing cron-job.org dispatch (04:10 / 12:10 / 18:10 Africa/Tunis). Never manually dispatch a send for testing; never modify Cron or `main`.
+
 ## Latest checkpoint — complete preview validation (2026-11-02)
 - Run `41476070230` completed successfully. Regression tests, Tunisia Friday helper, weekday candidate generation, preview rendering, background crop preview, and artifact upload all passed.
 - Trigger was `push`; Telegram reservation, send, history record and sync were skipped by design. This was not an end-to-end Telegram send.
