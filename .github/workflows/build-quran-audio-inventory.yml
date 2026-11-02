@@ -20,7 +20,9 @@ on:
       - "src/render_quran_review_previews.py"
       - "src/send_telegram.py"
       - "src/record_quran_delivery.py"
+      - "src/quran_delivery_attempt.py"
       - "tests/test_record_quran_delivery.py"
+      - "tests/test_quran_delivery_attempt.py"
       - "tests/test_send_telegram.py"
       - "tests/test_render_quran_review_previews.py"
       - "tests/test_build_quran_draft_manifests.py"
@@ -44,6 +46,9 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Block automatic sends when a previous Telegram outcome is unresolved
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        run: python src/quran_delivery_attempt.py guard --pending data/quran_delivery_pending.json
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -139,6 +144,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_render_quran_review_previews.py' -v
           python -m unittest discover -s tests -p 'test_send_telegram.py' -v
           python -m unittest discover -s tests -p 'test_record_quran_delivery.py' -v
+          python -m unittest discover -s tests -p 'test_quran_delivery_attempt.py' -v
       - name: Detect Friday using Tunisia local time
         id: tunisian_day
         run: python src/tunisian_day_status.py >> "$GITHUB_OUTPUT"
@@ -303,6 +309,23 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Reserve Telegram delivery attempt before sending
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        run: |
+          python src/quran_delivery_attempt.py reserve \
+            --pending data/quran_delivery_pending.json \
+            --history data/quran_delivery_history.json \
+            --batch output/quran_review_batch.json \
+            --audio-report output/quran_batch_audio_report.json \
+            --preview-report output/quran_review_previews/preview_report.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/quran_delivery_pending.json
+          git commit -m "Reserve Quran Telegram delivery attempt"
+          git fetch origin feature/telegram-review-notifications
+          git rebase origin/feature/telegram-review-notifications
+          git push origin HEAD:refs/heads/feature/telegram-review-notifications
+
       - name: Send one review-only video to Telegram for manual approval
         id: telegram_send
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
@@ -369,19 +392,22 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
-          for item in report["items"]:
-              subprocess.run([
-                  sys.executable, "src/record_quran_delivery.py",
-                  "--history", "data/quran_delivery_history.json",
-                  "--batch", "output/quran_review_batch.json",
-                  "--audio-report", "output/quran_batch_audio_report.json",
-                  "--candidate-id", item["candidate_id"],
-              ], check=True)
+          if report.get("preview_count") != 1 or len(report.get("items", [])) != 1:
+              raise SystemExit("Expected exactly one Telegram-confirmed review candidate.")
+          candidate_id = report["items"][0]["candidate_id"]
+          subprocess.run([
+              sys.executable, "src/quran_delivery_attempt.py", "finalize",
+              "--pending", "data/quran_delivery_pending.json",
+              "--history", "data/quran_delivery_history.json",
+              "--batch", "output/quran_review_batch.json",
+              "--audio-report", "output/quran_batch_audio_report.json",
+              "--candidate-id", candidate_id,
+          ], check=True)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/quran_delivery_history.json
-          git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery"
+          git add -A data/quran_delivery_history.json data/quran_delivery_pending.json
+          git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery and clear reservation"
 
       - name: Sync confirmed Quran delivery history to active branch
         if: steps.telegram_send.outcome == 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
