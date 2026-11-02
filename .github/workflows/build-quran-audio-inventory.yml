@@ -32,9 +32,6 @@ on:
       - "tests/test_prepare_quran_review_batch_audio.py"
       - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
-  schedule:
-    # Tunisia (UTC+1): 04:10, 12:10, 18:10 local time; avoid the top-of-hour queue peak.
-    - cron: "10 3,11,17 * * *"
 
 permissions:
   contents: write
