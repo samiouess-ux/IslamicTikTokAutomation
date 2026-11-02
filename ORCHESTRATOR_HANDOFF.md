@@ -272,3 +272,12 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 ### Final request bridge code test (2026-11-01)
 - Request CI run `41291401349` passed all steps, including Node syntax validation of the Cloudflare Worker, parser, automatic 65-second range selector, inbox authorization/deduplication, requested passage builder, and review-renderer tests.
 - The new workflow was recognized by GitHub Actions and push-validation was skipped as designed. No end-to-end workflow dispatch or Telegram MP4 delivery has been tested; Cloudflare/KV/webhook setup remains the only user-side deployment gate.
+
+
+## Daily scheduler reality check (2026-11-02)
+- Inspected the active branch's actual `.github/workflows/build-quran-audio-inventory.yml`: its `on:` block currently contains only `push` and `workflow_dispatch`; there is no GitHub Actions `schedule` trigger. Therefore this workflow itself cannot start at 04:10, 12:10, or 18:10 Tunisia time at present.
+- GitHub repository metadata confirms the default branch is `feature/telegram-review-notifications`, so a GitHub Actions cron added later to this workflow would be eligible to run on the intended branch without touching `main`.
+- The repository's Cloudflare Telegram bridge is only an on-demand webhook worker; the handoff records that Worker/KV/secrets/webhook deployment is not configured. No deployed external daily scheduler is evidenced in the repository. Do not assume an external scheduler exists.
+- Do NOT activate the daily schedule yet. The actual MP4 build and size are now verified (23.5 MiB, 31.846 seconds, 1080x1920), but the latest successful run was a push event and skipped Telegram send/history steps. A controlled real Telegram MP4 delivery and history sync are still mandatory acceptance gates. Once those pass, add a native GitHub Actions cron of `10 3,11,17 * * *` UTC (04:10, 12:10, 18:10 Tunisia, UTC+1) to this workflow, then verify each scheduled delivery and history update. GitHub scheduled starts may be delayed under load.
+- The latest candidate was Surah Al-Ahzab 33:43-44, not the old Ash-Sharh-only prototype. This confirms the review candidate selector can produce a different surah in this build, but does not alone prove long-term no-repeat behavior; verify history exclusion over confirmed deliveries.
+- No TikTok auto-publishing is enabled. User continues to approve/download/post manually.
