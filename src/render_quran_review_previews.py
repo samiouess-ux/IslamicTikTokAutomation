@@ -201,12 +201,13 @@ def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 
 
 def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                     max_width: int = 850, max_lines: int = 7):
-    """Fit the complete Uthmani ayah in a balanced block; never clip words.
+                     max_width: int = 850, max_lines: int = 7,
+                     max_height: int = 390):
+    """Fit the complete Uthmani ayah to a fixed-height area below the surah title.
 
-    Long but valid ayahs get a smaller, still readable fallback before rendering
-    is rejected. The extra line remains inside the reserved Arabic area above
-    the ayah-number medallion.
+    The font steps down progressively for long ayahs. Both line count and total
+    block height are checked, so a wrapped ayah cannot grow upward into the
+    title cartouche. No Quran words are removed or rewritten.
     """
     for size in (96, 90, 84, 78, 72, 66, 60, 56, 52, 48, 44, 40, 36, 32, 28):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
@@ -220,12 +221,21 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
             else:
                 if current:
                     lines.append(current)
+                word_bounds = draw.textbbox((0, 0), word, font=font,
+                                            direction="rtl", language="ar")
+                if word_bounds[2] - word_bounds[0] > max_width:
+                    raise ValueError("A Quran word is wider than the available text area.")
                 current = word
         if current:
             lines.append(current)
-        if len(lines) <= max_lines:
-            return font, lines, (max(48, int(size * 1.4)) if size <= 40 else max(72, int(size * 1.48)))
-    raise ValueError("Arabic ayah does not fit safely without clipping.")
+        line_height = (max(48, int(size * 1.4)) if size <= 40
+                       else max(72, int(size * 1.48)))
+        block_height = max(0, len(lines) - 1) * line_height
+        if len(lines) <= max_lines and block_height <= max_height:
+            return font, lines, line_height
+    raise ValueError(
+        "Arabic ayah cannot fit safely below the surah title without clipping."
+    )
 
 
 def bold_font_file() -> str:
@@ -303,7 +313,8 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
     body_font, lines, line_height = fit_arabic_lines(draw, arabic, font_path)
     block_height = (len(lines) - 1) * line_height
-    start_y = 835 - block_height / 2
+    # Center the verse inside its reserved band; its top can never enter the title area.
+    start_y = 865 - block_height / 2
     for line_index, line in enumerate(lines):
         draw.text((540, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
