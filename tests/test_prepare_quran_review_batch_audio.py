@@ -63,7 +63,14 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertTrue(partial["status"].startswith("audio_prepared"))
             self.assertEqual(partial["requested_verses"], [1, 2, 3])
             self.assertEqual(partial["selected_verses"], [1, 2])
+            self.assertEqual(partial["remaining_verses"], [3])
+            self.assertFalse(partial["passage_complete"])
+            self.assertEqual(
+                partial["continuation_policy"],
+                "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
+            )
             self.assertEqual(partial["duration_seconds"], 40.0)
+            self.assertIn("only confirmed delivery advances the sequence", report["continuation_policy"])
             self.assertEqual(partial["processed_verse_durations_seconds"], {1: 20.0, 2: 20.0})
             self.assertTrue(Path(partial["processed_audio_files"]["1"]).is_file())
             self.assertEqual(report["distinct_surah_count"], 3)
