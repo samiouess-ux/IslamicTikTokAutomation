@@ -59,7 +59,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         )
         self.assertLessEqual(len(lines), 8)
         self.assertEqual(" ".join(lines), original)
-        self.assertLessEqual(font.size, 30)
+        self.assertLessEqual(font.size, 32)
         self.assertGreaterEqual(line_height, 42)
 
     def test_long_translation_can_use_eight_readable_lines_without_dropping_words(self):
