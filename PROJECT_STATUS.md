@@ -1,3 +1,9 @@
+## Latest workflow contract validation (2026-11-02)
+- Run `41476070230` passed the new static Telegram workflow safety contract tests, catalog/regression tests, candidate/audio preparation, 9:16 rendering, background crop previews, and artifact upload.
+- Telegram reservation/send/history steps were skipped because this was a push event. No video was sent.
+- At the latest check, only the post-checkout cleanup step remained in progress; all substantive workflow steps had succeeded.
+- This still does not test a real reservation push or Telegram send. The live Cron configuration remains untouched.
+
 ## Follow-up validation of Telegram send safeguards (2026-11-02)
 - Full push-validation run `41475084051` completed successfully on commit `4c944465b0a3820212b8620073a1838979712739`: catalog and translation checks, new delivery-reservation/sender tests, weekday candidate preparation, 9:16 rendering, background crop previews, and artifact upload all passed.
 - Because the run event was `push`, the reserve/send/history/sync steps were skipped by design. No Telegram video was sent by this run.
