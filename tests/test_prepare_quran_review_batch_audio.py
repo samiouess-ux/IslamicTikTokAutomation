@@ -103,9 +103,9 @@ class QuranBatchAudioTests(unittest.TestCase):
                 destination.write_bytes(b"trimmed")
                 return next(trimmed)
 
-            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
-                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 44.0]), \\
-                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \\
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
+                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 44.0]), \
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
@@ -146,9 +146,9 @@ class QuranBatchAudioTests(unittest.TestCase):
                 destination.write_bytes(b"trimmed")
                 return next(trimmed)
 
-            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
-                 patch.object(module, "probe", side_effect=[3.0, 3.0, 3.0, 3.0, 12.0]), \\
-                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \\
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
+                 patch.object(module, "probe", side_effect=[3.0, 3.0, 3.0, 3.0, 12.0]), \
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
@@ -177,8 +177,8 @@ class QuranBatchAudioTests(unittest.TestCase):
                 destination.write_bytes(b"trimmed")
                 return 66.0
 
-            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
-                 patch.object(module, "probe", return_value=66.0), \\
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
+                 patch.object(module, "probe", return_value=66.0), \
                  patch.object(module, "trim_edge_silence", side_effect=fake_trim):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
