@@ -191,9 +191,14 @@ def fit_translation_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 
 
 def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                     max_width: int = 850, max_lines: int = 4):
-    """Fit the complete Uthmani ayah in a balanced block; never clip words."""
-    for size in (96, 90, 84, 78, 72, 66, 60, 56, 52, 48):
+                     max_width: int = 850, max_lines: int = 5):
+    """Fit the complete Uthmani ayah in a balanced block; never clip words.
+
+    Long but valid ayahs get a smaller, still readable fallback before rendering
+    is rejected. The extra line remains inside the reserved Arabic area above
+    the ayah-number medallion.
+    """
+    for size in (96, 90, 84, 78, 72, 66, 60, 56, 52, 48, 44, 40, 36):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         lines, current = [], ""
         for word in text.split():
