@@ -641,7 +641,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             command.extend([
                 "-filter_complex", filter_complex,
                 "-map", "[v]", "-map", "1:a:0",
-                "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "6M", "-bufsize", "12M",
                 "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest",
                 "-movflags", "+faststart", str(segment)
             ])
