@@ -67,9 +67,42 @@ def build_review_batch(
     offset = int.from_bytes(digest[:8], "big") % len(surahs)
     ordered = surahs[offset:] + surahs[:offset]
     slots = sorted({min(len(ordered)-1, (i * len(ordered)) // count) for i in range(count)})
-    selected_surahs = [ordered[i] for i in slots]
     passages = []
     used_refs = {str(reference) for reference in used_ayah_references}
+
+    # Continue partially delivered surahs before starting unrelated passages.
+    # Only a confirmed Telegram delivery adds references to this set, so an
+    # unconfirmed preview can never advance or consume the Quran sequence.
+    partial_surahs = []
+    for surah in surahs:
+        available_for_surah = sorted(
+            int(key.split(":")[1]) for key in corpus
+            if int(key.split(":")[0]) == surah
+        )
+        used_for_surah = {
+            int(reference.split(":")[1]) for reference in used_refs
+            if reference.startswith(f"{surah}:")
+        }
+        if used_for_surah and max(used_for_surah) < available_for_surah[-1]:
+            first_unused = next(
+                (ayah for ayah in available_for_surah if ayah not in used_for_surah),
+                None,
+            )
+            if first_unused is not None and available_for_surah[
+                available_for_surah.index(first_unused):
+            ] == list(range(first_unused, available_for_surah[-1] + 1)):
+                partial_surahs.append(surah)
+    partial_surahs.sort(
+        key=lambda number: max(
+            int(reference.split(":")[1]) for reference in used_refs
+            if reference.startswith(f"{number}:")
+        ),
+        reverse=True,
+    )
+    selected_surahs = partial_surahs[:count]
+    for number in [ordered[i] for i in slots]:
+        if number not in selected_surahs and len(selected_surahs) < count:
+            selected_surahs.append(number)
 
     for index, surah in enumerate(selected_surahs, start=1):
         available = sorted(
@@ -201,9 +234,8 @@ def main() -> None:
     if not isinstance(used_refs, list) or not all(isinstance(item, str) for item in used_refs):
         raise ValueError("Delivery history ayah_references must be a list of strings.")
     excluded_surahs = list(args.exclude_surah)
-    last_surah = most_recent_delivered_surah(history)
-    if args.only_surah is None and last_surah is not None and last_surah not in excluded_surahs:
-        excluded_surahs.append(last_surah)
+    # Do not exclude the latest delivered surah: if it was only partially
+    # delivered, build_review_batch must continue from its first unused ayah.
     result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs, args.only_surah, not args.seeded_unused)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
