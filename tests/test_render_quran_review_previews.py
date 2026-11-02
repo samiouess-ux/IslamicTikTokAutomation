@@ -149,6 +149,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 if "-loop" in call.args[0]
             )
             self.assertIn("fade=t=out:st=1.2:d=0.4:alpha=1", " ".join(first_render_command))
+            self.assertIn("-crf 23", " ".join(first_render_command))
+            self.assertIn("-maxrate 6M", " ".join(first_render_command))
+            self.assertIn("-bufsize 12M", " ".join(first_render_command))
             self.assertEqual(SURAH_NAMES[18], "مريم")
             self.assertEqual(SURAH_NAMES[87], "الغاشية")
             self.assertEqual(SURAH_NAMES[110], "المسد")
