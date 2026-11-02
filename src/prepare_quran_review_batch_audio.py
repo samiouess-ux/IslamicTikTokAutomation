@@ -111,7 +111,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             # Probe consecutive whole ayahs in order. Keep the longest prefix
             # whose measured source duration fits the 65-second limit. A short
             # surah naturally remains whole when its complete duration fits.
-            # Keep the complete source request, even when the 40-second cap
+            # Keep the complete source request, even when the 65-second cap
             # means only a contiguous prefix can be selected for this video.
             requested = [int(verse["ayah"]) for verse in candidate["verses"]]
             for verse in candidate["verses"]:
