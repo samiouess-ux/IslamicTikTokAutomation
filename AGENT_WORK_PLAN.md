@@ -1,3 +1,9 @@
+## Follow-up validation status (2026-11-02)
+- Run `41475084051` passed the full push validation through 9:16 rendering, background previews, and artifact upload. Telegram send/history were skipped by design.
+- Static workflow contract tests in `tests/test_telegram_workflow_safety.py` passed in run `41476070230`; its full pipeline remains in progress.
+- Do not claim the live reservation push or a Telegram delivery has been tested by these push runs.
+- Keep the external cron-job.org slots exactly as configured: 04:10, 12:10, 18:10 Africa/Tunis.
+
 ## Current safety blocker — Telegram duplicate-send protection (2026-11-02)
 - Sender does not retry transport failures or HTTP 5xx because the Telegram outcome may be ambiguous; only an explicit HTTP 429 is retried once.
 - A pending reservation is committed to the active branch before send. Confirmed Telegram delivery finalizes the history and clears the reservation. An unresolved reservation blocks future automatic sends until reconciled against Telegram.
