@@ -52,4 +52,28 @@ class TelegramDeliveryTests(unittest.TestCase):
             with patch("send_telegram.urllib.request.urlopen") as call:
                 with self.assertRaisesRegex(ValueError,"50 MB"): send_video(video,caption,"token","chat")
                 call.assert_not_called()
+
+    def test_network_failure_is_not_retried_because_send_outcome_is_ambiguous(self):
+        import urllib.error
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp); video=p/"review.mp4"; caption=p/"caption.json"
+            video.write_bytes(b"FAKE-MP4-BYTES")
+            caption.write_text(json.dumps({"english_caption":"Review"}),encoding="utf-8")
+            with patch("send_telegram.urllib.request.urlopen", side_effect=urllib.error.URLError("timeout")) as call:
+                with self.assertRaisesRegex(RuntimeError, "outcome is unknown"):
+                    send_video(video,caption,"token","chat-id")
+                self.assertEqual(call.call_count, 1)
+
+    def test_server_error_is_not_retried_automatically(self):
+        import urllib.error
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp); video=p/"review.mp4"; caption=p/"caption.json"
+            video.write_bytes(b"FAKE-MP4-BYTES")
+            caption.write_text(json.dumps({"english_caption":"Review"}),encoding="utf-8")
+            error = urllib.error.HTTPError("https://api.telegram.org", 500, "server error", {}, None)
+            with patch("send_telegram.urllib.request.urlopen", side_effect=error) as call:
+                with self.assertRaises(urllib.error.HTTPError):
+                    send_video(video,caption,"token","chat-id")
+                self.assertEqual(call.call_count, 1)
+
 if __name__ == "__main__": unittest.main()
