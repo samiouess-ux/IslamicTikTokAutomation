@@ -291,3 +291,10 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - This supersedes the old note claiming no external scheduler exists and that no Telegram MP4 delivery had been tested. Keep those older entries only as historical checkpoints.
 - One end-to-end Cron delivery is now proven. Continue checking subsequent scheduled sends and duplicate prevention. Do not claim all three daily slots have been verified from this one run.
 - Keep all work on feature/telegram-review-notifications; never modify main. TikTok publishing stays manual only.
+
+
+## Duration selection update (2026-11-02)
+- Scheduled batch audio selection now targets the longest contiguous whole-ayah prefix up to 65 seconds; no artificial 30-second minimum. Short complete surahs/passages can be used in full. Any single ayah exceeding 65 seconds is blocked, never cut mid-ayah.
+- Regression tests verify a 44-second three-ayah selection, a 12-second complete short passage, and blocking a 66-second single ayah. Existing edge-only silence trimming and MP3 stream-copy safeguards remain.
+- Validation run 41465562249 completed successfully through candidate generation, draft manifests, 9:16 review rendering, and background preparation. It was a push event, so it did not send to Telegram or change delivery history.
+- Next development item: Friday-only Surah Al-Kahf selection across the daily slots, with complete ayah boundaries, max 65 seconds, and delivered-ayah history exclusion. Preserve cron-job.org as configured; do not add or change a scheduler.
