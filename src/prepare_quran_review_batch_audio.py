@@ -202,8 +202,6 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 })
             prepared_candidates += 1
     ready = [x for x in results if x["status"].startswith("audio_prepared")]
-    if len({x["source_candidate_id"] for x in ready}) != len({x["source_candidate_id"] for x in ready}):
-        raise ValueError("Prepared audio report contains duplicate source candidates.")
     report = {
         "status": "audio_review_package_prepared" if len(ready) >= target_count else "insufficient_audio_candidates_prepared",
         "candidate_count": len(batch.get("passages", [])),
