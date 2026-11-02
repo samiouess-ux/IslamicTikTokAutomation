@@ -23,6 +23,7 @@ on:
       - "src/quran_delivery_attempt.py"
       - "tests/test_record_quran_delivery.py"
       - "tests/test_quran_delivery_attempt.py"
+      - "tests/test_telegram_workflow_safety.py"
       - "tests/test_send_telegram.py"
       - "tests/test_render_quran_review_previews.py"
       - "tests/test_build_quran_draft_manifests.py"
@@ -145,6 +146,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_send_telegram.py' -v
           python -m unittest discover -s tests -p 'test_record_quran_delivery.py' -v
           python -m unittest discover -s tests -p 'test_quran_delivery_attempt.py' -v
+          python -m unittest discover -s tests -p 'test_telegram_workflow_safety.py' -v
       - name: Detect Friday using Tunisia local time
         id: tunisian_day
         run: python src/tunisian_day_status.py >> "$GITHUB_OUTPUT"
