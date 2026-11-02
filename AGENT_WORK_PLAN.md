@@ -1,3 +1,8 @@
+## Latest verification and next action (2026-11-02)
+- Latest push validation run `41476070230`: success. Regression tests, Tunisia-local weekday logic, candidate preparation, 9:16 render, background crop preview, and artifacts passed.
+- Telegram send steps were skipped because this was a push event; no Telegram delivery was tested in this run.
+- Next step: observe the next existing Cron dispatch and verify pending reservation is committed before Telegram, then successful delivery is recorded and pending cleared. Do not trigger a manual send.
+- Cron remains 04:10, 12:10, 18:10 Africa/Tunis. No changes, no extra scheduler, no edits to `main`.
 ## Latest workflow validation — 2026-11-02
 - Run `41476070230` passed Telegram workflow contract tests, regression tests, candidate/audio prep, 9:16 rendering, background previews, and artifact upload. Telegram steps were skipped because this was a push event.
 - Only post-checkout cleanup remained in progress at the last check. No real Telegram delivery or reservation commit/push was exercised.
