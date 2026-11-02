@@ -266,3 +266,10 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - The configured cron remains `0 3,11,17 * * *` UTC (04:00, 12:00, 18:00 Tunisia). Run #177 is a real schedule event but began four hours after the 17:00 UTC slot. This is external scheduler delay, not `18 + 4` arithmetic in our workflow. Do not offset the cron to compensate.
 - Only two schedule events are currently evidenced; no 12:00 slot is present in the audited run history. Daily three-slot reliability and punctuality are therefore not yet accepted.
 - Continue monitoring the three intended Tunisia slots. If delay/missing events repeat, diagnose GitHub scheduling and implement only a minimal correction inside the existing Actions + original Telegram bot architecture. No new services, bots, orchestrator, or TikTok auto-publishing.
+
+
+## Schedule minute adjustment (2026-11-02)
+- Changed only the existing schedule in `.github/workflows/build-quran-audio-inventory.yml` from `0 3,11,17 * * *` to `10 3,11,17 * * *` UTC.
+- New intended Tunisia (UTC+1) slots: 04:10, 12:10, and 18:10. This avoids scheduling exactly at minute 00, which GitHub documents as a period of elevated scheduled-workflow load; it may reduce queue delays but does not guarantee punctual starts or prove that a missing schedule trigger is fixed.
+- No engine, Telegram bot, delivery logic, secrets, or TikTok behavior changed. Only `feature/telegram-review-notifications` was modified; `main` was not touched.
+- Next acceptance: observe actual schedule-triggered runs for the new slots and confirm Telegram positive `message_id` plus delivery-history sync. If schedule events remain absent, investigate workflow enablement/actor state rather than adding infrastructure.
