@@ -745,3 +745,10 @@ Theme: hope and ease after hardship.
 - Only two scheduled events are present in the queried branch history: run #159 and run #177. No 12:00 Tunisia scheduled run is present in this audit. Thus two real scheduled Telegram deliveries are confirmed, but three daily slots and punctuality are not yet proven.
 - Next: keep the explicit UTC cron unchanged; continue checking the next 04:00 / 12:00 / 18:00 Tunisia slots separately. If GitHub continues to start schedule events hours late or omits slots, document the exact delay and then choose a minimal solution within the existing GitHub Actions + Telegram architecture. Do not add an orchestrator, another bot, cloud service, or automatic TikTok publishing.
 - Active branch only: `feature/telegram-review-notifications`. TikTok remains manual.
+
+
+## Schedule minute adjustment (2026-11-02)
+- Changed only the existing schedule in `.github/workflows/build-quran-audio-inventory.yml` from `0 3,11,17 * * *` to `10 3,11,17 * * *` UTC.
+- New intended Tunisia (UTC+1) slots: 04:10, 12:10, and 18:10. This avoids scheduling exactly at minute 00, which GitHub documents as a period of elevated scheduled-workflow load; it may reduce queue delays but does not guarantee punctual starts or prove that a missing schedule trigger is fixed.
+- No engine, Telegram bot, delivery logic, secrets, or TikTok behavior changed. Only `feature/telegram-review-notifications` was modified; `main` was not touched.
+- Next acceptance: observe actual schedule-triggered runs for the new slots and confirm Telegram positive `message_id` plus delivery-history sync. If schedule events remain absent, investigate workflow enablement/actor state rather than adding infrastructure.
