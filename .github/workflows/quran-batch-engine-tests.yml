@@ -5,6 +5,16 @@ on:
     branches: [feature/telegram-review-notifications]
     paths:
       - "src/build_quran_review_batch.py"
+      - "src/prepare_quran_review_batch_audio.py"
+      - "src/build_quran_draft_manifests.py"
+      - "src/render_quran_review_previews.py"
+      - "src/quran_delivery_attempt.py"
+      - "src/record_quran_delivery.py"
+      - "tests/test_prepare_quran_review_batch_audio.py"
+      - "tests/test_build_quran_draft_manifests.py"
+      - "tests/test_render_quran_review_previews.py"
+      - "tests/test_quran_delivery_attempt.py"
+      - "tests/test_record_quran_delivery.py"
       - "src/build_quran_video_catalog.py"
       - "src/render_video_scenes.py"
       - "src/render_quran_review_batch.py"
@@ -43,6 +53,11 @@ jobs:
         run: |
           python -m py_compile \
             src/build_quran_review_batch.py \
+            src/prepare_quran_review_batch_audio.py \
+            src/build_quran_draft_manifests.py \
+            src/render_quran_review_previews.py \
+            src/quran_delivery_attempt.py \
+            src/record_quran_delivery.py \
             src/build_quran_video_catalog.py \
             src/render_video_scenes.py \
             src/render_quran_review_batch.py \
@@ -55,7 +70,12 @@ jobs:
             tests/test_build_quran_review_batch.py \
             tests/test_build_quran_video_catalog.py \
             tests/test_quran_visual_templates.py \
-            tests/test_render_quran_review_batch.py
+            tests/test_render_quran_review_batch.py \
+            tests/test_prepare_quran_review_batch_audio.py \
+            tests/test_build_quran_draft_manifests.py \
+            tests/test_render_quran_review_previews.py \
+            tests/test_quran_delivery_attempt.py \
+            tests/test_record_quran_delivery.py
       - name: Test Quran-only daily orchestrator
         run: python -m unittest discover -s tests -p 'test_orchestrator.py' -v
       - name: Confirm workflow is test-only
