@@ -22,7 +22,8 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
     for audio_item in report.get("items", []):
         if not audio_item.get("status", "").startswith("audio_prepared"):
             continue
-        candidate = passages.get(audio_item["candidate_id"])
+        source_candidate_id = audio_item.get("source_candidate_id", audio_item["candidate_id"])
+        candidate = passages.get(source_candidate_id)
         if not candidate:
             raise ValueError(f"Audio candidate missing from batch: {audio_item['candidate_id']}")
         if int(candidate["surah_number"]) != int(audio_item["surah_number"]):
@@ -33,8 +34,11 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         candidate_numbers = [int(v["ayah"]) for v in candidate["verses"]]
         if not isinstance(requested, list) or [int(n) for n in requested] != candidate_numbers:
             raise ValueError("Prepared audio request must match every source candidate ayah in order.")
-        if not isinstance(expected, list) or not expected or [int(n) for n in expected] != [int(n) for n in requested[:len(expected)]]:
-            raise ValueError("Prepared audio must select a non-empty contiguous prefix of the requested ayahs.")
+        if not isinstance(expected, list) or not expected:
+            raise ValueError("Prepared audio must select a non-empty contiguous ayah range.")
+        start = requested.index(int(expected[0])) if int(expected[0]) in requested else -1
+        if start < 0 or [int(n) for n in expected] != [int(n) for n in requested[start:start + len(expected)]]:
+            raise ValueError("Prepared audio must select a contiguous slice of the requested ayahs.")
         if expected != list(range(int(expected[0]), int(expected[0]) + len(expected))):
             raise ValueError("Prepared audio ayahs must be a contiguous ordered passage.")
         if not audio_item.get("audio_file"):
@@ -53,7 +57,10 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
         source_durations = audio_item["verse_durations_seconds"]
         processed_durations = audio_item.get("processed_verse_durations_seconds") or source_durations
         manifest = {
-            "id": candidate["candidate_id"],
+            "id": audio_item["candidate_id"],
+            "source_candidate_id": source_candidate_id,
+            "part_index": int(audio_item.get("part_index", 1)),
+            "part_count": int(audio_item.get("part_count", 1)),
             "content_type": "quran",
             "status": "draft_candidate_requires_human_review",
             "rotation_approved": False,
@@ -117,15 +124,15 @@ def build_draft_manifests(batch: dict[str, Any], report: dict[str, Any], output_
                 ],
             },
         }
-        path = output_dir / f"{candidate['candidate_id']}.json"
+        path = output_dir / f"{audio_item['candidate_id']}.json"
         if path.exists():
             raise ValueError(f"Refusing to overwrite draft manifest: {path}")
         path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        created.append({"candidate_id": candidate["candidate_id"], "surah_number": surah, "manifest": str(path), "rendering_allowed": False})
+        created.append({"candidate_id": audio_item["candidate_id"], "source_candidate_id": source_candidate_id, "part_index": int(audio_item.get("part_index", 1)), "surah_number": surah, "verses": expected, "manifest": str(path), "rendering_allowed": False})
     if not created:
         raise ValueError("At least one prepared distinct-surah audio draft is required for this scheduled slot.")
-    if len({item["surah_number"] for item in created}) != len(created):
-        raise ValueError("Draft manifests must represent distinct surahs.")
+    if len({item["candidate_id"] for item in created}) != len(created):
+        raise ValueError("Draft manifests must have unique part identifiers.")
     return created
 
 
@@ -145,6 +152,7 @@ def main() -> None:
         "status": "draft_manifests_generated_for_review",
         "manifest_count": len(result),
         "distinct_surah_count": len({x["surah_number"] for x in result}),
+        "preview_part_count": len(result),
         "items": result,
         "rendering_allowed": False,
         "telegram_delivery": False,
