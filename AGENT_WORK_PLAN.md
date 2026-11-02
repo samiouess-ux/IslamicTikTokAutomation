@@ -257,3 +257,12 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Daily review renderer computes background rotation from UTC day + scheduled slot (03:00 / 11:00 / 17:00 UTC); one chosen background stays stable through all ayah segments of a video.
 - Telegram send/history steps were skipped because this was a push event. Do not claim a fresh Telegram delivery from this run. Continue to verify the next scheduled send and its exact delivery-history sync.
 - The four backgrounds are visually approved by the user, but do not treat this review-renderer milestone as activation in the separate production renderer. Preserve manual TikTok posting and all production approval gates.
+
+
+## Scheduled timing audit — 2026-11-02
+- Checked the actual Actions run list filtered to `event=schedule` and inspected run #177's job logs.
+- Run #159 (`41329118203`): started 16:59:28 UTC / 17:59 Tunisia, Telegram `message_id=30`, delivered Az-Zukhruf 43:1–7, history synced.
+- Run #177 (`41350077797`): started 21:04:25 UTC / 22:04 Tunisia, Telegram `message_id=31`, delivered Al-Furqan 25:1–3, history synced to commit `42e7593`.
+- The configured cron remains `0 3,11,17 * * *` UTC (04:00, 12:00, 18:00 Tunisia). Run #177 is a real schedule event but began four hours after the 17:00 UTC slot. This is external scheduler delay, not `18 + 4` arithmetic in our workflow. Do not offset the cron to compensate.
+- Only two schedule events are currently evidenced; no 12:00 slot is present in the audited run history. Daily three-slot reliability and punctuality are therefore not yet accepted.
+- Continue monitoring the three intended Tunisia slots. If delay/missing events repeat, diagnose GitHub scheduling and implement only a minimal correction inside the existing Actions + original Telegram bot architecture. No new services, bots, orchestrator, or TikTok auto-publishing.
