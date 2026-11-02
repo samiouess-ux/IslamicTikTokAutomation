@@ -29,6 +29,8 @@ on:
       - "src/build_quran_video_catalog.py"
       - "tests/test_build_quran_uthmani_catalog.py"
       - "tests/test_build_quran_video_catalog.py"
+      - "src/tunisian_day_status.py"
+      - "tests/test_build_quran_tunisian_day_status.py"
       - "tests/test_prepare_quran_review_batch_audio.py"
       - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
@@ -131,6 +133,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_review_batch.py' -v
+          python -m unittest discover -s tests -p 'test_build_quran_tunisian_day_status.py' -v
           python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_draft_manifests.py' -v
           python -m unittest discover -s tests -p 'test_render_quran_review_previews.py' -v
@@ -138,15 +141,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_record_quran_delivery.py' -v
       - name: Detect Friday using Tunisia local time
         id: tunisian_day
-        run: |
-          python - <<'PY' >> "$GITHUB_OUTPUT"
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-          now = datetime.now(ZoneInfo("Africa/Tunis"))
-          print(f"is_friday={'true' if now.weekday() == 4 else 'false'}")
-          print(f"local_date={now.date().isoformat()}")
-          print(f"local_time={now.strftime('%H:%M:%S')}")
-          PY
+        run: python src/tunisian_day_status.py >> "$GITHUB_OUTPUT"
       - name: Build weekday-aware Quran review candidate
         env:
           IS_FRIDAY: ${{ steps.tunisian_day.outputs.is_friday }}
