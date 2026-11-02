@@ -167,7 +167,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 results.append({
                     "candidate_id": candidate["candidate_id"],
                     "surah_number": surah,
-                    "status": "blocked_no_complete_ayah_range_30_to_40_seconds",
+                    "status": "blocked_no_complete_ayah_range_under_65_seconds",
                     "requested_verses": requested,
                     "verse_durations_seconds": durations,
                     "processed_verse_durations_seconds": processed_durations,
