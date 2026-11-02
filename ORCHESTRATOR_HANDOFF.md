@@ -1,3 +1,14 @@
+## Latest continuation checkpoint — Telegram duplicate-send protection (2026-11-02)
+- Active branch only: `feature/telegram-review-notifications`; never modify `main`.
+- Added reservation helper `src/quran_delivery_attempt.py` and tests `tests/test_quran_delivery_attempt.py`.
+- Before Telegram send, workflow persists and pushes `data/quran_delivery_pending.json` for the exact candidate/ayahs. After Telegram confirms a valid message ID, finalization records history and deletes the pending file; the history and pending-file changes are pushed together.
+- Any unresolved pending reservation blocks the next automatic workflow_dispatch before it can send. This is a fail-closed manual-reconciliation gate, not an auto-retry path.
+- Sender now does not retry network/transport failures or HTTP 5xx (ambiguous outcome); explicit HTTP 429 may be retried once.
+- Reservation and sender safety tests passed in Actions run `41475084051`, but that run is push-triggered and therefore skips Telegram send/history. Full render pipeline remains under validation; no extra Telegram message was sent by this test.
+- This cannot make Telegram and GitHub atomic; avoid claiming guaranteed exactly-once delivery.
+- Preserve external cron-job.org unchanged: 04:10, 12:10, 18:10 Africa/Tunis. No native/second scheduler. TikTok manual only. Translation Arabic + Saheeh International English; French not required.
+- Next: verify run `41475084051` completes; inspect all tests and render/artifact steps. Then audit reservation/finalization workflow step conditions and ensure no pending file is left after a confirmed send. Do not dispatch a manual send just to test this.
+
 ## Latest continuation checkpoint — 2026-11-02
 - Latest active branch commit: `bd3eff8e4343c1d02046e958465cbaf20ad73139`.
 - New helper: `src/tunisian_day_status.py`; tests: `tests/test_build_quran_tunisian_day_status.py`.
