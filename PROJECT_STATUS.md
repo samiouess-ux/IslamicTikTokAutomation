@@ -1,8 +1,14 @@
+## Follow-up validation of Telegram send safeguards (2026-11-02)
+- Full push-validation run `41475084051` completed successfully on commit `4c944465b0a3820212b8620073a1838979712739`: catalog and translation checks, new delivery-reservation/sender tests, weekday candidate preparation, 9:16 rendering, background crop previews, and artifact upload all passed.
+- Because the run event was `push`, the reserve/send/history/sync steps were skipped by design. No Telegram video was sent by this run.
+- Added `tests/test_telegram_workflow_safety.py` to assert that the reservation commit/push occurs before the Telegram send, finalization occurs only afterward, and the unresolved-reservation guard is present. Its test command passed in run `41476070230`; the remainder of that run is still being validated.
+- A successful push validation is not a live reservation-push or Telegram delivery test. Keep the external cron unchanged and do not manually dispatch a test send.
+
 ## Telegram duplicate-send protection (2026-11-02)
 - Sender change: `src/send_telegram.py` no longer retries transport failures or HTTP 5xx responses because Telegram may have accepted a video before the response was lost. An explicit HTTP 429 may be retried once.
 - Added `src/quran_delivery_attempt.py` and `tests/test_quran_delivery_attempt.py`. The workflow now reserves the exact candidate and ayah references in `data/quran_delivery_pending.json`, commits/pushes that reservation before calling Telegram, then records confirmed history and removes the reservation only after the sender receives `ok: true` plus a valid `message_id`.
 - If the result is ambiguous or history sync fails, the pending reservation remains on the branch. A later workflow_dispatch is blocked before another send. This is intentionally fail-closed and may pause automated delivery until the pending attempt is reconciled against the Telegram chat.
-- Regression tests for the new reservation ledger and sender's ambiguous-error behavior passed in GitHub Actions run `41475084051` (commit `4c944465b0a3820212b8620073a1838979712739`). That run is push-triggered: Telegram send/history steps are skipped; it is not a real Telegram delivery test. Full render/background/artifact steps are still being validated.
+- Regression tests for the new reservation ledger and sender's ambiguous-error behavior passed in GitHub Actions run `41475084051` (commit `4c944465b0a3820212b8620073a1838979712739`). That run is push-triggered: Telegram send/history steps are skipped; it is not a real Telegram delivery test. The full render/background/artifact path passed in run 41475084051; the separate static workflow-contract run 41476070230 is in progress.
 - This reduces automatic duplicate risk but does not create an atomic transaction across Telegram and GitHub; do not claim mathematically guaranteed exactly-once delivery.
 - External `cron-job.org` remains unchanged: user-confirmed 04:10, 12:10, 18:10 Africa/Tunis. Never add a second scheduler. TikTok publishing remains manual. Translation remains Arabic + Saheeh International English; French is not required.
 
