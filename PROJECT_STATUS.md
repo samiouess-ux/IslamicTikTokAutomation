@@ -799,3 +799,11 @@ Theme: hope and ease after hardship.
 - Full inventory workflow run 41465562249 completed successfully on commit 0cb41f749ac97e07bf93bf37aeb8f018478a2330. Quran catalog/audio regression tests, candidate preparation, draft manifest generation, and review preview rendering/background preparation all passed.
 - This was a push-triggered validation run; Telegram send/history steps were skipped by design. Do not count it as a new Telegram delivery. The previously confirmed Cron-to-Telegram delivery remains run 41463758861.
 - Follow-up: implement and test Friday-only Surah Al-Kahf selection across the daily slots, preserving complete ayah boundaries, 65-second cap, and history-based no-repeat. Do not alter the external cron-job.org schedule.
+
+
+## Friday Al-Kahf selection implementation (2026-11-02; full workflow validation pending)
+- Added Tunisia-local weekday detection using Africa/Tunis timezone in the existing workflow. On Fridays, the candidate builder is restricted to Surah Al-Kahf (18), selects the first unused contiguous ayah suffix, and bypasses the normal last-surah exclusion so the 04:10, 12:10, and 18:10 slots can continue the same surah without repeating delivered ayahs.
+- On non-Fridays, Al-Kahf is excluded and the existing eight-distinct-surah selection remains; the existing Ash-Sharh (94) exclusion is preserved.
+- Added a regression test proving Friday mode selects Surah 18 and continues at ayah 3 after 18:1-2 have already been delivered. Quran batch engine test run 41466300540 passed.
+- Full workflow run 41466486385 is the first validation of the updated weekday-aware workflow and is still in progress at this checkpoint. Do not claim the workflow-level Friday logic is fully accepted until this run completes successfully. This push run does not send to Telegram.
+- External cron-job.org settings remain unchanged. Friday sends will still be subject to the same Telegram confirmation and history-sync requirements.
