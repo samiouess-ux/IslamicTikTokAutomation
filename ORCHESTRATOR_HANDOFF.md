@@ -1,3 +1,9 @@
+## Latest workflow validation — 2026-11-02
+- Run `41476070230` passed the static Telegram workflow contract tests, candidate and audio preparation, 9:16 rendering, background crop previews, and artifact upload. Catalog/regression tests also passed.
+- Telegram reservation/send/history steps were skipped because this was a push event; no Telegram message was sent.
+- At the latest check, only post-checkout cleanup remained in progress. Do not treat this as a live reservation-push or Telegram delivery test.
+- Keep cron-job.org unchanged at 04:10, 12:10, 18:10 Africa/Tunis. No additional scheduler. TikTok manual only; Arabic + Saheeh International English, no French.
+
 ## Latest validation update — 2026-11-02
 - Run `41475084051` completed successfully on `4c944465b0a3820212b8620073a1838979712739`, including new reservation and ambiguous-send tests, candidate/audio prep, 9:16 render, background crop preview, and artifact upload. Telegram steps were skipped because this was a push event.
 - Added static workflow contract tests in `tests/test_telegram_workflow_safety.py`; those tests passed in run `41476070230`. That run's remaining render/background/artifact checks are still pending.
