@@ -60,6 +60,32 @@ class BatchTests(unittest.TestCase):
             "first_unused_contiguous_suffix_then_65_second_duration_limit",
         )
 
+    def test_prioritizes_continuation_of_partially_delivered_surah(self):
+        verses = {}
+        for surah in range(1, 7):
+            for ayah in range(1, 7):
+                key = f"{surah}:{ayah}"
+                verses[key] = {
+                    "arabic_uthmani": f"AR {key}",
+                    "english_saheeh_international": f"EN {key}",
+                    "audio_archive_member": f"{key}.mp3",
+                }
+        source = {
+            "status": "complete_join_candidate_requires_human_review_and_recording_approval",
+            "rendering_allowed": False,
+            "expected_verse_count": len(verses),
+            "verses": verses,
+        }
+        result = build_review_batch(
+            source, count=2, seed="continuation-priority",
+            used_ayah_references=["5:1", "5:2", "5:3", "5:4"],
+        )
+        self.assertEqual(result["passages"][0]["surah_number"], 5)
+        self.assertEqual(result["passages"][0]["verse_numbers"], [5, 6])
+        self.assertFalse(result["rendering_allowed"])
+        self.assertFalse(result["telegram_delivery"])
+        self.assertFalse(result["auto_publish"])
+
     def test_excludes_most_recently_delivered_surah(self):
         history = {"deliveries": [
             {"candidate_id": "old", "surah_number": 18},
