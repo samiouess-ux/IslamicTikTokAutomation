@@ -16,8 +16,8 @@ from pathlib import Path
 from remotezip import RemoteZip
 
 DEFAULT_ARCHIVE = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
-MIN_SECONDS = 30.0
-MAX_SECONDS = 40.0
+MIN_SECONDS = 0.0
+MAX_SECONDS = 65.0
 
 
 def probe(path: Path) -> float:
@@ -109,7 +109,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             candidate_dir.mkdir(parents=True, exist_ok=True)
             blocked_reason = None
             # Probe consecutive whole ayahs in order. Keep the longest prefix
-            # whose measured source duration fits the 40-second limit. A short
+            # whose measured source duration fits the 65-second limit. A short
             # surah naturally remains whole when its complete duration fits.
             # Keep the complete source request, even when the 40-second cap
             # means only a contiguous prefix can be selected for this video.
@@ -130,7 +130,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 if processed_duration > MAX_SECONDS and not selected:
                     target.unlink(missing_ok=True)
                     processed_target.unlink(missing_ok=True)
-                    blocked_reason = "blocked_single_ayah_exceeds_40_seconds"
+                    blocked_reason = "blocked_single_ayah_exceeds_65_seconds"
                     break
                 if proposed_total > MAX_SECONDS:
                     target.unlink(missing_ok=True)
@@ -148,7 +148,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 results.append({
                     "candidate_id": candidate["candidate_id"],
                     "surah_number": surah,
-                    "status": blocked_reason or "blocked_no_complete_ayah_range_30_to_40_seconds",
+                    "status": blocked_reason or "blocked_no_complete_ayah_range_under_65_seconds",
                     "requested_verses": requested,
                     "verse_durations_seconds": durations,
                     "processed_verse_durations_seconds": processed_durations,
@@ -163,7 +163,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     "auto_publish": False,
                 })
                 continue
-            if total < MIN_SECONDS:
+            if total <= 0:
                 results.append({
                     "candidate_id": candidate["candidate_id"],
                     "surah_number": surah,
@@ -192,10 +192,10 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "-c", "copy", str(combined.resolve())
             ], check=True)
             actual = probe(combined)
-            if actual > MAX_SECONDS or actual < MIN_SECONDS:
+            if actual > MAX_SECONDS or actual <= 0:
                 raise ValueError(
                     f"Concatenated candidate duration {actual:.3f}s is outside "
-                    f"30-40 seconds: {candidate['candidate_id']}"
+                    f"0-65 seconds: {candidate['candidate_id']}"
                 )
             results.append({
                 "candidate_id": candidate["candidate_id"],
@@ -227,7 +227,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "distinct_surah_count": len({x["surah_number"] for x in ready}),
         "minimum_seconds": MIN_SECONDS,
         "maximum_seconds": MAX_SECONDS,
-        "audio_processing": "contiguous_whole_ayah_prefix_between_30_and_40_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
+        "audio_processing": "longest_contiguous_whole_ayah_prefix_up_to_65_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
         "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",
         "items": results,
         "rendering_allowed": False,
