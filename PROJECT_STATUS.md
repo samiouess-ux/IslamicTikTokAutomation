@@ -791,3 +791,11 @@ Theme: hope and ease after hardship.
 - This supersedes the earlier incorrect statements that no external scheduler was evidenced and that a controlled Telegram delivery/history sync was still pending. Earlier notes are retained as historical checkpoints, not current state.
 - Acceptance achieved for one real external-Cron-to-Telegram cycle. Continue verifying future scheduled slots and no-repeat behavior; this single success does not prove every daily slot or the 65-second maximum across all content.
 - No TikTok auto-publishing. User downloads/reviews and posts manually.
+
+
+## Quran clip duration selection update (2026-11-02)
+- Updated scheduled batch audio selection from the previous hard 30-40 second window to the longest contiguous whole-ayah prefix up to 65 seconds. There is no artificial 30-second minimum, so short complete surahs/passages can remain whole. No ayah is cut to fit; a single ayah longer than 65 seconds is blocked rather than trimmed.
+- Regression coverage now checks a 44-second three-ayah passage is retained, a short 12-second complete passage is accepted, and a 66-second single ayah is blocked. Existing edge-silence-only trimming and MP3 stream-copy behavior remain in place.
+- Full inventory workflow run 41465562249 completed successfully on commit 0cb41f749ac97e07bf93bf37aeb8f018478a2330. Quran catalog/audio regression tests, candidate preparation, draft manifest generation, and review preview rendering/background preparation all passed.
+- This was a push-triggered validation run; Telegram send/history steps were skipped by design. Do not count it as a new Telegram delivery. The previously confirmed Cron-to-Telegram delivery remains run 41463758861.
+- Follow-up: implement and test Friday-only Surah Al-Kahf selection across the daily slots, preserving complete ayah boundaries, 65-second cap, and history-based no-repeat. Do not alter the external cron-job.org schedule.
