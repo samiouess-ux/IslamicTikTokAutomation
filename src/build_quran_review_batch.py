@@ -30,6 +30,8 @@ def build_review_batch(
     seed: str = "quran-review-batch",
     excluded_surahs: Iterable[int] = (),
     used_ayah_references: Iterable[str] = (),
+    only_surahs: Iterable[int] | None = None,
+    sequential_unused: bool = False,
 ) -> dict[str, Any]:
     if joined.get("rendering_allowed") is not False:
         raise ValueError("Input catalog must remain blocked from rendering.")
@@ -43,7 +45,19 @@ def build_review_batch(
     excluded = {int(number) for number in excluded_surahs}
     if any(not 1 <= number <= 114 for number in excluded):
         raise ValueError("Excluded surah numbers must be between 1 and 114.")
-    surahs = [number for number in _ordered_surahs(joined) if number not in excluded]
+    catalog_surahs = _ordered_surahs(joined)
+    if only_surahs is not None:
+        requested_surahs = list(dict.fromkeys(int(number) for number in only_surahs))
+        if not requested_surahs or any(not 1 <= number <= 114 for number in requested_surahs):
+            raise ValueError("Only-surah selection must contain valid Quran surah numbers.")
+        missing = [number for number in requested_surahs if number not in catalog_surahs]
+        if missing:
+            raise ValueError(f"Requested surahs are missing from the joined catalog: {missing}")
+        surahs = [number for number in requested_surahs if number not in excluded]
+    else:
+        surahs = [number for number in catalog_surahs if number not in excluded]
+    if not surahs:
+        raise ValueError("No eligible surahs remain after the requested inclusion/exclusion rules.")
     if count > len(surahs):
         raise ValueError(f"Cannot select {count} distinct surahs from {len(surahs)} available.")
 
@@ -77,8 +91,11 @@ def build_review_batch(
                 raise ValueError(f"Surah {surah} has no unused contiguous ayah suffix.")
             # Stable per-seed variation: choose among every unused contiguous
             # suffix, rather than always starting at the first unused ayah.
-            local_digest = hashlib.sha256(f"{seed}:{surah}:start".encode("utf-8")).digest()
-            start_index = starts[int.from_bytes(local_digest[:4], "big") % len(starts)]
+            if sequential_unused:
+                start_index = starts[0]
+            else:
+                local_digest = hashlib.sha256(f"{seed}:{surah}:start".encode("utf-8")).digest()
+                start_index = starts[int.from_bytes(local_digest[:4], "big") % len(starts)]
             numbers = available[start_index:]
         else:
             if len(available) < window_size:
@@ -134,7 +151,7 @@ def build_review_batch(
         "candidate_count": len(passages),
         "distinct_surah_count": len({item["surah_number"] for item in passages}),
         "verses_per_passage": verses_per_passage,
-        "passage_selection": "seed_varied_unused_contiguous_suffix_then_65_second_duration_limit" if verses_per_passage is None else "legacy_fixed_count",
+        "passage_selection": ("first_unused_contiguous_suffix_then_65_second_duration_limit" if sequential_unused else "seed_varied_unused_contiguous_suffix_then_65_second_duration_limit") if verses_per_passage is None else "legacy_fixed_count",
         "source_catalog_status": joined["status"],
         "rendering_allowed": False,
         "auto_publish": False,
@@ -174,6 +191,8 @@ def main() -> None:
     parser.add_argument("--verses-per-passage", type=int, default=None)
     parser.add_argument("--seed", default="quran-review-batch")
     parser.add_argument("--exclude-surah", type=int, action="append", default=[])
+    parser.add_argument("--only-surah", type=int, action="append", default=None, help="Restrict candidates to the specified surah(s).")
+    parser.add_argument("--sequential-unused", action="store_true", help="Start at the first unused ayah instead of a seeded random suffix.")
     parser.add_argument("--history", type=Path, help="JSON delivery history of previously delivered ayah references.")
     args = parser.parse_args()
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
@@ -183,9 +202,9 @@ def main() -> None:
         raise ValueError("Delivery history ayah_references must be a list of strings.")
     excluded_surahs = list(args.exclude_surah)
     last_surah = most_recent_delivered_surah(history)
-    if last_surah is not None and last_surah not in excluded_surahs:
+    if args.only_surah is None and last_surah is not None and last_surah not in excluded_surahs:
         excluded_surahs.append(last_surah)
-    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs)
+    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs, args.only_surah, args.sequential_unused)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
