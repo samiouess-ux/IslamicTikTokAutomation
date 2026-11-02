@@ -6,11 +6,13 @@ on:
     paths:
       - "src/build_quran_review_batch.py"
       - "src/prepare_quran_review_batch_audio.py"
+      - "src/quran_audio_parts.py"
       - "src/build_quran_draft_manifests.py"
       - "src/render_quran_review_previews.py"
       - "src/quran_delivery_attempt.py"
       - "src/record_quran_delivery.py"
       - "tests/test_prepare_quran_review_batch_audio.py"
+      - "tests/test_quran_audio_parts.py"
       - "tests/test_build_quran_draft_manifests.py"
       - "tests/test_render_quran_review_previews.py"
       - "tests/test_quran_delivery_attempt.py"
@@ -54,6 +56,7 @@ jobs:
           python -m py_compile \
             src/build_quran_review_batch.py \
             src/prepare_quran_review_batch_audio.py \
+            src/quran_audio_parts.py \
             src/build_quran_draft_manifests.py \
             src/render_quran_review_previews.py \
             src/quran_delivery_attempt.py \
@@ -72,6 +75,7 @@ jobs:
             tests/test_quran_visual_templates.py \
             tests/test_render_quran_review_batch.py \
             tests/test_prepare_quran_review_batch_audio.py \
+            tests/test_quran_audio_parts.py \
             tests/test_build_quran_draft_manifests.py \
             tests/test_render_quran_review_previews.py \
             tests/test_quran_delivery_attempt.py \
