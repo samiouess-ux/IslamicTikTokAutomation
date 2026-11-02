@@ -268,7 +268,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             data = json.loads(report.read_text(encoding="utf-8"))
             data["items"][0]["selected_verses"] = [81, 83]
             report.write_text(json.dumps(data), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "requested prefix"):
+            with self.assertRaisesRegex(ValueError, "contiguous slice"):
                 render(batch, report, root / "out")
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
