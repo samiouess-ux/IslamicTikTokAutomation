@@ -281,3 +281,13 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Do NOT activate the daily schedule yet. The actual MP4 build and size are now verified (23.5 MiB, 31.846 seconds, 1080x1920), but the latest successful run was a push event and skipped Telegram send/history steps. A controlled real Telegram MP4 delivery and history sync are still mandatory acceptance gates. Once those pass, add a native GitHub Actions cron of `10 3,11,17 * * *` UTC (04:10, 12:10, 18:10 Tunisia, UTC+1) to this workflow, then verify each scheduled delivery and history update. GitHub scheduled starts may be delayed under load.
 - The latest candidate was Surah Al-Ahzab 33:43-44, not the old Ash-Sharh-only prototype. This confirms the review candidate selector can produce a different surah in this build, but does not alone prove long-term no-repeat behavior; verify history exclusion over confirmed deliveries.
 - No TikTok auto-publishing is enabled. User continues to approve/download/post manually.
+
+
+## Current verified scheduler and delivery state (2026-11-02)
+- Correction to earlier handoff notes: the user has an active external cron-job.org job named Quran Video Scheduler, timezone Africa/Tunis, set for 04:10, 12:10, and 18:10. It POSTs GitHub Actions workflow dispatch to feature/telegram-review-notifications. Do not change it, replace it, or add a duplicate GitHub schedule.
+- Confirmed dispatch run: 41463758861, event workflow_dispatch, started 2026-11-02T14:37:44Z on commit 5df43a84162eef13b6b52aab3b4a346518e41b2b.
+- The run completed successfully, including Telegram send, Telegram-confirmed delivery-history recording, and syncing data/quran_delivery_history.json to the active branch.
+- User confirmed receipt of the Surah Al-Ahzab video (33:43-44), approx. 30 seconds, ocean background. History records 33:43 and 33:44 at 2026-11-02T14:40:54.387854+00:00.
+- This supersedes the old note claiming no external scheduler exists and that no Telegram MP4 delivery had been tested. Keep those older entries only as historical checkpoints.
+- One end-to-end Cron delivery is now proven. Continue checking subsequent scheduled sends and duplicate prevention. Do not claim all three daily slots have been verified from this one run.
+- Keep all work on feature/telegram-review-notifications; never modify main. TikTok publishing stays manual only.
