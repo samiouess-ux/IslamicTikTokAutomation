@@ -62,6 +62,20 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertLessEqual(font.size, 30)
         self.assertGreaterEqual(line_height, 42)
 
+    def test_long_translation_can_use_eight_readable_lines_without_dropping_words(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        original = " ".join([f"word{i}" for i in range(72)])
+        font, lines, line_height = fit_translation_lines(
+            draw, original, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            max_width=820, max_lines=8
+        )
+        self.assertLessEqual(len(lines), 8)
+        self.assertEqual(" ".join(lines), original)
+        self.assertGreaterEqual(font.size, 16)
+        self.assertGreaterEqual(line_height, 30)
+        self.assertLessEqual((len(lines) - 1) * line_height, 7 * 30)
+
     def test_make_frame_has_refined_cartouche_and_gold_ayah_medallion(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "frame.png"
