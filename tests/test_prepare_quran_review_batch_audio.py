@@ -72,7 +72,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertFalse(report["auto_publish"])
             self.assertTrue(all(not item.get("audio_approved", True) for item in report["items"]))
 
-    def test_selects_contiguous_processed_ayah_prefix_within_30_to_40_seconds(self):
+    def test_selects_longest_contiguous_processed_ayah_prefix_up_to_65_seconds(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch = {
@@ -103,18 +103,89 @@ class QuranBatchAudioTests(unittest.TestCase):
                 destination.write_bytes(b"trimmed")
                 return next(trimmed)
 
-            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
-                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 35.0]), \
-                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
+                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 44.0]), \\
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \\
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
             item = report["items"][0]
-            self.assertEqual(item["selected_verses"], [1, 2])
-            self.assertEqual(item["duration_seconds"], 35.0)
-            self.assertEqual(item["processed_verse_durations_seconds"], {1: 18.0, 2: 17.0})
-            self.assertEqual(set(item["processed_audio_files"]), {"1", "2"})
+            self.assertEqual(item["selected_verses"], [1, 2, 3])
+            self.assertEqual(item["duration_seconds"], 44.0)
+            self.assertEqual(item["processed_verse_durations_seconds"], {1: 18.0, 2: 17.0, 3: 9.0})
+            self.assertEqual(set(item["processed_audio_files"]), {"1", "2", "3"})
 
+    def test_accepts_short_complete_surah_without_artificial_30_second_minimum(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            batch = {
+                "batch_status": "review_candidates_only",
+                "rendering_allowed": False,
+                "auto_publish": False,
+                "passages": [{
+                    "candidate_id": "short-surah",
+                    "surah_number": 112,
+                    "verses": [{"ayah": 1}, {"ayah": 2}, {"ayah": 3}, {"ayah": 4}],
+                }],
+            }
+            inventory = {
+                "mapped_verse_count": 6236,
+                "verses": {f"112:{n}": f"112-{n}.mp3" for n in (1, 2, 3, 4)},
+            }
+            batch_path, inventory_path = root / "batch.json", root / "inventory.json"
+            batch_path.write_text(json.dumps(batch), encoding="utf-8")
+            inventory_path.write_text(json.dumps(inventory), encoding="utf-8")
+
+            def fake_run(command, **kwargs):
+                Path(command[-1]).write_bytes(b"combined")
+                return None
+
+            trimmed = iter([3.0, 3.0, 3.0, 3.0])
+            def fake_trim(source, destination, source_duration):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(b"trimmed")
+                return next(trimmed)
+
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
+                 patch.object(module, "probe", side_effect=[3.0, 3.0, 3.0, 3.0, 12.0]), \\
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \\
+                 patch.object(module.subprocess, "run", side_effect=fake_run):
+                report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
+
+            item = report["items"][0]
+            self.assertEqual(item["selected_verses"], [1, 2, 3, 4])
+            self.assertEqual(item["duration_seconds"], 12.0)
+            self.assertEqual(report["minimum_seconds"], 0.0)
+            self.assertEqual(report["maximum_seconds"], 65.0)
+
+    def test_blocks_a_single_ayah_that_exceeds_65_seconds_without_trimming_recitation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            batch = {
+                "batch_status": "review_candidates_only",
+                "rendering_allowed": False,
+                "auto_publish": False,
+                "passages": [{"candidate_id": "long-ayah", "surah_number": 2, "verses": [{"ayah": 1}]}],
+            }
+            inventory = {"mapped_verse_count": 6236, "verses": {"2:1": "2-1.mp3"}}
+            batch_path, inventory_path = root / "batch.json", root / "inventory.json"
+            batch_path.write_text(json.dumps(batch), encoding="utf-8")
+            inventory_path.write_text(json.dumps(inventory), encoding="utf-8")
+
+            def fake_trim(source, destination, source_duration):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(b"trimmed")
+                return 66.0
+
+            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
+                 patch.object(module, "probe", return_value=66.0), \\
+                 patch.object(module, "trim_edge_silence", side_effect=fake_trim):
+                report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
+
+            item = report["items"][0]
+            self.assertEqual(item["status"], "blocked_single_ayah_exceeds_65_seconds")
+            self.assertEqual(item["selected_verses"], [])
+            self.assertEqual(report["audio_prepared_count"], 0)
     def test_trim_edge_silence_keeps_mp3_and_preserves_the_recitation_body(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
