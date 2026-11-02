@@ -94,6 +94,19 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertGreaterEqual(line_height, 30)
         self.assertLessEqual((len(lines) - 1) * line_height, 300)
 
+    def test_every_surah_title_fits_inside_the_cartouche_safe_area(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        path = font_file()
+        for surah_name in SURAH_NAMES:
+            title = f"سورة {surah_name}"
+            font = fit_surah_title_font(draw, title, path)
+            bounds = draw.textbbox((540, 465), title, font=font, anchor="mm",
+                                   direction="rtl", language="ar")
+            self.assertLessEqual(bounds[2] - bounds[0], 500, title)
+            self.assertLessEqual(bounds[3] - bounds[1], 64, title)
+            self.assertGreaterEqual(font.size, 40, title)
+
     def test_make_frame_has_refined_cartouche_and_gold_ayah_medallion(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "frame.png"
