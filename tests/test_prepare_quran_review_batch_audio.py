@@ -186,10 +186,12 @@ class QuranBatchAudioTests(unittest.TestCase):
                 destination.write_bytes(b"trimmed")
                 return 66.0
 
-            with patch.object(module, "RemoteZip", return_value=FakeArchive()), \\
-                 patch.object(module, "probe", side_effect=[66.0, 66.0]), \\
-                 patch.object(module, "trim_edge_silence", side_effect=fake_trim), \\
-                 patch.object(module.subprocess, "run", side_effect=fake_run):
+            with (
+                patch.object(module, "RemoteZip", return_value=FakeArchive()),
+                patch.object(module, "probe", side_effect=[66.0, 66.0]),
+                patch.object(module, "trim_edge_silence", side_effect=fake_trim),
+                patch.object(module.subprocess, "run", side_effect=fake_run),
+            ):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
             item = report["items"][0]
