@@ -450,9 +450,13 @@ jobs:
               if blocked:
                   item = blocked[0]
                   verses = item.get("requested_verses", [])
-                  first_ayah = verses[0] if verses else "غير محددة"
+                  blocked_ayah = item.get("blocked_ayah")
+                  if blocked_ayah is None:
+                      blocked_ayah = verses[0] if verses else "غير محددة"
+                  duration = item.get("blocked_ayah_duration_seconds")
+                  duration_text = f" ({duration} ثانية)" if isinstance(duration, (int, float)) else ""
                   message = (
-                      f"⚠️ توقّف تحضير سورة رقم {item.get('surah_number', '؟')} عند الآية {first_ayah}: "
+                      f"⚠️ توقّف تحضير سورة رقم {item.get('surah_number', '؟')} عند الآية {blocked_ayah}{duration_text}: "
                       "مدّة الآية الكاملة تتجاوز حدّ 65 ثانية. لم نقصّ التلاوة ولم نتجاوز الآية؛ "
                       "بقية الآيات تبقى معلّقة حتى يتوفر حلّ يحافظ على التلاوة كاملة."
                   )
