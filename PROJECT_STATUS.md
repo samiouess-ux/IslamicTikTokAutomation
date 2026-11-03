@@ -860,3 +860,10 @@ Theme: hope and ease after hardship.
 - Each distinct-surah candidate now produces exactly one video preview: the longest contiguous prefix of complete ayahs that fits within 40 seconds. Any later ayahs remain explicitly unselected for a future batch; they are not split into extra videos from the same candidate.
 - A single ayah over 40 seconds is deferred intact. The concatenated MP3 duration is measured and rejected if it exceeds 40 seconds. No ayah is cut and recitation is not sped up.
 - Regression expectations were corrected to 40 seconds, including the short-surah no-minimum case. Push validation runs are pending; do not mark the fix accepted until all relevant checks complete successfully. Push runs do not send Telegram.
+
+
+## Saved checkpoint — 2026-11-03 01:48 UTC
+- Active branch: `feature/telegram-review-notifications`; latest code/test commit: `414af9d3b7eec2069cd16a70b9bab20449a12e80`. `main` was not modified.
+- Final 40-second policy is implemented: one preview per candidate, longest contiguous complete-ayah prefix at or below 40 seconds, no artificial minimum, and deferred ayahs remain unselected for later continuation. Single ayahs longer than 40 seconds are deferred intact. Measured concatenated audio is rejected above 40 seconds.
+- Validation workflow run `41561966290` passed; engine validation ran 53 tests successfully, plus the six orchestrator tests. Earlier run `41561962171` also passed validation. The inventory run `41561966410` was still pending at checkpoint.
+- Push validation is test-only; no Telegram send was initiated. Wait for the inventory workflow result and do not claim a scheduled delivery occurred.
