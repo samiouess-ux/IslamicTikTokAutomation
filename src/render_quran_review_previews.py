@@ -1,8 +1,7 @@
-"""Render strictly review-only Quran video previews from whole-ayah audio.
+"""Render strictly review-only Quran previews from selected whole-ayah audio.
 
-This renderer is separate from production rendering. It uses generated graphic
-backgrounds (no third-party visual assets), exact catalog text, and the original
-per-ayah MP3 streams. It never approves, sends, or publishes anything.
+Uses the curated, user-approved Pexels moving-background rotation, exact catalog
+text, and original processed MP3 ayah streams. It never approves or publishes.
 """
 from __future__ import annotations
 
@@ -131,8 +130,6 @@ SURAH_NAMES = [
     "الناس"
 ]
 
-APPROVED_BACKGROUND_URL = "https://assets.mixkit.co/active_storage/video_items/100174/1721166924/100174-video-720.mp4"
-BACKGROUND_SOURCE = "Mixkit — Waterfall Between Green Hills (fallback; retained until candidate rotation passes render QA)"
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
 
 INTRO_DURATION_SECONDS = 1.6
