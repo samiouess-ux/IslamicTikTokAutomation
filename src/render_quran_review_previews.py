@@ -361,8 +361,9 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
 
 def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
-                     out: Path, font_path: str, surah_name: str) -> None:
-    """Render the user's ornate emerald-marble and gold-medallion reference cover."""
+                     out: Path, font_path: str, surah_name: str,
+                     background_frame: Path | None = None) -> None:
+    """Render an ornate emerald-and-gold title over a softly blurred video still."""
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
@@ -370,34 +371,33 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
 
-    import math
     width, height = 1080, 1920
 
-    # Layered emerald stone texture with irregular mineral veins.
-    noise = Image.effect_noise((540, 960), 22).resize(
-        (width, height), Image.Resampling.BICUBIC
-    )
-    marble = ImageOps.colorize(noise, black="#000d0b", white="#24634b").convert("RGBA")
-    shade = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    shade_draw = ImageDraw.Draw(shade)
-    for y in range(height):
-        edge = abs(y - height / 2) / (height / 2)
-        shade_draw.line((0, y, width, y), fill=(0, 0, 0, int(20 + 45 * edge)))
-    image = Image.alpha_composite(marble, shade)
+    if background_frame is not None:
+        # Reuse the approved moving-video scene as the cover photograph.
+        # A strong optical blur keeps scenery atmospheric without competing
+        # with the Arabic title; a dark emerald wash preserves gold contrast.
+        with Image.open(background_frame) as source:
+            image = ImageOps.fit(source.convert("RGB"), (width, height),
+                                 method=Image.Resampling.LANCZOS).filter(
+                                     ImageFilter.GaussianBlur(radius=15)
+                                 ).convert("RGBA")
+        wash = Image.new("RGBA", (width, height), (2, 18, 14, 112))
+        image = Image.alpha_composite(image, wash)
+        edge = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        edge_draw = ImageDraw.Draw(edge)
+        for y in range(height):
+            strength = int(18 + 52 * abs(y - height / 2) / (height / 2))
+            edge_draw.line((0, y, width, y), fill=(0, 0, 0, strength))
+        image = Image.alpha_composite(image, edge)
+    else:
+        # Backwards-compatible fallback for direct renderer callers and tests.
+        noise = Image.effect_noise((540, 960), 22).resize(
+            (width, height), Image.Resampling.BICUBIC
+        )
+        marble = ImageOps.colorize(noise, black="#000d0b", white="#24634b").convert("RGBA")
+        image = marble
 
-    veins = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    vd = ImageDraw.Draw(veins)
-    for idx, (sx, phase, amp) in enumerate(((-90, .2, 115), (80, 1.8, 65),
-                                             (1020, 2.7, 100), (1180, 4.1, 80))):
-        pts = []
-        for step in range(161):
-            y = step * (height - 1) / 160
-            x = sx + amp * math.sin(step / 17 + phase) + 22 * math.sin(step / 4.7 + phase * 2)
-            pts.append((int(x), int(y)))
-        vd.line(pts, fill=(230, 177, 79, 205), width=7)
-        vd.line([(x + 5, y) for x, y in pts], fill=(255, 225, 157, 115), width=3)
-    image = Image.alpha_composite(image, veins.filter(ImageFilter.GaussianBlur(18)))
-    image = Image.alpha_composite(image, veins)
     draw = ImageDraw.Draw(image)
 
     gold = (244, 190, 83, 255)
@@ -667,8 +667,16 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 # The opening title is an overlay on the first ayah segment.
                 # It adds no silent lead-in and does not change the audio stream.
                 intro = work / "opening_cover.png"
+                cover_background = work / "opening_background.png"
+                subprocess.run([
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-ss", "0", "-i", str(background), "-frames:v", "1",
+                    "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+                    str(cover_background),
+                ], check=True)
                 make_intro_frame(surah_number, int(numbers[0]), int(numbers[-1]),
-                                 intro, font_path, SURAH_NAMES[surah_number - 1])
+                                 intro, font_path, SURAH_NAMES[surah_number - 1],
+                                 background_frame=cover_background)
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 filter_complex = (
                     "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
