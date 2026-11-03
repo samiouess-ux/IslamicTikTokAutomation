@@ -380,13 +380,13 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
 
     draw = ImageDraw.Draw(image)
     title_text = f"سورة {surah_name}"
-    title_font = ImageFont.truetype(font_path, 112, layout_engine=ImageFont.Layout.RAQM)
+    title_font = ImageFont.truetype(font_path, 124, layout_engine=ImageFont.Layout.RAQM)
     title_box = draw.textbbox((0, 0), title_text, font=title_font,
                               direction="rtl", language="ar")
     if title_box[2] - title_box[0] > 790:
         title_font = ImageFont.truetype(font_path, 96, layout_engine=ImageFont.Layout.RAQM)
     # Center the title within the large, intentionally blank green plaque.
-    draw.text((540, 938), title_text, font=title_font, fill=(255, 220, 137, 255),
+    draw.text((540, 918), title_text, font=title_font, fill=(255, 220, 137, 255),
               anchor="mm", direction="rtl", language="ar")
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
@@ -399,7 +399,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                               direction="rtl", language="ar")
     if range_box[2] - range_box[0] > 480:
         range_font = ImageFont.truetype(font_path, 46, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((540, 1157), range_text, font=range_font,
+    draw.text((540, 1148), range_text, font=range_font,
               fill=(255, 225, 160, 255), anchor="mm",
               direction="rtl", language="ar")
     image.save(out)
