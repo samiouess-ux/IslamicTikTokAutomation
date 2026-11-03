@@ -853,3 +853,10 @@ Theme: hope and ease after hardship.
 - Added a regression test proving Friday mode selects Surah 18 and continues at ayah 3 after 18:1-2 have already been delivered. Quran batch engine test run 41466300540 passed.
 - Full workflow run 41466486385 is the first validation of the updated weekday-aware workflow and is still in progress at this checkpoint. Do not claim the workflow-level Friday logic is fully accepted until this run completes successfully. This push run does not send to Telegram.
 - External cron-job.org settings remain unchanged. Friday sends will still be subject to the same Telegram confirmation and history-sync requirements.
+
+
+## Corrected video duration policy (2026-11-03)
+- User confirmed the intended hard maximum is **40 seconds**, not 65 seconds. The audio preparation constant and report maximum are 40.0 seconds; no minimum duration is imposed.
+- Each distinct-surah candidate now produces exactly one video preview: the longest contiguous prefix of complete ayahs that fits within 40 seconds. Any later ayahs remain explicitly unselected for a future batch; they are not split into extra videos from the same candidate.
+- A single ayah over 40 seconds is deferred intact. The concatenated MP3 duration is measured and rejected if it exceeds 40 seconds. No ayah is cut and recitation is not sped up.
+- Regression expectations were corrected to 40 seconds, including the short-surah no-minimum case. Push validation runs are pending; do not mark the fix accepted until all relevant checks complete successfully. Push runs do not send Telegram.
