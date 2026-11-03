@@ -173,7 +173,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "-c", "copy", str(combined.resolve())
             ], check=True)
             actual = probe(combined)
-            if actual <= 0 or actual > MAX_SECONDS + 0.25:
+            if actual <= 0 or actual > MAX_SECONDS:
                 raise ValueError(f"Concatenated part exceeds the {MAX_SECONDS:g}-second limit or has invalid duration: {part_id} ({actual:.3f}s)")
             last_position = requested_verses.index(selected[-1]) + 1
             results.append({
@@ -186,8 +186,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "requested_verses": requested_verses,
                 "selected_verses": selected,
                 "remaining_verses": requested_verses[last_position:],
-                "blocked_ayah": int(remaining[0]["ayah"]) if remaining else None,
-                "blocked_ayah_duration_seconds": processed_durations.get(int(remaining[0]["ayah"])) if remaining else None,
+                "blocked_ayah": requested_verses[last_position] if last_position < len(requested_verses) else None,
+                "blocked_ayah_duration_seconds": processed_durations.get(requested_verses[last_position]) if last_position < len(requested_verses) else None,
                 "passage_complete": last_position == len(requested_verses),
                 "continuation_policy": "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
                 "verse_durations_seconds": {n: durations[n] for n in selected},
