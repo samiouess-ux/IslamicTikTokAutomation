@@ -542,6 +542,8 @@ def probe(path: Path) -> dict:
         raise RuntimeError(f"Original MP3 audio stream was not preserved: {path}")
     if duration <= 0:
         raise RuntimeError(f"Preview has invalid duration: {duration}")
+    if duration > 40.0:
+        raise RuntimeError(f"Preview exceeds the 40-second maximum: {duration:.3f}s")
     return {"duration_seconds": round(duration, 3), "width": 1080, "height": 1920,
             "video_codec": video["codec_name"], "audio_codec": audio["codec_name"]}
 
@@ -613,8 +615,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         start = candidate_numbers.index(int(selected[0])) if isinstance(selected, list) and selected and int(selected[0]) in candidate_numbers else -1
         if (start < 0 or [int(n) for n in selected] != candidate_numbers[start:start + len(selected)]):
             raise ValueError("Audio-selected ayahs do not match a contiguous requested slice.")
-        if [int(n) for n in selected] != candidate_numbers:
-            raise ValueError("Preview must contain every requested ayah in order.")
+        if start != 0:
+            raise ValueError("Preview must select the opening contiguous prefix of the requested ayahs.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
     approved_backgrounds = load_approved_backgrounds()
