@@ -7,14 +7,14 @@ from select_requested_quran_range import choose_range_from_durations
 
 
 class RequestedRangeSelectionTests(unittest.TestCase):
-    def test_selects_longest_contiguous_opening_range_under_65_seconds(self):
-        result = choose_range_from_durations(18, 1, {1: 12.0, 2: 20.0, 3: 29.0, 4: 10.0})
-        self.assertEqual(result["selected_ayahs"], [1, 2, 3])
-        self.assertEqual(result["end_ayah"], 3)
-        self.assertEqual(result["duration_seconds"], 61.0)
+    def test_selects_longest_contiguous_opening_range_under_40_seconds(self):
+        result = choose_range_from_durations(18, 1, {1: 12.0, 2: 20.0, 3: 9.0, 4: 10.0})
+        self.assertEqual(result["selected_ayahs"], [1, 2])
+        self.assertEqual(result["end_ayah"], 2)
+        self.assertEqual(result["duration_seconds"], 32.0)
 
     def test_stops_at_first_ayah_that_would_exceed_limit(self):
-        result = choose_range_from_durations(18, 4, {4: 40.0, 5: 30.0, 6: 5.0})
+        result = choose_range_from_durations(18, 4, {4: 25.0, 5: 20.0, 6: 5.0})
         self.assertEqual(result["selected_ayahs"], [4])
 
     def test_rejects_single_ayah_over_limit(self):
