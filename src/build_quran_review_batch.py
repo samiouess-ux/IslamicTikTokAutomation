@@ -32,6 +32,7 @@ def build_review_batch(
     used_ayah_references: Iterable[str] = (),
     only_surahs: Iterable[int] | None = None,
     sequential_unused: bool = True,
+    used_surahs: Iterable[int] | None = None,
 ) -> dict[str, Any]:
     if joined.get("rendering_allowed") is not False:
         raise ValueError("Input catalog must remain blocked from rendering.")
@@ -55,7 +56,10 @@ def build_review_batch(
             raise ValueError(f"Requested surahs are missing from the joined catalog: {missing}")
         surahs = [number for number in requested_surahs if number not in excluded]
     else:
-        surahs = [number for number in catalog_surahs if number not in excluded]
+        already_used = {int(number) for number in (used_surahs or ())}
+        if any(not 1 <= number <= 114 for number in already_used):
+            raise ValueError("Used surah numbers must be between 1 and 114.")
+        surahs = [number for number in catalog_surahs if number not in excluded and number not in already_used]
     if not surahs:
         raise ValueError("No eligible surahs remain after the requested inclusion/exclusion rules.")
     if count > len(surahs):
@@ -70,11 +74,10 @@ def build_review_batch(
     passages = []
     used_refs = {str(reference) for reference in used_ayah_references}
 
-    # Continue partially delivered surahs before starting unrelated passages.
-    # Only a confirmed Telegram delivery adds references to this set, so an
-    # unconfirmed preview can never advance or consume the Quran sequence.
+    # Legacy callers may continue a partially delivered surah. Production passes
+    # used_surahs, enforcing one delivered video per surah per rotation.
     partial_surahs = []
-    for surah in surahs:
+    for surah in (surahs if used_surahs is None else []):
         available_for_surah = sorted(
             int(key.split(":")[1]) for key in corpus
             if int(key.split(":")[0]) == surah
@@ -234,9 +237,31 @@ def main() -> None:
     if not isinstance(used_refs, list) or not all(isinstance(item, str) for item in used_refs):
         raise ValueError("Delivery history ayah_references must be a list of strings.")
     excluded_surahs = list(args.exclude_surah)
-    # Do not exclude the latest delivered surah: if it was only partially
-    # delivered, build_review_batch must continue from its first unused ayah.
-    result = build_review_batch(joined, args.count, args.verses_per_passage, args.seed, excluded_surahs, used_refs, args.only_surah, not args.seeded_unused)
+    used_surahs = None
+    if args.only_surah is None:
+        deliveries = history.get("deliveries", [])
+        if not isinstance(deliveries, list):
+            raise ValueError("Delivery history deliveries must be a list.")
+        used_surahs = {
+            int(item["surah_number"]) for item in deliveries
+            if isinstance(item, dict) and item.get("surah_number") is not None
+        }
+        eligible = [number for number in _ordered_surahs(joined) if number not in set(excluded_surahs)]
+        remaining = [number for number in eligible if number not in used_surahs]
+        if not remaining:
+            # Start a fresh rotation, but never repeat the immediately previous
+            # delivered surah at the cycle boundary.
+            latest = most_recent_delivered_surah(history)
+            used_surahs = set()
+            if latest is not None and len(eligible) > 1:
+                excluded_surahs.append(latest)
+                eligible = [number for number in eligible if number != latest]
+            remaining = eligible
+        args.count = min(args.count, len(remaining))
+    result = build_review_batch(
+        joined, args.count, args.verses_per_passage, args.seed, excluded_surahs,
+        used_refs, args.only_surah, not args.seeded_unused, used_surahs
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Built {result['candidate_count']} review-only passages from {result['distinct_surah_count']} different surahs; no approvals or delivery were triggered.")
