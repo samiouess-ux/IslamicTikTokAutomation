@@ -354,3 +354,9 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 - Non-Friday candidate selection still produces eight diverse surahs and excludes both Al-Kahf (18) and Ash-Sharh (94).
 - Regression test run 41466300540 passed, including the new sequential Al-Kahf test. Full workflow validation run 41466486385 is pending; it is push-triggered and must not send Telegram.
 - Keep the external cron-job.org schedule untouched. Do not add GitHub native schedule. TikTok remains manual only.
+
+
+## Superseding duration policy — 2026-11-03
+The prior 65-second notes above are obsolete. User explicitly confirmed a **40-second hard maximum**. Audio preparation now selects one longest contiguous whole-ayah prefix per candidate, emits one video preview per candidate, applies no minimum duration, and carries remaining ayahs forward unselected. A single ayah over 40 seconds is deferred whole. The combined audio is measured and rejected if it exceeds 40 seconds. No truncation or playback-speed changes.
+
+Checkpoint: commit `414af9d3b7eec2069cd16a70b9bab20449a12e80` on `feature/telegram-review-notifications`. Validation run `41561966290` passed (53 engine tests and six orchestrator tests); run `41561962171` also passed. Inventory run `41561966410` was pending. Push checks do not send Telegram. Keep `main`, external Cron settings, Telegram secrets, and manual TikTok-only policy unchanged.
