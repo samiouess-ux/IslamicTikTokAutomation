@@ -163,7 +163,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             files = [Path(processed_audio_files[str(number)]) for number in selected]
             list_file = part_dir / "concat.txt"
             list_file.write_text(
-                "".join(f"file '{p.resolve()}'\\n" for p in files),
+                "".join(f"file '{p.resolve()}'\n" for p in files),
                 encoding="utf-8",
             )
             combined = part_dir / "passage.mp3"
