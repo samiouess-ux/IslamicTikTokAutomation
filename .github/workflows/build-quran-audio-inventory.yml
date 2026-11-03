@@ -445,7 +445,7 @@ jobs:
                   report = json.load(source)
               blocked = [
                   item for item in report.get("items", [])
-                  if item.get("status") == "blocked_single_ayah_exceeds_65_seconds"
+                  if item.get("status") == "deferred_single_ayah_exceeds_40_seconds"
               ]
               if blocked:
                   item = blocked[0]
@@ -457,8 +457,8 @@ jobs:
                   duration_text = f" ({duration} ثانية)" if isinstance(duration, (int, float)) else ""
                   message = (
                       f"⚠️ توقّف تحضير سورة رقم {item.get('surah_number', '؟')} عند الآية {blocked_ayah}{duration_text}: "
-                      "مدّة الآية الكاملة تتجاوز حدّ 65 ثانية. لم نقصّ التلاوة ولم نتجاوز الآية؛ "
-                      "بقية الآيات تبقى معلّقة حتى يتوفر حلّ يحافظ على التلاوة كاملة."
+                      "مدّة الآية الكاملة تتجاوز حدّ 40 ثانية. لم نقصّ التلاوة ولم نتجاوز الآية؛ "
+                      "الآية تبقى مؤجّلة كاملة إلى أن يمكن تحضيرها دون تجاوز الحدّ."
                   )
           except (OSError, ValueError, TypeError):
               pass
