@@ -438,9 +438,29 @@ jobs:
           if not token or not chat_id:
               print("Cannot send failure notice: Telegram credentials are unavailable.")
               raise SystemExit(0)
+          message = "⚠️ تعذّر تجهيز أو إرسال فيديو القرآن اليوم. افتح سجل التشغيل لمعرفة السبب."
+          report_path = "output/quran_batch_audio_report.json"
+          try:
+              with open(report_path, encoding="utf-8") as source:
+                  report = json.load(source)
+              blocked = [
+                  item for item in report.get("items", [])
+                  if item.get("status") == "blocked_single_ayah_exceeds_65_seconds"
+              ]
+              if blocked:
+                  item = blocked[0]
+                  verses = item.get("requested_verses", [])
+                  first_ayah = verses[0] if verses else "غير محددة"
+                  message = (
+                      f"⚠️ توقّف تحضير سورة رقم {item.get('surah_number', '؟')} عند الآية {first_ayah}: "
+                      "مدّة الآية الكاملة تتجاوز حدّ 65 ثانية. لم نقصّ التلاوة ولم نتجاوز الآية؛ "
+                      "بقية الآيات تبقى معلّقة حتى يتوفر حلّ يحافظ على التلاوة كاملة."
+                  )
+          except (OSError, ValueError, TypeError):
+              pass
           payload = urllib.parse.urlencode({
               "chat_id": chat_id,
-              "text": "⚠️ تعذّر تجهيز أو إرسال فيديو القرآن اليوم. افتح سجل التشغيل لمعرفة السبب."
+              "text": message
           }).encode()
           request = urllib.request.Request(
               f"https://api.telegram.org/bot{token}/sendMessage",
