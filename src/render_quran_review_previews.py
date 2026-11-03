@@ -363,8 +363,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                      out: Path, font_path: str, surah_name: str,
                      background_frame: Path | None = None) -> None:
-    """Render an ornate emerald-and-gold title over a softly blurred video still."""
-    import math
+    """Render the approved original Quran cover; only its two blank plaques receive text."""
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
@@ -372,151 +371,22 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
 
-    width, height = 1080, 1920
-
-    if background_frame is not None:
-        # Preserve the original full-frame composition. Blur only the central
-        # title-card backdrop; leave the lantern, flowers, arch, mosque and
-        # Quran outside this reading zone crisp and in their original places.
-        with Image.open(background_frame) as source:
-            source = source.convert("RGBA")
-            if source.size != (width, height):
-                source = ImageOps.fit(source, (width, height),
-                                      method=Image.Resampling.LANCZOS)
-            image = source.copy()
-
-        # A feathered elliptical mask confines the blur to the area behind
-        # the title and ayah-range plaque; it never blurs the whole scene.
-        blurred = image.filter(ImageFilter.GaussianBlur(radius=11))
-        mask = Image.new("L", (width, height), 0)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((72, 300, 1008, 1325), fill=190)
-        mask = mask.filter(ImageFilter.GaussianBlur(radius=42))
-        image = Image.composite(blurred, image, mask)
-
-        # Subtle emerald tint only under the lettering improves contrast
-        # without recolouring the rest of the reference composition.
-        wash = Image.new("RGBA", (width, height), (2, 24, 17, 0))
-        wash_mask = Image.new("L", (width, height), 0)
-        ImageDraw.Draw(wash_mask).ellipse((105, 330, 975, 1295), fill=54)
-        wash.putalpha(wash_mask)
-        image = Image.alpha_composite(image, wash)
-    else:
-        # Backwards-compatible fallback for direct renderer callers and tests.
-        noise = Image.effect_noise((540, 960), 22).resize(
-            (width, height), Image.Resampling.BICUBIC
-        )
-        marble = ImageOps.colorize(noise, black="#000d0b", white="#24634b").convert("RGBA")
-        image = marble
+    template_path = Path("file_000000005e3481f4996a7ee6217f56c6.png")
+    if not template_path.is_file():
+        raise FileNotFoundError(f"Approved Quran cover template is missing: {template_path}")
+    with Image.open(template_path) as source:
+        image = ImageOps.fit(source.convert("RGBA"), (1080, 1920),
+                             method=Image.Resampling.LANCZOS)
 
     draw = ImageDraw.Draw(image)
-
-    gold = (244, 190, 83, 255)
-    gold_light = (255, 220, 137, 255)
-    gold_shadow = (132, 83, 27, 255)
-
-    # Large centered circular medallion, matching the supplied reference proportions.
-    cx, cy, radius = 540, 825, 472
-    draw.ellipse((cx-radius, cy-radius, cx+radius, cy+radius),
-                 outline=gold_shadow, width=20)
-    draw.ellipse((cx-radius+8, cy-radius+8, cx+radius-8, cy+radius-8),
-                 outline=gold, width=10)
-    draw.ellipse((cx-radius+25, cy-radius+25, cx+radius-25, cy+radius-25),
-                 outline=gold_light, width=3)
-    draw.ellipse((cx-radius+38, cy-radius+38, cx+radius-38, cy+radius-38),
-                 outline=(222, 166, 69, 180), width=2)
-
-    # Symmetrical ornamental crown and lower flourish, kept outside the title area.
-    def flourish(y: int, flip: int = 1) -> None:
-        top = y
-        path = []
-        for i in range(121):
-            t = i / 120
-            x = cx - 180 + 360 * t
-            yy = top + flip * (58 * math.sin(math.pi * t) +
-                               15 * math.sin(4 * math.pi * t))
-            path.append((int(x), int(yy)))
-        draw.line(path, fill=gold, width=7)
-        draw.line([(x, y + (yy-y)*.82) for x, yy in path],
-                  fill=gold_light, width=3)
-        for side in (-1, 1):
-            for k in range(3):
-                x = cx + side * (28 + k * 34)
-                yy = y + flip * (22 + k * 7)
-                draw.arc((x-34, yy-38, x+34, yy+38), 195, 345,
-                         fill=gold_light, width=5)
-        draw.polygon([(cx, y-flip*88), (cx-23, y-flip*42),
-                      (cx, y-flip*18), (cx+23, y-flip*42)],
-                     outline=gold_light, fill=(5, 25, 19, 255))
-        draw.line((cx, y-flip*88, cx, y-flip*18), fill=gold, width=5)
-
-    flourish(385, 1)
-    flourish(1265, -1)
-
-    # Richer arabesque crown and foot: layered pointed petals and fine scrollwork.
-    def arabesque_medallion(y: int, scale: float = 1.0) -> None:
-        # Central pointed leaf with nested outlines.
-        for inset, color, width_px in ((0, gold_shadow, 12), (7, gold, 7), (13, gold_light, 3)):
-            half = int(112 * scale) - inset
-            rise = int(104 * scale) - inset
-            draw.polygon([(cx, y-rise), (cx+half, y), (cx, y+int(30*scale)),
-                          (cx-half, y)], outline=color, width=width_px)
-        # Repeated interlaced petal arcs mirror left and right.
-        for side in (-1, 1):
-            for k in range(2):
-                ox = cx + side * int((34 + 38*k) * scale)
-                oy = y + int((k % 2) * 8 * scale)
-                box = (ox-int(45*scale), oy-int(48*scale),
-                       ox+int(45*scale), oy+int(48*scale))
-                draw.arc(box, 205 if side < 0 else 335,
-                         335 if side < 0 else 475, fill=gold, width=6)
-                draw.arc((box[0]+7, box[1]+7, box[2]-7, box[3]-7),
-                         205 if side < 0 else 335, 335 if side < 0 else 475,
-                         fill=gold_light, width=3)
-        # Fine horizontal filigree rails.
-        for offset in (-12, 12):
-            draw.arc((cx-190*scale, y-55*scale+offset,
-                      cx+190*scale, y+55*scale+offset),
-                     195, 345, fill=gold, width=4)
-
-    arabesque_medallion(383, 1.0)
-    arabesque_medallion(1267, 1.0)
-
-    # Stronger mineral veins with branching hairlines and luminous gold edges.
-    for side in (-1, 1):
-        for branch in range(4):
-            start_x = 18 if side < 0 else width-18
-            start_y = 90 + branch*245
-            end_x = start_x + side*int(150 + 26*branch)
-            end_y = min(height-20, start_y + 310)
-            bend = side * (48 + branch*11)
-            vein_pts = [(start_x, start_y),
-                        (start_x + bend, start_y+85),
-                        (end_x-bend//2, start_y+170),
-                        (end_x, end_y)]
-            draw.line(vein_pts, fill=(218, 159, 64, 245), width=4)
-            draw.line([(x+3, y-2) for x,y in vein_pts],
-                      fill=(255, 226, 158, 170), width=1)
-
-    # Restrained luminous highlights at the four cardinal points.
-    for x, y in ((cx, cy-radius+3), (cx, cy+radius-3),
-                 (cx-radius+3, cy), (cx+radius-3, cy)):
-        draw.ellipse((x-18, y-18, x+18, y+18), fill=gold_light,
-                     outline=gold_shadow, width=4)
-        draw.ellipse((x-8, y-8, x+8, y+8), fill=(255, 248, 218, 255))
-        draw.line((x-31, y, x+31, y), fill=gold_light, width=3)
-        draw.line((x, y-31, x, y+31), fill=gold_light, width=3)
-
-    title_font = ImageFont.truetype(font_path, 142, layout_engine=ImageFont.Layout.RAQM)
-    prefix_font = ImageFont.truetype(font_path, 88, layout_engine=ImageFont.Layout.RAQM)
-    title = surah_name
-    title_box = draw.textbbox((0, 0), title, font=title_font,
+    title_text = f"سورة {surah_name}"
+    title_font = ImageFont.truetype(font_path, 112, layout_engine=ImageFont.Layout.RAQM)
+    title_box = draw.textbbox((0, 0), title_text, font=title_font,
                               direction="rtl", language="ar")
     if title_box[2] - title_box[0] > 790:
-        title_font = ImageFont.truetype(font_path, 112, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((cx, cy-5), title, font=title_font, fill=gold_light,
-              anchor="mm", direction="rtl", language="ar")
-    draw.text((cx, cy-205), "سورة", font=prefix_font, fill=gold,
+        title_font = ImageFont.truetype(font_path, 96, layout_engine=ImageFont.Layout.RAQM)
+    # Center the title within the large, intentionally blank green plaque.
+    draw.text((540, 938), title_text, font=title_font, fill=(255, 220, 137, 255),
               anchor="mm", direction="rtl", language="ar")
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
@@ -524,16 +394,15 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     end_text = str(end_ayah).translate(digits)
     range_text = (f"الآيات {start_text}" if start_ayah == end_ayah
                   else f"الآيات {start_text} - {end_text}")
-    plaque_font = ImageFont.truetype(font_path, 64, layout_engine=ImageFont.Layout.RAQM)
-    plaque = (205, 1080, 875, 1215)
-    draw.rounded_rectangle(plaque, radius=48, fill=(2, 17, 13, 255),
-                           outline=gold_shadow, width=13)
-    draw.rounded_rectangle((plaque[0]+9, plaque[1]+9, plaque[2]-9, plaque[3]-9),
-                           radius=40, outline=gold_light, width=5)
-    draw.text((cx, 1148), range_text, font=plaque_font, fill=(255, 231, 181, 255),
-              anchor="mm", direction="rtl", language="ar")
+    range_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
+    range_box = draw.textbbox((0, 0), range_text, font=range_font,
+                              direction="rtl", language="ar")
+    if range_box[2] - range_box[0] > 480:
+        range_font = ImageFont.truetype(font_path, 46, layout_engine=ImageFont.Layout.RAQM)
+    draw.text((540, 1157), range_text, font=range_font,
+              fill=(255, 225, 160, 255), anchor="mm",
+              direction="rtl", language="ar")
     image.save(out)
-
 
 def probe(path: Path) -> dict:
     raw = subprocess.check_output([
