@@ -233,8 +233,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_draft_manifest_report.json").read_text(encoding="utf-8"))
-          if report["manifest_count"] != 1 or report["manifest_count"] != report["distinct_surah_count"]:
-              raise SystemExit("Expected exactly one distinct-surah draft manifest for this scheduled slot.")
+          if report["distinct_surah_count"] != 1 or report["manifest_count"] != report["preview_part_count"]:
+              raise SystemExit("Expected one distinct surah with one draft manifest for each audio part.")
           if report["rendering_allowed"] or report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Draft manifests must remain blocked from rendering and delivery.")
           for item in report["items"]:
@@ -256,8 +256,10 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
-          if report["preview_count"] != 1 or report["production_approved"]:
-              raise SystemExit("Expected exactly one review-only preview with production approval disabled.")
+          audio_report = json.loads(Path("output/quran_batch_audio_report.json").read_text(encoding="utf-8"))
+          expected_parts = audio_report["preview_part_count"]
+          if report["preview_count"] != expected_parts or report["production_approved"]:
+              raise SystemExit("Expected one review-only preview for each audio part, with production approval disabled.")
           if report["telegram_delivery"] or report["auto_publish"]:
               raise SystemExit("Telegram delivery and auto-publishing must remain disabled.")
           for item in report["items"]:
