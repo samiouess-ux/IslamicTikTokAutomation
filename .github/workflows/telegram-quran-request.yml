@@ -189,7 +189,7 @@ jobs:
               raise SystemExit(0)
           text = (
               "تعذّر تحضير الفيديو المطلوب: " + os.environ.get("REQUEST_TEXT", "")[:180] +
-              "\nتثبّت من اسم السورة وأرقام الآيات، وأن المقطع لا يتجاوز 65 ثانية. "
+              "\nتثبّت من اسم السورة وأرقام الآيات، وأن المقطع لا يتجاوز 40 ثانية. "
               "الفيديوهات تبقى للمراجعة فقط والنشر على TikTok يدوي."
           )
           payload = urllib.parse.urlencode({"chat_id": chat_id, "text": text}).encode()
