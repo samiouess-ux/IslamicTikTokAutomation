@@ -97,7 +97,7 @@ jobs:
             --end-ayah "${{ steps.request.outputs.end_ayah || steps.select_range.outputs.end_ayah }}" \
             --output output/quran_requested_batch.json
 
-      - name: Prepare whole-ayah official audio and enforce 65-second limit
+      - name: Prepare whole-ayah official audio and enforce 40-second limit
         run: |
           python src/prepare_quran_review_batch_audio.py \
             --batch output/quran_requested_batch.json \
@@ -165,8 +165,8 @@ jobs:
           if report.get("preview_count") != 1 or report.get("auto_publish") is not False:
               raise SystemExit("Expected exactly one review-only MP4; TikTok auto-publishing must remain disabled.")
           item = report["items"][0]
-          if item.get("review_only") is not True or item.get("duration_seconds", 999) > 65:
-              raise SystemExit("Requested video did not pass review-only/65-second checks.")
+          if item.get("review_only") is not True or item.get("duration_seconds", 999) > 40:
+              raise SystemExit("Requested video did not pass review-only/40-second checks.")
           Path("output/requested_video_path.txt").write_text(item["file"], encoding="utf-8")
           PY
           VIDEO="$(cat output/requested_video_path.txt)"
