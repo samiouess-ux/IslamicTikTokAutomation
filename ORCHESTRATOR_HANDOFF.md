@@ -360,3 +360,16 @@ Read `PROJECT_STATUS.md`, `DESIGN_SPEC.md`, this file, the active workflow(s), a
 The prior 65-second notes above are obsolete. User explicitly confirmed a **40-second hard maximum**. Audio preparation now selects one longest contiguous whole-ayah prefix per candidate, emits one video preview per candidate, applies no minimum duration, and carries remaining ayahs forward unselected. A single ayah over 40 seconds is deferred whole. The combined audio is measured and rejected if it exceeds 40 seconds. No truncation or playback-speed changes.
 
 Checkpoint: commit `414af9d3b7eec2069cd16a70b9bab20449a12e80` on `feature/telegram-review-notifications`. Validation run `41561966290` passed (53 engine tests and six orchestrator tests); run `41561962171` also passed. Inventory run `41561966410` was pending. Push checks do not send Telegram. Keep `main`, external Cron settings, Telegram secrets, and manual TikTok-only policy unchanged.
+
+
+## Orchestrator audit — 40-second pipeline repairs (2026-11-03)
+- Active branch only: `feature/telegram-review-notifications`; `main` untouched. Current code checkpoint: `8906b44654301bb6ad2d11758e9758b79a7cfc95` (documentation-only design clarification follows).
+- Fixed the scheduled renderer's incorrect requirement that selected ayahs equal the entire source candidate. It now renders only the longest selected opening contiguous prefix; deferred ayahs remain out of the preview and history.
+- The renderer now rejects a final MP4 longer than 40.0 seconds. Manual Telegram surah requests and their failure notices also use the same 40-second cap. No artificial minimum is imposed.
+- Fixed delivery reservation/finalization to map a selected audio-part ID back to its source candidate ID. Reservation validates the review-only preview, actual MP4/audio duration <=40 seconds, and exact selected ayah prefix; finalization verifies the same selection before recording history.
+- Fixed the scheduled workflow's candidate identity check and the >40-second deferred-ayah notification. Normal days exclude Al-Kahf (18) and Ash-Sharh (94); Friday remains sequential Al-Kahf only.
+- Validation evidence: Quran engine run `41562954128` passed 56 tests plus 6 orchestrator tests; isolated request workflow `41563104562` passed. Latest full inventory run `41563104763` is still in progress at audio preparation; do not claim end-to-end rendering until it completes.
+- The earlier inventory run `41561966410` failed at rendering because of the full-candidate-vs-selected-prefix mismatch. This root cause has been fixed; the current inventory run is the required confirmation.
+- Push validations do not send Telegram. No test send was made. External cron-job.org remains unchanged at the user-confirmed 04:10, 12:10, and 18:10 Africa/Tunis; this repository cannot independently verify the external job's live state. No new scheduler or infrastructure was added.
+- Background rendering uses the four explicitly user-approved, download-verified Pexels candidates in `data/background_candidates.json`; renderer rotation and real overlay readability still require the current full workflow artifact to pass and visual inspection.
+- TikTok publishing remains manual. Qur'an content remains Arabic + Saheeh International English, authentic recitation, no music, and no public reciter name.
