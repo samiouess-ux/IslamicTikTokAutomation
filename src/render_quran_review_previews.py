@@ -375,22 +375,32 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     width, height = 1080, 1920
 
     if background_frame is not None:
-        # Reuse the approved moving-video scene as the cover photograph.
-        # A strong optical blur keeps scenery atmospheric without competing
-        # with the Arabic title; a dark emerald wash preserves gold contrast.
+        # Preserve the original full-frame composition. Blur only the central
+        # title-card backdrop; leave the lantern, flowers, arch, mosque and
+        # Quran outside this reading zone crisp and in their original places.
         with Image.open(background_frame) as source:
-            image = ImageOps.fit(source.convert("RGB"), (width, height),
-                                 method=Image.Resampling.LANCZOS).filter(
-                                     ImageFilter.GaussianBlur(radius=15)
-                                 ).convert("RGBA")
-        wash = Image.new("RGBA", (width, height), (2, 18, 14, 112))
+            source = source.convert("RGBA")
+            if source.size != (width, height):
+                source = ImageOps.fit(source, (width, height),
+                                      method=Image.Resampling.LANCZOS)
+            image = source.copy()
+
+        # A feathered elliptical mask confines the blur to the area behind
+        # the title and ayah-range plaque; it never blurs the whole scene.
+        blurred = image.filter(ImageFilter.GaussianBlur(radius=11))
+        mask = Image.new("L", (width, height), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.ellipse((72, 300, 1008, 1325), fill=190)
+        mask = mask.filter(ImageFilter.GaussianBlur(radius=42))
+        image = Image.composite(blurred, image, mask)
+
+        # Subtle emerald tint only under the lettering improves contrast
+        # without recolouring the rest of the reference composition.
+        wash = Image.new("RGBA", (width, height), (2, 24, 17, 0))
+        wash_mask = Image.new("L", (width, height), 0)
+        ImageDraw.Draw(wash_mask).ellipse((105, 330, 975, 1295), fill=54)
+        wash.putalpha(wash_mask)
         image = Image.alpha_composite(image, wash)
-        edge = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-        edge_draw = ImageDraw.Draw(edge)
-        for y in range(height):
-            strength = int(18 + 52 * abs(y - height / 2) / (height / 2))
-            edge_draw.line((0, y, width, y), fill=(0, 0, 0, strength))
-        image = Image.alpha_composite(image, edge)
     else:
         # Backwards-compatible fallback for direct renderer callers and tests.
         noise = Image.effect_noise((540, 960), 22).resize(
