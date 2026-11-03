@@ -540,8 +540,8 @@ def probe(path: Path) -> dict:
         raise RuntimeError(f"Preview is not 1080x1920: {path}")
     if not audio or audio["codec_name"] != "mp3":
         raise RuntimeError(f"Original MP3 audio stream was not preserved: {path}")
-    if duration <= 0 or duration > 65:
-        raise RuntimeError(f"Preview duration outside allowed range: {duration}")
+    if duration <= 0:
+        raise RuntimeError(f"Preview has invalid duration: {duration}")
     return {"duration_seconds": round(duration, 3), "width": 1080, "height": 1920,
             "video_codec": video["codec_name"], "audio_codec": audio["codec_name"]}
 
@@ -594,9 +594,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
-    # Validate all selected ayahs before downloading a background or loading
-    # fonts. A duration-limited passage may be a shorter prefix, not the whole
-    # candidate, but it must never skip or reorder ayahs.
+    # Validate all selected ayahs before rendering. Every prepared passage must
+    # contain the complete requested sequence; duration is not capped.
     candidates = {x["candidate_id"]: x for x in batch.get("passages", [])}
     report_items = report.get("items", [])
     for item in report_items:
@@ -614,8 +613,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         start = candidate_numbers.index(int(selected[0])) if isinstance(selected, list) and selected and int(selected[0]) in candidate_numbers else -1
         if (start < 0 or [int(n) for n in selected] != candidate_numbers[start:start + len(selected)]):
             raise ValueError("Audio-selected ayahs do not match a contiguous requested slice.")
-        if [int(n) for n in selected] != list(range(int(selected[0]), int(selected[0]) + len(selected))):
-            raise ValueError("Audio-selected ayahs are not contiguous; refusing preview.")
+        if [int(n) for n in selected] != candidate_numbers:
+            raise ValueError("Preview must contain every requested ayah in order.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
     approved_backgrounds = load_approved_backgrounds()
