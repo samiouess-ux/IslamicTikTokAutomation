@@ -22,6 +22,8 @@ def partition_contiguous_ayahs(ayahs: Sequence[T], durations_seconds: dict[int, 
         duration = float(durations_seconds[number])
         if duration <= 0:
             raise ValueError(f"Invalid processed duration for ayah {number}.")
+        if maximum_seconds is not None and duration > maximum_seconds:
+            break
         if maximum_seconds is not None and current and current_duration + duration > maximum_seconds:
             parts.append(current)
             current = []
