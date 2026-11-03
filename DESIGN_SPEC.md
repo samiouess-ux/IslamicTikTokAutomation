@@ -77,5 +77,5 @@ Rotate between reviewed surahs and verse selections (single ayahs or consecutive
 ## Opening cover frame (2026-11-01)
 - Every Quran review video begins with a short, elegant 9:16 opening cover showing "القرآن الكريم", the Arabic surah name, and the exact selected ayah range in Arabic numerals.
 - Use the established gold cartouche and calm dark panel; preserve the existing ayah layout after the cover fades.
-- Target cover display: 1.6 seconds with a gentle 0.4-second alpha fade. The original recitation starts at video time 0; do not insert silence, delay, trim, or alter audio.
+- Target cover display: 1.6 seconds with a gentle 0.4-second alpha fade. The selected prepared recitation stream starts at video time 0; the cover must not insert silence or delay playback, and the renderer must not alter that stream.
 - The first frame is the TikTok cover candidate. TikTok publishing remains manual; the user chooses the cover in the TikTok app.
