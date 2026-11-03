@@ -10,11 +10,11 @@ class PartsTests(unittest.TestCase):
         parts, rest = partition_contiguous_ayahs(verses, {1: 30, 2: 66, 3: 10, 4: 10})
         self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2, 3, 4]])
         self.assertEqual(rest, [])
-    def test_explicit_limit_splits_only_between_whole_ayahs(self):
+    def test_explicit_limit_defers_overflow_ayahs_without_splitting(self):
         verses = [{'ayah': n} for n in range(1, 5)]
-        parts, rest = partition_contiguous_ayahs(verses, {1: 30, 2: 66, 3: 10, 4: 10}, 65)
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1], [2], [3, 4]])
-        self.assertEqual(rest, [])
+        parts, rest = partition_contiguous_ayahs(verses, {1: 30, 2: 66, 3: 10, 4: 10}, 40)
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1]])
+        self.assertEqual([v['ayah'] for v in rest], [2, 3, 4])
     def test_gap_rejected(self):
         with self.assertRaisesRegex(ValueError, 'contiguous'):
             partition_contiguous_ayahs([{'ayah': 1}, {'ayah': 3}], {1: 10, 3: 10})
