@@ -5,7 +5,7 @@ from typing import TypeVar
 T = TypeVar("T")
 
 def partition_contiguous_ayahs(ayahs: Sequence[T], durations_seconds: dict[int, float], maximum_seconds: float | None = None) -> tuple[list[list[T]], list[T]]:
-    """Return whole-ayah parts; default to no duration cap."""
+    """Return whole-ayah parts capped by duration; leave overflow ayahs unselected."""
     if maximum_seconds is not None and maximum_seconds <= 0:
         raise ValueError("maximum_seconds must be positive.")
     numbers = [int(item["ayah"]) for item in ayahs]  # type: ignore[index]
@@ -30,7 +30,9 @@ def partition_contiguous_ayahs(ayahs: Sequence[T], durations_seconds: dict[int, 
         current_duration += duration
     if current:
         parts.append(current)
+    selected_count = sum(len(group) for group in parts)
+    remaining = list(ayahs[selected_count:])
     flattened = [int(item["ayah"]) for group in parts for item in group]  # type: ignore[index]
-    if flattened != numbers:
-        raise AssertionError("Ayah partition did not preserve the exact requested sequence.")
-    return parts, []
+    if flattened != numbers[:selected_count]:
+        raise AssertionError("Ayah partition did not preserve the exact requested prefix.")
+    return parts, remaining
