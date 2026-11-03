@@ -15,8 +15,9 @@ class QuranSocialCaptionTests(unittest.TestCase):
 
     def test_exactly_five_hashtags_and_thematic_caption(self):
         result = build_social_caption(self.manifest("For indeed, with hardship will be ease."), "video-a")
-        self.assertEqual(len(result["hashtags"]), 5)
-        self.assertEqual(len(set(result["hashtags"])), 5)
+        tags = result["hashtags_ar"] + result["hashtags_en"]
+        self.assertEqual(len(tags), 5)
+        self.assertEqual(len(set(tags)), 5)
         self.assertEqual(result["theme"], "patience")
         self.assertIn("الصبر والثبات", result["arabic_caption"])
         self.assertIn("Verses 5-6", result["english_caption"])
@@ -24,9 +25,11 @@ class QuranSocialCaptionTests(unittest.TestCase):
     def test_rotation_changes_sets_between_video_ids(self):
         first = build_social_caption(self.manifest("Allah is One, the Eternal Refuge."), "video-a")
         second = build_social_caption(self.manifest("Allah is One, the Eternal Refuge."), "video-b")
-        self.assertEqual(len(first["hashtags"]), 5)
-        self.assertEqual(len(second["hashtags"]), 5)
-        self.assertNotEqual(first["hashtags"], second["hashtags"])
+        first_tags = first["hashtags_ar"] + first["hashtags_en"]
+        second_tags = second["hashtags_ar"] + second["hashtags_en"]
+        self.assertEqual(len(first_tags), 5)
+        self.assertEqual(len(second_tags), 5)
+        self.assertNotEqual(first_tags, second_tags)
 
     def test_unknown_topic_uses_honest_general_description(self):
         result = build_social_caption(self.manifest("A verse with uncommon wording."), "video-c")
