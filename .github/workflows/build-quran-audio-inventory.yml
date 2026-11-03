@@ -17,6 +17,8 @@ on:
       - "src/prepare_quran_review_batch_audio.py"
       - "src/build_quran_review_batch.py"
       - "src/build_quran_draft_manifests.py"
+      - "src/quran_social_caption.py"
+      - "tests/test_quran_social_caption.py"
       - "src/render_quran_review_previews.py"
       - "src/send_telegram.py"
       - "src/record_quran_delivery.py"
@@ -137,6 +139,7 @@ jobs:
           PY
       - name: Run Quran catalog regression tests
         run: |
+          python -m unittest discover -s tests -p 'test_quran_social_caption.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_review_batch.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_tunisian_day_status.py' -v
@@ -338,11 +341,13 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python - <<'PY'
-          import hashlib
           import json
           import subprocess
           import sys
           from pathlib import Path
+
+          sys.path.insert(0, "src")
+          from quran_social_caption import build_social_caption
 
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
@@ -360,25 +365,7 @@ jobs:
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
               caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
               caption_path.parent.mkdir(parents=True, exist_ok=True)
-              surah_name = manifest["source"]["surah_name_ar"]
-              verse_numbers = manifest["source"]["verses"]
-              verse_range = f"{verse_numbers[0]}-{verse_numbers[-1]}"
-              tag_sets = [
-                  (["#القرآن_الكريم", "#تلاوة", "#آيات_قرآنية", "#تدبر"],
-                   ["#Quran", "#QuranRecitation", "#Islam", "#ReflectOnQuran"]),
-                  (["#قرآن", "#ذكر_الله", "#نور_القرآن", "#تذكير"],
-                   ["#HolyQuran", "#Muslim", "#DailyReminder", "#QuranVerses"]),
-                  (["#آيات", "#القرآن", "#طمأنينة", "#اسلام"],
-                   ["#QuranDaily", "#IslamicReminder", "#Faith", "#Ayat"]),
-              ]
-              tag_index = int(hashlib.sha256(item["candidate_id"].encode("utf-8")).hexdigest()[:8], 16) % len(tag_sets)
-              hashtags_ar, hashtags_en = tag_sets[tag_index]
-              caption = {
-                  "arabic_caption": f"{manifest['caption']['text']} | استمع وتدبّر",
-                  "hashtags_ar": hashtags_ar,
-                  "english_caption": f"Quran recitation — Surah {surah_name} (verses {verse_range}). Listen and reflect.",
-                  "hashtags_en": hashtags_en,
-              }
+              caption = build_social_caption(manifest, item["candidate_id"])
               caption_path.write_text(json.dumps(caption, ensure_ascii=False, indent=2), encoding="utf-8")
               subprocess.run([
                   sys.executable, "src/send_telegram.py",
