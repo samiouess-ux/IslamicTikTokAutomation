@@ -364,6 +364,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                      out: Path, font_path: str, surah_name: str,
                      background_frame: Path | None = None) -> None:
     """Render an ornate emerald-and-gold title over a softly blurred video still."""
+    import math
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
