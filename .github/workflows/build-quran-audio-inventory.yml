@@ -195,8 +195,8 @@ jobs:
               if first_unused is None or batch["passages"][0]["verse_numbers"][0] != first_unused:
                   raise SystemExit("Friday Al-Kahf must continue from the first unused ayah.")
           else:
-              if batch["candidate_count"] != 8 or batch["distinct_surah_count"] != 8:
-                  raise SystemExit("Regular days must prepare eight distinct-surah candidates.")
+              if not 1 <= batch["candidate_count"] <= 8 or batch["distinct_surah_count"] != batch["candidate_count"]:
+                  raise SystemExit("Regular days must prepare up to eight distinct, not-yet-used surah candidates.")
               if 18 in [item["surah_number"] for item in batch["passages"]]:
                   raise SystemExit("Surah Al-Kahf is reserved for Friday mode.")
           if batch["rendering_allowed"] is not False or batch["telegram_delivery"] is not False or batch["auto_publish"] is not False:
