@@ -152,56 +152,57 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 })
                 continue
 
-            for part_index, part_verses in enumerate(parts, start=1):
-                selected = [int(verse["ayah"]) for verse in part_verses]
-                part_id = f"{candidate['candidate_id']}_part_{part_index:03d}"
-                part_dir = candidate_dir / f"part_{part_index:03d}"
-                part_dir.mkdir(parents=True, exist_ok=True)
-                files = [Path(processed_audio_files[str(number)]) for number in selected]
-                list_file = part_dir / "concat.txt"
-                list_file.write_text(
-                    "".join(f"file '{p.resolve()}'\n" for p in files),
-                    encoding="utf-8",
-                )
-                combined = part_dir / "passage.mp3"
-                subprocess.run([
-                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                    "-f", "concat", "-safe", "0", "-i", str(list_file.resolve()),
-                    "-c", "copy", str(combined.resolve())
-                ], check=True)
-                actual = probe(combined)
-                if actual <= 0:
-                    raise ValueError(
-                        f"Concatenated part has invalid duration {actual:.3f}s: {part_id}"
-                    )
-                last_position = requested_verses.index(selected[-1]) + 1
-                results.append({
-                    "candidate_id": part_id,
-                    "source_candidate_id": candidate["candidate_id"],
-                    "part_index": part_index,
-                    "part_count": len(parts),
-                    "surah_number": surah,
-                    "status": "audio_prepared_requires_exact_recording_listen_and_user_review",
-                    "requested_verses": requested_verses,
-                    "selected_verses": selected,
-                    "remaining_verses": requested_verses[last_position:],
-                    "blocked_ayah": int(remaining[0]["ayah"]) if remaining else None,
-                    "blocked_ayah_duration_seconds": processed_durations.get(int(remaining[0]["ayah"])) if remaining else None,
-                    "passage_complete": last_position == len(requested_verses),
-                    "continuation_policy": "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
-                    "verse_durations_seconds": {n: durations[n] for n in selected},
-                    "processed_verse_durations_seconds": {n: processed_durations[n] for n in selected},
-                    "edge_silence_removed_seconds": {str(n): removed_edge_silence[str(n)] for n in selected},
-                    "inter_verse_silence_seconds": 0.0,
-                    "processed_audio_files": {str(n): processed_audio_files[str(n)] for n in selected},
-                    "duration_seconds": round(actual, 3),
-                    "audio_file": str(combined),
-                    "archive_members": [members[f"{surah}:{n}"] for n in selected],
-                    "audio_approved": False,
-                    "rendering_allowed": False,
-                    "telegram_delivery": False,
-                    "auto_publish": False,
-                })
+            # One candidate produces one video: keep only its first contiguous
+            # whole-ayah prefix. Remaining ayahs continue in a future batch.
+            part_verses = parts[0]
+            part_index = 1
+            selected = [int(verse["ayah"]) for verse in part_verses]
+            part_id = f"{candidate['candidate_id']}_part_{part_index:03d}"
+            part_dir = candidate_dir / f"part_{part_index:03d}"
+            part_dir.mkdir(parents=True, exist_ok=True)
+            files = [Path(processed_audio_files[str(number)]) for number in selected]
+            list_file = part_dir / "concat.txt"
+            list_file.write_text(
+                "".join(f"file '{p.resolve()}'\\n" for p in files),
+                encoding="utf-8",
+            )
+            combined = part_dir / "passage.mp3"
+            subprocess.run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-f", "concat", "-safe", "0", "-i", str(list_file.resolve()),
+                "-c", "copy", str(combined.resolve())
+            ], check=True)
+            actual = probe(combined)
+            if actual <= 0 or actual > MAX_SECONDS + 0.25:
+                raise ValueError(f"Concatenated part exceeds the {MAX_SECONDS:g}-second limit or has invalid duration: {part_id} ({actual:.3f}s)")
+            last_position = requested_verses.index(selected[-1]) + 1
+            results.append({
+                "candidate_id": part_id,
+                "source_candidate_id": candidate["candidate_id"],
+                "part_index": part_index,
+                "part_count": 1,
+                "surah_number": surah,
+                "status": "audio_prepared_requires_exact_recording_listen_and_user_review",
+                "requested_verses": requested_verses,
+                "selected_verses": selected,
+                "remaining_verses": requested_verses[last_position:],
+                "blocked_ayah": int(remaining[0]["ayah"]) if remaining else None,
+                "blocked_ayah_duration_seconds": processed_durations.get(int(remaining[0]["ayah"])) if remaining else None,
+                "passage_complete": last_position == len(requested_verses),
+                "continuation_policy": "retry_same_first_unconfirmed_ayahs_until_confirmed_delivery",
+                "verse_durations_seconds": {n: durations[n] for n in selected},
+                "processed_verse_durations_seconds": {n: processed_durations[n] for n in selected},
+                "edge_silence_removed_seconds": {str(n): removed_edge_silence[str(n)] for n in selected},
+                "inter_verse_silence_seconds": 0.0,
+                "processed_audio_files": {str(n): processed_audio_files[str(n)] for n in selected},
+                "duration_seconds": round(actual, 3),
+                "audio_file": str(combined),
+                "archive_members": [members[f"{surah}:{n}"] for n in selected],
+                "audio_approved": False,
+                "rendering_allowed": False,
+                "telegram_delivery": False,
+                "auto_publish": False,
+            })
             prepared_candidates += 1
     ready = [x for x in results if x["status"].startswith("audio_prepared")]
     report = {
