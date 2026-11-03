@@ -61,13 +61,13 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(report["audio_prepared_count"], 3)
             self.assertEqual(report["preview_part_count"], 3)
             partials = [item for item in report["items"] if item["source_candidate_id"] == "s3"]
-            self.assertEqual([item["selected_verses"] for item in partials], [[1, 2, 3]])
+            self.assertEqual([item["selected_verses"] for item in partials], [[1, 2]])
             self.assertEqual(partials[0]["requested_verses"], [1, 2, 3])
-            self.assertEqual(partials[0]["remaining_verses"], [])
-            self.assertTrue(partials[0]["passage_complete"])
+            self.assertEqual(partials[0]["remaining_verses"], [3])
+            self.assertFalse(partials[0]["passage_complete"])
             self.assertEqual(partials[0]["part_count"], 1)
-            self.assertEqual(partials[0]["duration_seconds"], 80.0)
-            self.assertEqual(partials[0]["processed_verse_durations_seconds"], {1: 20.0, 2: 20.0, 3: 40.0})
+            self.assertEqual(partials[0]["duration_seconds"], 40.0)
+            self.assertEqual(partials[0]["processed_verse_durations_seconds"], {1: 20.0, 2: 20.0})
             self.assertIn("only confirmed delivery advances the sequence", report["continuation_policy"])
             self.assertTrue(Path(partials[0]["processed_audio_files"]["3"]).is_file())
             self.assertTrue(Path(partials[0]["processed_audio_files"]["1"]).is_file())
@@ -109,16 +109,16 @@ class QuranBatchAudioTests(unittest.TestCase):
                 return next(trimmed)
 
             with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
-                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 44.0]), \
+                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 35.0]), \
                  patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
             item = report["items"][0]
-            self.assertEqual(item["selected_verses"], [1, 2, 3])
-            self.assertEqual(item["duration_seconds"], 44.0)
-            self.assertEqual(item["processed_verse_durations_seconds"], {1: 18.0, 2: 17.0, 3: 9.0})
-            self.assertEqual(set(item["processed_audio_files"]), {"1", "2", "3"})
+            self.assertEqual(item["selected_verses"], [1, 2])
+            self.assertEqual(item["duration_seconds"], 35.0)
+            self.assertEqual(item["processed_verse_durations_seconds"], {1: 18.0, 2: 17.0})
+            self.assertEqual(set(item["processed_audio_files"]), {"1", "2"})
 
     def test_accepts_short_complete_surah_without_artificial_30_second_minimum(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -163,7 +163,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(report["minimum_seconds"], 0.0)
             self.assertIsNone(report["maximum_seconds"])
 
-    def test_prepares_a_single_ayah_that_exceeds_65_seconds_in_full(self):
+    def test_defers_a_single_ayah_that_exceeds_40_seconds_without_truncating(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch = {
@@ -195,11 +195,12 @@ class QuranBatchAudioTests(unittest.TestCase):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
             item = report["items"][0]
-            self.assertEqual(item["selected_verses"], [1])
-            self.assertEqual(item["duration_seconds"], 66.0)
-            self.assertTrue(item["passage_complete"])
-            self.assertEqual(report["audio_prepared_count"], 1)
-            self.assertIsNone(report["maximum_seconds"])
+            self.assertEqual(item["status"], "deferred_single_ayah_exceeds_40_seconds")
+            self.assertEqual(item["selected_verses"], [])
+            self.assertEqual(item["remaining_verses"], [1])
+            self.assertFalse(item["passage_complete"])
+            self.assertEqual(report["audio_prepared_count"], 0)
+            self.assertEqual(report["maximum_seconds"], 40.0)
 
     def test_trim_edge_silence_keeps_mp3_and_preserves_the_recitation_body(self):
         with tempfile.TemporaryDirectory() as tmp:
