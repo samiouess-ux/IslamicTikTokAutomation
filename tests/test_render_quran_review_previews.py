@@ -278,7 +278,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             {"codec_name": "mp3"}
         ],
     }))
-    def test_probe_accepts_exactly_65_seconds(self, _check):
+    def test_probe_accepts_video_longer_than_65_seconds(self, _check):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "preview.mp4"
             path.write_bytes(b"video")
@@ -292,12 +292,12 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             {"codec_name": "mp3"}
         ],
     }))
-    def test_probe_rejects_video_longer_than_65_seconds(self, _check):
+    def test_probe_accepts_video_longer_than_65_seconds(self, _check):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "preview.mp4"
             path.write_bytes(b"video")
-            with self.assertRaisesRegex(RuntimeError, "outside allowed range"):
-                probe(path)
+            info = probe(path)
+            self.assertEqual(info["duration_seconds"], 65.001)
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
         "format": {"duration": "24.5"},
