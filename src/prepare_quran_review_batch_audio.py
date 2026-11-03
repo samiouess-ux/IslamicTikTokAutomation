@@ -141,6 +141,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     "requested_verses": requested_verses,
                     "selected_verses": [],
                     "remaining_verses": requested_verses,
+                    "blocked_ayah": remaining[0] if remaining else None,
+                    "blocked_ayah_duration_seconds": processed_durations.get(remaining[0]) if remaining else None,
                     "passage_complete": False,
                     "duration_seconds": 0,
                     "audio_file": None,
