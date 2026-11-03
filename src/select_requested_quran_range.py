@@ -1,4 +1,4 @@
-"""Choose the longest opening contiguous Quran passage that fits 65 seconds.
+"""Choose the longest opening contiguous Quran passage that fits 40 seconds.
 
 Used only when a Telegram user asks for a surah without specifying ayahs.
 It probes the exact official archive files; it never trims or alters audio.
@@ -15,9 +15,8 @@ from pathlib import Path
 from remotezip import RemoteZip
 from prepare_quran_review_batch_audio import DEFAULT_ARCHIVE
 
-# Manual Telegram surah requests may use the full approved video limit.
-# The scheduled batch selector has a separate shorter 30–40s target window.
-MAX_SECONDS = 65.0
+# Every Quran video, including manual Telegram requests, has the same hard 40-second maximum.
+MAX_SECONDS = 40.0
 from parse_telegram_quran_request import SURAH_AYAH_COUNTS
 
 
@@ -59,7 +58,7 @@ def choose_range_from_durations(
         "end_ayah": selected[-1],
         "selected_ayahs": selected,
         "duration_seconds": round(total, 3),
-        "selection_policy": "longest_opening_contiguous_whole_ayah_range_up_to_10_and_65_seconds",
+        "selection_policy": "longest_opening_contiguous_whole_ayah_range_up_to_10_and_40_seconds",
     }
 
 
@@ -80,7 +79,7 @@ def select_from_archive(inventory: dict, surah: int, start_ayah: int = 1) -> dic
                 with archive.open(member) as source, target.open("wb") as destination:
                     shutil.copyfileobj(source, destination)
                 durations[ayah] = probe(target)
-                # Stop as soon as the next complete ayah would exceed 65 sec.
+                # Stop as soon as the next complete ayah would exceed 40 sec.
                 if sum(durations.values()) > MAX_SECONDS:
                     break
     return choose_range_from_durations(surah, start_ayah, durations)
