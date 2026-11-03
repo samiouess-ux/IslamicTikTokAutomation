@@ -352,8 +352,10 @@ jobs:
               raise SystemExit("Each scheduled Telegram slot must contain exactly one distinct surah.")
           batch_ids = {item["candidate_id"] for item in batch.get("passages", [])}
           for index, item in enumerate(report["items"], start=1):
-              if item.get("candidate_id") not in batch_ids:
-                  raise SystemExit("Preview candidate is not present in the source batch.")
+              if item.get("source_candidate_id") not in batch_ids:
+                  raise SystemExit("Preview source candidate is not present in the source batch.")
+              if item.get("duration_seconds", 999) > 40:
+                  raise SystemExit("Refusing to send a preview longer than 40 seconds.")
               manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
               caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
