@@ -18,7 +18,7 @@ from quran_audio_parts import partition_contiguous_ayahs
 
 DEFAULT_ARCHIVE = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 MIN_SECONDS = 0.0
-MAX_SECONDS = 65.0
+MAX_SECONDS = None  # No duration cap: keep the complete requested passage.
 
 
 def probe(path: Path) -> float:
@@ -110,8 +110,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             blocked_reason = None
 
             # Fetch and inspect every requested whole ayah. Partition only after
-            # all measured processed durations are known, so later clips are not
-            # lost merely because the first clip reached the 65-second cap.
+            # all measured processed durations are known. No duration cap is applied.
             for verse in candidate["verses"]:
                 number = int(verse["ayah"])
                 key = f"{surah}:{number}"
@@ -171,10 +170,9 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                     "-c", "copy", str(combined.resolve())
                 ], check=True)
                 actual = probe(combined)
-                if actual <= 0 or actual > MAX_SECONDS:
+                if actual <= 0:
                     raise ValueError(
-                        f"Concatenated part duration {actual:.3f}s is outside "
-                        f"0-65 seconds: {part_id}"
+                        f"Concatenated part has invalid duration {actual:.3f}s: {part_id}"
                     )
                 last_position = requested_verses.index(selected[-1]) + 1
                 results.append({
@@ -214,8 +212,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "distinct_surah_count": len({x["surah_number"] for x in ready}),
         "preview_part_count": len(ready),
         "minimum_seconds": MIN_SECONDS,
-        "maximum_seconds": MAX_SECONDS,
-        "audio_processing": "consecutive_whole_ayah_parts_up_to_65_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
+        "maximum_seconds": None,
+        "audio_processing": "complete_ordered_passages_without_duration_cap_with_edge_only_silence_detection_and_mp3_stream_copy",
         "continuation_policy": "Unselected ayahs remain explicitly listed and are not marked used. The next batch starts again at the first ayah absent from confirmed delivery history; only confirmed delivery advances the sequence.",
         "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",
         "items": results,
