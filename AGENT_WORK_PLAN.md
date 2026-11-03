@@ -314,3 +314,11 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - New intended Tunisia (UTC+1) slots: 04:10, 12:10, and 18:10. This avoids scheduling exactly at minute 00, which GitHub documents as a period of elevated scheduled-workflow load; it may reduce queue delays but does not guarantee punctual starts or prove that a missing schedule trigger is fixed.
 - No engine, Telegram bot, delivery logic, secrets, or TikTok behavior changed. Only `feature/telegram-review-notifications` was modified; `main` was not touched.
 - Next acceptance: observe actual schedule-triggered runs for the new slots and confirm Telegram positive `message_id` plus delivery-history sync. If schedule events remain absent, investigate workflow enablement/actor state rather than adding infrastructure.
+
+
+## Saved checkpoint — 2026-11-03
+- Supersedes earlier 65-second audio instructions: enforce a hard maximum of **40 seconds** per video.
+- For each candidate, select only the longest contiguous prefix of complete ayahs that fits within 40 seconds and prepare one video preview. No artificial minimum. Do not split an ayah, speed recitation, or emit multiple videos from one candidate. Carry later ayahs to a future batch; defer any single ayah that itself exceeds 40 seconds.
+- Verify measured concatenated MP3 duration is at most 40 seconds. Report only selected ayahs as selected; deferred ayahs must not enter delivery reservation/history.
+- Code/test commit: `414af9d3b7eec2069cd16a70b9bab20449a12e80` on `feature/telegram-review-notifications`. Validation run `41561966290` passed (53 engine tests + six orchestrator tests); `41561962171` passed as well. Inventory run `41561966410` remained pending at checkpoint.
+- Do not touch `main`, do not alter external Cron, and do not manually trigger Telegram delivery for testing. Confirm a real scheduled run separately.
