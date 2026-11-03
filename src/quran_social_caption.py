@@ -78,7 +78,7 @@ def build_social_caption(manifest: dict[str, Any], video_id: str) -> dict[str, A
     rotation = int.from_bytes(digest[:4], "big")
     ar_pair = AR_CORE[rotation % len(AR_CORE)]
     en_tag = EN_CORE[(rotation // len(AR_CORE)) % len(EN_CORE)]
-    tags = [ar_pair[rotation % 2], ar_pair[(rotation % 2) + 1], en_tag, topic_ar, topic_en]
+    tags = [ar_pair[0], ar_pair[1], en_tag, topic_ar, topic_en]
     # Stable de-duplication and exact five-tag contract.
     unique = list(dict.fromkeys(tags))
     fallback = [tag for pair in AR_CORE for tag in pair] + list(EN_CORE)
