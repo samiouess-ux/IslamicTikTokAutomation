@@ -258,6 +258,37 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
 
+    @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    @patch("render_quran_review_previews.probe", return_value={
+        "duration_seconds": 31.9, "width": 1080, "height": 1920,
+        "video_codec": "h264", "audio_codec": "mp3",
+    })
+    @patch("render_quran_review_previews.make_frame")
+    @patch("render_quran_review_previews.make_intro_frame")
+    @patch("render_quran_review_previews.subprocess.run")
+    @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    def test_renders_selected_contiguous_prefix_when_later_ayahs_are_deferred(
+        self, _font, _run, make_intro_frame, make_frame, _probe, _check, _download
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            batch, report = self.fixtures(root)
+            data = json.loads(report.read_text(encoding="utf-8"))
+            data["items"] = data["items"][:1]
+            data["items"][0]["selected_verses"] = [81, 82]
+            data["items"][0]["requested_verses"] = [81, 82, 83]
+            data["items"][0]["remaining_verses"] = [83]
+            report.write_text(json.dumps(data), encoding="utf-8")
+            batch_data = json.loads(batch.read_text(encoding="utf-8"))
+            batch_data["passages"] = batch_data["passages"][:1]
+            batch.write_text(json.dumps(batch_data), encoding="utf-8")
+            result = render(batch, report, root / "out", minimum_previews=1)
+            self.assertEqual(result["preview_count"], 1)
+            self.assertEqual(result["items"][0]["verses"], [81, 82])
+            self.assertEqual(make_frame.call_count, 2)
+            self.assertEqual(make_intro_frame.call_args.args[:3], (19, 81, 82))
+
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
@@ -272,32 +303,32 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 render(batch, report, root / "out")
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
-        "format": {"duration": "65.000"},
+        "format": {"duration": "40.000"},
         "streams": [
             {"codec_name": "h264", "width": 1080, "height": 1920},
             {"codec_name": "mp3"}
         ],
     }))
-    def test_probe_accepts_video_longer_than_65_seconds(self, _check):
+    def test_probe_accepts_video_at_40_second_maximum(self, _check):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "preview.mp4"
             path.write_bytes(b"video")
             info = probe(path)
-            self.assertEqual(info["duration_seconds"], 65.0)
+            self.assertEqual(info["duration_seconds"], 40.0)
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
-        "format": {"duration": "65.001"},
+        "format": {"duration": "40.001"},
         "streams": [
             {"codec_name": "h264", "width": 1080, "height": 1920},
             {"codec_name": "mp3"}
         ],
     }))
-    def test_probe_accepts_video_longer_than_65_seconds(self, _check):
+    def test_probe_rejects_video_over_40_seconds(self, _check):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "preview.mp4"
             path.write_bytes(b"video")
-            info = probe(path)
-            self.assertEqual(info["duration_seconds"], 65.001)
+            with self.assertRaisesRegex(RuntimeError, "exceeds the 40-second maximum"):
+                probe(path)
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
         "format": {"duration": "24.5"},
