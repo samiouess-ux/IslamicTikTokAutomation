@@ -1,0 +1,29 @@
+name: Isolated Quran caption tests
+
+on:
+  push:
+    branches: [feature/isolated-quran-caption-hashtags]
+    paths:
+      - "src/quran_social_caption.py"
+      - "tests/test_quran_social_caption.py"
+      - ".github/workflows/quran-caption-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/quran_social_caption.py"
+      - "tests/test_quran_social_caption.py"
+      - ".github/workflows/quran-caption-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  caption-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run isolated caption tests
+        run: python -m unittest discover -s tests -p 'test_quran_social_caption.py' -v
