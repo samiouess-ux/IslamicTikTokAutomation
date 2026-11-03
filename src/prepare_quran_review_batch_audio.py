@@ -194,7 +194,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "processed_verse_durations_seconds": {n: processed_durations[n] for n in selected},
                 "edge_silence_removed_seconds": {str(n): removed_edge_silence[str(n)] for n in selected},
                 "inter_verse_silence_seconds": 0.0,
-                "processed_audio_files": {str(n): processed_audio_files[str(n)] for n in selected},
+                "processed_audio_files": {str(n): processed_audio_files[str(n)] for n in requested_verses},
                 "duration_seconds": round(actual, 3),
                 "audio_file": str(combined),
                 "archive_members": [members[f"{surah}:{n}"] for n in selected],
