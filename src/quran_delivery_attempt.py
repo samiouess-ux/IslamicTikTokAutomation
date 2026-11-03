@@ -52,13 +52,28 @@ def reserve_attempt(
         raise ValueError("Reservation requires exactly one review-only preview and disabled auto-publishing.")
 
     candidate_id = items[0].get("candidate_id")
-    passages = [p for p in batch.get("passages", []) if p.get("candidate_id") == candidate_id]
+    preview_item = items[0]
+    if preview_item.get("review_only") is not True:
+        raise ValueError("Reservation requires a review-only preview.")
+    preview_duration = preview_item.get("duration_seconds")
+    if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > 40.0:
+        raise ValueError("Preview duration must be positive and no longer than 40 seconds.")
     audio_items = [p for p in audio_report.get("items", []) if p.get("candidate_id") == candidate_id]
-    if len(passages) != 1 or len(audio_items) != 1:
-        raise ValueError("Could not match exactly one preview, source passage, and audio report.")
-    passage, audio_item = passages[0], audio_items[0]
+    if len(audio_items) != 1:
+        raise ValueError("Could not match exactly one preview and audio report item.")
+    audio_item = audio_items[0]
+    source_candidate_id = audio_item.get("source_candidate_id", candidate_id)
+    if preview_item.get("source_candidate_id", source_candidate_id) != source_candidate_id:
+        raise ValueError("Preview source candidate does not match its audio report.")
+    passages = [p for p in batch.get("passages", []) if p.get("candidate_id") == source_candidate_id]
+    if len(passages) != 1:
+        raise ValueError("Could not match exactly one source passage for the selected audio part.")
+    passage = passages[0]
     if not str(audio_item.get("status", "")).startswith("audio_prepared"):
         raise ValueError("Cannot reserve a passage without prepared audio.")
+    audio_duration = audio_item.get("duration_seconds")
+    if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > 40.0:
+        raise ValueError("Prepared audio duration must be positive and no longer than 40 seconds.")
 
     source_verses = passage.get("verses", [])
     selected = audio_item.get("selected_verses")
@@ -79,6 +94,7 @@ def reserve_attempt(
         "schema_version": 1,
         "status": "sending_or_outcome_unknown",
         "candidate_id": candidate_id,
+        "source_candidate_id": source_candidate_id,
         "surah_number": passage.get("surah_number"),
         "selected_verses": selected,
         "ayah_references": refs,
@@ -102,10 +118,18 @@ def finalize_attempt(
     history = _read_json(history_path, {"schema_version": 1, "ayah_references": [], "deliveries": []})
     batch = _read_json(batch_path, {})
     audio_report = _read_json(audio_report_path, {})
-    passages = [p for p in batch.get("passages", []) if p.get("candidate_id") == candidate_id]
     audio_items = [p for p in audio_report.get("items", []) if p.get("candidate_id") == candidate_id]
-    if len(passages) != 1 or len(audio_items) != 1:
-        raise ValueError("Could not identify exactly one reserved candidate and audio report.")
+    if len(audio_items) != 1:
+        raise ValueError("Could not identify exactly one reserved audio report item.")
+    audio_item = audio_items[0]
+    source_candidate_id = audio_item.get("source_candidate_id", candidate_id)
+    if pending.get("source_candidate_id", source_candidate_id) != source_candidate_id:
+        raise ValueError("Pending reservation source candidate no longer matches the audio report.")
+    passages = [p for p in batch.get("passages", []) if p.get("candidate_id") == source_candidate_id]
+    if len(passages) != 1:
+        raise ValueError("Could not identify exactly one source passage for the reserved audio.")
+    if pending.get("selected_verses") != audio_item.get("selected_verses"):
+        raise ValueError("Pending reservation ayahs no longer match the selected audio ayahs.")
     if pending.get("ayah_references") != [
         str(v.get("reference", "")) for v in passages[0].get("verses", [])[:len(pending.get("selected_verses", []))]
     ]:
