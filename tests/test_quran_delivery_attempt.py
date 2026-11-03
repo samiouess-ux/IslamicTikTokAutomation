@@ -18,22 +18,26 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
         self.batch = self.root / "batch.json"
         self.audio = self.root / "audio.json"
         self.preview = self.root / "preview.json"
-        self.candidate_id = "quran_s011_001_003"
+        self.source_candidate_id = "quran_s011_001_003"
+        self.candidate_id = "quran_s011_001_003_part_001"
         passage = {
-            "candidate_id": self.candidate_id,
+            "candidate_id": self.source_candidate_id,
             "surah_number": 11,
             "verses": [{"ayah": n, "reference": f"11:{n}"} for n in range(1, 4)],
         }
         self.batch.write_text(json.dumps({"passages": [passage]}), encoding="utf-8")
         self.audio.write_text(json.dumps({"items": [{
             "candidate_id": self.candidate_id,
+            "source_candidate_id": self.source_candidate_id,
             "status": "audio_prepared",
             "selected_verses": [1, 2],
+            "duration_seconds": 32.0,
         }]}), encoding="utf-8")
         self.preview.write_text(json.dumps({
             "preview_count": 1,
             "auto_publish": False,
-            "items": [{"candidate_id": self.candidate_id, "file": "preview.mp4"}],
+            "items": [{"candidate_id": self.candidate_id, "source_candidate_id": self.source_candidate_id,
+                       "file": "preview.mp4", "duration_seconds": 32.0, "review_only": True}],
         }), encoding="utf-8")
         self.history.write_text(json.dumps({
             "schema_version": 1, "ayah_references": [], "deliveries": []
@@ -50,6 +54,14 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
         self.assertEqual(pending["ayah_references"], ["11:1", "11:2"])
         self.assertTrue(self.pending.exists())
         self.assertEqual(json.loads(self.history.read_text())["ayah_references"], [])
+
+    def test_reservation_rejects_preview_over_40_seconds(self):
+        preview = json.loads(self.preview.read_text(encoding="utf-8"))
+        preview["items"][0]["duration_seconds"] = 40.001
+        self.preview.write_text(json.dumps(preview), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "no longer than 40 seconds"):
+            self.reserve()
+        self.assertFalse(self.pending.exists())
 
     def test_existing_pending_attempt_blocks_another_send(self):
         self.reserve()
