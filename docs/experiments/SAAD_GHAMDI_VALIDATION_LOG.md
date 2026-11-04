@@ -32,3 +32,17 @@ Commit `ad117d1585f5cc78387f9ba3897f14c6abf75686` removes an unnecessary `reques
 ## Rights and production guardrails
 
 QUA timing/metadata licensing does not establish rights to the audio recordings. Do not use this recording in production or commercial publishing until the recording rights are independently verified. The production reciter remains Maher Al-Muaiqly; this experiment does not authorize a reciter change.
+
+
+## Confirmed result — Run 20
+
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41923533600
+- Head commit: `ad117d1585f5cc78387f9ba3897f14c6abf75686`
+- Conclusion: success after removing the unused `requests` installation.
+- Source package SHA256 verified: `17a0230828fd14b63b52ffc9191cdd43b110eeb73121fe8f7c288a9917cf528e`.
+- Riwayah/channel: Hafs an Asim / tarteel.
+- Canonical verse keys: 6,236; malformed rows: 0; declared coverage matches.
+- Canonical start ordering: PASS across all 114 surahs.
+- Audio decode and source-bounds checks: PASS for surahs 1, 38, and 114.
+- Acoustic screening: 101 ayah intervals; same four conservative candidates as Run 19.
+- Human listening remains outstanding; no word-level acoustic alignment claim is made.
