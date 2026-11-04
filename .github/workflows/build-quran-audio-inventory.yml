@@ -302,25 +302,14 @@ jobs:
               raise SystemExit("Actual Quran overlay contact sheet is missing.")
           print("Prepared four verified source downloads, 9:16 crops, and actual Quran-overlay legibility previews; none is production-approved.")
           PY
-      - name: Upload Quran-wide inventory, translation, and candidate audio probe
+      - name: Upload compact review video for download
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
-          name: official-quran-audio-inventory-and-probe
+          name: quran-review-video
           path: |
-            output/official_verse_audio_inventory.json
-            output/saheeh_international_translation.json
-            output/quran_uthmani_candidate.json
-            output/quran_joined_candidate.json
-            output/quran_review_batch.json
-            output/quran_batch_audio_report.json
-            output/quran_batch_audio/**/*.mp3
-            output/quran_draft_manifests/*.json
-            output/quran_draft_manifest_report.json
             output/quran_review_previews/*.mp4
             output/quran_review_previews/preview_report.json
-            output/background_review/*.jpg
-            output/background_review/background_review_report.json
           if-no-files-found: error
           retention-days: 3
 
