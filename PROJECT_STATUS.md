@@ -900,3 +900,10 @@ Theme: hope and ease after hardship.
 - Commits: `9b92376b6180d97ad540e8b6fe5c870664d3dd08` (pre-download manifest validation) and `9f7f77813bd74903769e06efb4f323403245a68e` (regression test).
 - These changes are on `feature/telegram-review-notifications` only. The corrected tests have not yet been executed; the failed prior workflow run is not evidence of a passing fix. The review workflow has not been re-run, and no candidate video downloads/previews have been verified yet.
 - Production Telegram delivery, the production workflow, external cron schedule, production background catalog, and TikTok publishing settings remain untouched.
+
+
+## Background review workflow retry — 2026-11-04
+- The isolated review workflow was retried as run 41872298890 (attempt 2). The three review safeguard tests all passed, including the duplicate-ID pre-download rejection test.
+- The preparation script completed successfully and reported that six unapproved candidates were prepared. The workflow log confirms no production catalog or Telegram delivery was changed.
+- The run was marked failed only at the artifact-upload step: GitHub Actions artifact storage quota was exhausted. The upload step found 14 files, but GitHub rejected artifact creation; therefore no downloadable contact sheet/source-clip artifact is available from this run and visual review is still pending.
+- This is a storage-capacity failure, not a test or candidate-download/preparation failure. Wait for GitHub's artifact-usage recalculation (the log says 6–12 hours) before retrying the artifact upload. Do not alter production delivery, Telegram, external cron, production backgrounds, or TikTok behavior.
