@@ -59,3 +59,16 @@ QUA timing/metadata licensing does not establish rights to the audio recordings.
 - Source-audio bounds and decode checks: PASS for sampled surahs 1, 38, and 114.
 - Acoustic screening remains 101 intervals with four conservative edge-energy flags.
 - This structural audit does not establish word-level acoustic alignment or replace human listening.
+
+
+## Confirmed result — Run 23 (canonical surah and ayah sequence checks)
+
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41924205068
+- Diagnostic commit: `60cf3babd19ba134867dd25faadfc60f47c328d7`
+- Conclusion: success.
+- `CANONICAL_SURAH_SEQUENCE_CHECK PASS`: all 114 surah identifiers are present contiguously.
+- `CANONICAL_AYAH_NUMBER_CONTINUITY_CHECK PASS`: within each surah, canonical ayah numbers begin at 1 and contain no gaps.
+- Interval end-order issues: 0; adjacent interval overlaps: 0.
+- Source-audio bounds/decode checks: PASS for sampled surahs 1, 38, and 114.
+- Acoustic screening: 101 ayah intervals, four conservative low-edge-energy review flags (1:1, 1:5, 38:1, 38:88).
+- These checks establish canonical key/interval structure and source bounds, not acoustic word-level alignment; the four flags still require human listening.
