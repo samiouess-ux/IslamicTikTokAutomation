@@ -8,20 +8,23 @@ from __future__ import annotations
 import json
 import re
 import sys
+import time
 from pathlib import Path
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from remotezip import RemoteZip
+from remotezip import RemoteIOError, RemoteZip
 
 ARCHIVE_URL = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
-ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
+ENTRY_RE = re.compile(r"(?:^|/)10-(\\d{3})(\\d{3})-A08\\.mp3$", re.IGNORECASE)
 EXPECTED_VERSES = 6236
+ARCHIVE_OPEN_ATTEMPTS = 4
+ARCHIVE_RETRY_BASE_SECONDS = 15
 
 
 def create_archive_session() -> requests.Session:
-    """Use bounded timeouts and retry transient archive-host/network failures."""
+    """Retry transient HTTP/network failures for each remote ZIP range request."""
     retry = Retry(
         total=4,
         connect=4,
@@ -40,36 +43,63 @@ def create_archive_session() -> requests.Session:
     return session
 
 
+def fetch_archive_names() -> list[str]:
+    """Retry opening the official ZIP as a whole if its host stays temporarily unavailable.
+
+    The HTTP adapter retries individual range requests. This outer retry adds
+    recovery when the complete RemoteZip open still fails with a transient 503.
+    It never switches to a mirror or accepts an incomplete archive.
+    """
+    last_error: Exception | None = None
+    for attempt in range(1, ARCHIVE_OPEN_ATTEMPTS + 1):
+        session = create_archive_session()
+        try:
+            with RemoteZip(
+                ARCHIVE_URL,
+                session=session,
+                timeout=(20, 60),
+                initial_buffer_size=1024 * 1024,
+            ) as archive:
+                return archive.namelist()
+        except (RemoteIOError, requests.exceptions.RequestException, TimeoutError, OSError) as exc:
+            last_error = exc
+            if attempt == ARCHIVE_OPEN_ATTEMPTS:
+                break
+            delay = ARCHIVE_RETRY_BASE_SECONDS * (2 ** (attempt - 1))
+            print(
+                f"Official Quran archive temporarily unavailable "
+                f"(attempt {attempt}/{ARCHIVE_OPEN_ATTEMPTS}): {exc}. "
+                f"Retrying in {delay} seconds.",
+                file=sys.stderr,
+            )
+            time.sleep(delay)
+        finally:
+            session.close()
+
+    raise RuntimeError(
+        f"Official Quran archive remained unavailable after {ARCHIVE_OPEN_ATTEMPTS} attempts; "
+        "refusing to build an incomplete audio inventory."
+    ) from last_error
+
+
 def build_inventory() -> dict:
     mapped: dict[str, str] = {}
     unmatched: list[str] = []
     duplicates: dict[str, list[str]] = {}
-    session = create_archive_session()
-    try:
-        # A 1 MiB initial range reduces extra round trips to the remote ZIP host.
-        # Timeouts are per connection/read; transient failures are retried by the
-        # mounted adapter. An unavailable host still fails closed.
-        with RemoteZip(
-            ARCHIVE_URL,
-            session=session,
-            timeout=(20, 60),
-            initial_buffer_size=1024 * 1024,
-        ) as archive:
-            for name in archive.namelist():
-                match = ENTRY_RE.search(name)
-                if not match:
-                    continue
-                surah, ayah = map(int, match.groups())
-                if not (1 <= surah <= 114 and 1 <= ayah <= 286):
-                    unmatched.append(name)
-                    continue
-                key = f"{surah}:{ayah}"
-                if key in mapped:
-                    duplicates.setdefault(key, [mapped[key]]).append(name)
-                else:
-                    mapped[key] = name
-    finally:
-        session.close()
+
+    for name in fetch_archive_names():
+        match = ENTRY_RE.search(name)
+        if not match:
+            continue
+        surah, ayah = map(int, match.groups())
+        if not (1 <= surah <= 114 and 1 <= ayah <= 286):
+            unmatched.append(name)
+            continue
+        key = f"{surah}:{ayah}"
+        if key in mapped:
+            duplicates.setdefault(key, [mapped[key]]).append(name)
+        else:
+            mapped[key] = name
 
     missing = []
     # Validate the archive inventory against canonical surah verse counts.
@@ -103,5 +133,5 @@ if __name__ == "__main__":
     destination = Path(sys.argv[1] if len(sys.argv) > 1 else "output/official_verse_audio_inventory.json")
     destination.parent.mkdir(parents=True, exist_ok=True)
     inventory = build_inventory()
-    destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
     print(f"Validated archive mapping for {inventory['mapped_verse_count']} verses: {destination}")
