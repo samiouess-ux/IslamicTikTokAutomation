@@ -47,10 +47,17 @@
     "kind": "quran_recitation",
     "approved": false,
     "exact_recording_user_reviewed": false,
-    "rights_verified": true,
-    "note": "Do not render until the exact official recitation files, archive entry paths, usage terms, and user listening review are documented.",
-    "rights_source_url": "https://qurancomplex.gov.sa/quran-audios/",
-    "rights_note": "The official King Fahd Glorious Quran Printing Complex audio-recitation page lists Sheikh Maher Al-Muaiqly in Hafs and explicitly permits the listed digital recitations for free public use in computer applications, websites, and broadcast channels inside and outside Saudi Arabia. Exact clip identity and user listening approval remain separate pending checks."
+    "rights_verified": false,
+    "note": "Candidate only. Islam Sobhi / Hafs recitation source and Surah 112 download link identified. The exact file has not yet been independently downloaded and inspected; usage rights and exact-recording review remain pending.",
+    "rights_source_url": null,
+    "rights_note": "Usage rights for this exact Islam Sobhi recording have not been verified. Do not render or approve for production until the applicable MP3Quran terms and recording-specific reuse permissions are documented.",
+    "reciter_name": "إسلام صبحي",
+    "riwaya": "حفص عن عاصم",
+    "recording_source": "MP3Quran",
+    "recording_page_url": "https://mp3quran.net/ar/",
+    "recording_file_url": "https://cdn.mp3quran.net/download/audio/islam-sobhi/r1/112.mp3",
+    "recording_path": "audio/islam-sobhi/r1/112.mp3",
+    "user_audio_feedback": "User said the audio sounds good; exact-file listening review is still pending."
   },
   "visual": {
     "format": "9:16",
