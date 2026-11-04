@@ -1,0 +1,37 @@
+name: Official audio archive preflight tests
+
+on:
+  push:
+    branches:
+      - fix/official-archive-preflight
+    paths:
+      - "src/build_official_audio_inventory.py"
+      - "tests/test_build_official_audio_inventory.py"
+      - ".github/workflows/official-audio-preflight-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/official-archive-preflight
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install only test dependencies
+        run: python -m pip install --disable-pip-version-check requests remotezip
+
+      - name: Compile changed module and tests
+        run: python -m py_compile src/build_official_audio_inventory.py tests/test_build_official_audio_inventory.py
+
+      - name: Run isolated preflight unit tests
+        run: python -m unittest -v tests/test_build_official_audio_inventory.py

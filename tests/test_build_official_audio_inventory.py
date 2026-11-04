@@ -1,10 +1,13 @@
 """Regression tests for resilient access to the official Quran audio ZIP."""
 import sys
 import unittest
+from unittest.mock import Mock
+
+import requests
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_official_audio_inventory import ENTRY_RE, create_archive_session
+from build_official_audio_inventory import ENTRY_RE, create_archive_session, preflight_archive
 
 
 class OfficialAudioInventoryTests(unittest.TestCase):
@@ -12,6 +15,70 @@ class OfficialAudioInventoryTests(unittest.TestCase):
         match = ENTRY_RE.search("10-011001-A08.mp3")
         self.assertIsNotNone(match)
         self.assertEqual(match.groups(), ("011", "001"))
+
+    def test_preflight_accepts_successful_head_request(self):
+        session = Mock()
+        response = Mock()
+        response.status_code = 200
+        session.head.return_value = response
+
+        preflight_archive(session)
+
+        session.head.assert_called_once_with(
+            "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
+            allow_redirects=True,
+            timeout=(20, 30),
+        )
+        response.raise_for_status.assert_called_once()
+        response.close.assert_called_once()
+        session.get.assert_not_called()
+
+    def test_preflight_falls_back_to_range_get_when_head_is_unsupported(self):
+        session = Mock()
+        head_response = Mock()
+        head_response.status_code = 405
+        range_response = Mock()
+        range_response.status_code = 206
+        session.head.return_value = head_response
+        session.get.return_value = range_response
+
+        preflight_archive(session)
+
+        head_response.close.assert_called_once()
+        session.get.assert_called_once_with(
+            "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
+            headers={"Range": "bytes=0-0"},
+            stream=True,
+            allow_redirects=True,
+            timeout=(20, 30),
+        )
+        range_response.raise_for_status.assert_called_once()
+        range_response.close.assert_called_once()
+
+    def test_preflight_fails_closed_on_http_503(self):
+        session = Mock()
+        response = Mock()
+        response.status_code = 503
+        response.url = "https://download.qurancomplex.gov.sa/archive.zip"
+        response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "503 Server Error", response=response
+        )
+        session.head.return_value = response
+
+        with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
+            preflight_archive(session)
+
+        response.close.assert_called_once()
+        session.get.assert_not_called()
+
+    def test_preflight_wraps_retried_connection_failure(self):
+        session = Mock()
+        session.head.side_effect = requests.exceptions.RetryError("too many 503 responses")
+
+        with self.assertRaisesRegex(RuntimeError, "unavailable during preflight"):
+            preflight_archive(session)
+
+        session.get.assert_not_called()
 
     def test_archive_session_retries_transient_http_failures(self):
         session = create_archive_session()

@@ -40,12 +40,51 @@ def create_archive_session() -> requests.Session:
     return session
 
 
+def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None:
+    """Check the official archive endpoint before RemoteZip starts reading it.
+
+    Some hosts reject HEAD; only in that case, fall back to a one-byte ranged
+    GET. Transient 5xx responses are retried by the session adapter and then
+    fail closed. No alternate audio source is selected.
+    """
+    response = None
+    try:
+        response = session.head(url, allow_redirects=True, timeout=(20, 30))
+        if response.status_code in (405, 501):
+            response.close()
+            response = session.get(
+                url,
+                headers={"Range": "bytes=0-0"},
+                stream=True,
+                allow_redirects=True,
+                timeout=(20, 30),
+            )
+        response.raise_for_status()
+        if response.status_code not in (200, 206):
+            raise RuntimeError(
+                f"Official Quran archive preflight returned unexpected HTTP "
+                f"status {response.status_code}."
+            )
+    except requests.RequestException as exc:
+        status = getattr(getattr(exc, "response", None), "status_code", None)
+        detail = f" (HTTP {status})" if status is not None else ""
+        raise RuntimeError(
+            "Official Quran archive is unavailable during preflight"
+            f"{detail}; refusing to use an alternate audio source."
+        ) from exc
+    finally:
+        if response is not None:
+            response.close()
+
+
 def build_inventory() -> dict:
     mapped: dict[str, str] = {}
     unmatched: list[str] = []
     duplicates: dict[str, list[str]] = {}
     session = create_archive_session()
     try:
+        preflight_archive(session)
+        print("Official Quran archive endpoint is reachable; starting ZIP inspection.")
         # A 1 MiB initial range reduces extra round trips to the remote ZIP host.
         # Timeouts are per connection/read; transient failures are retried by the
         # mounted adapter. An unavailable host still fails closed.
