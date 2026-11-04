@@ -923,3 +923,14 @@ Theme: hope and ease after hardship.
 - The preparation script completed successfully and reported that six unapproved candidates were prepared. The workflow log confirms no production catalog or Telegram delivery was changed.
 - The run was marked failed only at the artifact-upload step: GitHub Actions artifact storage quota was exhausted. The upload step found 14 files, but GitHub rejected artifact creation; therefore no downloadable contact sheet/source-clip artifact is available from this run and visual review is still pending.
 - This is a storage-capacity failure, not a test or candidate-download/preparation failure. Wait for GitHub's artifact-usage recalculation (the log says 6–12 hours) before retrying the artifact upload. Do not alter production delivery, Telegram, external cron, production backgrounds, or TikTok behavior.
+
+
+## Saad Al-Ghamdi matched-source acoustic screening — 2026-11-04
+- Isolated experiment branch only: `experiment/saad-ghamdi-audio-source`. Latest diagnostic commit: `3488714b20cc81ef03a8e64ab5affc64d80932f8`.
+- GitHub Actions run `41922507474` completed with conclusion `success`: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41922507474
+- Verified source package SHA-256, Hafs an Asim metadata, 6,236 canonical verse keys, zero malformed timestamp rows, exact declared-coverage match, and canonical start ordering across all 114 surahs.
+- Audio decode and timestamp-bound checks passed for source-matched recordings of surahs 1, 38, and 114. Acoustic energy screening covered 7 + 88 + 6 = 101 ayah intervals.
+- Four conservative low-energy review flags were emitted: 1:1, 1:5, 38:1, and 38:88. These are listening candidates, not confirmed timing/audio defects. The run summary includes the CSV.
+- Scope limitation: RMS/silence screening and interval bounds do not prove phonetic, word-level, or sample-accurate ayah alignment. Manual listening or independent ground truth is still required.
+- Rights limitation: QUA metadata/timing licensing does not establish reuse rights for the recitation recording. Do not use commercially or in production without permission for the exact recording.
+- Maher Al-Muaiqly remains the approved primary reciter. No production branch, Cron, approval gate, or delivery configuration was changed.
