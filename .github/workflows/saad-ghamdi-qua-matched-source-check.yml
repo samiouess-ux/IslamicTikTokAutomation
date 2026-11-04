@@ -1,0 +1,140 @@
+name: Saad Al-Ghamdi QUA matched-source diagnostic
+
+on:
+  push:
+    branches:
+      - experiment/saad-ghamdi-audio-source
+    paths:
+      - ".github/workflows/saad-ghamdi-qua-matched-source-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-matched-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out isolated experiment
+        uses: actions/checkout@v4
+        with:
+          ref: experiment/saad-ghamdi-audio-source
+
+      - name: Install audio decoder
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Verify Saad timestamps against their declared Tarteel source audio
+        env:
+          RELEASE_BASE: https://github.com/QUD-Technologies/quranic-universal-audio/releases/download/v4.0.0
+        run: |
+          python - <<'PY'
+          import gzip
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import tempfile
+          import urllib.request
+          import zipfile
+          from pathlib import Path
+
+          base = os.environ["RELEASE_BASE"]
+          selected_surahs = (1, 38, 114)
+
+          def fetch(url, destination):
+              request = urllib.request.Request(url, headers={"User-Agent": "QuranAudioTimingDiagnostic/1.0"})
+              with urllib.request.urlopen(request, timeout=90) as response, open(destination, "wb") as out:
+                  while True:
+                      chunk = response.read(1024 * 1024)
+                      if not chunk:
+                          break
+                      out.write(chunk)
+
+          with tempfile.TemporaryDirectory() as temp:
+              root = Path(temp)
+              manifest_path = root / "manifest.json"
+              catalog_path = root / "catalog.json"
+              fetch(f"{base}/manifest.json", manifest_path)
+              fetch(f"{base}/catalog.json", catalog_path)
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+
+              slug = "saad_al_ghamdi_tarteel"
+              entry = manifest["recitations"][slug]
+              reciter_zip = root / entry["zip"]
+              fetch(entry["zip_url"], reciter_zip)
+              actual_sha = hashlib.sha256(reciter_zip.read_bytes()).hexdigest()
+              if actual_sha != entry["sha256"]:
+                  raise SystemExit(f"SAAD_ZIP_SHA256_MISMATCH: expected={entry['sha256']} actual={actual_sha}")
+              print(f"SAAD_ZIP_SHA256_OK: {actual_sha}")
+
+              with zipfile.ZipFile(reciter_zip) as archive:
+                  names = set(archive.namelist())
+                  required = {"catalog.json", "verse_timestamps.json.gz"}
+                  if not required.issubset(names):
+                      raise SystemExit(f"SAAD_ZIP_MISSING_FILES: {sorted(required - names)}")
+                  reciter_catalog = json.loads(archive.read("catalog.json"))
+                  timestamp_payload = json.loads(gzip.decompress(archive.read("verse_timestamps.json.gz")))
+
+              if reciter_catalog.get("slug") != slug:
+                  raise SystemExit(f"UNEXPECTED_RECITER_SLUG: {reciter_catalog.get('slug')}")
+              if str(reciter_catalog.get("riwayah", "")).lower() != "hafs":
+                  raise SystemExit(f"UNEXPECTED_RIWAYAH: {reciter_catalog.get('riwayah')}")
+              if reciter_catalog.get("channel") != "Tarteel CDN":
+                  raise SystemExit(f"UNEXPECTED_AUDIO_CHANNEL: {reciter_catalog.get('channel')}")
+              rows = timestamp_payload.get("rows", [])
+              if not rows:
+                  raise SystemExit("EMPTY_VERSE_TIMESTAMP_ROWS")
+
+              source_entry = next((x for x in catalog.get("recitations", []) if x.get("slug") == slug), None)
+              if not source_entry:
+                  raise SystemExit("SAAD_RECITATION_NOT_FOUND_IN_RELEASE_CATALOG")
+              chapter_urls = source_entry.get("audio", {}).get("chapter_urls", {})
+              if not chapter_urls:
+                  raise SystemExit("SAAD_SOURCE_AUDIO_URLS_MISSING")
+              print(f"SAAD_TIMESTAMP_ROWS: {len(rows)}")
+              print(f"SAAD_DECLARED_COVERAGE_AYAHS: {source_entry.get('coverage', {}).get('ayahs')}")
+              print(f"SAAD_SOURCE_CHANNEL: {source_entry.get('channel')}")
+
+              for surah in selected_surahs:
+                  chapter = str(surah)
+                  source_url = chapter_urls.get(chapter)
+                  if not source_url or not source_url.startswith("https://"):
+                      raise SystemExit(f"HTTPS_SOURCE_URL_MISSING_FOR_SURAH_{surah:03d}")
+                  chapter_rows = [
+                      row for row in rows
+                      if str(row[0]).split(":")[0] == chapter and bool(row[3])
+                  ]
+                  if not chapter_rows:
+                      raise SystemExit(f"CANONICAL_TIMESTAMPS_MISSING_FOR_SURAH_{surah:03d}")
+                  last_end_ms = max(int(row[2]) for row in chapter_rows)
+                  audio_path = root / f"surah-{surah:03d}.audio"
+                  fetch(source_url, audio_path)
+                  if audio_path.stat().st_size < 10000:
+                      raise SystemExit(f"SOURCE_AUDIO_TOO_SMALL_FOR_SURAH_{surah:03d}")
+
+                  probe = subprocess.run(
+                      ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                       "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)],
+                      check=True, capture_output=True, text=True,
+                  )
+                  duration_s = float(probe.stdout.strip())
+                  decode = subprocess.run(
+                      ["ffmpeg", "-v", "error", "-i", str(audio_path), "-f", "null", "-"],
+                      capture_output=True, text=True,
+                  )
+                  if decode.returncode:
+                      raise SystemExit(f"SOURCE_AUDIO_DECODE_FAILED_SURAH_{surah:03d}: {decode.stderr[-1000:]}")
+                  delta_s = duration_s - last_end_ms / 1000
+                  print(
+                      f"QUA_SURAH_{surah:03d}: bytes={audio_path.stat().st_size}, "
+                      f"audio_duration={duration_s:.3f}s, last_canonical_ayah_end={last_end_ms/1000:.3f}s, "
+                      f"tail_difference={delta_s:+.3f}s, decode=OK"
+                  )
+
+              print("MATCHED_SOURCE_METADATA_CHECK: PASS")
+              print("NOTE: The release catalog explicitly pairs these timestamps with these Tarteel CDN source URLs.")
+              print("NOTE: Duration and decode checks do not independently prove word-level or sample-accurate alignment.")
+          PY
