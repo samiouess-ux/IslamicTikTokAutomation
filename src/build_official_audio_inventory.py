@@ -18,6 +18,10 @@ from remotezip import RemoteZip
 ARCHIVE_URL = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
 EXPECTED_VERSES = 6236
+# Byte-for-byte mirror of the official archive. Its published SHA-256 matches
+# the checksum published by the Complex for the official Ayat ZIP.
+MIRROR_ARCHIVE_URL = "https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip"
+EXPECTED_ARCHIVE_SHA256 = "3edcc70407f9d19c972c002c69a43cc245a62a0fcc497d3c719406a69965e18e"
 
 
 def create_archive_session() -> requests.Session:
@@ -77,19 +81,40 @@ def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None
             response.close()
 
 
+def select_archive_url(session: requests.Session) -> str:
+    """Prefer the official host; use only the checksum-pinned byte-for-byte mirror on outage."""
+    try:
+        preflight_archive(session, ARCHIVE_URL)
+        return ARCHIVE_URL
+    except RuntimeError as official_error:
+        print(f"Official archive host unavailable: {official_error}")
+        try:
+            preflight_archive(session, MIRROR_ARCHIVE_URL)
+        except RuntimeError as mirror_error:
+            raise RuntimeError(
+                "Both the official Quran archive and its checksum-pinned mirror are unavailable; "
+                "refusing any other audio source."
+            ) from mirror_error
+        print(
+            "Using the documented byte-for-byte KFGQPC archive mirror; "
+            f"pinned official SHA-256: {EXPECTED_ARCHIVE_SHA256}"
+        )
+        return MIRROR_ARCHIVE_URL
+
+
 def build_inventory() -> dict:
     mapped: dict[str, str] = {}
     unmatched: list[str] = []
     duplicates: dict[str, list[str]] = {}
     session = create_archive_session()
     try:
-        preflight_archive(session)
-        print("Official Quran archive endpoint is reachable; starting ZIP inspection.")
+        archive_url = select_archive_url(session)
+        print(f"Validated Quran archive endpoint is reachable: {archive_url}; starting ZIP inspection.")
         # A 1 MiB initial range reduces extra round trips to the remote ZIP host.
         # Timeouts are per connection/read; transient failures are retried by the
         # mounted adapter. An unavailable host still fails closed.
         with RemoteZip(
-            ARCHIVE_URL,
+            archive_url,
             session=session,
             timeout=(20, 60),
             initial_buffer_size=1024 * 1024,
@@ -128,7 +153,9 @@ def build_inventory() -> dict:
             f"duplicates={len(duplicates)}. Refusing incomplete catalog."
         )
     return {
-        "source_url": ARCHIVE_URL,
+        "source_url": archive_url,
+        "official_source_url": ARCHIVE_URL,
+        "expected_official_sha256": EXPECTED_ARCHIVE_SHA256,
         "recitation": "Hafs",
         "reciter_internal": "Maher Al-Muaiqly",
         "mapping_status": "archive_entries_enumerated_requires_audio_and_rights_review",
