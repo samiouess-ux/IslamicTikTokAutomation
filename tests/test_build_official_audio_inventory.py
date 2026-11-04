@@ -105,8 +105,9 @@ class OfficialAudioInventoryTests(unittest.TestCase):
         session = create_archive_session()
         try:
             retry = session.get_adapter("https://").max_retries
-            self.assertEqual(retry.total, 4)
+            self.assertEqual(retry.total, 2)
             self.assertIn(503, retry.status_forcelist)
+            self.assertFalse(retry.respect_retry_after_header)
             self.assertIn("GET", retry.allowed_methods)
             self.assertIn("HEAD", retry.allowed_methods)
         finally:
