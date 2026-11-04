@@ -947,3 +947,11 @@ Theme: hope and ease after hardship.
 - Updated that final test fixture to use the canonical Maher archive filename. Commit: `ebf24f9fad4e65198a45d9787c46dffcc5d5afdb`.
 - No production audio logic was weakened and no ambiguity fallback was introduced. The new commit should trigger another validation run; await its test results before proceeding to actual audio preparation/rendering.
 - No Telegram send or delivery-history update occurred in these push-test runs. Preserve existing Cron, production history, Maher Al-Muaiqly recitation source, and manual TikTok publishing.
+
+
+## Verified Quran review render checkpoint — 2026-11-05
+- Workflow run `41932468888` completed with conclusion `success` on commit `d7e7d69f203d9c72b9e9259b63fb1b609ec021a2`.
+- Confirmed successful steps: official audio inventory inspection, full Saheeh International corpus, 6,236-entry Uthmani candidate corpus, exact-key Arabic/translation/audio join, review-only gates, catalog regression tests, Tunisia Friday logic, one distinct-surah audio candidate prepared from the Maher archive, draft manifest generation, 9:16 H.264/MP3 review preview rendering, and four background crop previews with actual Quran overlay.
+- The workflow's artifact upload step was configured with `continue-on-error: true`; the run artifact listing returned no artifacts. Therefore the MP4 was rendered during the job, but no downloadable artifact is available from this run. Do not claim the user received or can download the video.
+- Telegram reservation, send, delivery-history update, and sync steps were all skipped for this push-triggered validation. No new Telegram message was sent and no production delivery history was changed.
+- Next: resolve artifact availability/retention before relying on the generated preview as a user-deliverable file. Do not alter external Cron, `main`, experiment branch, or production delivery history.
