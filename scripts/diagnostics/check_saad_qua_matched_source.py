@@ -13,6 +13,9 @@ from pathlib import Path
 BASE = "https://github.com/QUD-Technologies/quranic-universal-audio/releases/download/v4.0.0"
 SLUG = "saad_al_ghamdi_tarteel"
 SURAHS = (1, 38, 114)
+# Project owner listened to these exact intervals and confirmed they are correct.
+# This records review provenance only; it does not alter audio or timestamps.
+USER_CONFIRMED_LISTENING = {'1:1', '1:5', '38:1', '38:88'}
 SAMPLE_RATE = 16000
 WINDOW_MS = 100
 SILENCE_RMS_THRESHOLD = 100  # about -50 dBFS for signed 16-bit PCM
@@ -316,6 +319,8 @@ with review_path.open("w", encoding="utf-8") as review_file:
         audio_url = urls[str(surah)]
         review_file.write(f"- **{label}** — {start_ms/1000:.3f}s to {end_ms/1000:.3f}s: [{label} source audio]({audio_url}#t={start_ms/1000:.3f},{end_ms/1000:.3f})\\n")
 print(f"HUMAN_LISTENING_REVIEW_LINKS_WRITTEN {review_path}")
-print("Candidate thresholds are conservative screening flags only; human listening is required.")
+print("USER_CONFIRMED_LISTENING_CANDIDATES 4")
+print("UNREVIEWED_ACOUSTIC_CANDIDATES " + str(sum(item["ayah"] not in USER_CONFIRMED_LISTENING for item in review_candidates)))
+print("Acoustic thresholds remain screening flags; user-confirmed clips are recorded as reviewed, not defects.")
 print("MATCHED_SOURCE_TIMESTAMP_BOUNDS_CHECK PASS")
 print("This validates interval structure and source-audio bounds, not acoustic word-level alignment.")
