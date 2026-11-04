@@ -187,7 +187,7 @@ with tempfile.TemporaryDirectory() as tmp:
                 return -120.0
             return 20.0 * math.log10(math.sqrt(mean_square) / 32768.0)
 
-        report_path = root / "saad_acoustic_probe.csv"
+        report_path = Path("saad_acoustic_probe.csv")
         write_header = not report_path.exists()
         with report_path.open("a", newline="", encoding="utf-8") as report_file:
             writer = csv.writer(report_file)
