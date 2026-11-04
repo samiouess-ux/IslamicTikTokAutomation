@@ -186,5 +186,61 @@ jobs:
               print("AUDIO_DURATION_COMPATIBLE_WITH_TIMINGS: True")
           PY
 
+      - name: Compare one EveryAyah per-ayah file with Saad timing interval
+        run: |
+          python - <<'PY'
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          import requests
+
+          session = requests.Session()
+          reads = session.get("https://mp3quran.net/api/v3/ayat_timing/reads", timeout=(20, 45))
+          reads.raise_for_status()
+          payload = reads.json()
+          rows = payload.get("reads", payload.get("data", [])) if isinstance(payload, dict) else payload
+          saad = next((row for row in rows if "سعد الغامدي" in str(row.get("name", ""))), None)
+          if not saad:
+              raise SystemExit("Saad Al-Ghamdi timing read not found")
+          timing_response = session.get(
+              "https://mp3quran.net/api/v3/ayat_timing",
+              params={"surah": 38, "read": saad["id"]},
+              timeout=(20, 45),
+          )
+          timing_response.raise_for_status()
+          ayah = next(row for row in timing_response.json() if int(row.get("ayah", -1)) == 1)
+          timing_duration = (int(ayah["end_time"]) - int(ayah["start_time"])) / 1000
+
+          url = "https://everyayah.com/data/Ghamadi_40kbps/038001.mp3"
+          with tempfile.TemporaryDirectory() as tmp:
+              audio = Path(tmp) / "038001.mp3"
+              with session.get(url, stream=True, timeout=(20, 90)) as response:
+                  response.raise_for_status()
+                  with audio.open("wb") as output:
+                      for chunk in response.iter_content(chunk_size=256 * 1024):
+                          if chunk:
+                              output.write(chunk)
+              if audio.stat().st_size < 1000:
+                  raise SystemExit("EveryAyah sample unexpectedly small")
+              probe = subprocess.run(
+                  ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                   "-of", "default=noprint_wrappers=1:nokey=1", str(audio)],
+                  check=True, capture_output=True, text=True,
+              )
+              duration = float(probe.stdout.strip())
+              decode = subprocess.run(
+                  ["ffmpeg", "-v", "error", "-i", str(audio), "-f", "null", "-"],
+                  capture_output=True, text=True,
+              )
+              if decode.returncode:
+                  raise SystemExit(f"EveryAyah MP3 decode failed: {decode.stderr[-1000:]}")
+              print(f"EVERYAYAH_038001_BYTES: {audio.stat().st_size}")
+              print(f"EVERYAYAH_038001_DURATION_SECONDS: {duration:.3f}")
+              print(f"MP3QURAN_038001_TIMING_INTERVAL_SECONDS: {timing_duration:.3f}")
+              print(f"PER_AYAH_DURATION_DIFFERENCE_SECONDS: {duration-timing_duration:.3f}")
+              print("EVERYAYAH_SINGLE_AYAH_DECODE_OK: True")
+          PY
+
       - name: Run existing audio preparation regression tests
         run: python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
