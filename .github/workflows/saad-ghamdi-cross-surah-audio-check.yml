@@ -34,7 +34,6 @@ jobs:
           fi
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
-          python -m pip install --disable-pip-version-check requests
 
       - name: Verify all canonical intervals against their declared source audio
         run: |
