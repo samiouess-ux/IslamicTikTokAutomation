@@ -1,0 +1,65 @@
+name: Check official Quran archive connectivity
+
+on:
+  push:
+    branches:
+      - feature/telegram-review-notifications
+    paths:
+      - ".github/workflows/check-official-archive-connectivity.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  archive-connectivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check official archive endpoint only
+        run: |
+          python - <<'PY'
+          import requests
+          from requests.adapters import HTTPAdapter
+          from urllib3.util.retry import Retry
+
+          url = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
+          retry = Retry(
+              total=2,
+              connect=2,
+              read=0,
+              status=2,
+              backoff_factor=1,
+              status_forcelist=(429, 500, 502, 503, 504),
+              allowed_methods=frozenset({"HEAD", "GET"}),
+              respect_retry_after_header=True,
+          )
+          session = requests.Session()
+          session.headers.update({"User-Agent": "IslamicTikTokAutomation-ArchiveConnectivityCheck/1.0"})
+          adapter = HTTPAdapter(max_retries=retry)
+          session.mount("https://", adapter)
+          try:
+              response = session.head(url, allow_redirects=True, timeout=(10, 15))
+              print(f"HEAD status: {response.status_code}")
+              if response.status_code in (405, 501):
+                  response.close()
+                  response = session.get(
+                      url,
+                      headers={"Range": "bytes=0-0"},
+                      stream=True,
+                      allow_redirects=True,
+                      timeout=(10, 15),
+                  )
+                  print(f"Ranged GET status: {response.status_code}")
+              response.raise_for_status()
+              if response.status_code not in (200, 206):
+                  raise RuntimeError(f"Unexpected HTTP status: {response.status_code}")
+              print("RESULT: official archive endpoint is reachable.")
+              response.close()
+          except requests.RequestException as exc:
+              status = getattr(getattr(exc, "response", None), "status_code", None)
+              print(f"RESULT: official archive endpoint check failed; HTTP status={status}; error={exc}")
+              raise SystemExit(1)
+          finally:
+              session.close()
+          PY
