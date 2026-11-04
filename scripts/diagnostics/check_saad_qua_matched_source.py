@@ -63,6 +63,42 @@ with tempfile.TemporaryDirectory() as tmp:
     print(f"TIMESTAMP_ROWS {len(rows)}")
     print(f"DECLARED_COVERAGE {source.get('coverage', {}).get('ayahs')}")
     print(f"SOURCE_CHANNEL {source.get('channel')}")
+    # Validate the complete canonical verse-timing index.
+    canonical = {}
+    malformed = []
+    for index, row in enumerate(rows):
+        if not isinstance(row, list) or len(row) < 4:
+            malformed.append(index)
+            continue
+        verse_key = str(row[0])
+        try:
+            start_ms, end_ms = int(row[1]), int(row[2])
+        except (TypeError, ValueError):
+            malformed.append(index)
+            continue
+        if start_ms < 0 or end_ms <= start_ms:
+            malformed.append(index)
+            continue
+        if bool(row[3]):
+            if verse_key in canonical:
+                raise SystemExit(f"DUPLICATE_CANONICAL_VERSE_TIMESTAMP {verse_key}")
+            canonical[verse_key] = (start_ms, end_ms)
+    if malformed:
+        raise SystemExit(f"MALFORMED_TIMESTAMP_ROWS count={len(malformed)} first={malformed[:10]}")
+    declared = int(source.get("coverage", {}).get("ayahs") or 0)
+    print(f"CANONICAL_VERSE_KEYS {len(canonical)}")
+    print(f"MALFORMED_TIMESTAMP_ROWS {len(malformed)}")
+    print(f"DECLARED_COVERAGE_MATCH {len(canonical) == declared}")
+    if declared and len(canonical) != declared:
+        raise SystemExit(f"CANONICAL_COVERAGE_MISMATCH declared={declared} actual={len(canonical)}")
+    surah_counts = {}
+    for key in canonical:
+        parts = key.split(":")
+        if len(parts) != 2 or not all(part.isdigit() for part in parts):
+            raise SystemExit(f"INVALID_CANONICAL_VERSE_KEY {key}")
+        surah_counts[int(parts[0])] = surah_counts.get(int(parts[0]), 0) + 1
+    print(f"CANONICAL_SURAH_COUNT {len(surah_counts)}")
+    print(f"CANONICAL_SURAH_RANGE {min(surah_counts)}-{max(surah_counts)}")
 
     for surah in SURAHS:
         chapter = str(surah)
