@@ -78,6 +78,13 @@ def trim_edge_silence(source: Path, destination: Path, source_duration: float,
     return processed_duration
 
 
+def resolve_archive_member(archive_names: list[str], requested_member: str) -> str:
+    requested_basename = requested_member.rsplit('/', 1)[-1].casefold()
+    matches = [name for name in archive_names if name.rsplit('/', 1)[-1].casefold() == requested_basename]
+    if len(matches) != 1:
+        raise ValueError(f'Expected exactly one ZIP member named {requested_basename}; found {len(matches)}.')
+    return matches[0]
+
 def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, target_count: int = 3) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
@@ -96,6 +103,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
     results = []
     prepared_candidates = 0
     with RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE)) as archive:
+        archive_names = archive.namelist()
+        resolved_members = {}
         for candidate in batch.get("passages", []):
             if prepared_candidates >= target_count:
                 break
@@ -117,6 +126,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 member = members.get(key)
                 if not member:
                     raise ValueError(f"Official audio mapping missing for {key}")
+                member = resolve_archive_member(archive_names, member)
+                resolved_members[key] = member
                 target = candidate_dir / f"{surah:03d}_{number:03d}.mp3"
                 with archive.open(member) as source, target.open("wb") as dest:
                     shutil.copyfileobj(source, dest)
@@ -197,7 +208,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "processed_audio_files": {str(n): processed_audio_files[str(n)] for n in selected},
                 "duration_seconds": round(actual, 3),
                 "audio_file": str(combined),
-                "archive_members": [members[f"{surah}:{n}"] for n in selected],
+                "archive_members": [resolved_members[f"{surah}:{n}"] for n in selected],
                 "audio_approved": False,
                 "rendering_allowed": False,
                 "telegram_delivery": False,
