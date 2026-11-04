@@ -314,7 +314,7 @@ jobs:
             output/background_review/*.jpg
             output/background_review/background_review_report.json
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 3
 
       - name: Reserve Telegram delivery attempt before sending
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
