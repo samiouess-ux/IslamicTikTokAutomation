@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import hashlib
 from pathlib import Path
 
 import requests
@@ -20,6 +21,7 @@ MIRROR_ARCHIVE_URL = "https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12
 METADATA_URL = "https://raw.githubusercontent.com/quran-ws/kfgqpc-resources/main/resources/quran-audios/ayat-12-1-2020/metadata.json"
 EXPECTED_ARCHIVE_SHA256 = "3edcc70407f9d19c972c002c69a43cc245a62a0fcc497d3c719406a69965e18e"
 EXPECTED_VERSES = 6236
+EXPECTED_ARCHIVE_BYTES = 760867237
 ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
 
 
@@ -39,7 +41,7 @@ def create_archive_session() -> requests.Session:
     return session
 
 
-def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None:
+def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> bool:
     """Require real HTTP byte-range support before selecting an archive for RemoteZip."""
     response = None
     try:
@@ -49,11 +51,15 @@ def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None
         )
         response.raise_for_status()
         content_range = response.headers.get("Content-Range", "")
-        if response.status_code != 206 or not content_range.startswith("bytes 0-0/"):
-            raise RuntimeError(
-                f"Quran archive endpoint does not support byte ranges "
-                f"(HTTP {response.status_code}, Content-Range={content_range or 'missing'})."
-            )
+        if response.status_code == 206 and content_range.startswith("bytes 0-0/"):
+            return True
+        if response.status_code == 200:
+            print("Archive endpoint ignores byte ranges; use bounded full-download with published SHA-256 verification.")
+            return False
+        raise RuntimeError(
+            f"Unexpected archive range preflight response "
+            f"(HTTP {response.status_code}, Content-Range={content_range or 'missing'})."
+        )
     except requests.RequestException as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
         detail = f" (HTTP {status})" if status is not None else ""
@@ -63,16 +69,46 @@ def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None
             response.close()
 
 
-def select_archive_url(session: requests.Session) -> str:
-    """Prefer the Complex host; fall back only to its checksum-pinned mirror."""
+def select_archive_url(session: requests.Session) -> tuple[str, bool]:
+    """Prefer the Complex host; use its checksum-pinned mirror on outage."""
     try:
-        preflight_archive(session, ARCHIVE_URL)
-        return ARCHIVE_URL
+        supports_ranges = preflight_archive(session, ARCHIVE_URL)
+        return ARCHIVE_URL, supports_ranges
     except RuntimeError as official_error:
         print(f"Official archive host unavailable: {official_error}")
-        preflight_archive(session, MIRROR_ARCHIVE_URL)
+        supports_ranges = preflight_archive(session, MIRROR_ARCHIVE_URL)
         print("Using the documented byte-for-byte KFGQPC archive mirror.")
-        return MIRROR_ARCHIVE_URL
+        return MIRROR_ARCHIVE_URL, supports_ranges
+
+
+def download_verified_archive(session: requests.Session, url: str, destination: Path) -> str:
+    """Download the complete archive only when range requests are unavailable; verify size and SHA-256."""
+    digest = hashlib.sha256()
+    total = 0
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with session.get(url, stream=True, timeout=(15, 90)) as response:
+            response.raise_for_status()
+            with destination.open("wb") as output:
+                for chunk in response.iter_content(chunk_size=8 * 1024 * 1024):
+                    if not chunk:
+                        continue
+                    total += len(chunk)
+                    if total > EXPECTED_ARCHIVE_BYTES:
+                        raise RuntimeError("Quran archive exceeded its pinned expected byte size.")
+                    digest.update(chunk)
+                    output.write(chunk)
+                    if total % (64 * 1024 * 1024) < len(chunk):
+                        print(f"Downloaded {total // (1024 * 1024)} MiB of Quran audio archive.")
+    except Exception:
+        destination.unlink(missing_ok=True)
+        raise
+    actual = digest.hexdigest()
+    if total != EXPECTED_ARCHIVE_BYTES or actual != EXPECTED_ARCHIVE_SHA256:
+        destination.unlink(missing_ok=True)
+        raise RuntimeError(f"Full Quran archive verification failed: bytes={total}, sha256={actual}.")
+    print(f"Full archive verified: {total} bytes; SHA-256 matches the published KFGQPC checksum.")
+    return str(destination)
 
 
 def fetch_archive_metadata(session: requests.Session) -> dict:
@@ -99,7 +135,7 @@ def fetch_archive_metadata(session: requests.Session) -> dict:
     return metadata
 
 
-def inventory_from_metadata(metadata: dict, archive_url: str) -> dict:
+def inventory_from_metadata(metadata: dict, archive_url: str, archive_path: str | None = None) -> dict:
     """Map all canonical verse members from the upstream extracted ZIP manifest."""
     mapped: dict[str, str] = {}
     duplicates: dict[str, list[str]] = {}
@@ -138,6 +174,7 @@ def inventory_from_metadata(metadata: dict, archive_url: str) -> dict:
 
     return {
         "source_url": archive_url,
+        "archive_path": archive_path,
         "official_source_url": ARCHIVE_URL,
         "metadata_url": METADATA_URL,
         "expected_official_sha256": EXPECTED_ARCHIVE_SHA256,
@@ -151,12 +188,16 @@ def inventory_from_metadata(metadata: dict, archive_url: str) -> dict:
     }
 
 
-def build_inventory() -> dict:
+def build_inventory(archive_destination: Path | None = None) -> dict:
     session = create_archive_session()
     try:
-        archive_url = select_archive_url(session)
+        archive_url, supports_ranges = select_archive_url(session)
         metadata = fetch_archive_metadata(session)
-        return inventory_from_metadata(metadata, archive_url)
+        archive_path = None
+        if not supports_ranges:
+            archive_destination = archive_destination or Path("output/kfgqpc_maher_verified.zip")
+            archive_path = download_verified_archive(session, archive_url, archive_destination)
+        return inventory_from_metadata(metadata, archive_url, archive_path)
     finally:
         session.close()
 
@@ -164,7 +205,7 @@ def build_inventory() -> dict:
 if __name__ == "__main__":
     destination = Path(sys.argv[1] if len(sys.argv) > 1 else "output/official_verse_audio_inventory.json")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    inventory = build_inventory()
+    inventory = build_inventory(destination.parent / 'kfgqpc_maher_verified.zip')
     destination.write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(
         f"Validated metadata mapping for {inventory['mapped_verse_count']} verses. "
