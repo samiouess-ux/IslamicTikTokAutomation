@@ -65,5 +65,47 @@ jobs:
                   print(f"OK {filename}: HTTP {response.status_code}, inspected {len(first)} bytes")
           PY
 
+      - name: Probe MP3Quran Saad audio and ayah timing availability
+        run: |
+          python - <<'PY'
+          import requests
+
+          session = requests.Session()
+          audio_url = "https://cdn.mp3quran.net/download/audio/saad-ghamdi/r1/038.mp3"
+          with session.get(audio_url, stream=True, timeout=(20, 45), headers={"Range": "bytes=0-4095"}) as response:
+              response.raise_for_status()
+              first = next(response.iter_content(chunk_size=4096), b"")
+              if len(first) < 4 or not (first.startswith(b"ID3") or (first[0] == 0xFF and (first[1] & 0xE0) == 0xE0)):
+                  raise SystemExit(f"MP3Quran audio sample is not a valid-looking MP3: HTTP {response.status_code}, prefix={first[:8]!r}")
+              print(f"OK MP3Quran Saad surah 038: HTTP {response.status_code}, inspected {len(first)} bytes")
+
+          reads_url = "https://mp3quran.net/api/v3/ayat_timing/reads"
+          reads_response = session.get(reads_url, timeout=(20, 45))
+          reads_response.raise_for_status()
+          reads_payload = reads_response.json()
+          if isinstance(reads_payload, dict):
+              reads = reads_payload.get("reads", reads_payload.get("data", []))
+          else:
+              reads = reads_payload
+          saad_reads = [row for row in reads if "سعد الغامدي" in str(row.get("name", "")) or "saad al-ghamdi" in str(row.get("name", "")).lower()]
+          if not saad_reads:
+              print("TIMING_NOT_LISTED: Saad Al-Ghamdi is not present in the v3 ayat_timing/reads catalogue")
+          else:
+              for read in saad_reads:
+                  read_id = read.get("id")
+                  print(f"TIMING_READ_FOUND: id={read_id}, name={read.get('name')}, riwaya={read.get('rewaya')}")
+                  surah_response = session.get("https://mp3quran.net/api/v3/ayat_timing/soar", params={"read": read_id}, timeout=(20, 45))
+                  surah_response.raise_for_status()
+                  surahs = surah_response.json()
+                  has_38 = any(int(row.get("id", 0)) == 38 for row in surahs)
+                  print(f"SURAH_038_TIMING_AVAILABLE: {has_38}")
+                  if has_38:
+                      timing_response = session.get("https://mp3quran.net/api/v3/ayat_timing", params={"surah": 38, "read": read_id}, timeout=(20, 45))
+                      timing_response.raise_for_status()
+                      timings = timing_response.json()
+                      ayahs = [row for row in timings if int(row.get("ayah", -1)) > 0]
+                      print(f"SURAH_038_TIMING_ROWS: {len(ayahs)}")
+          PY
+
       - name: Run existing audio preparation regression tests
         run: python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
