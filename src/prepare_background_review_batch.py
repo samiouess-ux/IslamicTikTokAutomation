@@ -89,8 +89,7 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
     candidates = catalog.get("candidates", [])
     if not candidates:
         raise RuntimeError("Review batch is empty.")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    items = []
+    # Validate the entire manifest before creating output files or downloading anything.
     seen = set()
     for candidate in candidates:
         asset_id = candidate.get("id")
@@ -105,6 +104,13 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
             raise RuntimeError(f"Untrusted source page for {asset_id}")
         if not video_url.startswith("https://videos.pexels.com/video-files/"):
             raise RuntimeError(f"Untrusted direct video URL for {asset_id}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    items = []
+    for candidate in candidates:
+        asset_id = candidate["id"]
+        source_url = candidate["source_page_url"]
+        video_url = candidate["direct_video_url"]
         video = output_dir / f"{asset_id}.mp4"
         crop = output_dir / f"{asset_id}_vertical_crop.jpg"
         byte_count = download(video_url, video)
