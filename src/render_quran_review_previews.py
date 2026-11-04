@@ -290,9 +290,12 @@ def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 
 
 def make_frame(verse: dict, surah: int, index: int, out: Path,
-               font_path: str, surah_name: str) -> None:
+               font_path: str, surah_name: str,
+               design_variant: str = "classic") -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
+    if design_variant not in {"classic", "open_minimal"}:
+        raise ValueError(f"Unsupported Quran design variant: {design_variant}")
     palette_index = (surah * 7 + int(verse.get("number", index + 1)) * 3 + index) % len(PALETTES)
     _top, _bottom, accent = PALETTES[palette_index]
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
@@ -300,12 +303,21 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
     # Calm the approved moving footage while leaving the scenery visible.
     draw.rectangle((0, 0, 1080, 1920), fill=(*_top, 30))
-    # A slimmer, lighter reading panel gives the footage more room and avoids
-    # the oversized opaque-card appearance of the first preview.
-    draw.rounded_rectangle((82, 320, 998, 1600), radius=48,
-                           fill=(3, 12, 18, 148), outline=(*accent, 175), width=2)
-    draw.rounded_rectangle((94, 332, 986, 1588), radius=40,
-                           outline=(*accent, 55), width=1)
+    if design_variant == "classic":
+        # Framed editorial layout: a restrained reading panel separates text
+        # from moving scenery without hiding the approved background.
+        draw.rounded_rectangle((82, 320, 998, 1600), radius=48,
+                               fill=(3, 12, 18, 148), outline=(*accent, 175), width=2)
+        draw.rounded_rectangle((94, 332, 986, 1588), radius=40,
+                               outline=(*accent, 55), width=1)
+    else:
+        # Open layout: scenery remains visible through most of the frame;
+        # only a soft central veil protects Quran legibility.
+        draw.rectangle((0, 0, 1080, 1920), fill=(4, 13, 19, 18))
+        draw.rounded_rectangle((118, 690, 962, 1210), radius=64,
+                               fill=(3, 12, 18, 112), outline=(*accent, 95), width=2)
+        draw.line((190, 625, 890, 625), fill=(*accent, 170), width=3)
+        draw.line((190, 1275, 890, 1275), fill=(*accent, 170), width=3)
 
     title_text = f"سورة {surah_name}"
     title_font = fit_surah_title_font(draw, title_text, bold_font_file())
@@ -331,14 +343,19 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
                   direction="rtl", language="ar")
 
-    # The verse number remains a separate gold circular medallion.
+    # Verse numbering is clear in both variants, with a distinct treatment.
     badge_y, badge_radius = 1135, 49
-    draw.ellipse((540 - badge_radius, badge_y - badge_radius,
-                  540 + badge_radius, badge_y + badge_radius),
-                 fill=(*accent, 25), outline=(*accent, 245), width=4)
-    draw.ellipse((540 - badge_radius + 8, badge_y - badge_radius + 8,
-                  540 + badge_radius - 8, badge_y + badge_radius - 8),
-                 outline=(*accent, 115), width=2)
+    if design_variant == "classic":
+        draw.ellipse((540 - badge_radius, badge_y - badge_radius,
+                      540 + badge_radius, badge_y + badge_radius),
+                     fill=(*accent, 25), outline=(*accent, 245), width=4)
+        draw.ellipse((540 - badge_radius + 8, badge_y - badge_radius + 8,
+                      540 + badge_radius - 8, badge_y + badge_radius - 8),
+                     outline=(*accent, 115), width=2)
+    else:
+        points = [(540, badge_y - 38), (578, badge_y), (540, badge_y + 38),
+                  (502, badge_y)]
+        draw.polygon(points, outline=(*accent, 245), fill=(*accent, 22))
     number_font = ImageFont.truetype(bold_font_file(), 40, layout_engine=ImageFont.Layout.RAQM)
     ayah_no = str(verse["number"]).translate(
         str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
@@ -462,7 +479,8 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
     }
 
 
-def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
+def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2,
+           background_rotation_index: int = 0, design_variant: str = "classic") -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if minimum_previews < 1:
@@ -532,7 +550,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 raise ValueError(f"Invalid surah number: {surah_number}")
             make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
                         "english": verse["english_saheeh_international"]},
-                       surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1])
+                       surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1],
+                       design_variant=design_variant)
             processed_audio = item.get("processed_audio_files", {}).get(str(int(verse["ayah"])))
             audio = (Path(processed_audio) if processed_audio else
                      Path(item["audio_file"]).parent / f"{int(candidate['surah_number']):03d}_{int(verse['ayah']):03d}.mp3")
@@ -613,6 +632,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "telegram_delivery": False,
         "auto_publish": False,
         "background_type": "moving_video",
+        "design_variant": design_variant,
         "background_source": "User-approved Pexels rotation",
         "background_rotation": [prepared_backgrounds[k] for k in prepared_backgrounds],
         "background_rotation_enabled": True,
@@ -633,6 +653,9 @@ def main() -> None:
                         help="Minimum number of distinct review previews required.")
     parser.add_argument("--background-rotation-index", type=int, default=None,
                         help="Starting index for the approved background rotation; defaults to a daily UTC schedule slot.")
+    parser.add_argument("--design-variant", choices=("classic", "open_minimal"),
+                        default="classic",
+                        help="Review-only layout. Reuse the same batch and rotation index to compare designs.")
     args = parser.parse_args()
     rotation_index = args.background_rotation_index
     if rotation_index is None:
@@ -641,7 +664,8 @@ def main() -> None:
         rotation_index = (int(now.strftime("%j")) * 3 + slot) % 4
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
                             minimum_previews=args.minimum_previews,
-                            background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
+                            background_rotation_index=rotation_index,
+                            design_variant=args.design_variant), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
