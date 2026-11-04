@@ -13,6 +13,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from zipfile import ZipFile
 from remotezip import RemoteZip
 from quran_audio_parts import partition_contiguous_ayahs
 
@@ -102,7 +103,9 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
     output_dir.mkdir(parents=True, exist_ok=True)
     results = []
     prepared_candidates = 0
-    with RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE)) as archive:
+    archive_path = inventory.get("archive_path")
+    archive_context = ZipFile(archive_path) if archive_path else RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE))
+    with archive_context as archive:
         archive_names = archive.namelist()
         resolved_members = {}
         for candidate in batch.get("passages", []):
