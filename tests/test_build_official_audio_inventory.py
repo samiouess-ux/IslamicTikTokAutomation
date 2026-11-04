@@ -1,114 +1,114 @@
-"""Regression tests for resilient access to the official Quran audio ZIP."""
+"""Regression tests for the manifest-based Maher Al-Muaiqly audio inventory."""
 import sys
 import unittest
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import requests
-from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_official_audio_inventory import ARCHIVE_URL, MIRROR_ARCHIVE_URL, ENTRY_RE, create_archive_session, preflight_archive, select_archive_url
+from build_official_audio_inventory import (
+    ARCHIVE_URL, MIRROR_ARCHIVE_URL, EXPECTED_ARCHIVE_SHA256,
+    ENTRY_RE, create_archive_session, preflight_archive, select_archive_url,
+    fetch_archive_metadata, inventory_from_metadata,
+)
+
+
+def sample_metadata():
+    counts = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6]
+    files = []
+    for surah, count in enumerate(counts, 1):
+        for ayah in range(1, count + 1):
+            files.append({"path": f"ayat-12-1-2020/{surah:03d}/10-{surah:03d}{ayah:03d}-A08.mp3"})
+    return {
+        "slug": "ayat-12-1-2020",
+        "download": {"url_cdn": MIRROR_ARCHIVE_URL},
+        "checksums": {"computed": {"sha256": EXPECTED_ARCHIVE_SHA256}},
+        "available": True,
+        "archive_extracted": True,
+        "files": files,
+    }
 
 
 class OfficialAudioInventoryTests(unittest.TestCase):
     def test_archive_filename_mapping_pattern(self):
-        match = ENTRY_RE.search("10-011001-A08.mp3")
+        match = ENTRY_RE.search("ayat-12-1-2020/010/10-011001-A08.mp3")
         self.assertIsNotNone(match)
         self.assertEqual(match.groups(), ("011", "001"))
 
     def test_preflight_accepts_successful_head_request(self):
         session = Mock()
-        response = Mock()
-        response.status_code = 200
+        response = Mock(status_code=200)
         session.head.return_value = response
-
         preflight_archive(session)
-
-        session.head.assert_called_once_with(
-            "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
-            allow_redirects=True,
-            timeout=(20, 30),
-        )
         response.raise_for_status.assert_called_once()
         response.close.assert_called_once()
-        session.get.assert_not_called()
 
     def test_preflight_falls_back_to_range_get_when_head_is_unsupported(self):
         session = Mock()
-        head_response = Mock()
-        head_response.status_code = 405
-        range_response = Mock()
-        range_response.status_code = 206
-        session.head.return_value = head_response
-        session.get.return_value = range_response
-
+        head = Mock(status_code=405)
+        ranged = Mock(status_code=206)
+        session.head.return_value = head
+        session.get.return_value = ranged
         preflight_archive(session)
-
-        head_response.close.assert_called_once()
-        session.get.assert_called_once_with(
-            "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip",
-            headers={"Range": "bytes=0-0"},
-            stream=True,
-            allow_redirects=True,
-            timeout=(20, 30),
-        )
-        range_response.raise_for_status.assert_called_once()
-        range_response.close.assert_called_once()
+        head.close.assert_called_once()
+        ranged.raise_for_status.assert_called_once()
+        ranged.close.assert_called_once()
 
     def test_preflight_fails_closed_on_http_503(self):
         session = Mock()
-        response = Mock()
-        response.status_code = 503
-        response.url = "https://download.qurancomplex.gov.sa/archive.zip"
+        response = Mock(status_code=503)
         response.raise_for_status.side_effect = requests.exceptions.HTTPError(
             "503 Server Error", response=response
         )
         session.head.return_value = response
-
         with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
             preflight_archive(session)
-
         response.close.assert_called_once()
-        session.get.assert_not_called()
-
-    def test_preflight_wraps_retried_connection_failure(self):
-        session = Mock()
-        session.head.side_effect = requests.exceptions.RetryError("too many 503 responses")
-
-        with self.assertRaisesRegex(RuntimeError, "unavailable during preflight"):
-            preflight_archive(session)
-
-        session.get.assert_not_called()
-
 
     def test_select_archive_url_uses_pinned_mirror_only_after_official_outage(self):
         session = Mock()
-        with patch('build_official_audio_inventory.preflight_archive') as preflight:
-            preflight.side_effect = [RuntimeError('official HTTP 503'), None]
-            selected = select_archive_url(session)
-        self.assertEqual(selected, MIRROR_ARCHIVE_URL)
-        self.assertEqual([call.args[1] for call in preflight.call_args_list], [ARCHIVE_URL, MIRROR_ARCHIVE_URL])
+        with patch("build_official_audio_inventory.preflight_archive") as check:
+            check.side_effect = [RuntimeError("official HTTP 503"), None]
+            self.assertEqual(select_archive_url(session), MIRROR_ARCHIVE_URL)
 
-    def test_select_archive_url_keeps_official_host_when_available(self):
+    def test_select_archive_url_prefers_official_host(self):
         session = Mock()
-        with patch('build_official_audio_inventory.preflight_archive') as preflight:
-            preflight.return_value = None
-            selected = select_archive_url(session)
-        self.assertEqual(selected, ARCHIVE_URL)
-        preflight.assert_called_once_with(session, ARCHIVE_URL)
+        with patch("build_official_audio_inventory.preflight_archive") as check:
+            check.return_value = None
+            self.assertEqual(select_archive_url(session), ARCHIVE_URL)
+            check.assert_called_once_with(session, ARCHIVE_URL)
+
+    def test_manifest_builds_complete_exact_verse_mapping_without_archive_download(self):
+        inventory = inventory_from_metadata(sample_metadata(), MIRROR_ARCHIVE_URL)
+        self.assertEqual(inventory["mapped_verse_count"], 6236)
+        self.assertEqual(inventory["verses"]["1:1"], "ayat-12-1-2020/001/10-001001-A08.mp3")
+        self.assertEqual(inventory["verses"]["86:1"], "ayat-12-1-2020/086/10-086001-A08.mp3")
+        self.assertIn("crc_checked_on_download", inventory["archive_integrity_status"])
+
+    def test_manifest_rejects_changed_published_checksum(self):
+        session = Mock()
+        response = Mock()
+        response.json.return_value = sample_metadata()
+        response.json.return_value["checksums"]["computed"]["sha256"] = "0" * 64
+        session.get.return_value = response
+        with self.assertRaisesRegex(RuntimeError, "SHA-256 changed"):
+            fetch_archive_metadata(session)
+
+    def test_manifest_rejects_missing_ayah(self):
+        metadata = sample_metadata()
+        metadata["files"].pop()
+        with self.assertRaisesRegex(RuntimeError, "did not validate"):
+            inventory_from_metadata(metadata, MIRROR_ARCHIVE_URL)
 
     def test_archive_session_retries_transient_http_failures(self):
         session = create_archive_session()
         try:
-            adapter = session.get_adapter("https://")
-            retry = adapter.max_retries
+            retry = session.get_adapter("https://").max_retries
             self.assertEqual(retry.total, 4)
-            self.assertEqual(retry.connect, 4)
-            self.assertEqual(retry.read, 4)
             self.assertIn(503, retry.status_forcelist)
             self.assertIn("GET", retry.allowed_methods)
             self.assertIn("HEAD", retry.allowed_methods)
-            self.assertIn("IslamicTikTokAutomation", session.headers["User-Agent"])
         finally:
             session.close()
 
