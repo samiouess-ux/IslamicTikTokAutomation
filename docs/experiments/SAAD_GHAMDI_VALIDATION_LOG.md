@@ -102,3 +102,16 @@ QUA timing/metadata licensing does not establish rights to the audio recordings.
 - Together with the four previously confirmed intervals, all six acoustic screening candidates from the ten-surah run are now user-reviewed and accepted.
 - These confirmations record the user's listening report; they are not independent listening verification by the automated workflow and do not prove word-level acoustic alignment.
 - No audio, timestamps, production configuration, reciter selection, rights status, or approval gates were changed.
+
+
+## Confirmed result — Run 41925138138 (dynamic review report and six user-confirmed clips)
+
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41925138138
+- Head commit: `153a42280d03ceb56e0ae521d1e3763d9427e155`
+- Conclusion: success; all workflow steps completed successfully.
+- Source package SHA256 verified; Hafs an Asim; 6,236 canonical verse keys; zero malformed timestamp rows; declared coverage matches.
+- All 114 surahs passed canonical sequence and ayah-number continuity checks; zero interval end-order issues and zero adjacent interval overlaps.
+- Matched-source duration/decode/bounds checks passed for the ten selected surahs (1, 18, 36, 38, 55, 67, 78, 112, 113, 114).
+- Acoustic screening covered 451 intervals. Six candidates (1:1, 1:5, 38:1, 38:88, 67:9, 67:12) are classified `USER_CONFIRMED_CORRECT`; `USER_CONFIRMED_LISTENING_CANDIDATES 6`; `UNREVIEWED_ACOUSTIC_CANDIDATES 0`.
+- Dynamic human-listening review links were generated for every candidate. Acoustic flags remain screening signals, not defects; checks do not prove word-level acoustic alignment or recording rights.
+- No production files, reciter settings, audio, timestamps, rights status, or approval gates were changed.
