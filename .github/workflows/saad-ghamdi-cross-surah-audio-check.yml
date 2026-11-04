@@ -1,6 +1,7 @@
 name: Saad Al-Ghamdi matched-source timing validation
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - experiment/saad-ghamdi-audio-source
