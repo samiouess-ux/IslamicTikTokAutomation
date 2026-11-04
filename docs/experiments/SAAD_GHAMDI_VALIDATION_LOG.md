@@ -94,3 +94,11 @@ QUA timing/metadata licensing does not establish rights to the audio recordings.
 - Six conservative low-edge-energy candidates were reported: 1:1, 1:5, 38:1, 38:88, 67:9, and 67:12. The first four are user-confirmed correct; 67:9 and 67:12 remain unreviewed. Their flags are screening signals, not proven defects.
 - This validates interval structure, decoding, and source bounds; it does not prove word-level acoustic alignment or recording rights.
 - No production files, reciter settings, audio, timestamps, rights status, or approval gates were changed.
+
+
+## Additional human listening review — user-reported, 2026-11-04
+
+- The project owner reports having listened to the two remaining flagged intervals from the ten-surah screening: Al-Mulk 67:9 (100.715–123.740 s) and Al-Mulk 67:12 (141.515–153.200 s), and confirms both sound correct.
+- Together with the four previously confirmed intervals, all six acoustic screening candidates from the ten-surah run are now user-reviewed and accepted.
+- These confirmations record the user's listening report; they are not independent listening verification by the automated workflow and do not prove word-level acoustic alignment.
+- No audio, timestamps, production configuration, reciter selection, rights status, or approval gates were changed.
