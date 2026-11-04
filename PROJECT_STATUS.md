@@ -1,3 +1,11 @@
+## Isolated Saad Al-Ghamdi per-ayah source experiment (2026-11-04)
+- Created branch `experiment/saad-ghamdi-audio-source` from `feature/telegram-review-notifications`; active branch and production remain unchanged.
+- Added `src/build_saad_ghamdi_audio_inventory.py`, which enumerates 6,236 canonical verse URLs for EveryAyah's `Ghamadi_40kbps` folder using the documented `SSSAAA.mp3` filename convention.
+- Extended `src/prepare_quran_review_batch_audio.py` to support a restricted per-ayah HTTPS source alongside the existing RemoteZip path. Direct downloads are limited to the configured EveryAyah folder.
+- Added isolated unit tests for full 6,236-key mapping, URL formatting, restricted downloads, and review-only audio preparation; added a branch-specific GitHub Actions workflow. The test workflow has not yet been observed running, so test success is not claimed.
+- The inventory explicitly marks recording rights unverified and keeps `commercial_use_allowed`, `audio_approved`, `rendering_allowed`, `telegram_delivery`, and `auto_publish` false. This experiment does not provide commercial-use permission.
+- No audio was downloaded in bulk, no video was rendered or sent, and no active-branch workflow, Telegram, Cron, secrets, or manifest approval gates were changed.
+
 ## Official Quran archive preflight guard (2026-11-04)
 - Created isolated branch `fix/official-archive-preflight` from `feature/telegram-review-notifications`; the active production branch and `main` were not changed.
 - Added a preflight check before `RemoteZip` inspects the existing official King Fahd Complex archive URL. It uses HEAD first and falls back to a one-byte ranged GET only when HEAD is unsupported (HTTP 405/501).
