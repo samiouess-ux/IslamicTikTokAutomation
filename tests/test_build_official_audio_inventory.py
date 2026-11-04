@@ -67,6 +67,15 @@ class OfficialAudioInventoryTests(unittest.TestCase):
 
         session.get.assert_not_called()
 
+    def test_preflight_wraps_retried_connection_failure(self):
+        session = Mock()
+        session.head.side_effect = requests.exceptions.RetryError("too many 503 responses")
+
+        with self.assertRaisesRegex(RuntimeError, "unavailable during preflight"):
+            preflight_archive(session)
+
+        session.get.assert_not_called()
+
     def test_archive_session_retries_transient_http_failures(self):
         session = create_archive_session()
         try:
