@@ -940,3 +940,10 @@ Theme: hope and ease after hardship.
 - Run `41931627846` failed its parallel renderer/catalog test suite at the same audio batch fixture issue. No Telegram delivery was attempted by either run.
 - Corrected the FakeArchive test fixture to enumerate canonical `10-SSSAAA-A08.mp3` basenames for the complete 6,236-verse Quran inventory and updated the small test inventories to use those canonical basenames. Commit: `5ae3e48d198e88ee6a51a8d0af78992fcf4b2e87`.
 - Next: rerun the targeted audio-batch regression suite and the full Quran validation workflows. Only after they pass, inspect actual range-downloaded MP3 members, duration/probe results, review-only MP4 previews, and Telegram confirmation. Do not alter delivery history, cron schedule, `main`, or the reciter (Maher Al-Muaiqly). No new Telegram send has been confirmed at this checkpoint.
+
+
+## Audio batch regression follow-up — 2026-11-04
+- The next full renderer/catalog test run reached 60 tests; 59 passed. The only remaining error was one deferred-long-ayah fixture still using the old synthetic filename `2-1.mp3`, while the new archive resolver correctly requires the canonical basename `10-002001-A08.mp3`.
+- Updated that final test fixture to use the canonical Maher archive filename. Commit: `ebf24f9fad4e65198a45d9787c46dffcc5d5afdb`.
+- No production audio logic was weakened and no ambiguity fallback was introduced. The new commit should trigger another validation run; await its test results before proceeding to actual audio preparation/rendering.
+- No Telegram send or delivery-history update occurred in these push-test runs. Preserve existing Cron, production history, Maher Al-Muaiqly recitation source, and manual TikTok publishing.
