@@ -17,11 +17,24 @@ class FakeArchive:
     def __exit__(self, *args):
         return False
 
+    def namelist(self):
+        return [f"actual/{s}-{a}.mp3" for s in range(1, 115) for a in range(1, 287)]
+
     def open(self, member):
         return io.BytesIO(b"fake-mp3")
 
 
 class QuranBatchAudioTests(unittest.TestCase):
+    def test_resolves_manifest_member_with_mojibake_directory_by_unique_basename(self):
+        actual = "ayat-12-1-2020/045 Al-Jathiyah العربية/10-045001-A08.mp3"
+        requested = "ayat-12-1-2020/045 Al-Jathiyah \ufffd\ufffd/10-045001-A08.mp3"
+        self.assertEqual(module.resolve_archive_member([actual], requested), actual)
+
+    def test_rejects_ambiguous_duplicate_audio_basenames(self):
+        names = ["one/10-045001-A08.mp3", "two/10-045001-A08.mp3"]
+        with self.assertRaisesRegex(ValueError, "found 2"):
+            module.resolve_archive_member(names, "broken/path/10-045001-A08.mp3")
+
     def test_prepares_distinct_surahs_without_approving_or_publishing(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
