@@ -1,0 +1,104 @@
+name: Saad Al-Ghamdi multi-ayah duration comparison
+
+on:
+  push:
+    branches:
+      - experiment/saad-ghamdi-audio-source
+    paths:
+      - ".github/workflows/saad-ghamdi-multi-ayah-audio-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compare-sampled-ayahs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out isolated experiment
+        uses: actions/checkout@v4
+        with:
+          ref: experiment/saad-ghamdi-audio-source
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg and requests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check requests
+
+      - name: Compare four EveryAyah files against MP3Quran timing intervals
+        run: |
+          python - <<'PY'
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          import requests
+
+          session = requests.Session()
+          reads = session.get("https://mp3quran.net/api/v3/ayat_timing/reads", timeout=(20, 45))
+          reads.raise_for_status()
+          payload = reads.json()
+          rows = payload.get("reads", payload.get("data", [])) if isinstance(payload, dict) else payload
+          saad = next((row for row in rows if "سعد الغامدي" in str(row.get("name", ""))), None)
+          if not saad:
+              raise SystemExit("Saad Al-Ghamdi timing read not found")
+
+          timing_response = session.get(
+              "https://mp3quran.net/api/v3/ayat_timing",
+              params={"surah": 38, "read": saad["id"]},
+              timeout=(20, 45),
+          )
+          timing_response.raise_for_status()
+          timings = {int(row["ayah"]): row for row in timing_response.json() if int(row.get("ayah", -1)) > 0}
+          samples = (1, 2, 44, 88)
+          if any(number not in timings for number in samples):
+              raise SystemExit("One or more sampled ayah timings are missing")
+
+          differences = []
+          with tempfile.TemporaryDirectory() as tmp:
+              for number in samples:
+                  filename = f"038{number:03d}.mp3"
+                  url = f"https://everyayah.com/data/Ghamadi_40kbps/{filename}"
+                  audio = Path(tmp) / filename
+                  with session.get(url, stream=True, timeout=(20, 90)) as response:
+                      response.raise_for_status()
+                      with audio.open("wb") as output:
+                          for chunk in response.iter_content(chunk_size=256 * 1024):
+                              if chunk:
+                                  output.write(chunk)
+                  if audio.stat().st_size < 1000:
+                      raise SystemExit(f"EveryAyah sample unexpectedly small: {filename}")
+
+                  probe = subprocess.run(
+                      ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                       "-of", "default=noprint_wrappers=1:nokey=1", str(audio)],
+                      check=True, capture_output=True, text=True,
+                  )
+                  duration = float(probe.stdout.strip())
+                  decode = subprocess.run(
+                      ["ffmpeg", "-v", "error", "-i", str(audio), "-f", "null", "-"],
+                      capture_output=True, text=True,
+                  )
+                  if decode.returncode:
+                      raise SystemExit(f"MP3 decode failed for {filename}: {decode.stderr[-1000:]}")
+
+                  row = timings[number]
+                  interval = (int(row["end_time"]) - int(row["start_time"])) / 1000
+                  difference = duration - interval
+                  differences.append(difference)
+                  print(
+                      f"AYAH_{number:03d}: bytes={audio.stat().st_size}, "
+                      f"file_duration={duration:.3f}s, timing_interval={interval:.3f}s, "
+                      f"duration_difference={difference:+.3f}s, decode=OK"
+                  )
+
+          print(f"SAMPLED_AYAH_COUNT: {len(samples)}")
+          print(f"MAX_ABSOLUTE_DURATION_DIFFERENCE_SECONDS: {max(abs(x) for x in differences):.3f}")
+          print("NOTE: Duration comparison is diagnostic only; it does not prove sample-accurate synchronization.")
+          PY
