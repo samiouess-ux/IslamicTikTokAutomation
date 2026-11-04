@@ -18,7 +18,8 @@ class FakeArchive:
         return False
 
     def namelist(self):
-        return [f"actual/{s}-{a}.mp3" for s in range(1, 115) for a in range(1, 287)]
+        counts = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6]
+        return [f"actual/10-{s:03d}{a:03d}-A08.mp3" for s, count in enumerate(counts, 1) for a in range(1, count + 1)]
 
     def open(self, member):
         return io.BytesIO(b"fake-mp3")
@@ -50,7 +51,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             }
             inventory = {
                 "mapped_verse_count": 6236,
-                "verses": {f"{s}:{a}": f"{s}-{a}.mp3" for s in (1, 2, 3) for a in (1, 2, 3)},
+                "verses": {f"{s}:{a}": f"manifest/10-{s:03d}{a:03d}-A08.mp3" for s in (1, 2, 3) for a in (1, 2, 3)},
             }
             batch_path, inventory_path = root / "batch.json", root / "inventory.json"
             batch_path.write_text(json.dumps(batch), encoding="utf-8")
@@ -105,7 +106,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             }
             inventory = {
                 "mapped_verse_count": 6236,
-                "verses": {f"41:{n}": f"41-{n}.mp3" for n in (1, 2, 3)},
+                "verses": {f"41:{n}": f"manifest/10-{41:03d}{n:03d}-A08.mp3" for n in (1, 2, 3)},
             }
             batch_path, inventory_path = root / "batch.json", root / "inventory.json"
             batch_path.write_text(json.dumps(batch), encoding="utf-8")
@@ -148,7 +149,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             }
             inventory = {
                 "mapped_verse_count": 6236,
-                "verses": {f"112:{n}": f"112-{n}.mp3" for n in (1, 2, 3, 4)},
+                "verses": {f"112:{n}": f"manifest/10-{112:03d}{n:03d}-A08.mp3" for n in (1, 2, 3, 4)},
             }
             batch_path, inventory_path = root / "batch.json", root / "inventory.json"
             batch_path.write_text(json.dumps(batch), encoding="utf-8")
