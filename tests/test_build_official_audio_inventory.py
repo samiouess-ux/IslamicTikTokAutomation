@@ -36,24 +36,25 @@ class OfficialAudioInventoryTests(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(match.groups(), ("011", "001"))
 
-    def test_preflight_accepts_successful_head_request(self):
+    def test_preflight_requires_successful_byte_range_response(self):
         session = Mock()
-        response = Mock(status_code=200)
-        session.head.return_value = response
+        response = Mock(status_code=206)
+        response.headers = {"Content-Range": "bytes 0-0/760867237"}
+        session.get.return_value = response
         preflight_archive(session)
+        session.get.assert_called_once()
+        self.assertEqual(session.get.call_args.kwargs["headers"], {"Range": "bytes=0-0"})
         response.raise_for_status.assert_called_once()
         response.close.assert_called_once()
 
-    def test_preflight_falls_back_to_range_get_when_head_is_unsupported(self):
+    def test_preflight_rejects_endpoint_that_ignores_byte_range(self):
         session = Mock()
-        head = Mock(status_code=405)
-        ranged = Mock(status_code=206)
-        session.head.return_value = head
-        session.get.return_value = ranged
-        preflight_archive(session)
-        head.close.assert_called_once()
-        ranged.raise_for_status.assert_called_once()
-        ranged.close.assert_called_once()
+        response = Mock(status_code=200)
+        response.headers = {}
+        session.get.return_value = response
+        with self.assertRaisesRegex(RuntimeError, "does not support byte ranges"):
+            preflight_archive(session)
+        response.close.assert_called_once()
 
     def test_preflight_fails_closed_on_http_503(self):
         session = Mock()
@@ -61,7 +62,7 @@ class OfficialAudioInventoryTests(unittest.TestCase):
         response.raise_for_status.side_effect = requests.exceptions.HTTPError(
             "503 Server Error", response=response
         )
-        session.head.return_value = response
+        session.get.return_value = response
         with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
             preflight_archive(session)
         response.close.assert_called_once()
