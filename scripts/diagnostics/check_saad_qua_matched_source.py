@@ -249,6 +249,22 @@ for candidate in review_candidates:
         f"last_dbfs={candidate['last_dbfs']} "
         f"silent_windows_pct={candidate['silent_windows_pct']}"
     )
+# Produce direct seek links to the exact matched QUA chapter recordings.
+# Media fragments ask compatible browsers/players to seek to the candidate interval.
+review_links = [
+    ("Al-Fatihah 1:1", 1, 0, 2720),
+    ("Al-Fatihah 1:5", 1, 16495, 21380),
+    ("Sad 38:1", 38, 0, 8105),
+    ("Sad 38:88", 38, 869465, 875900),
+]
+review_path = Path("saad_human_listening_review.md")
+with review_path.open("w", encoding="utf-8") as review_file:
+    review_file.write("# Saad Al-Ghamdi — matched-source listening review\\n\\n")
+    review_file.write("These links open the exact QUA source chapter and request playback at the flagged ayah interval. Browser/player support for media time fragments may vary; if seeking is unsupported, use the listed start/end times manually.\\n\\n")
+    for label, surah, start_ms, end_ms in review_links:
+        audio_url = urls[str(surah)]
+        review_file.write(f"- **{label}** — {start_ms/1000:.3f}s to {end_ms/1000:.3f}s: [{label} source audio]({audio_url}#t={start_ms/1000:.3f},{end_ms/1000:.3f})\\n")
+print(f"HUMAN_LISTENING_REVIEW_LINKS_WRITTEN {review_path}")
 print("Candidate thresholds are conservative screening flags only; human listening is required.")
 print("MATCHED_SOURCE_TIMESTAMP_BOUNDS_CHECK PASS")
 print("This validates interval structure and source-audio bounds, not acoustic word-level alignment.")
