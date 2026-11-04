@@ -57,14 +57,18 @@ class OfficialAudioInventoryTests(unittest.TestCase):
 
     def test_preflight_fails_closed_on_http_503(self):
         session = Mock()
-        response = requests.Response()
+        response = Mock()
         response.status_code = 503
         response.url = "https://download.qurancomplex.gov.sa/archive.zip"
+        response.raise_for_status.side_effect = requests.exceptions.HTTPError(
+            "503 Server Error", response=response
+        )
         session.head.return_value = response
 
         with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
             preflight_archive(session)
 
+        response.close.assert_called_once()
         session.get.assert_not_called()
 
     def test_preflight_wraps_retried_connection_failure(self):
