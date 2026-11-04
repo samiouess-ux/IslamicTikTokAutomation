@@ -42,5 +42,28 @@ jobs:
       - name: Run Saad source mapping and direct-download tests
         run: python -m unittest discover -s tests -p 'test_saad_ghamdi_audio_source.py' -v
 
+      - name: Probe two real EveryAyah audio files (first 4 KiB only)
+        run: |
+          python - <<'PY'
+          import requests
+          from urllib.parse import urlparse
+
+          base = "https://everyayah.com/data/Ghamadi_40kbps/"
+          samples = ("001001.mp3", "114006.mp3")
+          for filename in samples:
+              url = base + filename
+              parsed = urlparse(url)
+              if parsed.scheme != "https" or parsed.netloc != "everyayah.com":
+                  raise SystemExit(f"Rejected unexpected host: {url}")
+              with requests.get(url, stream=True, timeout=(20, 45), headers={"Range": "bytes=0-4095"}) as response:
+                  response.raise_for_status()
+                  first = next(response.iter_content(chunk_size=4096), b"")
+                  if len(first) < 4:
+                      raise SystemExit(f"Empty/short audio response: {filename}")
+                  if not (first.startswith(b"ID3") or (first[0] == 0xFF and (first[1] & 0xE0) == 0xE0)):
+                      raise SystemExit(f"Response does not look like MP3: {filename}; prefix={first[:8]!r}")
+                  print(f"OK {filename}: HTTP {response.status_code}, inspected {len(first)} bytes")
+          PY
+
       - name: Run existing audio preparation regression tests
         run: python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
