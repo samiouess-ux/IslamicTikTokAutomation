@@ -1,4 +1,4 @@
-name: Saad Al-Ghamdi cross-surah audio timing sample
+name: Saad Al-Ghamdi matched-source timing validation
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  compare-cross-surah-samples:
+  validate-matched-source-timestamps:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,87 +36,8 @@ jobs:
           ffprobe -version | head -n 1
           python -m pip install --disable-pip-version-check requests
 
-      - name: Compare six per-ayah files across six surahs with Saad timing intervals
-        run: |
-          python - <<'PY'
-          import subprocess
-          import tempfile
-          from pathlib import Path
-
-          import requests
-
-          samples = ((1, 1), (2, 255), (36, 1), (55, 13), (112, 1), (114, 6))
-          session = requests.Session()
-          reads = session.get("https://mp3quran.net/api/v3/ayat_timing/reads", timeout=(20, 45))
-          reads.raise_for_status()
-          payload = reads.json()
-          rows = payload.get("reads", payload.get("data", [])) if isinstance(payload, dict) else payload
-          saad = next((row for row in rows if "سعد الغامدي" in str(row.get("name", ""))), None)
-          if not saad:
-              raise SystemExit("Saad Al-Ghamdi timing read not found")
-          read_id = saad["id"]
-
-          differences = []
-          with tempfile.TemporaryDirectory() as tmp:
-              for surah, ayah_number in samples:
-                  timing_response = session.get(
-                      "https://mp3quran.net/api/v3/ayat_timing",
-                      params={"surah": surah, "read": read_id},
-                      timeout=(20, 45),
-                  )
-                  timing_response.raise_for_status()
-                  timing_rows = {
-                      int(row["ayah"]): row
-                      for row in timing_response.json()
-                      if int(row.get("ayah", -1)) > 0
-                  }
-                  if ayah_number not in timing_rows:
-                      raise SystemExit(f"Timing missing for surah {surah}, ayah {ayah_number}")
-                  row = timing_rows[ayah_number]
-                  interval = (int(row["end_time"]) - int(row["start_time"])) / 1000
-                  if interval <= 0:
-                      raise SystemExit(f"Invalid timing interval for {surah}:{ayah_number}")
-
-                  filename = f"{surah:03d}{ayah_number:03d}.mp3"
-                  url = f"https://everyayah.com/data/Ghamadi_40kbps/{filename}"
-                  audio = Path(tmp) / filename
-                  with session.get(url, stream=True, timeout=(20, 90)) as response:
-                      response.raise_for_status()
-                      with audio.open("wb") as output:
-                          for chunk in response.iter_content(chunk_size=256 * 1024):
-                              if chunk:
-                                  output.write(chunk)
-                  if audio.stat().st_size < 1000:
-                      raise SystemExit(f"EveryAyah sample unexpectedly small: {filename}")
-
-                  probe = subprocess.run(
-                      ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-                       "-of", "default=noprint_wrappers=1:nokey=1", str(audio)],
-                      check=True, capture_output=True, text=True,
-                  )
-                  duration = float(probe.stdout.strip())
-                  decode = subprocess.run(
-                      ["ffmpeg", "-v", "error", "-i", str(audio), "-f", "null", "-"],
-                      capture_output=True, text=True,
-                  )
-                  if decode.returncode:
-                      raise SystemExit(f"MP3 decode failed for {filename}: {decode.stderr[-1000:]}")
-
-                  difference = duration - interval
-                  differences.append(difference)
-                  print(
-                      f"SURAH_{surah:03d}_AYAH_{ayah_number:03d}: bytes={audio.stat().st_size}, "
-                      f"file_duration={duration:.3f}s, timing_interval={interval:.3f}s, "
-                      f"duration_difference={difference:+.3f}s, decode=OK"
-                  )
-
-          print(f"CROSS_SURAH_SAMPLE_COUNT: {len(samples)}")
-          print(f"MAX_ABSOLUTE_DURATION_DIFFERENCE_SECONDS: {max(abs(x) for x in differences):.3f}")
-          print("NOTE: Duration comparison is diagnostic only; it does not prove sample-accurate synchronization.")
-          PY
-
-      - name: Verify QUA Saad timestamps against their declared source audio
+      - name: Verify all canonical intervals against their declared source audio
         run: |
           python scripts/diagnostics/check_saad_qua_matched_source.py
 
-# Trigger cross-surah, matched-source, and full canonical-index diagnostics on this isolated branch.
+# Isolated validation only; never changes production audio or approval state.
