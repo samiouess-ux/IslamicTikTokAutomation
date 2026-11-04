@@ -108,6 +108,11 @@ with tempfile.TemporaryDirectory() as tmp:
         chapter_rows = [row for row in rows if str(row[0]).split(":")[0] == chapter and bool(row[3])]
         if not chapter_rows:
             raise SystemExit(f"CANONICAL_TIMESTAMPS_MISSING_SURAH_{surah:03d}")
+        # Keep the timestamps paired with the exact chapter audio declared by QUA.
+        ordered_rows = sorted(chapter_rows, key=lambda row: (int(row[1]), int(row[2])))
+        starts = [int(row[1]) for row in ordered_rows]
+        if starts != sorted(starts):
+            raise SystemExit(f"NON_MONOTONIC_AYAH_STARTS_SURAH_{surah:03d}")
         last_end_ms = max(int(row[2]) for row in chapter_rows)
         audio_path = root / f"surah-{surah:03d}.audio"
         fetch(url, audio_path)
@@ -119,6 +124,16 @@ with tempfile.TemporaryDirectory() as tmp:
             check=True, capture_output=True, text=True,
         )
         duration = float(probe.stdout.strip())
+        # Every canonical ayah interval must fit inside its matched source chapter.
+        duration_ms = round(duration * 1000)
+        out_of_bounds = [
+            str(row[0]) for row in chapter_rows
+            if int(row[1]) < 0 or int(row[2]) > duration_ms + 1000
+        ]
+        if out_of_bounds:
+            raise SystemExit(
+                f"TIMESTAMP_OUTSIDE_SOURCE_AUDIO_SURAH_{surah:03d}: {out_of_bounds[:10]}"
+            )
         decode = subprocess.run(
             ["ffmpeg", "-v", "error", "-i", str(audio_path), "-f", "null", "-"],
             capture_output=True, text=True,
@@ -131,5 +146,5 @@ with tempfile.TemporaryDirectory() as tmp:
             f"tail_delta={duration-last_end_ms/1000:+.3f}s decode=OK"
         )
 
-print("MATCHED_SOURCE_METADATA_CHECK PASS")
-print("Duration/decode checks do not prove word-level or sample-accurate synchronization.")
+print("MATCHED_SOURCE_TIMESTAMP_BOUNDS_CHECK PASS")
+print("This validates interval structure and source-audio bounds, not acoustic word-level alignment.")
