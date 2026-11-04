@@ -9,6 +9,7 @@ on:
     branches: [feature/telegram-review-notifications]
     paths:
       - "src/build_official_audio_inventory.py"
+      - "tests/test_build_official_audio_inventory.py"
       - "data/background_candidates.json"
       - "tests/test_background_candidates.py"
       - "src/prepare_background_review_previews.py"
