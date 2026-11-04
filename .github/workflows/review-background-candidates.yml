@@ -1,0 +1,33 @@
+name: Review staged Quran video backgrounds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  background-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install video inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          python -m pip install --disable-pip-version-check pillow
+      - name: Download and prepare isolated review-only background previews
+        run: python src/prepare_background_review_batch.py
+      - name: Upload review contact sheet and verified source clips
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-background-review-batch-01
+          path: output/background_review_batch_01/
+          if-no-files-found: error
+          retention-days: 7
