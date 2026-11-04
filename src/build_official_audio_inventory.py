@@ -40,23 +40,24 @@ def create_archive_session() -> requests.Session:
 
 
 def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None:
-    """Confirm the selected official archive endpoint supports access."""
+    """Require real HTTP byte-range support before selecting an archive for RemoteZip."""
     response = None
     try:
-        response = session.head(url, allow_redirects=True, timeout=(10, 15))
-        if response.status_code in (405, 501):
-            response.close()
-            response = session.get(
-                url, headers={"Range": "bytes=0-0"}, stream=True,
-                allow_redirects=True, timeout=(10, 15),
-            )
+        response = session.get(
+            url, headers={"Range": "bytes=0-0"}, stream=True,
+            allow_redirects=True, timeout=(10, 15),
+        )
         response.raise_for_status()
-        if response.status_code not in (200, 206):
-            raise RuntimeError(f"Quran archive preflight returned HTTP {response.status_code}.")
+        content_range = response.headers.get("Content-Range", "")
+        if response.status_code != 206 or not content_range.startswith("bytes 0-0/"):
+            raise RuntimeError(
+                f"Quran archive endpoint does not support byte ranges "
+                f"(HTTP {response.status_code}, Content-Range={content_range or 'missing'})."
+            )
     except requests.RequestException as exc:
         status = getattr(getattr(exc, "response", None), "status_code", None)
         detail = f" (HTTP {status})" if status is not None else ""
-        raise RuntimeError(f"Quran archive unavailable during preflight{detail}.") from exc
+        raise RuntimeError(f"Quran archive unavailable during range preflight{detail}.") from exc
     finally:
         if response is not None:
             response.close()
