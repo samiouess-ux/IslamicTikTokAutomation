@@ -931,3 +931,12 @@ Theme: hope and ease after hardship.
 - Run `41929393545` was still in progress at the archive-inspection step when this checkpoint was recorded. Run `41929573386`, containing the SHA-256 change, was queued behind it. Neither run has validated the archive or generated a Telegram video yet.
 - The inventory remains review-only. No Telegram send was initiated; delivery history was not modified by these push validations. `data/quran_delivery_pending.json` is absent at this checkpoint.
 - Do not claim mirror validation, full 6,236-verse mapping, or video delivery until the corresponding workflow steps complete successfully. Keep Maher Al-Muaiqly as the production reciter.
+
+
+## Maher audio manifest and ZIP-member matching checkpoint — 2026-11-04
+- The manifest-based archive inventory now passes its workflow step: the 6,236-verse manifest mapping is complete, with no missing or duplicate canonical verse keys. The workflow also passed the full Saheeh International translation corpus, Uthmani Arabic candidate corpus, exact-key join, and review-only rendering-gate checks.
+- The next regression suite exposed four fixture errors in `tests/test_prepare_quran_review_batch_audio.py`: its FakeArchive initially lacked `namelist()`; the subsequent fixture implementation also needed canonical KFGQPC verse basenames rather than generic test filenames. Production resolution intentionally requires a unique canonical basename match against the ZIP central directory.
+- Run `41931627815` passed archive inspection, translation, Arabic corpus, exact-key join, and rendering-gate validation, then failed the audio batch regression suite. The workflow's later steps, including candidate audio preparation, rendering, and Telegram, were not executed.
+- Run `41931627846` failed its parallel renderer/catalog test suite at the same audio batch fixture issue. No Telegram delivery was attempted by either run.
+- Corrected the FakeArchive test fixture to enumerate canonical `10-SSSAAA-A08.mp3` basenames for the complete 6,236-verse Quran inventory and updated the small test inventories to use those canonical basenames. Commit: `5ae3e48d198e88ee6a51a8d0af78992fcf4b2e87`.
+- Next: rerun the targeted audio-batch regression suite and the full Quran validation workflows. Only after they pass, inspect actual range-downloaded MP3 members, duration/probe results, review-only MP4 previews, and Telegram confirmation. Do not alter delivery history, cron schedule, `main`, or the reciter (Maher Al-Muaiqly). No new Telegram send has been confirmed at this checkpoint.
