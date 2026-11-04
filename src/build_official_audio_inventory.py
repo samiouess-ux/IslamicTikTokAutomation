@@ -5,15 +5,17 @@ reuse permission for any item; those checks remain separate gates.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
+import tempfile
+import zipfile
 from pathlib import Path
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from remotezip import RemoteZip
 
 ARCHIVE_URL = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
@@ -107,18 +109,27 @@ def build_inventory() -> dict:
     unmatched: list[str] = []
     duplicates: dict[str, list[str]] = {}
     session = create_archive_session()
+    archive_path: Path | None = None
     try:
         archive_url = select_archive_url(session)
-        print(f"Validated Quran archive endpoint is reachable: {archive_url}; starting ZIP inspection.")
-        # A 1 MiB initial range reduces extra round trips to the remote ZIP host.
-        # Timeouts are per connection/read; transient failures are retried by the
-        # mounted adapter. An unavailable host still fails closed.
-        with RemoteZip(
-            archive_url,
-            session=session,
-            timeout=(20, 60),
-            initial_buffer_size=1024 * 1024,
-        ) as archive:
+        print(f"Downloading selected official archive for SHA-256 verification: {archive_url}")
+        digest = hashlib.sha256()
+        with tempfile.NamedTemporaryFile(prefix="quran-audio-", suffix=".zip", delete=False) as temp:
+            archive_path = Path(temp.name)
+            with session.get(archive_url, stream=True, allow_redirects=True, timeout=(20, 120)) as response:
+                response.raise_for_status()
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        digest.update(chunk)
+                        temp.write(chunk)
+        actual_sha256 = digest.hexdigest()
+        if actual_sha256 != EXPECTED_ARCHIVE_SHA256:
+            raise RuntimeError(
+                "Quran archive SHA-256 mismatch; refusing archive. "
+                f"Expected {EXPECTED_ARCHIVE_SHA256}, got {actual_sha256}."
+            )
+        print(f"Archive SHA-256 verified: {actual_sha256}")
+        with zipfile.ZipFile(archive_path) as archive:
             for name in archive.namelist():
                 match = ENTRY_RE.search(name)
                 if not match:
@@ -134,6 +145,8 @@ def build_inventory() -> dict:
                     mapped[key] = name
     finally:
         session.close()
+        if archive_path is not None:
+            archive_path.unlink(missing_ok=True)
 
     missing = []
     # Validate the archive inventory against canonical surah verse counts.
@@ -156,6 +169,7 @@ def build_inventory() -> dict:
         "source_url": archive_url,
         "official_source_url": ARCHIVE_URL,
         "expected_official_sha256": EXPECTED_ARCHIVE_SHA256,
+        "verified_archive_sha256": actual_sha256,
         "recitation": "Hafs",
         "reciter_internal": "Maher Al-Muaiqly",
         "mapping_status": "archive_entries_enumerated_requires_audio_and_rights_review",
