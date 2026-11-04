@@ -109,8 +109,7 @@ with tempfile.TemporaryDirectory() as tmp:
         if not chapter_rows:
             raise SystemExit(f"CANONICAL_TIMESTAMPS_MISSING_SURAH_{surah:03d}")
         # Keep the timestamps paired with the exact chapter audio declared by QUA.
-        ordered_rows = sorted(chapter_rows, key=lambda row: (int(row[1]), int(row[2])))
-        starts = [int(row[1]) for row in ordered_rows]
+        starts = [int(row[1]) for row in chapter_rows]
         if starts != sorted(starts):
             raise SystemExit(f"NON_MONOTONIC_AYAH_STARTS_SURAH_{surah:03d}")
         last_end_ms = max(int(row[2]) for row in chapter_rows)
