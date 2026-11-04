@@ -250,7 +250,7 @@ with tempfile.TemporaryDirectory() as tmp:
                 writer.writerow([
                     "surah", "ayah_key", "start_ms", "end_ms",
                     "first_200ms_rms_dbfs", "last_200ms_rms_dbfs",
-                    "silent_100ms_windows_pct"
+                    "silent_100ms_windows_pct", "human_listening_review_status"
                 ])
             for row in chapter_rows:
                 start_ms, end_ms = int(row[1]), int(row[2])
@@ -279,10 +279,12 @@ with tempfile.TemporaryDirectory() as tmp:
                         "first_dbfs": round(first_db, 2),
                         "last_dbfs": round(last_db, 2),
                         "silent_windows_pct": silent_pct,
+                        "review_status": "USER_CONFIRMED_CORRECT" if str(row[0]) in USER_CONFIRMED_LISTENING else "LISTENING_NOT_RECORDED",
                     })
                 writer.writerow([
                     surah, row[0], start_ms, end_ms,
-                    round(first_db, 2), round(last_db, 2), silent_pct
+                    round(first_db, 2), round(last_db, 2), silent_pct,
+                    "USER_CONFIRMED_CORRECT" if str(row[0]) in USER_CONFIRMED_LISTENING else "NOT_REVIEWED"
                 ])
         print(f"SURAH_{surah:03d}_ACOUSTIC_INTERVALS_SCREENED {len(chapter_rows)}")
 
@@ -301,7 +303,8 @@ for candidate in review_candidates:
         f"end_ms={candidate['end_ms']} "
         f"first_dbfs={candidate['first_dbfs']} "
         f"last_dbfs={candidate['last_dbfs']} "
-        f"silent_windows_pct={candidate['silent_windows_pct']}"
+        f"silent_windows_pct={candidate['silent_windows_pct']} "
+        f"human_review={candidate.get('review_status', 'NOT_RECORDED')}"
     )
 # Produce direct seek links to the exact matched QUA chapter recordings.
 # Media fragments ask compatible browsers/players to seek to the candidate interval.
