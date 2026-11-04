@@ -1,7 +1,7 @@
 name: Build Quran-wide official verse audio inventory
 
 concurrency:
-  group: quran-review-inventory-${{ github.ref }}
+  group: quran-review-inventory-v2-${{ github.ref }}
   cancel-in-progress: true
 
 on:
