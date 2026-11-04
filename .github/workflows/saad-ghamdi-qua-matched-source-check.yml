@@ -80,7 +80,7 @@ jobs:
 
               if reciter_catalog.get("slug") != slug:
                   raise SystemExit(f"UNEXPECTED_RECITER_SLUG: {reciter_catalog.get('slug')}")
-              if str(reciter_catalog.get("riwayah", "")).lower() != "hafs":
+              if str(reciter_catalog.get("riwayah", "")).lower() not in {"hafs", "hafs_an_asim"}:
                   raise SystemExit(f"UNEXPECTED_RIWAYAH: {reciter_catalog.get('riwayah')}")
               if reciter_catalog.get("channel") != "Tarteel CDN":
                   raise SystemExit(f"UNEXPECTED_AUDIO_CHANNEL: {reciter_catalog.get('channel')}")
