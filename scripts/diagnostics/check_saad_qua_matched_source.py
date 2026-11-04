@@ -1,4 +1,7 @@
+import csv
 import gzip
+import math
+from array import array
 import hashlib
 import json
 import subprocess
@@ -10,6 +13,9 @@ from pathlib import Path
 BASE = "https://github.com/QUD-Technologies/quranic-universal-audio/releases/download/v4.0.0"
 SLUG = "saad_al_ghamdi_tarteel"
 SURAHS = (1, 38, 114)
+SAMPLE_RATE = 16000
+WINDOW_MS = 100
+SILENCE_RMS_THRESHOLD = 100  # about -50 dBFS for signed 16-bit PCM
 
 def fetch(url, path):
     req = urllib.request.Request(url, headers={"User-Agent": "QuranAudioTimingDiagnostic/1.0"})
@@ -158,11 +164,70 @@ with tempfile.TemporaryDirectory() as tmp:
         )
         if decode.returncode:
             raise SystemExit(f"AUDIO_DECODE_FAILED_SURAH_{surah:03d}: {decode.stderr[-1000:]}")
+
+        # Acoustic screening only: measure signal energy inside each canonical
+        # interval. This flags suspiciously silent edges/intervals; it does not
+        # identify words or prove phonetic alignment.
+        pcm = subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(audio_path), "-f", "s16le",
+             "-ac", "1", "-ar", str(SAMPLE_RATE), "pipe:1"],
+            check=True, capture_output=True,
+        ).stdout
+        samples = array("h")
+        samples.frombytes(pcm)
+        if __import__("sys").byteorder != "little":
+            samples.byteswap()
+
+        def window_rms_db(start_sample, end_sample):
+            chunk = samples[max(0, start_sample):min(len(samples), end_sample)]
+            if not chunk:
+                return -120.0
+            mean_square = sum(value * value for value in chunk) / len(chunk)
+            if mean_square <= 0:
+                return -120.0
+            return 20.0 * math.log10(math.sqrt(mean_square) / 32768.0)
+
+        report_path = root / "saad_acoustic_probe.csv"
+        write_header = not report_path.exists()
+        with report_path.open("a", newline="", encoding="utf-8") as report_file:
+            writer = csv.writer(report_file)
+            if write_header:
+                writer.writerow([
+                    "surah", "ayah_key", "start_ms", "end_ms",
+                    "first_200ms_rms_dbfs", "last_200ms_rms_dbfs",
+                    "silent_100ms_windows_pct"
+                ])
+            for row in chapter_rows:
+                start_ms, end_ms = int(row[1]), int(row[2])
+                start_sample = round(start_ms * SAMPLE_RATE / 1000)
+                end_sample = round(end_ms * SAMPLE_RATE / 1000)
+                first_db = window_rms_db(
+                    start_sample, min(end_sample, start_sample + SAMPLE_RATE // 5)
+                )
+                last_db = window_rms_db(
+                    max(start_sample, end_sample - SAMPLE_RATE // 5), end_sample
+                )
+                total_windows = max(1, math.ceil((end_sample - start_sample) / (SAMPLE_RATE * WINDOW_MS / 1000)))
+                silent_windows = 0
+                window_samples = SAMPLE_RATE * WINDOW_MS // 1000
+                for offset in range(start_sample, end_sample, window_samples):
+                    if window_rms_db(offset, min(end_sample, offset + window_samples)) < (
+                        20.0 * math.log10(SILENCE_RMS_THRESHOLD / 32768.0)
+                    ):
+                        silent_windows += 1
+                writer.writerow([
+                    surah, row[0], start_ms, end_ms,
+                    round(first_db, 2), round(last_db, 2),
+                    round(100.0 * silent_windows / total_windows, 2)
+                ])
+        print(f"SURAH_{surah:03d}_ACOUSTIC_INTERVALS_SCREENED {len(chapter_rows)}")
+
         print(
             f"SURAH_{surah:03d} bytes={audio_path.stat().st_size} "
             f"duration={duration:.3f}s last_ayah_end={last_end_ms/1000:.3f}s "
             f"tail_delta={duration-last_end_ms/1000:+.3f}s decode=OK"
         )
 
+print("ACOUSTIC_ENERGY_SCREENING_COMPLETE selected_surahs=3")
 print("MATCHED_SOURCE_TIMESTAMP_BOUNDS_CHECK PASS")
 print("This validates interval structure and source-audio bounds, not acoustic word-level alignment.")
