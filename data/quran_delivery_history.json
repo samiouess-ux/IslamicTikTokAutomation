@@ -62,7 +62,10 @@
     "86:3",
     "86:4",
     "86:5",
-    "86:6"
+    "86:6",
+    "45:1",
+    "45:2",
+    "45:3"
   ],
   "deliveries": [
     {
@@ -307,6 +310,21 @@
       "delivered_at_utc": "2026-11-04T16:03:51Z",
       "telegram_message_id": 43,
       "reconciliation_note": "Recorded after verifying Telegram sendVideo success in workflow run 41863220136; that run used test_only and therefore skipped automatic history finalization."
+    },
+    {
+      "candidate_id": "quran_s045_001_037",
+      "surah_number": 45,
+      "selected_verses": [
+        1,
+        2,
+        3
+      ],
+      "ayah_references": [
+        "45:1",
+        "45:2",
+        "45:3"
+      ],
+      "delivered_at_utc": "2026-11-04T23:29:07.540127+00:00"
     }
   ]
 }
