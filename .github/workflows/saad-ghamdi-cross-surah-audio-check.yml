@@ -26,10 +26,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install ffmpeg and requests
+      - name: Ensure ffmpeg and requests are available
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update -o Acquire::Retries=2 -o Acquire::http::Timeout=20
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
           python -m pip install --disable-pip-version-check requests
 
       - name: Compare six per-ayah files across six surahs with Saad timing intervals
@@ -113,8 +117,6 @@ jobs:
 
       - name: Verify QUA Saad timestamps against their declared source audio
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
           python scripts/diagnostics/check_saad_qua_matched_source.py
 
 # Trigger cross-surah, matched-source, and full canonical-index diagnostics on this isolated branch.
