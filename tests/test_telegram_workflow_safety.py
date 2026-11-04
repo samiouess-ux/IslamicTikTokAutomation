@@ -41,6 +41,27 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
         self.assertIn("quran_delivery_attempt.py guard", guard_block)
         self.assertIn("data/quran_delivery_pending.json", guard_block)
 
+
+    def test_test_now_dispatch_is_explicit_and_defaults_to_production_safe_false(self):
+        dispatch = self.text[self.text.index("  workflow_dispatch:"):self.text.index("\npermissions:")]
+        self.assertIn("test_only:", dispatch)
+        self.assertIn("default: false", dispatch)
+        self.assertIn("type: boolean", dispatch)
+
+    def test_test_now_skips_production_reservation_and_history(self):
+        guard = self.text[self.text.index("- name: Block automatic sends"):self.text.index("- uses: actions/setup-python")]
+        reserve = self.text[self.text.index("- name: Reserve Telegram delivery"):self.text.index("- name: Send one review-only video")]
+        finalize = self.text[self.text.index("- name: Record Telegram-confirmed"):self.text.index("- name: Sync confirmed")]
+        sync = self.text[self.text.index("- name: Sync confirmed"):self.text.index("- name: Notify Telegram")]
+        for block in (guard, reserve, finalize, sync):
+            self.assertIn("inputs.test_only != true", block)
+
+    def test_test_now_still_sends_review_video_to_telegram(self):
+        send = self.text[self.text.index("- name: Send one review-only video"):self.text.index("- name: Record Telegram-confirmed")]
+        self.assertIn("github.event_name == 'workflow_dispatch'", send)
+        self.assertIn("src/send_telegram.py", send)
+        self.assertIn("auto_publish", send)
+
     def test_telegram_send_is_review_only_and_never_tiktok_publish(self):
         send = self.text.index("- name: Send one review-only video to Telegram for manual approval")
         finalize = self.text.index("- name: Record Telegram-confirmed Quran delivery history")
