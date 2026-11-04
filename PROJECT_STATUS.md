@@ -892,3 +892,11 @@ Theme: hope and ease after hardship.
 - The background review workflow has NOT been manually dispatched. No actual downloads, ffprobe verification, contact sheet, or artifact have been produced yet. Wait for the user's explicit approval before dispatching this review workflow.
 - Next step after approval: dispatch only `review-background-candidates.yml`, inspect its test result and generated contact sheet/report, then present the real previews for user review. Do not enable any new background in production until the user explicitly approves it.
 - Preserve the existing Quran Telegram delivery workflow and its successful send path. Do not change the external cron-job.org schedule, Telegram bot/secrets, production workflow, or `main` without explicit user approval. TikTok publishing remains manual.
+
+
+## Background review validation fix — 2026-11-04
+- After the first manual review-workflow run failed in the duplicate-ID safeguard test, the review preparation script was corrected to validate the entire candidate manifest (unique non-empty IDs, unapproved state, and trusted Pexels URL prefixes) before creating the output directory or downloading any video.
+- The duplicate-ID test now asserts that the download function is never called and that no output directory is created when duplicate IDs are present.
+- Commits: `9b92376b6180d97ad540e8b6fe5c870664d3dd08` (pre-download manifest validation) and `9f7f77813bd74903769e06efb4f323403245a68e` (regression test).
+- These changes are on `feature/telegram-review-notifications` only. The corrected tests have not yet been executed; the failed prior workflow run is not evidence of a passing fix. The review workflow has not been re-run, and no candidate video downloads/previews have been verified yet.
+- Production Telegram delivery, the production workflow, external cron schedule, production background catalog, and TikTok publishing settings remain untouched.
