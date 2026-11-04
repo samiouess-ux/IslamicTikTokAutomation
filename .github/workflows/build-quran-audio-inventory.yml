@@ -297,6 +297,7 @@ jobs:
           PY
       - name: Upload Quran-wide inventory, translation, and candidate audio probe
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: official-quran-audio-inventory-and-probe
           path: |
