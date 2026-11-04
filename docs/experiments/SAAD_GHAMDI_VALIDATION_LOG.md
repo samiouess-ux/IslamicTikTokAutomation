@@ -1,0 +1,34 @@
+# Saad Al-Ghamdi isolated audio validation log
+
+Branch: `experiment/saad-ghamdi-audio-source`
+
+Scope: diagnostic-only experiment. No production audio, active reciter, Cron, publishing, rights flags, or approval gates are changed.
+
+## Confirmed result — Run 19
+
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41923318165
+- Head commit: `d4eae5498e20518a0ef1d8fb900d8ff7d169d34d`
+- Conclusion: success.
+- Matched-source timestamp bounds check: PASS.
+- Acoustic energy screening: 101 ayah intervals across surahs 1, 38, and 114.
+- Four conservative listening candidates:
+  - Al-Fatihah 1:1 — 0–2.720 s; first-window RMS -34.01 dBFS, last-window RMS -50.49 dBFS, silent windows 7.14%.
+  - Al-Fatihah 1:5 — 16.495–21.380 s; first-window RMS -26.67 dBFS, last-window RMS -50.78 dBFS, silent windows 2.04%.
+  - Sad 38:1 — 0–8.105 s; first-window RMS -24.43 dBFS, last-window RMS -50.03 dBFS, silent windows 2.44%.
+  - Sad 38:88 — 869.465–875.900 s; first-window RMS -17.07 dBFS, last-window RMS -50.27 dBFS, silent windows 3.08%.
+
+These are screening flags, not confirmed timing or recitation defects. Low energy near a clip boundary may be a natural pause or decay. Human listening has not yet been completed. The check validates interval structure and source-audio bounds, not word-level acoustic alignment.
+
+## Workflow cleanup
+
+Commit `ad117d1585f5cc78387f9ba3897f14c6abf75686` removes an unnecessary `requests` installation; the diagnostic uses Python's standard-library `urllib`.
+
+## Current run
+
+- Run 20: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41923533600
+- Head commit: `ad117d1585f5cc78387f9ba3897f14c6abf75686`
+- Last observed state: diagnostic step in progress; final result pending.
+
+## Rights and production guardrails
+
+QUA timing/metadata licensing does not establish rights to the audio recordings. Do not use this recording in production or commercial publishing until the recording rights are independently verified. The production reciter remains Maher Al-Muaiqly; this experiment does not authorize a reciter change.
