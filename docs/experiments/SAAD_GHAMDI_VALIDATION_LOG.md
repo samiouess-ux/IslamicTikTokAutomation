@@ -72,3 +72,11 @@ QUA timing/metadata licensing does not establish rights to the audio recordings.
 - Source-audio bounds/decode checks: PASS for sampled surahs 1, 38, and 114.
 - Acoustic screening: 101 ayah intervals, four conservative low-edge-energy review flags (1:1, 1:5, 38:1, 38:88).
 - These checks establish canonical key/interval structure and source bounds, not acoustic word-level alignment; the four flags still require human listening.
+
+
+## Human listening review — user-reported, 2026-11-04
+
+- The project owner reports having listened to all four intervals flagged by the acoustic edge-energy screening (Al-Fatihah 1:1, Al-Fatihah 1:5, Sad 38:1, and Sad 38:88) and confirms that they sound correct.
+- Treat these four screening flags as reviewed and accepted by the project owner, not as confirmed defects.
+- This is a record of the user's listening confirmation; it is not an independent listening verification performed by the automated workflow.
+- No timestamps, source audio, production settings, reciter selection, rights status, or approval gates were changed.
