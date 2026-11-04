@@ -1,13 +1,13 @@
 """Regression tests for resilient access to the official Quran audio ZIP."""
 import sys
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import requests
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_official_audio_inventory import ENTRY_RE, create_archive_session, preflight_archive
+from build_official_audio_inventory import ARCHIVE_URL, MIRROR_ARCHIVE_URL, ENTRY_RE, create_archive_session, preflight_archive, select_archive_url
 
 
 class OfficialAudioInventoryTests(unittest.TestCase):
@@ -79,6 +79,23 @@ class OfficialAudioInventoryTests(unittest.TestCase):
             preflight_archive(session)
 
         session.get.assert_not_called()
+
+
+    def test_select_archive_url_uses_pinned_mirror_only_after_official_outage(self):
+        session = Mock()
+        with patch('build_official_audio_inventory.preflight_archive') as preflight:
+            preflight.side_effect = [RuntimeError('official HTTP 503'), None]
+            selected = select_archive_url(session)
+        self.assertEqual(selected, MIRROR_ARCHIVE_URL)
+        self.assertEqual([call.args[1] for call in preflight.call_args_list], [ARCHIVE_URL, MIRROR_ARCHIVE_URL])
+
+    def test_select_archive_url_keeps_official_host_when_available(self):
+        session = Mock()
+        with patch('build_official_audio_inventory.preflight_archive') as preflight:
+            preflight.return_value = None
+            selected = select_archive_url(session)
+        self.assertEqual(selected, ARCHIVE_URL)
+        preflight.assert_called_once_with(session, ARCHIVE_URL)
 
     def test_archive_session_retries_transient_http_failures(self):
         session = create_archive_session()
