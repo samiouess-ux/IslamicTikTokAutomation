@@ -46,6 +46,10 @@ jobs:
           {
             echo "## Saad Al-Ghamdi acoustic screening report"
             echo
+            if [ -f saad_human_listening_review.md ]; then
+              cat saad_human_listening_review.md
+              echo
+            fi
             if [ -f saad_acoustic_probe.csv ]; then
               echo 'CSV report (all screened ayah intervals):'
               echo
