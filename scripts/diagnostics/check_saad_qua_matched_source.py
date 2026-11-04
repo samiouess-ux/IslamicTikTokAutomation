@@ -91,6 +91,25 @@ with tempfile.TemporaryDirectory() as tmp:
     print(f"DECLARED_COVERAGE_MATCH {len(canonical) == declared}")
     if declared and len(canonical) != declared:
         raise SystemExit(f"CANONICAL_COVERAGE_MISMATCH declared={declared} actual={len(canonical)}")
+    # Validate timestamp order across every canonical surah, not only the
+    # three chapters whose audio files are downloaded below.
+    previous_start_by_surah = {}
+    for row in rows:
+        if not bool(row[3]):
+            continue
+        parts = str(row[0]).split(":")
+        if len(parts) != 2 or not all(part.isdigit() for part in parts):
+            raise SystemExit(f"INVALID_CANONICAL_VERSE_KEY {row[0]}")
+        surah_number = int(parts[0])
+        start_ms = int(row[1])
+        previous_start = previous_start_by_surah.get(surah_number)
+        if previous_start is not None and start_ms < previous_start:
+            raise SystemExit(
+                f"NON_MONOTONIC_CANONICAL_SOURCE_ORDER_SURAH_{surah_number:03d}"
+            )
+        previous_start_by_surah[surah_number] = start_ms
+    print(f"ALL_SURAHS_CANONICAL_START_ORDER_CHECK PASS {len(previous_start_by_surah)}")
+
     surah_counts = {}
     for key in canonical:
         parts = key.split(":")
