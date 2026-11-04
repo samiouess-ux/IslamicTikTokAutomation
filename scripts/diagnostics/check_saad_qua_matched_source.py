@@ -12,7 +12,7 @@ from pathlib import Path
 
 BASE = "https://github.com/QUD-Technologies/quranic-universal-audio/releases/download/v4.0.0"
 SLUG = "saad_al_ghamdi_tarteel"
-SURAHS = (1, 18, 36, 38, 55, 67, 78, 112, 113, 114)
+SURAHS = (1, 2, 10, 18, 19, 25, 36, 38, 50, 55, 59, 67, 73, 78, 87, 103, 109, 112, 113, 114)
 # Project owner listened to these exact intervals and confirmed they are correct.
 # This records review provenance only; it does not alter audio or timestamps.
 USER_CONFIRMED_LISTENING = {'1:1', '1:5', '38:1', '38:88', '67:9', '67:12'}
