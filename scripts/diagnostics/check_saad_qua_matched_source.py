@@ -115,6 +115,36 @@ with tempfile.TemporaryDirectory() as tmp:
             )
         previous_start_by_surah[surah_number] = start_ms
     print(f"ALL_SURAHS_CANONICAL_START_ORDER_CHECK PASS {len(previous_start_by_surah)}")
+    # Audit interval-end ordering and adjacent overlap for every canonical
+    # ayah. These are reported as diagnostics rather than assumed defects.
+    canonical_by_surah = {}
+    for row in rows:
+        if bool(row[3]):
+            chapter = int(str(row[0]).split(":")[0])
+            canonical_by_surah.setdefault(chapter, []).append(
+                (str(row[0]), int(row[1]), int(row[2]))
+            )
+    end_order_issues = []
+    overlap_issues = []
+    for chapter, intervals in canonical_by_surah.items():
+        intervals.sort(key=lambda item: item[1])
+        for previous, current in zip(intervals, intervals[1:]):
+            if current[2] < previous[2]:
+                end_order_issues.append((chapter, previous[0], current[0]))
+            if current[1] < previous[2]:
+                overlap_issues.append((
+                    chapter, previous[0], current[0],
+                    previous[2] - current[1]
+                ))
+    print(f"ALL_SURAHS_CANONICAL_INTERVAL_END_ORDER_ISSUES {len(end_order_issues)}")
+    print(f"ALL_SURAHS_ADJACENT_INTERVAL_OVERLAPS {len(overlap_issues)}")
+    for issue in end_order_issues[:20]:
+        print(f"INTERVAL_END_ORDER_REVIEW surah={issue[0]} pair={issue[1]},{issue[2]}")
+    for issue in overlap_issues[:20]:
+        print(
+            f"INTERVAL_OVERLAP_REVIEW surah={issue[0]} "
+            f"pair={issue[1]},{issue[2]} overlap_ms={issue[3]}"
+        )
 
     surah_counts = {}
     for key in canonical:
