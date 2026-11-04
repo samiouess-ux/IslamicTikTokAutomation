@@ -15,7 +15,7 @@ SLUG = "saad_al_ghamdi_tarteel"
 SURAHS = (1, 18, 36, 38, 55, 67, 78, 112, 113, 114)
 # Project owner listened to these exact intervals and confirmed they are correct.
 # This records review provenance only; it does not alter audio or timestamps.
-USER_CONFIRMED_LISTENING = {'1:1', '1:5', '38:1', '38:88'}
+USER_CONFIRMED_LISTENING = {'1:1', '1:5', '38:1', '38:88', '67:9', '67:12'}
 SAMPLE_RATE = 16000
 WINDOW_MS = 100
 SILENCE_RMS_THRESHOLD = 100  # about -50 dBFS for signed 16-bit PCM
@@ -324,7 +324,7 @@ with review_path.open("w", encoding="utf-8") as review_file:
             f"— {status}: [source audio]({audio_url}#t={start_ms/1000:.3f},{end_ms/1000:.3f})\\n"
         )
 print(f"HUMAN_LISTENING_REVIEW_LINKS_WRITTEN {review_path}")
-print("USER_CONFIRMED_LISTENING_CANDIDATES 4")
+print("USER_CONFIRMED_LISTENING_CANDIDATES " + str(sum(item["ayah"] in USER_CONFIRMED_LISTENING for item in review_candidates)))
 print("UNREVIEWED_ACOUSTIC_CANDIDATES " + str(sum(item["ayah"] not in USER_CONFIRMED_LISTENING for item in review_candidates)))
 print("Acoustic thresholds remain screening flags; user-confirmed clips are recorded as reviewed, not defects.")
 print("MATCHED_SOURCE_TIMESTAMP_BOUNDS_CHECK PASS")
