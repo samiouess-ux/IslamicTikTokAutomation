@@ -220,6 +220,8 @@ with tempfile.TemporaryDirectory() as tmp:
                 if first_db < -50.0 or last_db < -50.0 or silent_pct >= 25.0:
                     review_candidates.append({
                         "ayah": row[0],
+                        "start_ms": start_ms,
+                        "end_ms": end_ms,
                         "first_dbfs": round(first_db, 2),
                         "last_dbfs": round(last_db, 2),
                         "silent_windows_pct": silent_pct,
@@ -241,7 +243,9 @@ print(f"ACOUSTIC_REVIEW_CANDIDATE_COUNT {len(review_candidates)}")
 for candidate in review_candidates:
     print(
         "ACOUSTIC_REVIEW_CANDIDATE "
-        f"{candidate['ayah']} first_dbfs={candidate['first_dbfs']} "
+        f"{candidate['ayah']} start_ms={candidate['start_ms']} "
+        f"end_ms={candidate['end_ms']} "
+        f"first_dbfs={candidate['first_dbfs']} "
         f"last_dbfs={candidate['last_dbfs']} "
         f"silent_windows_pct={candidate['silent_windows_pct']}"
     )
