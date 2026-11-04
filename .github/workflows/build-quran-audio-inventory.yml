@@ -302,17 +302,6 @@ jobs:
               raise SystemExit("Actual Quran overlay contact sheet is missing.")
           print("Prepared four verified source downloads, 9:16 crops, and actual Quran-overlay legibility previews; none is production-approved.")
           PY
-      - name: Upload compact review video for download
-        uses: actions/upload-artifact@v4
-        continue-on-error: true
-        with:
-          name: quran-review-video
-          path: |
-            output/quran_review_previews/*.mp4
-            output/quran_review_previews/preview_report.json
-          if-no-files-found: error
-          retention-days: 3
-
       - name: Reserve Telegram delivery attempt before sending
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true)
         run: |
