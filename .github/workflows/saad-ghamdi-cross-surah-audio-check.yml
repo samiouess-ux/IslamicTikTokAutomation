@@ -39,5 +39,12 @@ jobs:
       - name: Verify all canonical intervals against their declared source audio
         run: |
           python scripts/diagnostics/check_saad_qua_matched_source.py
+      - name: Upload acoustic screening report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saad-acoustic-screening-report
+          path: saad_acoustic_probe.csv
+          if-no-files-found: warn
 
 # Isolated validation only; never changes production audio or approval state.
