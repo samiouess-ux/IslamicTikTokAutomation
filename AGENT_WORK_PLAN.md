@@ -344,3 +344,11 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Next: review those four exact intervals against the same QUA source recording, preferably with a human listener; do not mix timing from another recording. If independent listening cannot be performed, keep alignment status explicitly unverified.
 - Recording reuse rights remain unverified. Do not promote this source or change the production reciter.
 - Keep all work isolated to `experiment/saad-ghamdi-audio-source`; Maher Al-Muaiqly remains the primary reciter. No production, Cron, Telegram, publishing, or approval-gate changes.
+
+
+## Saad edge-flag interval review update — 2026-11-04
+- Follow-up commit `e8e9e4d0e68d61ae69d3ec49a6fc01e3f9033763` passed in run `41922833531`.
+- Exact flagged intervals: 1:1 (0–2,720 ms), 1:5 (16,495–21,380 ms), 38:1 (0–8,105 ms), 38:88 (869,465–875,900 ms).
+- All four flags are caused only by low RMS in the final 200 ms; the first 200 ms are above -50 dBFS and the low-energy 100-ms window share is 2.04%–7.14%. Treat as possible natural decay/pause, not defects.
+- Next action: human listening review of those four intervals against the same QUA source recording. Do not claim synchronization until this is done; if listening is unavailable, retain unverified alignment status.
+- Keep work on the experiment branch. No production reciter/settings, rights flags, approvals, Telegram, or Cron changes.
