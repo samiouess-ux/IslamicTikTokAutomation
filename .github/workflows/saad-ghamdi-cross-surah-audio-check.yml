@@ -39,12 +39,22 @@ jobs:
       - name: Verify all canonical intervals against their declared source audio
         run: |
           python scripts/diagnostics/check_saad_qua_matched_source.py
-      - name: Upload acoustic screening report
+
+      - name: Publish acoustic screening CSV in run summary
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: saad-acoustic-screening-report
-          path: saad_acoustic_probe.csv
-          if-no-files-found: warn
+        run: |
+          {
+            echo "## Saad Al-Ghamdi acoustic screening report"
+            echo
+            if [ -f saad_acoustic_probe.csv ]; then
+              echo 'CSV report (all screened ayah intervals):'
+              echo
+              echo '~~~csv'
+              cat saad_acoustic_probe.csv
+              echo '~~~'
+            else
+              echo "The diagnostic did not produce saad_acoustic_probe.csv."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
 # Isolated validation only; never changes production audio or approval state.
