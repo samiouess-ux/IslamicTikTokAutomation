@@ -1,4 +1,4 @@
-"""Build the Maher Al-Muaiqly verse map without downloading the 726 MB ZIP.
+"""Build the Maher Al-Muaiqly verse map from the pinned manifest without a full ZIP download.
 
 The archive's published SHA-256 is pinned in the upstream metadata. We enumerate
 its extracted file manifest, then RemoteZip fetches only selected ZIP members;
