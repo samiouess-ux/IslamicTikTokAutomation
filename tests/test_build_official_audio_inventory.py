@@ -2,9 +2,16 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from build_official_audio_inventory import ENTRY_RE, create_archive_session
+from remotezip import RemoteIOError
+from build_official_audio_inventory import (
+    ARCHIVE_OPEN_ATTEMPTS,
+    ENTRY_RE,
+    create_archive_session,
+    fetch_archive_names,
+)
 
 
 class OfficialAudioInventoryTests(unittest.TestCase):
@@ -27,6 +34,42 @@ class OfficialAudioInventoryTests(unittest.TestCase):
             self.assertIn("IslamicTikTokAutomation", session.headers["User-Agent"])
         finally:
             session.close()
+
+    @patch("build_official_audio_inventory.time.sleep")
+    @patch("build_official_audio_inventory.create_archive_session")
+    @patch("build_official_audio_inventory.RemoteZip")
+    def test_archive_open_retries_after_remote_503_then_succeeds(
+        self, remote_zip, create_session, sleep
+    ):
+        session = MagicMock()
+        create_session.return_value = session
+        successful_archive = MagicMock()
+        successful_archive.__enter__.return_value.namelist.return_value = [
+            "10-001001-A08.mp3"
+        ]
+        remote_zip.side_effect = [RemoteIOError("HTTP 503"), successful_archive]
+
+        self.assertEqual(fetch_archive_names(), ["10-001001-A08.mp3"])
+        self.assertEqual(remote_zip.call_count, 2)
+        sleep.assert_called_once_with(15)
+        self.assertEqual(session.close.call_count, 2)
+
+    @patch("build_official_audio_inventory.time.sleep")
+    @patch("build_official_audio_inventory.create_archive_session")
+    @patch("build_official_audio_inventory.RemoteZip")
+    def test_archive_open_fails_closed_after_all_outer_retries(
+        self, remote_zip, create_session, sleep
+    ):
+        session = MagicMock()
+        create_session.return_value = session
+        remote_zip.side_effect = RemoteIOError("HTTP 503")
+
+        with self.assertRaisesRegex(RuntimeError, "refusing to build an incomplete"):
+            fetch_archive_names()
+
+        self.assertEqual(remote_zip.call_count, ARCHIVE_OPEN_ATTEMPTS)
+        self.assertEqual(sleep.call_count, ARCHIVE_OPEN_ATTEMPTS - 1)
+        self.assertEqual(session.close.call_count, ARCHIVE_OPEN_ATTEMPTS)
 
 
 if __name__ == "__main__":
