@@ -955,3 +955,10 @@ Theme: hope and ease after hardship.
 - The workflow's artifact upload step was configured with `continue-on-error: true`; the run artifact listing returned no artifacts. Therefore the MP4 was rendered during the job, but no downloadable artifact is available from this run. Do not claim the user received or can download the video.
 - Telegram reservation, send, delivery-history update, and sync steps were all skipped for this push-triggered validation. No new Telegram message was sent and no production delivery history was changed.
 - Next: resolve artifact availability/retention before relying on the generated preview as a user-deliverable file. Do not alter external Cron, `main`, experiment branch, or production delivery history.
+
+
+## Compact video artifact recovery — 2026-11-05
+- Retrieved the full log for run `41932468888`. The preview render itself succeeded: candidate `quran_s045_001_037_part_001`, Surah Al-Jathiyah 45, ayahs 1–3, duration 24.194 seconds, 1080x1920, H.264 video with MP3 audio. It is explicitly review-only; audio/render approval, Telegram delivery, and auto-publish are false.
+- Confirmed why no downloadable file appeared: `actions/upload-artifact@v4` failed with `Artifact storage quota has been hit`; GitHub reports recalculation every 6–12 hours. The upload listed 96 files, including the full review package.
+- Reduced the artifact payload to only the rendered MP4(s) and `preview_report.json`, retaining a 3-day expiry and non-blocking upload behavior. Commit: `83abafbedf36e4678d9f4222c781dec72589102b`.
+- New push validation run `41932915149` is queued/in progress on that commit. Await its render and compact artifact result. Push validation does not trigger Telegram send; delivery/history steps remain governed by the scheduled/manual workflow conditions.
