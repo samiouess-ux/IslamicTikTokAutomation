@@ -186,7 +186,7 @@ class QuranBatchAudioTests(unittest.TestCase):
                 "auto_publish": False,
                 "passages": [{"candidate_id": "long-ayah", "surah_number": 2, "verses": [{"ayah": 1}]}],
             }
-            inventory = {"mapped_verse_count": 6236, "verses": {"2:1": "2-1.mp3"}}
+            inventory = {"mapped_verse_count": 6236, "verses": {"2:1": "manifest/10-002001-A08.mp3"}}
             batch_path, inventory_path = root / "batch.json", root / "inventory.json"
             batch_path.write_text(json.dumps(batch), encoding="utf-8")
             inventory_path.write_text(json.dumps(inventory), encoding="utf-8")
