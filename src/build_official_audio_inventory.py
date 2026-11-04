@@ -10,6 +10,7 @@ import json
 import re
 import sys
 import tempfile
+import time
 import zipfile
 from pathlib import Path
 
@@ -114,14 +115,33 @@ def build_inventory() -> dict:
         archive_url = select_archive_url(session)
         print(f"Downloading selected official archive for SHA-256 verification: {archive_url}")
         digest = hashlib.sha256()
+        started_at = time.monotonic()
+        downloaded = 0
+        last_reported = 0
+        max_download_seconds = 18 * 60
         with tempfile.NamedTemporaryFile(prefix="quran-audio-", suffix=".zip", delete=False) as temp:
             archive_path = Path(temp.name)
-            with session.get(archive_url, stream=True, allow_redirects=True, timeout=(20, 120)) as response:
+            with session.get(archive_url, stream=True, allow_redirects=True, timeout=(20, 60)) as response:
                 response.raise_for_status()
+                total = int(response.headers.get("Content-Length", "0") or 0)
+                print(f"Archive download started; expected bytes={total or 'unknown'}.", flush=True)
                 for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if time.monotonic() - started_at > max_download_seconds:
+                        raise TimeoutError(
+                            f"Archive download exceeded the {max_download_seconds}-second safety limit "
+                            f"after {downloaded} bytes; refusing an unverified archive."
+                        )
                     if chunk:
                         digest.update(chunk)
                         temp.write(chunk)
+                        downloaded += len(chunk)
+                        if downloaded - last_reported >= 32 * 1024 * 1024:
+                            percent = f"{downloaded * 100 / total:.1f}%" if total else "n/a"
+                            print(
+                                f"Archive download progress: {downloaded}/{total or 'unknown'} bytes ({percent}).",
+                                flush=True,
+                            )
+                            last_reported = downloaded
         actual_sha256 = digest.hexdigest()
         if actual_sha256 != EXPECTED_ARCHIVE_SHA256:
             raise RuntimeError(
