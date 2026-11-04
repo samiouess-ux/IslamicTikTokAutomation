@@ -117,4 +117,4 @@ jobs:
           sudo apt-get install -y ffmpeg
           python scripts/diagnostics/check_saad_qua_matched_source.py
 
-# Trigger the cross-surah and matched-source diagnostics on this isolated branch.
+# Trigger cross-surah, matched-source, and full canonical-index diagnostics on this isolated branch.
