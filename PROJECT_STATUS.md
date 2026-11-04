@@ -915,3 +915,10 @@ Theme: hope and ease after hardship.
 - The preparation script completed successfully and reported that six unapproved candidates were prepared. The workflow log confirms no production catalog or Telegram delivery was changed.
 - The run was marked failed only at the artifact-upload step: GitHub Actions artifact storage quota was exhausted. The upload step found 14 files, but GitHub rejected artifact creation; therefore no downloadable contact sheet/source-clip artifact is available from this run and visual review is still pending.
 - This is a storage-capacity failure, not a test or candidate-download/preparation failure. Wait for GitHub's artifact-usage recalculation (the log says 6–12 hours) before retrying the artifact upload. Do not alter production delivery, Telegram, external cron, production backgrounds, or TikTok behavior.
+
+
+## Telegram delivery reconciliation and archive outage — 2026-11-04
+- Workflow run `41863220136` completed a real Telegram `sendVideo` for Surah At-Tariq (86), ayahs 1–6. Telegram returned `ok: true`, `message_id=43`; MP4 size was 29.4 MiB. The run used `workflow_dispatch` with the test-only path, so it intentionally skipped automatic delivery-history finalization.
+- Reconciled the confirmed delivery into `data/quran_delivery_history.json` on the active branch, including only ayahs 86:1–86:6 and the Telegram message ID, to prevent the selector from repeating the same passage.
+- Later archive inventory runs `41874874396`, `41890010470`, and connectivity check `41893063721` failed because the official King Fahd Complex archive endpoint returned repeated HTTP 503 responses. The failure occurred before inventory/audio selection; rendering and Telegram delivery were not reached in those runs.
+- Existing archive retry policy is already bounded and fail-closed. Do not switch to an unverified recitation source or mix audio and timestamps. Retry production through the existing scheduled workflow when the official endpoint recovers; preserve the existing Cron and Telegram configuration.
