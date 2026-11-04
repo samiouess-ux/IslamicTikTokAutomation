@@ -922,3 +922,12 @@ Theme: hope and ease after hardship.
 - Reconciled the confirmed delivery into `data/quran_delivery_history.json` on the active branch, including only ayahs 86:1–86:6 and the Telegram message ID, to prevent the selector from repeating the same passage.
 - Later archive inventory runs `41874874396`, `41890010470`, and connectivity check `41893063721` failed because the official King Fahd Complex archive endpoint returned repeated HTTP 503 responses. The failure occurred before inventory/audio selection; rendering and Telegram delivery were not reached in those runs.
 - Existing archive retry policy is already bounded and fail-closed. Do not switch to an unverified recitation source or mix audio and timestamps. Retry production through the existing scheduled workflow when the official endpoint recovers; preserve the existing Cron and Telegram configuration.
+
+## Maher Al-Muaiqly archive mirror failover and byte-level verification (2026-11-04)
+- Active branch: `feature/telegram-review-notifications`; `main` and the separate Saad experiment were not changed.
+- Added official-host-first archive selection with a pinned Quran.ws mirror fallback only when the official King Fahd Complex endpoint fails preflight. The mirror is independent, not an official Complex host; its published SHA-256 matches the checksum published by the Complex for the Maher Al-Muaiqly Ayat ZIP.
+- Added a mandatory full-download SHA-256 calculation before ZIP inventory enumeration. The downloaded archive is rejected unless its computed digest equals the pinned official checksum. Temporary archive bytes are deleted after inspection.
+- Relevant commits: `c6a63bb` (source failover), `2afbc8d` (selection tests), `3b2a4b9` (actual downloaded-file SHA-256 verification).
+- Run `41929393545` was still in progress at the archive-inspection step when this checkpoint was recorded. Run `41929573386`, containing the SHA-256 change, was queued behind it. Neither run has validated the archive or generated a Telegram video yet.
+- The inventory remains review-only. No Telegram send was initiated; delivery history was not modified by these push validations. `data/quran_delivery_pending.json` is absent at this checkpoint.
+- Do not claim mirror validation, full 6,236-verse mapping, or video delivery until the corresponding workflow steps complete successfully. Keep Maher Al-Muaiqly as the production reciter.
