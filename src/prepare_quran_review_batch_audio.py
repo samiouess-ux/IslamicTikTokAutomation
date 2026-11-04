@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import argparse
 import json
+from contextlib import nullcontext
 import re
 import shutil
 import subprocess
 from pathlib import Path
+import requests
 from remotezip import RemoteZip
 from quran_audio_parts import partition_contiguous_ayahs
 
@@ -78,6 +80,32 @@ def trim_edge_silence(source: Path, destination: Path, source_duration: float,
     return processed_duration
 
 
+
+def download_audio_member(source_type: str, archive, member: str, target: Path) -> None:
+    """Download one verse from a ZIP archive or a trusted per-ayah HTTPS URL."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if source_type == "per_ayah_http":
+        prefix = "https://everyayah.com/data/Ghamadi_40kbps/"
+        if not isinstance(member, str) or not member.startswith(prefix):
+            raise ValueError("Per-ayah audio URL is outside the configured EveryAyah Saad folder.")
+        response = requests.get(member, stream=True, timeout=(20, 60))
+        try:
+            response.raise_for_status()
+            with target.open("wb") as destination:
+                for chunk in response.iter_content(chunk_size=64 * 1024):
+                    if chunk:
+                        destination.write(chunk)
+        finally:
+            response.close()
+        if not target.is_file() or target.stat().st_size == 0:
+            raise ValueError(f"Downloaded per-ayah audio file is empty: {member}")
+        return
+    if source_type != "remote_zip":
+        raise ValueError(f"Unsupported audio inventory source_type: {source_type}")
+    with archive.open(member) as source, target.open("wb") as destination:
+        shutil.copyfileobj(source, destination)
+
+
 def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, target_count: int = 3) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
@@ -95,7 +123,14 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
     output_dir.mkdir(parents=True, exist_ok=True)
     results = []
     prepared_candidates = 0
-    with RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE)) as archive:
+    source_type = inventory.get("source_type", "remote_zip")
+    if source_type == "remote_zip":
+        archive_context = RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE))
+    elif source_type == "per_ayah_http":
+        archive_context = nullcontext(None)
+    else:
+        raise ValueError(f"Unsupported audio inventory source_type: {source_type}")
+    with archive_context as archive:
         for candidate in batch.get("passages", []):
             if prepared_candidates >= target_count:
                 break
@@ -118,8 +153,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 if not member:
                     raise ValueError(f"Official audio mapping missing for {key}")
                 target = candidate_dir / f"{surah:03d}_{number:03d}.mp3"
-                with archive.open(member) as source, target.open("wb") as dest:
-                    shutil.copyfileobj(source, dest)
+                download_audio_member(source_type, archive, member, target)
                 source_duration = probe(target)
                 processed_target = candidate_dir / "processed" / f"{surah:03d}_{number:03d}.mp3"
                 processed_duration = trim_edge_silence(target, processed_target, source_duration)
@@ -215,6 +249,9 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "minimum_seconds": MIN_SECONDS,
         "maximum_seconds": MAX_SECONDS,
         "audio_processing": "complete_ordered_whole_ayah_parts_max_40_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
+        "recording_source": inventory.get("source_name", "unspecified"),
+        "recording_rights_status": inventory.get("recording_rights_status", "not_recorded"),
+        "rights_verified": inventory.get("rights_verified", False) is True,
         "continuation_policy": "Unselected ayahs remain explicitly listed and are not marked used. The next batch starts again at the first ayah absent from confirmed delivery history; only confirmed delivery advances the sequence.",
         "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",
         "items": results,
