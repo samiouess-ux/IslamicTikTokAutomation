@@ -6,6 +6,7 @@ on:
       - experiment/saad-ghamdi-audio-source
     paths:
       - ".github/workflows/saad-ghamdi-cross-surah-audio-check.yml"
+      - "scripts/diagnostics/check_saad_qua_matched_source.py"
 
 permissions:
   contents: read
@@ -110,4 +111,10 @@ jobs:
           print("NOTE: Duration comparison is diagnostic only; it does not prove sample-accurate synchronization.")
           PY
 
-# Trigger the cross-surah diagnostic on this isolated branch.
+      - name: Verify QUA Saad timestamps against their declared source audio
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python scripts/diagnostics/check_saad_qua_matched_source.py
+
+# Trigger the cross-surah and matched-source diagnostics on this isolated branch.
