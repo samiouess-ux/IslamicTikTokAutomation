@@ -121,5 +121,70 @@ jobs:
                       print(f"TIMING_SCHEMA_VALID: ayahs=1..88, first={ayahs[0]['start_time']}..{ayahs[0]['end_time']}ms, last={ayahs[-1]['start_time']}..{ayahs[-1]['end_time']}ms")
           PY
 
+      - name: Download and decode one MP3Quran surah sample; compare duration with ayah timing
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import tempfile
+          from pathlib import Path
+
+          import requests
+
+          session = requests.Session()
+          audio_url = "https://cdn.mp3quran.net/download/audio/saad-ghamdi/r1/038.mp3"
+          reads = session.get("https://mp3quran.net/api/v3/ayat_timing/reads", timeout=(20, 45))
+          reads.raise_for_status()
+          payload = reads.json()
+          rows = payload.get("reads", payload.get("data", [])) if isinstance(payload, dict) else payload
+          saad = next((row for row in rows if "سعد الغامدي" in str(row.get("name", ""))), None)
+          if not saad:
+              raise SystemExit("Saad Al-Ghamdi timing read not found")
+          timing_response = session.get(
+              "https://mp3quran.net/api/v3/ayat_timing",
+              params={"surah": 38, "read": saad["id"]},
+              timeout=(20, 45),
+          )
+          timing_response.raise_for_status()
+          timings = timing_response.json()
+          ayahs = [row for row in timings if int(row.get("ayah", -1)) > 0]
+          if [int(row["ayah"]) for row in ayahs] != list(range(1, 89)):
+              raise SystemExit("Surah 038 timing does not contain ayahs 1..88")
+          final_timing_seconds = int(ayahs[-1]["end_time"]) / 1000
+
+          with tempfile.TemporaryDirectory() as tmp:
+              audio_path = Path(tmp) / "saad-surah-038.mp3"
+              with session.get(audio_url, stream=True, timeout=(20, 90)) as response:
+                  response.raise_for_status()
+                  with audio_path.open("wb") as output:
+                      for chunk in response.iter_content(chunk_size=1024 * 1024):
+                          if chunk:
+                              output.write(chunk)
+              if audio_path.stat().st_size < 100_000:
+                  raise SystemExit(f"Downloaded audio unexpectedly small: {audio_path.stat().st_size} bytes")
+
+              probe = subprocess.run(
+                  ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                   "-of", "default=noprint_wrappers=1:nokey=1", str(audio_path)],
+                  check=True, capture_output=True, text=True,
+              )
+              duration = float(probe.stdout.strip())
+              decode = subprocess.run(
+                  ["ffmpeg", "-v", "error", "-i", str(audio_path), "-f", "null", "-"],
+                  capture_output=True, text=True,
+              )
+              if decode.returncode != 0:
+                  raise SystemExit(f"Full MP3 decode failed: {decode.stderr[-2000:]}")
+              delta = duration - final_timing_seconds
+              print(f"FULL_MP3_BYTES: {audio_path.stat().st_size}")
+              print(f"FFPROBE_DURATION_SECONDS: {duration:.3f}")
+              print(f"LAST_AYAH_END_SECONDS: {final_timing_seconds:.3f}")
+              print(f"AUDIO_TIMING_DURATION_DELTA_SECONDS: {delta:.3f}")
+              if delta < -2.0 or delta > 10.0:
+                  raise SystemExit("Audio duration is not plausibly aligned with the final ayah timing")
+              print("FULL_MP3_DECODE_OK: True")
+              print("AUDIO_DURATION_COMPATIBLE_WITH_TIMINGS: True")
+          PY
+
       - name: Run existing audio preparation regression tests
         run: python -m unittest discover -s tests -p 'test_prepare_quran_review_batch_audio.py' -v
