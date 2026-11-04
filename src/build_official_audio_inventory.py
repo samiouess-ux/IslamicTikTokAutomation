@@ -26,10 +26,10 @@ ENTRY_RE = re.compile(r"(?:^|/)10-(\d{3})(\d{3})-A08\.mp3$", re.IGNORECASE)
 def create_archive_session() -> requests.Session:
     """Use bounded retries for archive and metadata requests."""
     retry = Retry(
-        total=4, connect=4, read=4, status=4, backoff_factor=1.5,
+        total=2, connect=2, read=2, status=2, backoff_factor=0.5,
         status_forcelist=(429, 500, 502, 503, 504),
         allowed_methods=frozenset({"GET", "HEAD"}),
-        respect_retry_after_header=True,
+        respect_retry_after_header=False,
     )
     adapter = HTTPAdapter(max_retries=retry, pool_connections=2, pool_maxsize=2)
     session = requests.Session()
@@ -43,12 +43,12 @@ def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None
     """Confirm the selected official archive endpoint supports access."""
     response = None
     try:
-        response = session.head(url, allow_redirects=True, timeout=(20, 30))
+        response = session.head(url, allow_redirects=True, timeout=(10, 15))
         if response.status_code in (405, 501):
             response.close()
             response = session.get(
                 url, headers={"Range": "bytes=0-0"}, stream=True,
-                allow_redirects=True, timeout=(20, 30),
+                allow_redirects=True, timeout=(10, 15),
             )
         response.raise_for_status()
         if response.status_code not in (200, 206):
@@ -76,7 +76,7 @@ def select_archive_url(session: requests.Session) -> str:
 
 def fetch_archive_metadata(session: requests.Session) -> dict:
     """Fetch and validate the mirror's extracted-file manifest and pinned ZIP digest."""
-    response = session.get(METADATA_URL, timeout=(20, 60))
+    response = session.get(METADATA_URL, timeout=(10, 30))
     response.raise_for_status()
     metadata = response.json()
     if not isinstance(metadata, dict):
