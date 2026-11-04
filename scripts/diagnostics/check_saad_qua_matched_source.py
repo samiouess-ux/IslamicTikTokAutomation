@@ -294,7 +294,7 @@ with tempfile.TemporaryDirectory() as tmp:
             f"tail_delta={duration-last_end_ms/1000:+.3f}s decode=OK"
         )
 
-print("ACOUSTIC_ENERGY_SCREENING_COMPLETE selected_surahs=3")
+print(f"ACOUSTIC_ENERGY_SCREENING_COMPLETE selected_surahs={len(SURAHS)}")
 print(f"ACOUSTIC_REVIEW_CANDIDATE_COUNT {len(review_candidates)}")
 for candidate in review_candidates:
     print(
@@ -306,21 +306,23 @@ for candidate in review_candidates:
         f"silent_windows_pct={candidate['silent_windows_pct']} "
         f"human_review={candidate.get('review_status', 'NOT_RECORDED')}"
     )
-# Produce direct seek links to the exact matched QUA chapter recordings.
-# Media fragments ask compatible browsers/players to seek to the candidate interval.
-review_links = [
-    ("Al-Fatihah 1:1", 1, 0, 2720),
-    ("Al-Fatihah 1:5", 1, 16495, 21380),
-    ("Sad 38:1", 38, 0, 8105),
-    ("Sad 38:88", 38, 869465, 875900),
-]
+# Produce direct seek links for every acoustic candidate, including newly
+# screened surahs. User-confirmed intervals retain their review provenance.
 review_path = Path("saad_human_listening_review.md")
 with review_path.open("w", encoding="utf-8") as review_file:
     review_file.write("# Saad Al-Ghamdi — matched-source listening review\\n\\n")
-    review_file.write("These links open the exact QUA source chapter and request playback at the flagged ayah interval. Browser/player support for media time fragments may vary; if seeking is unsupported, use the listed start/end times manually.\\n\\n")
-    for label, surah, start_ms, end_ms in review_links:
+    review_file.write("These links open the exact QUA source chapter and request playback at each flagged ayah interval. Browser/player support for media time fragments may vary; if seeking is unsupported, use the listed start/end times manually.\\n\\n")
+    for candidate in review_candidates:
+        surah_text, ayah_text = candidate["ayah"].split(":")
+        surah = int(surah_text)
+        label = f"Surah {surah}, ayah {ayah_text}"
+        start_ms, end_ms = candidate["start_ms"], candidate["end_ms"]
         audio_url = urls[str(surah)]
-        review_file.write(f"- **{label}** — {start_ms/1000:.3f}s to {end_ms/1000:.3f}s: [{label} source audio]({audio_url}#t={start_ms/1000:.3f},{end_ms/1000:.3f})\\n")
+        status = candidate.get("review_status", "NOT_REVIEWED")
+        review_file.write(
+            f"- **{label}** — {start_ms/1000:.3f}s to {end_ms/1000:.3f}s "
+            f"— {status}: [source audio]({audio_url}#t={start_ms/1000:.3f},{end_ms/1000:.3f})\\n"
+        )
 print(f"HUMAN_LISTENING_REVIEW_LINKS_WRITTEN {review_path}")
 print("USER_CONFIRMED_LISTENING_CANDIDATES 4")
 print("UNREVIEWED_ACOUSTIC_CANDIDATES " + str(sum(item["ayah"] not in USER_CONFIRMED_LISTENING for item in review_candidates)))
