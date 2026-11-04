@@ -80,3 +80,17 @@ QUA timing/metadata licensing does not establish rights to the audio recordings.
 - Treat these four screening flags as reviewed and accepted by the project owner, not as confirmed defects.
 - This is a record of the user's listening confirmation; it is not an independent listening verification performed by the automated workflow.
 - No timestamps, source audio, production settings, reciter selection, rights status, or approval gates were changed.
+
+
+## Expanded ten-surah matched-source validation — Run 41924986252
+
+- Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41924986252
+- Diagnostic commit: `313205df42b5340882870d49b3f9562c2c2e9b95`
+- Conclusion: success.
+- Source-audio download, ffprobe duration, and full ffmpeg decode checks passed for surahs 1, 18, 36, 38, 55, 67, 78, 112, 113, and 114.
+- Canonical source package SHA256 matched; Hafs an Asim; 6,236 canonical verse keys matched declared coverage; zero malformed timestamp rows.
+- All 114 surahs passed canonical sequence and ayah-number continuity checks; zero interval end-order issues and zero adjacent overlaps.
+- Acoustic energy screening covered 451 ayah intervals across the ten selected surahs.
+- Six conservative low-edge-energy candidates were reported: 1:1, 1:5, 38:1, 38:88, 67:9, and 67:12. The first four are user-confirmed correct; 67:9 and 67:12 remain unreviewed. Their flags are screening signals, not proven defects.
+- This validates interval structure, decoding, and source bounds; it does not prove word-level acoustic alignment or recording rights.
+- No production files, reciter settings, audio, timestamps, rights status, or approval gates were changed.
