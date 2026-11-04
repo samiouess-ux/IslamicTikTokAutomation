@@ -141,6 +141,30 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertEqual(frame.getpixel((540, 1000))[3], 255)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
+    def test_classic_and_open_minimal_designs_are_distinct_and_keep_exact_text(self):
+        verse = {
+            "number": 5,
+            "arabic": "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
+            "english": "For indeed, with hardship will be ease.",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            classic = Path(tmp) / "classic.png"
+            minimal = Path(tmp) / "open_minimal.png"
+            font = font_file()
+            renderer.make_frame(verse, 94, 0, classic, font, "الشرح", "classic")
+            renderer.make_frame(verse, 94, 0, minimal, font, "الشرح", "open_minimal")
+            with Image.open(classic) as first, Image.open(minimal) as second:
+                self.assertEqual(first.size, (1080, 1920))
+                self.assertEqual(second.size, (1080, 1920))
+                self.assertNotEqual(first.tobytes(), second.tobytes())
+
+    def test_unknown_design_variant_is_rejected(self):
+        verse = {"number": 1, "arabic": "بِسْمِ اللَّهِ", "english": "In the name of Allah"}
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, "Unsupported Quran design variant"):
+                renderer.make_frame(verse, 1, 0, Path(tmp) / "bad.png",
+                                    font_file(), "الفاتحة", "unreviewed")
+
     # Covers both scheduled multi-video batches and isolated user requests.
     def fixtures(self, root: Path):
         passages, items = [], []
@@ -229,6 +253,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertTrue(any("processed" in " ".join(call.args[0]) for call in run.call_args_list))
             report_data = json.loads((root / "out" / "preview_report.json").read_text(encoding="utf-8"))
             self.assertEqual(report_data["background_type"], "moving_video")
+            self.assertEqual(report_data["design_variant"], "classic")
 
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
