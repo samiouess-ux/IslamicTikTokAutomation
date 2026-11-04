@@ -47,8 +47,9 @@ def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None
     GET. Transient 5xx responses are retried by the session adapter and then
     fail closed. No alternate audio source is selected.
     """
-    response = session.head(url, allow_redirects=True, timeout=(20, 30))
+    response = None
     try:
+        response = session.head(url, allow_redirects=True, timeout=(20, 30))
         if response.status_code in (405, 501):
             response.close()
             response = session.get(
@@ -72,7 +73,8 @@ def preflight_archive(session: requests.Session, url: str = ARCHIVE_URL) -> None
             f"{detail}; refusing to use an alternate audio source."
         ) from exc
     finally:
-        response.close()
+        if response is not None:
+            response.close()
 
 
 def build_inventory() -> dict:
