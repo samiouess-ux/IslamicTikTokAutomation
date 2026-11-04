@@ -934,3 +934,12 @@ Theme: hope and ease after hardship.
 - Scope limitation: RMS/silence screening and interval bounds do not prove phonetic, word-level, or sample-accurate ayah alignment. Manual listening or independent ground truth is still required.
 - Rights limitation: QUA metadata/timing licensing does not establish reuse rights for the recitation recording. Do not use commercially or in production without permission for the exact recording.
 - Maher Al-Muaiqly remains the approved primary reciter. No production branch, Cron, approval gate, or delivery configuration was changed.
+
+
+## Saad acoustic candidate interval detail — 2026-11-04
+- Follow-up diagnostic commit: `e8e9e4d0e68d61ae69d3ec49a6fc01e3f9033763`; run `41922833531` completed successfully: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41922833531
+- The diagnostic now prints exact candidate intervals. Four candidates recurred, all solely because the final 200 ms RMS fell below -50 dBFS; their first-200-ms RMS values were above threshold and their 100-ms low-energy-window proportions were only 2.04%–7.14%.
+- Exact intervals from the matched QUA source audio: 1:1 = 0–2,720 ms; 1:5 = 16,495–21,380 ms; 38:1 = 0–8,105 ms; 38:88 = 869,465–875,900 ms.
+- These edge-only flags may reflect natural recitation decay/pause and are not confirmed defects. No human listening was performed by this diagnostic; phonetic/word alignment remains unverified. Next step is human listening to these exact intervals using the same source recordings.
+- The run again passed source SHA-256, 6,236 canonical keys, zero malformed rows, coverage match, all-114-surah start ordering, and matched audio decode/bounds for surahs 1, 38, and 114 (101 intervals screened).
+- Experiment branch only. Maher Al-Muaiqly remains the production reciter; no production settings, rights flags, or approval gates changed.
