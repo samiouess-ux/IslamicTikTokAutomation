@@ -52,8 +52,7 @@ class OfficialAudioInventoryTests(unittest.TestCase):
         response = Mock(status_code=200)
         response.headers = {}
         session.get.return_value = response
-        with self.assertRaisesRegex(RuntimeError, "does not support byte ranges"):
-            preflight_archive(session)
+        self.assertFalse(preflight_archive(session))
         response.close.assert_called_once()
 
     def test_preflight_fails_closed_on_http_503(self):
@@ -70,14 +69,14 @@ class OfficialAudioInventoryTests(unittest.TestCase):
     def test_select_archive_url_uses_pinned_mirror_only_after_official_outage(self):
         session = Mock()
         with patch("build_official_audio_inventory.preflight_archive") as check:
-            check.side_effect = [RuntimeError("official HTTP 503"), None]
-            self.assertEqual(select_archive_url(session), MIRROR_ARCHIVE_URL)
+            check.side_effect = [RuntimeError("official HTTP 503"), False]
+            self.assertEqual(select_archive_url(session), (MIRROR_ARCHIVE_URL, False))
 
     def test_select_archive_url_prefers_official_host(self):
         session = Mock()
         with patch("build_official_audio_inventory.preflight_archive") as check:
-            check.return_value = None
-            self.assertEqual(select_archive_url(session), ARCHIVE_URL)
+            check.return_value = True
+            self.assertEqual(select_archive_url(session), (ARCHIVE_URL, True))
             check.assert_called_once_with(session, ARCHIVE_URL)
 
     def test_manifest_builds_complete_exact_verse_mapping_without_archive_download(self):
