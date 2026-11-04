@@ -125,6 +125,7 @@ with tempfile.TemporaryDirectory() as tmp:
     print(f"CANONICAL_SURAH_COUNT {len(surah_counts)}")
     print(f"CANONICAL_SURAH_RANGE {min(surah_counts)}-{max(surah_counts)}")
 
+    review_candidates = []
     for surah in SURAHS:
         chapter = str(surah)
         url = urls.get(chapter)
@@ -215,10 +216,17 @@ with tempfile.TemporaryDirectory() as tmp:
                         20.0 * math.log10(SILENCE_RMS_THRESHOLD / 32768.0)
                     ):
                         silent_windows += 1
+                silent_pct = round(100.0 * silent_windows / total_windows, 2)
+                if first_db < -50.0 or last_db < -50.0 or silent_pct >= 25.0:
+                    review_candidates.append({
+                        "ayah": row[0],
+                        "first_dbfs": round(first_db, 2),
+                        "last_dbfs": round(last_db, 2),
+                        "silent_windows_pct": silent_pct,
+                    })
                 writer.writerow([
                     surah, row[0], start_ms, end_ms,
-                    round(first_db, 2), round(last_db, 2),
-                    round(100.0 * silent_windows / total_windows, 2)
+                    round(first_db, 2), round(last_db, 2), silent_pct
                 ])
         print(f"SURAH_{surah:03d}_ACOUSTIC_INTERVALS_SCREENED {len(chapter_rows)}")
 
@@ -229,5 +237,14 @@ with tempfile.TemporaryDirectory() as tmp:
         )
 
 print("ACOUSTIC_ENERGY_SCREENING_COMPLETE selected_surahs=3")
+print(f"ACOUSTIC_REVIEW_CANDIDATE_COUNT {len(review_candidates)}")
+for candidate in review_candidates:
+    print(
+        "ACOUSTIC_REVIEW_CANDIDATE "
+        f"{candidate['ayah']} first_dbfs={candidate['first_dbfs']} "
+        f"last_dbfs={candidate['last_dbfs']} "
+        f"silent_windows_pct={candidate['silent_windows_pct']}"
+    )
+print("Candidate thresholds are conservative screening flags only; human listening is required.")
 print("MATCHED_SOURCE_TIMESTAMP_BOUNDS_CHECK PASS")
 print("This validates interval structure and source-audio bounds, not acoustic word-level alignment.")
