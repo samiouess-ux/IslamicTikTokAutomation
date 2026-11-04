@@ -62,7 +62,8 @@ class BackgroundReviewBatchTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "explicitly unapproved"):
                 prepare(catalog, root / "output")
 
-    def test_rejects_duplicate_ids(self):
+    @patch("src.prepare_background_review_batch.download")
+    def test_rejects_duplicate_ids_before_any_download(self, download):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             candidates = self.candidates(2)
@@ -71,6 +72,8 @@ class BackgroundReviewBatchTests(unittest.TestCase):
             catalog.write_text(json.dumps({"candidates": candidates}), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "unique"):
                 prepare(catalog, root / "output")
+            download.assert_not_called()
+            self.assertFalse((root / "output").exists())
 
 
 if __name__ == "__main__":
