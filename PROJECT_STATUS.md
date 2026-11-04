@@ -1,3 +1,11 @@
+## Official Quran archive preflight guard (2026-11-04)
+- Created isolated branch `fix/official-archive-preflight` from `feature/telegram-review-notifications`; the active production branch and `main` were not changed.
+- Added a preflight check before `RemoteZip` inspects the existing official King Fahd Complex archive URL. It uses HEAD first and falls back to a one-byte ranged GET only when HEAD is unsupported (HTTP 405/501).
+- The existing bounded retry policy remains in place. Persistent HTTP errors fail closed with a clear message; no alternate recitation source is selected and no partial inventory is accepted.
+- Added unit tests for successful HEAD, unsupported-HEAD range fallback, and HTTP 503 fail-closed behavior.
+- Changes are code-only on the isolated branch. No workflow was dispatched, no Telegram message/video was sent, no Cron settings or secrets were changed, and no production catalog/background was modified.
+- Validation is pending; do not claim the tests or archive availability have passed until executed. Do not merge into the active branch or trigger a delivery run without separate approval.
+
 ## Renderer layout fix verified (2026-11-02)
 - Latest active-branch commit `c1cec3fbd246871fbd856542ae95c1bc039d2645` passed the full push-triggered inventory workflow run `41491587024` (conclusion `success`). The previously failing 9:16 preview render now passed, as did background crop/overlay previews and artifact upload.
 - The isolated Quran request pipeline run `41491586953` also completed successfully; all its test steps passed.
