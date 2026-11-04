@@ -47,7 +47,7 @@ with tempfile.TemporaryDirectory() as tmp:
         raise SystemExit(f"WRONG_RECITER {reciter.get('slug')}")
     if str(reciter.get("riwayah", "")).lower() not in {"hafs", "hafs_an_asim"}:
         raise SystemExit(f"WRONG_RIWAYAH {reciter.get('riwayah')}")
-    if reciter.get("channel") != "Tarteel CDN":
+    if str(reciter.get("channel", "")).lower() not in {"tarteel", "tarteel cdn"}:
         raise SystemExit(f"WRONG_AUDIO_CHANNEL {reciter.get('channel')}")
     rows = payload.get("rows", [])
     if not rows:
