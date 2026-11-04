@@ -154,6 +154,27 @@ with tempfile.TemporaryDirectory() as tmp:
         surah_counts[int(parts[0])] = surah_counts.get(int(parts[0]), 0) + 1
     print(f"CANONICAL_SURAH_COUNT {len(surah_counts)}")
     print(f"CANONICAL_SURAH_RANGE {min(surah_counts)}-{max(surah_counts)}")
+    # Verify that each surah's canonical ayah keys form a gap-free sequence
+    # beginning at verse 1, and that the 114 surah numbers are contiguous.
+    verse_numbers_by_surah = {}
+    for key in canonical:
+        surah_text, ayah_text = key.split(":")
+        verse_numbers_by_surah.setdefault(int(surah_text), []).append(int(ayah_text))
+    missing_or_gapped_surahs = []
+    for chapter, verse_numbers in verse_numbers_by_surah.items():
+        ordered_numbers = sorted(verse_numbers)
+        expected_numbers = list(range(1, len(ordered_numbers) + 1))
+        if ordered_numbers != expected_numbers:
+            missing_or_gapped_surahs.append(chapter)
+    expected_surahs = list(range(1, 115))
+    actual_surahs = sorted(verse_numbers_by_surah)
+    print(f"CANONICAL_SURAH_SEQUENCE_CHECK {'PASS' if actual_surahs == expected_surahs else 'FAIL'}")
+    print(f"CANONICAL_AYAH_NUMBER_CONTINUITY_CHECK {'PASS' if not missing_or_gapped_surahs else 'FAIL'}")
+    if actual_surahs != expected_surahs or missing_or_gapped_surahs:
+        raise SystemExit(
+            f"CANONICAL_KEY_SEQUENCE_MISMATCH surah_sequence_ok={actual_surahs == expected_surahs} "
+            f"gapped_surahs={missing_or_gapped_surahs[:20]}"
+        )
 
     review_candidates = []
     for surah in SURAHS:
