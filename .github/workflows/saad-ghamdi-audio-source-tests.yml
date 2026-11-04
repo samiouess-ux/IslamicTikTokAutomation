@@ -103,8 +103,22 @@ jobs:
                       timing_response = session.get("https://mp3quran.net/api/v3/ayat_timing", params={"surah": 38, "read": read_id}, timeout=(20, 45))
                       timing_response.raise_for_status()
                       timings = timing_response.json()
-                      ayahs = [row for row in timings if int(row.get("ayah", -1)) > 0]
+                      ayahs = sorted((row for row in timings if int(row.get("ayah", -1)) > 0), key=lambda row: int(row["ayah"]))
                       print(f"SURAH_038_TIMING_ROWS: {len(ayahs)}")
+                      expected = list(range(1, 89))
+                      actual = [int(row["ayah"]) for row in ayahs]
+                      if actual != expected:
+                          raise SystemExit(f"Unexpected ayah coverage for Surah 038: {actual}")
+                      previous_end = None
+                      for row in ayahs:
+                          start_ms = int(row["start_time"])
+                          end_ms = int(row["end_time"])
+                          if start_ms < 0 or end_ms <= start_ms:
+                              raise SystemExit(f"Invalid timing row: {row}")
+                          if previous_end is not None and start_ms < previous_end:
+                              raise SystemExit(f"Overlapping/out-of-order timing row: {row}")
+                          previous_end = end_ms
+                      print(f"TIMING_SCHEMA_VALID: ayahs=1..88, first={ayahs[0]['start_time']}..{ayahs[0]['end_time']}ms, last={ayahs[-1]['start_time']}..{ayahs[-1]['end_time']}ms")
           PY
 
       - name: Run existing audio preparation regression tests
