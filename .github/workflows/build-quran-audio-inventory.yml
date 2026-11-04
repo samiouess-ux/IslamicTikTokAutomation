@@ -39,6 +39,12 @@ on:
       - "tests/test_prepare_quran_review_batch_audio.py"
       - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
+    inputs:
+      test_only:
+        description: 'TEST NOW: send a review preview to Telegram without changing production delivery history'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -50,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Block automatic sends when a previous Telegram outcome is unresolved
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true)
         run: python src/quran_delivery_attempt.py guard --pending data/quran_delivery_pending.json
       - uses: actions/setup-python@v5
         with:
@@ -318,7 +324,7 @@ jobs:
           retention-days: 3
 
       - name: Reserve Telegram delivery attempt before sending
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true)
         run: |
           python src/quran_delivery_attempt.py reserve \
             --pending data/quran_delivery_pending.json \
@@ -377,7 +383,7 @@ jobs:
           PY
 
       - name: Record Telegram-confirmed Quran delivery history
-        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true))
         run: |
           python - <<'PY'
           import json
@@ -404,7 +410,7 @@ jobs:
           git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery and clear reservation"
 
       - name: Sync confirmed Quran delivery history to active branch
-        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true))
         run: |
           git fetch origin feature/telegram-review-notifications
           git rebase origin/feature/telegram-review-notifications
