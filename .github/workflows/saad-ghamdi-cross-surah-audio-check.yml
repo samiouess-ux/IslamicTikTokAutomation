@@ -109,3 +109,5 @@ jobs:
           print(f"MAX_ABSOLUTE_DURATION_DIFFERENCE_SECONDS: {max(abs(x) for x in differences):.3f}")
           print("NOTE: Duration comparison is diagnostic only; it does not prove sample-accurate synchronization.")
           PY
+
+# Trigger the cross-surah diagnostic on this isolated branch.
