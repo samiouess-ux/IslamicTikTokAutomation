@@ -115,3 +115,16 @@ QUA timing/metadata licensing does not establish rights to the audio recordings.
 - Acoustic screening covered 451 intervals. Six candidates (1:1, 1:5, 38:1, 38:88, 67:9, 67:12) are classified `USER_CONFIRMED_CORRECT`; `USER_CONFIRMED_LISTENING_CANDIDATES 6`; `UNREVIEWED_ACOUSTIC_CANDIDATES 0`.
 - Dynamic human-listening review links were generated for every candidate. Acoustic flags remain screening signals, not defects; checks do not prove word-level acoustic alignment or recording rights.
 - No production files, reciter settings, audio, timestamps, rights status, or approval gates were changed.
+
+## Expanded 20-surah acoustic screening — 2026-11-04
+
+- Workflow run: [41925921637](https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/41925921637) — completed successfully.
+- Experimental commit: `f6b3e9750fad8d833b308fea3a334d4f0ecb1822`.
+- Selected surahs: 1, 2, 10, 18, 19, 25, 36, 38, 50, 55, 59, 67, 73, 78, 87, 103, 109, 112, 113, 114.
+- Canonical sequence and ayah-number continuity: PASS for all 114 surahs.
+- Canonical interval start order: PASS for all 114 surahs; interval end-order issues: 0; adjacent overlaps: 0.
+- Matched-source timestamp bounds: PASS.
+- Acoustic screening covered 20 selected surahs and reported 53 conservative review candidates; 6 have user-confirmed listening status and 47 remain unreviewed.
+- The six user-confirmed correct clips remain: 1:1, 1:5, 38:1, 38:88, 67:9, 67:12.
+- The 53 candidates are screening flags, not confirmed audio defects. This run validates interval structure and source-audio bounds, not word-level acoustic alignment.
+- No production audio, timestamps, reciter, rights fields, or approval gates were changed.
