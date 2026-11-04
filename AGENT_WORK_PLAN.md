@@ -335,3 +335,12 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Push validations do not send Telegram. No test send was made. External cron-job.org remains unchanged at the user-confirmed 04:10, 12:10, and 18:10 Africa/Tunis; this repository cannot independently verify the external job's live state. No new scheduler or infrastructure was added.
 - Background rendering uses the four explicitly user-approved, download-verified Pexels candidates in `data/background_candidates.json`; renderer rotation and real overlay readability still require the current full workflow artifact to pass and visual inspection.
 - TikTok publishing remains manual. Qur'an content remains Arabic + Saheeh International English, authentic recitation, no music, and no public reciter name.
+
+
+## Latest isolated recitation-source validation — 2026-11-04
+- Run `41922507474` passed on commit `3488714b20cc81ef03a8e64ab5affc64d80932f8`; see the run summary for the acoustic CSV.
+- Canonical timing structure passed for all 6,236 ayahs across 114 surahs. Matched-source decode/bounds and acoustic screening passed for 101 intervals in surahs 1, 38, and 114.
+- Four conservative edge-energy flags (1:1, 1:5, 38:1, 38:88) require listening review; they are not confirmed defects.
+- Next: review those four exact intervals against the same QUA source recording, preferably with a human listener; do not mix timing from another recording. If independent listening cannot be performed, keep alignment status explicitly unverified.
+- Recording reuse rights remain unverified. Do not promote this source or change the production reciter.
+- Keep all work isolated to `experiment/saad-ghamdi-audio-source`; Maher Al-Muaiqly remains the primary reciter. No production, Cron, Telegram, publishing, or approval-gate changes.
