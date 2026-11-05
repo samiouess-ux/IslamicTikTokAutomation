@@ -176,6 +176,8 @@ jobs:
                        '-of', 'default=nw=1:nk=1', str(target)], text=True).strip()
                   print(f'Verse {verse}: archive entry={matches[0]} duration={duration}s bytes={target.stat().st_size}')
           print('These are unmodified source clips for user listening review only; no production approval is implied.')
+          PY
+
       - name: Prepare exact approved Ash-Sharh 94:5-6 audio
         if: steps.selection.outputs.manifest == 'content/first_video.json'
         shell: bash
