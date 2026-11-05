@@ -560,9 +560,13 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 filter_complex = (
                     "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
-                    "[bg][2:v]overlay=0:0:format=auto[verse];"
                     "[3:v]format=rgba,fade=t=in:st=0:d=0.25:alpha=1,fade=t=out:st=1.2:d=0.4:alpha=1[intro];"
-                    "[verse][intro]overlay=0:0:format=auto[v]"
+                    "[bg][intro]overlay=0:0:format=auto[covered];"
+                    # Keep the first ayah above the fading cover so its text is visible
+"
+                    # from the exact instant its recitation begins.
+"
+                    "[covered][2:v]overlay=0:0:format=auto[v]"
                 )
             else:
                 filter_complex = (
