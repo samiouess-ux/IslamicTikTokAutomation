@@ -103,8 +103,8 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
     layouts = {
         "ornate_gold_classic": {"title_y": 475, "body_y": 850, "body_width": 900, "verse_y": 1110},
         "nature_clean": {"title_y": 330, "body_y": 790, "body_width": 820, "verse_y": 1135},
-        "minimal_mushaf": {"title_y": 300, "body_y": 900, "body_width": 960, "verse_y": 1210},
-        "cinematic_landscape": {"title_y": 510, "body_y": 955, "body_width": 840, "verse_y": 1260},
+        "minimal_mushaf": {"title_y": 300, "body_y": 900, "body_width": 960, "verse_y": 1090},
+        "cinematic_landscape": {"title_y": 510, "body_y": 955, "body_width": 840, "verse_y": 1125},
     }
     accent, text_color = palettes[template]
     layout = layouts[template]
