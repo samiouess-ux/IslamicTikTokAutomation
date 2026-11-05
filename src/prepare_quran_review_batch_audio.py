@@ -12,8 +12,12 @@ import json
 import re
 import shutil
 import subprocess
+import tempfile
+import urllib.request
+from contextlib import contextmanager
 from pathlib import Path
-from zipfile import ZipFile
+from zipfile import BadZipFile, ZipFile
+import remotezip
 from remotezip import RemoteZip
 from quran_audio_parts import partition_contiguous_ayahs
 
@@ -79,6 +83,42 @@ def trim_edge_silence(source: Path, destination: Path, source_duration: float,
     return processed_duration
 
 
+@contextmanager
+def open_audio_archive(inventory: dict):
+    """Open the official ZIP, falling back to a verified local download when Range is unsupported."""
+    archive_path = inventory.get("archive_path")
+    if archive_path:
+        with ZipFile(archive_path) as archive:
+            yield archive
+        return
+
+    source_url = inventory.get("source_url", DEFAULT_ARCHIVE)
+    try:
+        with RemoteZip(source_url) as archive:
+            # Force the remote directory read here so RangeNotSupported is caught
+            # before any candidate audio is processed.
+            archive.namelist()
+            yield archive
+        return
+    except remotezip.RangeNotSupported:
+        pass
+
+    # Some official hosting endpoints do not implement HTTP byte ranges.
+    # Download once to a temporary file, verify the ZIP central directory and
+    # every member's CRC, then use the standard local ZIP reader.
+    with tempfile.TemporaryDirectory(prefix="quran-audio-") as temp_dir:
+        local_archive = Path(temp_dir) / "official-audio.zip"
+        urllib.request.urlretrieve(source_url, local_archive)
+        try:
+            with ZipFile(local_archive) as archive:
+                bad_member = archive.testzip()
+                if bad_member is not None:
+                    raise BadZipFile(f"Corrupt ZIP member: {bad_member}")
+                yield archive
+        except BadZipFile as exc:
+            raise ValueError(f"Downloaded official audio archive is invalid: {exc}") from exc
+
+
 def resolve_archive_member(archive_names: list[str], requested_member: str) -> str:
     requested_basename = requested_member.rsplit('/', 1)[-1].casefold()
     matches = [name for name in archive_names if name.rsplit('/', 1)[-1].casefold() == requested_basename]
@@ -103,9 +143,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
     output_dir.mkdir(parents=True, exist_ok=True)
     results = []
     prepared_candidates = 0
-    archive_path = inventory.get("archive_path")
-    archive_context = ZipFile(archive_path) if archive_path else RemoteZip(inventory.get("source_url", DEFAULT_ARCHIVE))
-    with archive_context as archive:
+    with open_audio_archive(inventory) as archive:
         archive_names = archive.namelist()
         resolved_members = {}
         for candidate in batch.get("passages", []):
