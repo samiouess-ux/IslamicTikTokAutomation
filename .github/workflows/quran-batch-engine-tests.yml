@@ -19,6 +19,7 @@ on:
       - "tests/test_record_quran_delivery.py"
       - "src/build_quran_video_catalog.py"
       - "src/render_video_scenes.py"
+      - "src/render_video.py"
       - "src/render_quran_review_batch.py"
       - "src/validate_content_manifest.py"
       - "src/orchestrator.py"
@@ -26,6 +27,7 @@ on:
       - "tests/test_build_quran_review_batch.py"
       - "tests/test_build_quran_video_catalog.py"
       - "tests/test_quran_visual_templates.py"
+      - "tests/test_render_video_duration.py"
       - "tests/test_render_quran_review_batch.py"
       - "tests/test_orchestrator.py"
       - "tests/test_content_rotation.py"
@@ -63,6 +65,7 @@ jobs:
             src/record_quran_delivery.py \
             src/build_quran_video_catalog.py \
             src/render_video_scenes.py \
+            src/render_video.py \
             src/render_quran_review_batch.py \
             src/validate_content_manifest.py \
             src/orchestrator.py \
@@ -73,6 +76,7 @@ jobs:
             tests/test_build_quran_review_batch.py \
             tests/test_build_quran_video_catalog.py \
             tests/test_quran_visual_templates.py \
+            tests/test_render_video_duration.py \
             tests/test_render_quran_review_batch.py \
             tests/test_prepare_quran_review_batch_audio.py \
             tests/test_quran_audio_parts.py \
