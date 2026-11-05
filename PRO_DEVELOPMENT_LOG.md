@@ -113,3 +113,29 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - Code committed to `feature/quran-video-pro` only.
 - Production branch, Cron, secrets, and publishing configuration remain untouched.
 - Milestone status: **implemented, awaiting automated and visual validation**.
+
+
+## 2026-11-05 — Development milestone 2: distinct verse-screen composition geometry
+
+### Changes committed to Pro
+- `src/render_video_scenes.py`
+  - Replaced the shared fixed title/body/verse-number coordinates with per-template composition geometry.
+  - `ornate_gold_classic`, `nature_clean`, `minimal_mushaf`, and `cinematic_landscape` now use different title positions, Arabic text centers, text widths, and verse-number positions, in addition to their existing frame treatments and palettes.
+  - Arabic verse text remains sourced verbatim from the manifest; wrapping only inserts visual line breaks between existing words and still fails closed if it cannot fit safely.
+- `tests/test_quran_visual_templates.py`
+  - Retained pairwise pixel-difference checks and added a separate assertion that the full non-transparent composition bounds differ across all four templates. This rejects a color-only distinction as sufficient evidence.
+
+### Commits
+- Renderer layout geometry: `ccba9cf91f39ac2338991d8420f73c975611b648`
+- Composition-bound regression test: `29fdcb189f6fcc3c6ac4d983f923579d054619f0`
+
+### Validation and limitations
+- Both updated files were committed to `feature/quran-video-pro` only and fetched from that branch for the sequential updates.
+- The new test has **not** been executed in CI or locally; distinct alpha bounds are an authored regression assertion, not a passing test result yet.
+- No rendered MP4 has been produced or visually inspected. The layouts are structurally more distinct in source, but professional appearance and legibility still require a real review render.
+- Background-candidate rotation remains unintegrated. The four candidate records still do not satisfy the strict normalized rights/source/asset schema consumed by `src/asset_rotation.py`; no rights status was invented or weakened.
+- No GitHub Actions run was triggered and no Telegram message was sent.
+- Production branch, Cron, secrets, and auto-publishing remain untouched.
+
+### Current status
+- Milestone 2: **implemented, awaiting automated and rendered visual validation**.
