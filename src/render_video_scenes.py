@@ -215,14 +215,14 @@ def main() -> None:
     source, audio, visual = data["source"], data["audio"], data["visual"]
     caption = data.get("caption", {})
 
-    # Template selection is manifest-driven. Keep the approved design as the
-    # only enabled template until another design is separately reviewed.
+    # Manifest selection remains the default. A CLI override is available only
+    # for an isolated review render and never changes the source manifest.
     template = args.template or visual.get("template", "ornate_gold_classic")
     supported_templates = {"ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"}
     if template not in supported_templates:
         raise SystemExit(
             f"Unsupported/unapproved visual template: {template}. "
-            "Only ornate_gold_classic is currently approved."
+            "Choose one of the supported review layouts."
         )
 
     background_url = visual.get("approved_background_url") or visual.get("background_candidate", {}).get("direct_video_url")
