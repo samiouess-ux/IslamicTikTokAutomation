@@ -185,8 +185,9 @@ jobs:
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
           python - <<'PY'
           from pathlib import Path
-          import json, subprocess, zipfile
+          import json, subprocess, zipfile, sys
           from remotezip import RemoteZip, RangeNotSupported
+          sys.path.insert(0, 'src')
           from build_official_audio_inventory import create_archive_session, download_verified_archive
 
           inventory = json.loads(Path('output/official_verse_audio_inventory.json').read_text(encoding='utf-8'))
