@@ -139,3 +139,9 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Current status
 - Milestone 2: **implemented, awaiting automated and rendered visual validation**.
+
+
+### Follow-up layout safety adjustment
+- After checking the new coordinates against the English translation overlay's fixed lower-screen region, moved the `minimal_mushaf` and `cinematic_landscape` verse markers upward to avoid a likely collision with long (up to five-line) translations.
+- Commit: `1934a58626210788aebfb5b562239481d9f38d75`.
+- This is a source-level spacing correction only; visual clearance still needs confirmation in a rendered MP4.
