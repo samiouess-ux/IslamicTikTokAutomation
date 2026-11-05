@@ -99,7 +99,15 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         "minimal_mushaf": ((238,226,195,255),(255,255,245,255)),
         "cinematic_landscape": ((190,220,255,255),(255,255,255,255)),
     }
+    # Deliberately different composition geometry, not just different colors.
+    layouts = {
+        "ornate_gold_classic": {"title_y": 475, "body_y": 850, "body_width": 900, "verse_y": 1110},
+        "nature_clean": {"title_y": 330, "body_y": 790, "body_width": 820, "verse_y": 1135},
+        "minimal_mushaf": {"title_y": 300, "body_y": 900, "body_width": 960, "verse_y": 1210},
+        "cinematic_landscape": {"title_y": 510, "body_y": 955, "body_width": 840, "verse_y": 1260},
+    }
     accent, text_color = palettes[template]
+    layout = layouts[template]
     title_font = ImageFont.truetype(bold_path, 58 if template != "minimal_mushaf" else 52)
     if template == "ornate_gold_classic":
         outer = [(540,392),(575,410),(785,410),(815,430),(845,475),(815,520),
@@ -111,20 +119,20 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
                 rad=math.radians(angle)
                 px=cx+math.cos(rad)*10; py=475+math.sin(rad)*10
                 draw.ellipse((px-5,py-5,px+5,py+5),outline=accent,width=2)
-        title_y=475
+        title_y=layout["title_y"]
     elif template == "nature_clean":
-        draw.rounded_rectangle((95,385,985,565),radius=48,outline=accent,width=5)
-        draw.line((170,590,910,590),fill=accent,width=3)
-        title_y=475
+        draw.rounded_rectangle((95,245,985,430),radius=70,outline=accent,width=5)
+        draw.line((170,455,910,455),fill=accent,width=3)
+        title_y=layout["title_y"]
     elif template == "minimal_mushaf":
-        draw.line((140,420,940,420),fill=accent,width=3)
-        draw.line((140,535,940,535),fill=accent,width=3)
-        draw.ellipse((520,463,560,503),outline=accent,width=2)
-        title_y=475
+        draw.line((140,245,940,245),fill=accent,width=3)
+        draw.line((140,355,940,355),fill=accent,width=3)
+        draw.ellipse((520,280,560,320),outline=accent,width=2)
+        title_y=layout["title_y"]
     else:
-        draw.rounded_rectangle((65,365,1015,580),radius=12,outline=accent,width=3)
-        draw.line((120,600,960,600),fill=accent,width=2)
-        title_y=475
+        draw.rounded_rectangle((65,400,1015,625),radius=12,outline=accent,width=3)
+        draw.line((120,650,960,650),fill=accent,width=2)
+        title_y=layout["title_y"]
     draw.text((540,title_y),title,font=title_font,fill=accent,anchor="mm",
               direction="rtl",language="ar")
     verse=verses[0]
@@ -137,7 +145,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         words=exact_text.split(" "); lines=[]; current=""
         for word in words:
             candidate=(current+" "+word).strip()
-            if draw.textbbox((0,0),candidate,font=font,direction="rtl",language="ar")[2] <= 900:
+            if draw.textbbox((0,0),candidate,font=font,direction="rtl",language="ar")[2] <= layout["body_width"]:
                 current=candidate
             else:
                 if current: lines.append(current)
@@ -149,14 +157,14 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         raise SystemExit("Verse cannot fit safely; refusing to clip Quran text.")
     font,lines=chosen
     line_height=font.size*1.75
-    first_y=850-(len(lines)-1)*line_height/2
+    first_y=layout["body_y"]-(len(lines)-1)*line_height/2
     for i,line in enumerate(lines):
         draw.text((540,first_y+i*line_height),line,font=font,fill=text_color,
                   anchor="mm",direction="rtl",language="ar")
     number=str(verse["number"]).translate(str.maketrans("0123456789","٠١٢٣٤٥٦٧٨٩"))
     number_font=ImageFont.truetype(bold_path,34)
     if template == "ornate_gold_classic":
-        cx,cy,radius=540,1110,34
+        cx,cy,radius=540,layout["verse_y"],34
         pts=[]
         for angle in range(0,360,15):
             r=radius if (angle//15)%2==0 else radius-6
@@ -164,13 +172,15 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         draw.line(pts+[pts[0]],fill=accent,width=3,joint="curve")
         draw.text((cx,cy),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
     elif template == "nature_clean":
-        draw.rounded_rectangle((485,1080,595,1140),radius=28,outline=accent,width=3)
-        draw.text((540,1110),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
+        cy=layout["verse_y"]
+        draw.rounded_rectangle((485,cy-30,595,cy+30),radius=28,outline=accent,width=3)
+        draw.text((540,cy),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
     elif template == "minimal_mushaf":
-        draw.text((540,1110),f"۞ {number} ۞",font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
+        draw.text((540,layout["verse_y"]),f"۞ {number} ۞",font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
     else:
-        draw.line((390,1110,690,1110),fill=accent,width=2)
-        draw.text((540,1160),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
+        cy=layout["verse_y"]
+        draw.line((390,cy-35,690,cy-35),fill=accent,width=2)
+        draw.text((540,cy+20),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
     image.save(destination)
 
 
