@@ -474,7 +474,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
     # Validate all selected ayahs before rendering. Every prepared passage must
-    # contain the complete requested sequence; duration is not capped.
+    # contain the complete requested sequence; final previews are capped at 40 seconds.
     candidates = {x["candidate_id"]: x for x in batch.get("passages", [])}
     report_items = report.get("items", [])
     for item in report_items:
