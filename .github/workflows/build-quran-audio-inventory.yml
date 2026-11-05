@@ -42,7 +42,7 @@ on:
   workflow_dispatch:
     inputs:
       test_only:
-        description: 'TEST NOW: send a review preview to Telegram without changing production delivery history'
+        description: 'TEST NOW: render and save a review-only preview artifact; never send Telegram'
         required: false
         default: false
         type: boolean
@@ -279,6 +279,18 @@ jobs:
                   raise SystemExit("Preview must preserve original MP3 audio stream.")
           print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
           PY
+
+      - name: Upload review-only Quran video preview artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-review-only-previews-${{ github.run_number }}
+          path: |
+            output/quran_review_previews/*.mp4
+            output/quran_review_previews/preview_report.json
+            output/quran_review_previews/**/opening_cover.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Download and prepare review-only background crop previews with actual Quran overlay
         run: |
           overlay_frame="$(find output/quran_review_previews -type f -name 'ayah_*.png' | sort | head -n 1)"
@@ -321,7 +333,7 @@ jobs:
 
       - name: Send one review-only video to Telegram for manual approval
         id: telegram_send
-        if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+        if: (github.event_name == 'workflow_dispatch' && inputs.test_only != true) || github.event_name == 'schedule'
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -396,7 +408,7 @@ jobs:
           git push origin HEAD:refs/heads/feature/telegram-review-notifications
 
       - name: Notify Telegram if video preparation or delivery fails
-        if: failure() && steps.telegram_send.outcome != 'success' && (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule')
+        if: failure() && steps.telegram_send.outcome != 'success' && ((github.event_name == 'workflow_dispatch' && inputs.test_only != true) || github.event_name == 'schedule')
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
