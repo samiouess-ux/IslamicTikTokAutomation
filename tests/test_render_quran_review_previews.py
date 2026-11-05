@@ -137,7 +137,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertEqual(frame.getpixel((10, 10))[3], 255)
                 # The circular medallion has a visible gold outline.
                 self.assertGreater(frame.getpixel((540, 430))[3], 200)
-                # The opaque center hides the first ayah beneath the opening cover.
+                # The cover frame is opaque by itself; render() composites the first ayah above it.
                 self.assertEqual(frame.getpixel((540, 1000))[3], 255)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
