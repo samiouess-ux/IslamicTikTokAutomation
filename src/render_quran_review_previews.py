@@ -132,8 +132,8 @@ SURAH_NAMES = [
 
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
 
-INTRO_DURATION_SECONDS = 1.6
-INTRO_FADE_SECONDS = 0.4
+INTRO_DURATION_SECONDS = 0.6
+INTRO_FADE_SECONDS = 0.0
 
 PALETTES = [
     ((12, 31, 46), (25, 68, 75), (220, 190, 125)),
@@ -560,13 +560,14 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 filter_complex = (
                     "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
-                    # The cover owns the opening 1.6 seconds visually. Do not composite
-                    # the ayah artwork over it: that caused the cover title and verse text
-                    # to collide. Recitation still starts at t=0 under the cover; the verse
-                    # artwork appears only after the cover has fully cleared.
+                    # The cover is a brief opening flash only. The still-image input loops,
+                    # so explicitly disable its overlay after 0.6 seconds; otherwise it
+                    # remains visible underneath the ayah artwork for the rest of the video.
+                    # Recitation still starts at t=0 and the ayah appears as soon as the
+                    # cover has completely disappeared.
                     "[3:v]format=rgba[intro];"
-                    "[bg][intro]overlay=0:0:format=auto[covered];"
-                    "[covered][2:v]overlay=0:0:format=auto:enable='gte(t,1.6)'[v]"
+                    "[bg][intro]overlay=0:0:format=auto:enable='lt(t,0.6)'[covered];"
+                    "[covered][2:v]overlay=0:0:format=auto:enable='gte(t,0.6)'[v]"
                 )
             else:
                 filter_complex = (
@@ -621,8 +622,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "background_rotation": [prepared_backgrounds[k] for k in prepared_backgrounds],
         "background_rotation_enabled": True,
         "background_rotation_start_index": background_rotation_index % len(approved_backgrounds),
-        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0},
-        "note": "A short surah-and-ayah opening cover fades over the first ayah while the original recitation starts at t=0; the video remains review-only.",
+        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0, "visible_only_at_start": True},
+        "note": "A brief opening cover appears alone for 0.6 seconds, then disappears completely before the ayah overlay; original recitation starts at t=0 and the video remains review-only.",
     }
     (output_dir / "preview_report.json").write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return result
