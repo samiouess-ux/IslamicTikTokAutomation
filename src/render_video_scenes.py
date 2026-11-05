@@ -33,7 +33,9 @@ def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
 
 
-MAX_VIDEO_SECONDS = 65.0
+MAX_VIDEO_SECONDS = 40.0
+OPENING_COVER_SECONDS = 1.6
+OPENING_COVER_FADE_SECONDS = 0.4
 
 
 def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS) -> None:
@@ -171,6 +173,58 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         draw.text((540,1160),number,font=number_font,fill=accent,anchor="mm",direction="rtl",language="ar")
     image.save(destination)
 
+
+def create_opening_cover(source: dict, verses: list[dict], destination: Path) -> None:
+    """Create a respectful Quran opening cover without touching the audio stream."""
+    if not verses:
+        raise SystemExit("Opening cover requires at least one selected verse.")
+    surah_name = source.get("surah_name_ar")
+    if not isinstance(surah_name, str) or not surah_name.strip():
+        raise SystemExit("Opening cover requires the exact Arabic surah name.")
+    if not features.check("raqm"):
+        raise SystemExit("Arabic cover rendering blocked: Pillow libraqm/RAQM is unavailable.")
+    try:
+        bold_path = subprocess.check_output(
+            ["fc-match", "-f", "%{file}", "Amiri:style=Bold"], text=True
+        ).strip()
+    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+        raise SystemExit("Unable to locate the Amiri Bold font for the opening cover.") from exc
+    if not bold_path or not Path(bold_path).is_file():
+        raise SystemExit(f"Required Amiri Bold font is missing: {bold_path!r}")
+
+    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    gold = (231, 190, 103, 255)
+    ivory = (255, 250, 235, 255)
+    # A restrained translucent reading panel keeps the cover legible over
+    # every approved background without replacing or delaying the recitation.
+    draw.rounded_rectangle((72, 390, 1008, 1450), radius=54,
+                           fill=(7, 12, 18, 190), outline=(gold[0], gold[1], gold[2], 235), width=4)
+    draw.rounded_rectangle((92, 410, 988, 1430), radius=42,
+                           outline=(gold[0], gold[1], gold[2], 125), width=2)
+
+    title_font = ImageFont.truetype(bold_path, 88)
+    surah_font = ImageFont.truetype(bold_path, 76)
+    range_font = ImageFont.truetype(bold_path, 48)
+    ornament_font = ImageFont.truetype(bold_path, 38)
+    draw.text((540, 650), "القرآن الكريم", font=title_font, fill=gold,
+              anchor="mm", direction="rtl", language="ar")
+    draw.line((300, 760, 780, 760), fill=(gold[0], gold[1], gold[2], 210), width=3)
+    draw.text((540, 930), f"سورة {surah_name}", font=surah_font, fill=ivory,
+              anchor="mm", direction="rtl", language="ar")
+
+    first_number = int(verses[0]["number"])
+    last_number = int(verses[-1]["number"])
+    digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+    verse_range = (f"الآية {first_number}" if first_number == last_number
+                   else f"الآيات {first_number}–{last_number}").translate(digits)
+    draw.text((540, 1110), verse_range, font=range_font, fill=gold,
+              anchor="mm", direction="rtl", language="ar")
+    draw.text((540, 1290), "۞", font=ornament_font, fill=gold,
+              anchor="mm", direction="rtl", language="ar")
+    image.save(destination)
+
+
 def create_english_overlay(verses: list[dict], destination: Path) -> None:
     """One translation per screen, wrapped with generous line spacing."""
     if len(verses) != 1:
@@ -266,6 +320,9 @@ def main() -> None:
     scenes = [{"scene": i, "verses": [n]} for i, n in enumerate(verse_numbers, 1)]
     if [n for scene in scenes for n in scene.get("verses", [])] != verse_numbers:
         raise SystemExit("Scene plan must cover every verse exactly once and in order.")
+    cover_overlay = work / "opening_cover.png"
+    create_opening_cover(source, verses, cover_overlay)
+
     scene_overlays = []
     for scene in scenes:
         selected = [v for v in verses if int(v["number"]) in scene["verses"]]
@@ -318,6 +375,19 @@ def main() -> None:
         )
         current = f"v{index}"
         input_index += 2
+    # The opening cover fades away over the live scene. Audio input 1 is
+    # mapped unchanged; the cover never adds silence or offsets the recitation.
+    cover_input_index = input_index
+    inputs += ["-loop", "1", "-framerate", "30", "-t", str(duration), "-i", str(cover_overlay)]
+    filters.append(
+        f"[{cover_input_index}:v]format=rgba,"
+        f"fade=t=out:st={OPENING_COVER_SECONDS - OPENING_COVER_FADE_SECONDS:.3f}:"
+        f"d={OPENING_COVER_FADE_SECONDS:.3f}:alpha=1[coverfade]"
+    )
+    filters.append(
+        f"[{current}][coverfade]overlay=0:0:enable='between(t,0,{OPENING_COVER_SECONDS:.3f})'[vfinal]"
+    )
+    current = "vfinal"
     draw = ";".join(filters)
     run([
         "ffmpeg", "-hide_banner", "-y", *inputs, "-filter_complex", draw,
