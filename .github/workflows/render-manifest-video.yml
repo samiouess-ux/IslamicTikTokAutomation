@@ -206,8 +206,21 @@ jobs:
                   member = inventory['verses'].get(key)
                   if not member:
                       raise RuntimeError(f'Missing exact official inventory entry for {key}.')
+                  expected_basename = f'10-{94:03d}{verse:03d}-A08.mp3'
+                  if member.rsplit('/', 1)[-1].casefold() != expected_basename.casefold():
+                      raise RuntimeError(f'Inventory member basename mismatch for {key}: {member}')
+                  # ZIP directory names may decode non-ASCII text differently from
+                  # the upstream JSON manifest. Resolve by the canonical ASCII verse
+                  # filename, and require exactly one match before reading any bytes.
+                  matches = [name for name in archive.namelist()
+                             if name.rsplit('/', 1)[-1].casefold() == expected_basename.casefold()]
+                  if len(matches) != 1:
+                      raise RuntimeError(
+                          f'Expected exactly one ZIP member named {expected_basename}; found {matches}'
+                      )
+                  zip_member = matches[0]
                   target = work / f'verse_{verse:02d}.mp3'
-                  with archive.open(member) as src, target.open('wb') as dst:
+                  with archive.open(zip_member) as src, target.open('wb') as dst:
                       while chunk := src.read(1024 * 1024):
                           dst.write(chunk)
                   if target.stat().st_size < 1024:
@@ -218,7 +231,7 @@ jobs:
                   ],text=True).strip())
                   if durations[str(verse)] <= 0:
                       raise RuntimeError(f'Invalid duration for official verse {verse}.')
-                  print(f'CRC-read verified official member {member}: {target.stat().st_size} bytes, {durations[str(verse)]:.3f}s')
+                  print(f'CRC-read verified official member {zip_member}: {target.stat().st_size} bytes, {durations[str(verse)]:.3f}s')
 
           archive_path = inventory.get('archive_path')
           try:
