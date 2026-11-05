@@ -560,11 +560,13 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 filter_complex = (
                     "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
-                    "[3:v]format=rgba,fade=t=in:st=0:d=0.25:alpha=1,fade=t=out:st=1.2:d=0.4:alpha=1[intro];"
+                    # The cover owns the opening 1.6 seconds visually. Do not composite
+                    # the ayah artwork over it: that caused the cover title and verse text
+                    # to collide. Recitation still starts at t=0 under the cover; the verse
+                    # artwork appears only after the cover has fully cleared.
+                    "[3:v]format=rgba[intro];"
                     "[bg][intro]overlay=0:0:format=auto[covered];"
-                    # Keep the first ayah above the fading cover so its text is visible
-                    # from the exact instant its recitation begins.
-                    "[covered][2:v]overlay=0:0:format=auto[v]"
+                    "[covered][2:v]overlay=0:0:format=auto:enable='gte(t,1.6)'[v]"
                 )
             else:
                 filter_complex = (
