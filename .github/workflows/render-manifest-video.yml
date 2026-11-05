@@ -258,8 +258,8 @@ jobs:
               raise SystemExit(f"Expected 1080x1920, got {video.get('width')}x{video.get('height')}.")
           if video.get('r_frame_rate') != '30/1':
               raise SystemExit(f"Expected 30 fps, got {video.get('r_frame_rate')}.")
-          if duration > 65:
-              raise SystemExit(f"Review MP4 exceeds the hard 65-second limit: {duration:.2f}s.")
+          if duration > 40:
+              raise SystemExit(f"Review MP4 exceeds the hard 40-second limit: {duration:.2f}s.")
           if duration < 1:
               raise SystemExit(f"Review MP4 duration is invalid: {duration:.2f}s.")
           print(f'Validated review MP4: 1080x1920, 30 fps, audio present, {duration:.2f}s')
