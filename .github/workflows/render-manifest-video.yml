@@ -59,7 +59,7 @@ jobs:
           if 'Amiri' not in family or 'Bold' not in style or not path.endswith(('.ttf', '.otf')):
               raise SystemExit('Required Amiri Bold font is unavailable; refusing to render with a fallback font.')
           PY
-          pip install remotezip pillow
+          pip install remotezip pillow requests
           python --version
           ffmpeg -version | head -n 1
 
@@ -176,35 +176,48 @@ jobs:
                        '-of', 'default=nw=1:nk=1', str(target)], text=True).strip()
                   print(f'Verse {verse}: archive entry={matches[0]} duration={duration}s bytes={target.stat().st_size}')
           print('These are unmodified source clips for user listening review only; no production approval is implied.')
-          PY
-
-      - name: Prepare exact approved Ash-Sharh 94:5-6 audio
+           - name: Prepare exact approved Ash-Sharh 94:5-6 audio
         if: steps.selection.outputs.manifest == 'content/first_video.json'
         shell: bash
         run: |
+          python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
           python - <<'PY'
-          from remotezip import RemoteZip
           from pathlib import Path
-          import json, subprocess
-          url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
+          import json, subprocess, zipfile
+          from remotezip import RemoteZip
+
+          inventory = json.loads(Path('output/official_verse_audio_inventory.json').read_text(encoding='utf-8'))
+          if inventory.get('reciter_internal') != 'Maher Al-Muaiqly' or inventory.get('recitation') != 'Hafs':
+              raise SystemExit('Refusing audio source: expected Maher Al-Muaiqly, Hafs.')
+          if inventory.get('mapped_verse_count') != 6236:
+              raise SystemExit('Refusing incomplete official audio inventory.')
+          if inventory.get('expected_official_sha256') != '3edcc70407f9d19c972c002c69a43cc245a62a0fcc497d3c719406a69965e18e':
+              raise SystemExit('Pinned KFGQPC archive checksum mismatch.')
           work = Path('build/audio')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
-          with RemoteZip(url) as archive:
-              names = archive.namelist()
+          archive_path = inventory.get('archive_path')
+          archive_context = zipfile.ZipFile(archive_path) if archive_path else RemoteZip(inventory['source_url'])
+          with archive_context as archive:
               for verse in (5, 6):
-                  suffix = '10-094%03d-A08.mp3' % verse
-                  matches = [name for name in names if name.endswith(suffix)]
-                  if len(matches) != 1: raise RuntimeError('Expected exactly one official audio file for verse %s; found %s' % (verse, matches))
-                  target = work / ('verse_%02d.mp3' % verse)
-                  with archive.open(matches[0]) as src, target.open('wb') as dst:
-                      while True:
-                          chunk = src.read(1024 * 1024)
-                          if not chunk: break
+                  key = f'94:{verse}'
+                  member = inventory['verses'].get(key)
+                  if not member:
+                      raise RuntimeError(f'Missing exact official inventory entry for {key}.')
+                  target = work / f'verse_{verse:02d}.mp3'
+                  with archive.open(member) as src, target.open('wb') as dst:
+                      while chunk := src.read(1024 * 1024):
                           dst.write(chunk)
-                  durations[str(verse)] = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(target)],text=True).strip())
-          # Trim only long leading/trailing silence on each verse. Keep 100ms
-          # safety padding so quiet recitation endings are not clipped.
+                  if target.stat().st_size < 1024:
+                      raise RuntimeError(f'Audio member {member} is unexpectedly small.')
+                  durations[str(verse)] = float(subprocess.check_output([
+                      'ffprobe','-v','error','-show_entries','format=duration',
+                      '-of','default=nw=1:nk=1',str(target)
+                  ],text=True).strip())
+                  if durations[str(verse)] <= 0:
+                      raise RuntimeError(f'Invalid duration for official verse {verse}.')
+                  print(f'CRC-read verified official member {member}: {target.stat().st_size} bytes, {durations[str(verse)]:.3f}s')
+          # Trim only long leading/trailing silence; retain 100ms safety padding.
           for verse in (5, 6):
               source = work / ('verse_%02d.mp3' % verse)
               processed = work / ('processed_%02d.mp3' % verse)
@@ -214,10 +227,10 @@ jobs:
                   '-c:a','libmp3lame','-q:a','2',str(processed)
               ],check=True)
           concat = work / 'concat.txt'
-          concat.write_text("\n".join([
+          concat.write_text("\\n".join([
               "file '%s'" % (work / 'processed_05.mp3').resolve(),
               "file '%s'" % (work / 'processed_06.mp3').resolve(),
-          ]) + "\n", encoding='utf-8')
+          ]) + "\\n", encoding='utf-8')
           output = work / 'ash_sharh_94_5_6.mp3'
           subprocess.run(['ffmpeg','-hide_banner','-y','-f','concat','-safe','0','-i',str(concat),'-c:a','libmp3lame','-q:a','2',str(output)],check=True)
           manifest = json.loads(Path('content/first_video.json').read_text(encoding='utf-8'))
@@ -225,9 +238,9 @@ jobs:
           manifest['audio']['processed_verse_durations_seconds'] = durations
           manifest['audio']['inter_verse_silence_seconds'] = 0.02
           Path('build/first_video_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
-          print('Verified source verse durations:', json.dumps(durations,sort_keys=True))
-          print('Prepared approved continuous recitation; long leading/trailing silences trimmed with 100ms safety padding, no added inter-verse silence.')
+          print('Pinned KFGQPC archive verified; exact Maher Al-Muaiqly Hafs verses 94:5-6 prepared.')
           PY
+      PY
       - name: Render one or two review designs
         shell: bash
         env:
