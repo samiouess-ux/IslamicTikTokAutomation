@@ -56,10 +56,12 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
         for block in (guard, reserve, finalize, sync):
             self.assertIn("inputs.test_only != true", block)
 
-    def test_test_now_still_sends_review_video_to_telegram(self):
+    def test_test_now_never_sends_and_manual_send_requires_both_approvals(self):
         send = self.text[self.text.index("- name: Send one review-only video"):self.text.index("- name: Record Telegram-confirmed")]
-        self.assertIn("github.event_name == 'workflow_dispatch'", send)
         self.assertIn("src/send_telegram.py", send)
+        self.assertIn("github.event_name == 'workflow_dispatch'", send)
+        self.assertIn("inputs.test_only != true", send)
+        self.assertIn("inputs.send_to_telegram == true", send)
         self.assertIn("auto_publish", send)
 
     def test_telegram_send_is_review_only_and_never_tiktok_publish(self):
