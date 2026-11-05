@@ -10,6 +10,20 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, features
 
 
+MAX_VIDEO_SECONDS = 40.0
+
+
+def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS) -> None:
+    """Enforce the documented hard cap without truncating Quran recitation."""
+    if duration <= 0:
+        raise SystemExit("Video duration must be positive.")
+    if duration > maximum:
+        raise SystemExit(
+            f"Video duration {duration:.3f}s exceeds the {maximum:.0f}-second maximum; "
+            "select a shorter contiguous verse passage before rendering."
+        )
+
+
 def download(url: str, destination: Path) -> None:
     request = urllib.request.Request(url, headers={"User-Agent": "IslamicTikTokAutomation/1.0"})
     with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as out:
@@ -248,6 +262,7 @@ def main() -> None:
         "-of", "default=nw=1:nk=1", str(audio_file)
     ], text=True).strip()
     duration = float(duration_result)
+    validate_video_duration(duration)
 
     draw = (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
