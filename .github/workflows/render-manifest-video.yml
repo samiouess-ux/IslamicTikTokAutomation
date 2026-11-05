@@ -186,7 +186,8 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import json, subprocess, zipfile
-          from remotezip import RemoteZip
+          from remotezip import RemoteZip, RangeNotSupported
+          from build_official_audio_inventory import create_archive_session, download_verified_archive
 
           inventory = json.loads(Path('output/official_verse_audio_inventory.json').read_text(encoding='utf-8'))
           if inventory.get('reciter_internal') != 'Maher Al-Muaiqly' or inventory.get('recitation') != 'Hafs':
@@ -198,9 +199,7 @@ jobs:
           work = Path('build/audio')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
-          archive_path = inventory.get('archive_path')
-          archive_context = zipfile.ZipFile(archive_path) if archive_path else RemoteZip(inventory['source_url'])
-          with archive_context as archive:
+          def extract_selected_verses(archive):
               for verse in (5, 6):
                   key = f'94:{verse}'
                   member = inventory['verses'].get(key)
@@ -219,6 +218,25 @@ jobs:
                   if durations[str(verse)] <= 0:
                       raise RuntimeError(f'Invalid duration for official verse {verse}.')
                   print(f'CRC-read verified official member {member}: {target.stat().st_size} bytes, {durations[str(verse)]:.3f}s')
+
+          archive_path = inventory.get('archive_path')
+          try:
+              archive_context = zipfile.ZipFile(archive_path) if archive_path else RemoteZip(inventory['source_url'])
+              with archive_context as archive:
+                  extract_selected_verses(archive)
+          except RangeNotSupported:
+              if archive_path:
+                  raise
+              print('Mirror advertised range support but rejected ZIP range reads; falling back to a full checksum-verified archive download.')
+              session = create_archive_session()
+              try:
+                  archive_path = download_verified_archive(
+                      session, inventory['source_url'], work / 'kfgqpc_maher_verified.zip'
+                  )
+              finally:
+                  session.close()
+              with zipfile.ZipFile(archive_path) as archive:
+                  extract_selected_verses(archive)
           # Trim only long leading/trailing silence; retain 100ms safety padding.
           for verse in (5, 6):
               source = work / ('verse_%02d.mp3' % verse)
