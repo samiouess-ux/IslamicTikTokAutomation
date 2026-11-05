@@ -9,15 +9,15 @@ from render_video_scenes import validate_video_duration, validate_quran_audio_ap
 
 
 class VideoDurationTests(unittest.TestCase):
-    def test_exactly_65_seconds_is_allowed(self):
-        validate_video_duration(65.0)
+    def test_exactly_40_seconds_is_allowed(self):
+        validate_video_duration(40.0)
 
     def test_shorter_than_limit_is_allowed(self):
-        validate_video_duration(42.5)
+        validate_video_duration(39.5)
 
-    def test_over_65_seconds_is_rejected(self):
-        with self.assertRaisesRegex(SystemExit, "65-second maximum"):
-            validate_video_duration(65.001)
+    def test_over_40_seconds_is_rejected(self):
+        with self.assertRaisesRegex(SystemExit, "40-second maximum"):
+            validate_video_duration(40.001)
 
     def test_approved_reviewed_recording_passes(self):
         validate_quran_audio_approval({"approved": True, "exact_recording_user_reviewed": True, "rights_verified": True})
