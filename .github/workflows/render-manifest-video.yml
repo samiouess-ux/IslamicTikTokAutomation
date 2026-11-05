@@ -327,6 +327,32 @@ jobs:
               raise SystemExit(f'Comparison renders differ in duration: {durations}')
           PY
 
+      - name: Send verified review MP4 directly to Telegram
+        if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json'
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          COMPARE_DESIGNS: ${{ inputs.compare_designs }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${TG_BOT_TOKEN}" ] || [ -z "${TELEGRAM_CHAT_ID}" ]; then
+            echo "Telegram secrets TG_BOT_TOKEN / TELEGRAM_CHAT_ID are not configured." >&2
+            exit 1
+          fi
+          if [ "${COMPARE_DESIGNS}" = "true" ]; then
+            for video in output/review_classic.mp4 output/review_minimal.mp4; do
+              test -s "$video"
+              caption="${video%.mp4}.caption.json"
+              test -s "$caption"
+              python src/send_telegram.py --video "$video" --caption "$caption"
+            done
+          else
+            test -s output/review.mp4
+            test -s output/review.caption.json
+            python src/send_telegram.py --video output/review.mp4 --caption output/review.caption.json
+          fi
+
       - name: Upload Al-Ikhlas source audio for private listening review
         if: steps.selection.outputs.manifest == 'content/candidate_surah_al_ikhlas_112_1_4.json'
         uses: actions/upload-artifact@v4
@@ -338,6 +364,7 @@ jobs:
       - name: Upload review files (no publishing)
         if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json'
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: islamic-video-review
           path: |
