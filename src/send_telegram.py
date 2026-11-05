@@ -5,7 +5,7 @@ from pathlib import Path
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 
 def build_caption(data: dict) -> str:
-    parts = [str(data.get("arabic_caption", "")).strip(), " ".join(data.get("hashtags_ar", [])), str(data.get("english_caption", "")).strip(), " ".join(data.get("hashtags_en", [])), "للمراجعة فقط — لم يتم النشر على TikTok. النشر يدوي بعد مراجعتك."]
+    parts = ["🎬 QURAN PRO REVIEW — معاينة فيديو للمراجعة", str(data.get("arabic_caption", "")).strip(), " ".join(data.get("hashtags_ar", [])), str(data.get("english_caption", "")).strip(), " ".join(data.get("hashtags_en", [])), "للمراجعة فقط — لم يتم النشر على TikTok. النشر يدوي بعد مراجعتك."]
     caption = "\n\n".join(part for part in parts if part)
     if len(caption) > 1024: raise ValueError(f"Telegram caption exceeds 1024 characters ({len(caption)}).")
     return caption
