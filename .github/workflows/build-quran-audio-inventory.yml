@@ -49,7 +49,7 @@ on:
       send_to_telegram:
         description: 'Explicitly approve sending one review-only video to Telegram'
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
