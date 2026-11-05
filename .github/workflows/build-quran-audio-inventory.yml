@@ -42,7 +42,7 @@ on:
   workflow_dispatch:
     inputs:
       test_only:
-        description: 'TEST NOW: render and save a review-only preview artifact; never send Telegram'
+        description: 'TEST NOW: render a review-only preview; never send Telegram'
         required: false
         default: false
         type: boolean
@@ -280,8 +280,9 @@ jobs:
           print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
           PY
 
-      - name: Upload review-only Quran video preview artifacts
+      - name: Upload review-only Quran video preview artifacts (best effort)
         if: success()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: quran-review-only-previews-${{ github.run_number }}
