@@ -93,15 +93,18 @@ def open_audio_archive(inventory: dict):
         return
 
     source_url = inventory.get("source_url", DEFAULT_ARCHIVE)
+    remote_archive = None
     try:
-        with RemoteZip(source_url) as archive:
-            # Force the remote directory read here so RangeNotSupported is caught
-            # before any candidate audio is processed.
-            archive.namelist()
+        remote_archive = RemoteZip(source_url)
+        # Force the remote directory read here so RangeNotSupported is caught
+        # before any candidate audio is processed.
+        remote_archive.namelist()
+    except remotezip.RangeNotSupported:
+        remote_archive = None
+    else:
+        with remote_archive as archive:
             yield archive
         return
-    except remotezip.RangeNotSupported:
-        pass
 
     # Some official hosting endpoints do not implement HTTP byte ranges.
     # Download once to a temporary file, verify the ZIP central directory and
