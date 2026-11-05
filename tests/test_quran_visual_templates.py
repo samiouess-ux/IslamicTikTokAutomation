@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from PIL import Image, ImageChops
-from render_video_scenes import create_arabic_overlay
+from render_video_scenes import (MAX_VIDEO_SECONDS, OPENING_COVER_SECONDS, OPENING_COVER_FADE_SECONDS, create_arabic_overlay, create_opening_cover)
 from validate_content_manifest import validate_content_manifest
 
 
@@ -23,6 +23,24 @@ class QuranTemplateTests(unittest.TestCase):
             for i in range(len(images)):
                 for j in range(i + 1, len(images)):
                     self.assertIsNotNone(ImageChops.difference(images[i].convert("RGB"), images[j].convert("RGB")).getbbox())
+
+    def test_opening_cover_has_required_content_and_dimensions(self):
+        source = {"surah_name_ar": "الشرح"}
+        verses = [{"number": 5}, {"number": 6}]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "opening_cover.png"
+            create_opening_cover(source, verses, path)
+            image = Image.open(path).convert("RGBA")
+            self.assertEqual(image.size, (1080, 1920))
+            self.assertIsNotNone(image.getchannel("A").getbbox())
+            self.assertEqual(MAX_VIDEO_SECONDS, 40.0)
+            self.assertEqual(OPENING_COVER_SECONDS, 1.6)
+            self.assertEqual(OPENING_COVER_FADE_SECONDS, 0.4)
+
+    def test_opening_cover_refuses_missing_surah_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with self.assertRaisesRegex(SystemExit, "exact Arabic surah name"):
+                create_opening_cover({}, [{"number": 1}], Path(directory) / "cover.png")
 
     def test_new_templates_require_explicit_approval(self):
         manifest = {
