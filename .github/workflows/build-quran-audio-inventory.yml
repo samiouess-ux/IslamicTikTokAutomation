@@ -285,18 +285,6 @@ jobs:
           print(f"Rendered {report['preview_count']} distinct-surah 9:16 review-only previews.")
           PY
 
-      - name: Upload review-only Quran video preview artifacts (best effort)
-        if: success()
-        continue-on-error: true
-        uses: actions/upload-artifact@v4
-        with:
-          name: quran-review-only-previews-${{ github.run_number }}
-          path: |
-            output/quran_review_previews/*.mp4
-            output/quran_review_previews/preview_report.json
-            output/quran_review_previews/**/opening_cover.png
-          if-no-files-found: error
-          retention-days: 7
       - name: Download and prepare review-only background crop previews with actual Quran overlay
         run: |
           overlay_frame="$(find output/quran_review_previews -type f -name 'ayah_*.png' | sort | head -n 1)"
