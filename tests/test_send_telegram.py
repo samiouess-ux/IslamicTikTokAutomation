@@ -7,7 +7,7 @@ from send_telegram import MAX_VIDEO_BYTES, build_caption, send_video
 class TelegramDeliveryTests(unittest.TestCase):
     def test_caption_is_bilingual_and_review_only(self):
         caption = build_caption({"arabic_caption":"سورة الإخلاص","english_caption":"Surah Al-Ikhlas","hashtags_ar":["#القرآن"],"hashtags_en":["#Quran"]})
-        self.assertIn("سورة الإخلاص", caption); self.assertIn("Surah Al-Ikhlas", caption); self.assertIn("لم يتم النشر على TikTok", caption)
+        self.assertIn("🎬 QURAN PRO REVIEW", caption); self.assertIn("سورة الإخلاص", caption); self.assertIn("Surah Al-Ikhlas", caption); self.assertIn("لم يتم النشر على TikTok", caption)
     def test_caption_over_limit_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "1024"): build_caption({"english_caption":"x" * 1100})
     def test_missing_credentials_fail_before_network(self):
