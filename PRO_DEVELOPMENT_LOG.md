@@ -78,3 +78,38 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - Do not merge Pro into production without explicit user approval.
 - Do not trigger Actions or send Telegram review videos without explicit user approval for that run.
 - Log every code change, test, workflow run, artifact/delivery result, failure, and approval in this file.
+
+
+## 2026-11-05 — Development milestone 1: opening cover and duration gate
+
+### Changes committed to Pro
+- `src/render_video_scenes.py`
+  - Added a separate 1080×1920 Arabic opening-cover overlay.
+  - Cover includes “القرآن الكريم”, the manifest's Arabic surah name, and the exact selected verse/range rendered with Arabic-Indic numerals.
+  - Cover uses a restrained translucent dark panel and gold framing.
+  - Cover fades out from 1.2s to 1.6s.
+  - The existing audio remains mapped from input 1 without a new delay, inserted silence, speed change, or audio filter.
+  - Renderer maximum duration is now 40 seconds.
+- `.github/workflows/render-manifest-video.yml`
+  - MP4 technical validation now rejects durations above 40 seconds, matching the design specification.
+- `tests/test_quran_visual_templates.py`
+  - Added checks for opening-cover creation, 1080×1920 dimensions, required timing constants, and refusal when the Arabic surah name is missing.
+
+### Commits
+- Renderer: `eac695aee000a1e22dcbf4501ae437d408501866`
+- Workflow duration gate: `04eb08b0f7159c6f839a90f142a6b71e47d800e8`
+- Opening-cover tests: `30130543311fa96c14b0e03d928058388175fe85`
+
+### Validation and limitations
+- GitHub source re-fetch confirmed the renderer contains the new cover path and 40-second cap, the workflow contains the 40-second MP4 gate, and the tests contain the new cover checks.
+- Unit tests have **not** been executed.
+- No render or MP4 visual/audio inspection has been performed.
+- No GitHub Actions run was triggered.
+- No Telegram message was sent.
+- The cover's appearance, alpha fade behavior, and exact synchronization must be verified in a real rendered review MP4 before this milestone can be accepted.
+- This milestone does not yet implement the four-background rotation or a genuinely redesigned verse-screen layout.
+
+### Current status
+- Code committed to `feature/quran-video-pro` only.
+- Production branch, Cron, secrets, and publishing configuration remain untouched.
+- Milestone status: **implemented, awaiting automated and visual validation**.
