@@ -72,7 +72,7 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
 
 
     def test_manual_telegram_send_requires_explicit_approval_and_not_test_mode(self):
-        dispatch = self.text[self.text.index("  workflow_dispatch:"):self.text.index("\\npermissions:")]
+        dispatch = self.text[self.text.index("  workflow_dispatch:"):self.text.index("\npermissions:")]
         self.assertIn("send_to_telegram:", dispatch)
         self.assertIn("default: false", dispatch)
         send = self.text[self.text.index("- name: Send one review-only video to Telegram"):self.text.index("- name: Record Telegram-confirmed")]
@@ -80,7 +80,7 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
         self.assertIn("inputs.send_to_telegram == true", send)
 
     def test_test_now_description_promises_no_telegram_delivery(self):
-        dispatch = self.text[self.text.index("  workflow_dispatch:"):self.text.index("\\npermissions:")]
+        dispatch = self.text[self.text.index("  workflow_dispatch:"):self.text.index("\npermissions:")]
         self.assertIn("TEST NOW: render a review-only preview; never send Telegram", dispatch)
 
 
