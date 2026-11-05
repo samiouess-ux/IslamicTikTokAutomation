@@ -216,8 +216,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 if "-loop" in call.args[0]
             )
             filter_text = " ".join(first_render_command)
-            self.assertIn("[bg][intro]overlay=0:0:format=auto[covered]", filter_text)
-            self.assertIn("[covered][2:v]overlay=0:0:format=auto:enable='gte(t,1.6)'[v]", filter_text)
+            self.assertIn("[bg][intro]overlay=0:0:format=auto:enable='lt(t,0.6)'[covered]", filter_text)
+            self.assertIn("[covered][2:v]overlay=0:0:format=auto:enable='gte(t,0.6)'[v]", filter_text)
             self.assertNotIn("fade=t=", filter_text)
             self.assertLess(filter_text.index("[bg][intro]overlay"), filter_text.index("[covered][2:v]overlay"))
             self.assertIn("-crf 23", " ".join(first_render_command))
