@@ -240,7 +240,6 @@ jobs:
           Path('build/first_video_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
           print('Pinned KFGQPC archive verified; exact Maher Al-Muaiqly Hafs verses 94:5-6 prepared.')
           PY
-      PY
       - name: Render one or two review designs
         shell: bash
         env:
