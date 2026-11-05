@@ -23,6 +23,10 @@ class QuranTemplateTests(unittest.TestCase):
             for i in range(len(images)):
                 for j in range(i + 1, len(images)):
                     self.assertIsNotNone(ImageChops.difference(images[i].convert("RGB"), images[j].convert("RGB")).getbbox())
+            # The overall artwork bounds must also differ: color-only changes
+            # are not sufficient evidence of distinct visual compositions.
+            composition_bounds = [image.getchannel("A").getbbox() for image in images]
+            self.assertEqual(len(set(composition_bounds)), len(composition_bounds))
 
     def test_opening_cover_has_required_content_and_dimensions(self):
         source = {"surah_name_ar": "الشرح"}
