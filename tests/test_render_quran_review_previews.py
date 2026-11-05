@@ -215,7 +215,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 call.args[0] for call in run.call_args_list
                 if "-loop" in call.args[0]
             )
-            self.assertIn("fade=t=out:st=1.2:d=0.4:alpha=1", " ".join(first_render_command))
+            filter_text = " ".join(first_render_command)
+            self.assertIn("fade=t=in:st=0:d=0.25:alpha=1", filter_text)
+            self.assertIn("fade=t=out:st=1.2:d=0.4:alpha=1", filter_text)
             self.assertIn("-crf 23", " ".join(first_render_command))
             self.assertIn("-maxrate 6M", " ".join(first_render_command))
             self.assertIn("-bufsize 12M", " ".join(first_render_command))
