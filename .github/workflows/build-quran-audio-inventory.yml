@@ -46,6 +46,11 @@ on:
         required: false
         default: false
         type: boolean
+      send_to_telegram:
+        description: 'Explicitly approve sending one review-only video to Telegram'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -57,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Block automatic sends when a previous Telegram outcome is unresolved
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true)
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true)
         run: python src/quran_delivery_attempt.py guard --pending data/quran_delivery_pending.json
       - uses: actions/setup-python@v5
         with:
@@ -316,7 +321,7 @@ jobs:
           print("Prepared four verified source downloads, 9:16 crops, and actual Quran-overlay legibility previews; none is production-approved.")
           PY
       - name: Reserve Telegram delivery attempt before sending
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true)
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true)
         run: |
           python src/quran_delivery_attempt.py reserve \
             --pending data/quran_delivery_pending.json \
@@ -334,7 +339,7 @@ jobs:
 
       - name: Send one review-only video to Telegram for manual approval
         id: telegram_send
-        if: (github.event_name == 'workflow_dispatch' && inputs.test_only != true) || github.event_name == 'schedule'
+        if: (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true) || github.event_name == 'schedule'
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -375,7 +380,7 @@ jobs:
           PY
 
       - name: Record Telegram-confirmed Quran delivery history
-        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true))
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true))
         run: |
           python - <<'PY'
           import json
@@ -402,14 +407,14 @@ jobs:
           git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery and clear reservation"
 
       - name: Sync confirmed Quran delivery history to active branch
-        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true))
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true))
         run: |
           git fetch origin feature/telegram-review-notifications
           git rebase origin/feature/telegram-review-notifications
           git push origin HEAD:refs/heads/feature/telegram-review-notifications
 
       - name: Notify Telegram if video preparation or delivery fails
-        if: failure() && steps.telegram_send.outcome != 'success' && ((github.event_name == 'workflow_dispatch' && inputs.test_only != true) || github.event_name == 'schedule')
+        if: failure() && steps.telegram_send.outcome != 'success' && ((github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true) || github.event_name == 'schedule')
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
