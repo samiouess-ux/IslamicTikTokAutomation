@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from zipfile import ZipFile
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -26,6 +27,32 @@ class FakeArchive:
 
 
 class QuranBatchAudioTests(unittest.TestCase):
+    def test_downloads_and_verifies_archive_when_server_rejects_range_requests(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_zip = root / "source.zip"
+            with ZipFile(source_zip, "w") as archive:
+                archive.writestr("audio/001.mp3", b"official-audio")
+            def fake_download(url, destination):
+                module.shutil.copyfile(source_zip, destination)
+                return str(destination), None
+
+            with patch.object(module, "RemoteZip", side_effect=module.remotezip.RangeNotSupported), \\
+                 patch.object(module.urllib.request, "urlretrieve", side_effect=fake_download):
+                with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}) as archive:
+                    self.assertEqual(archive.namelist(), ["audio/001.mp3"])
+                    self.assertEqual(archive.read("audio/001.mp3"), b"official-audio")
+
+    def test_rejects_corrupt_fallback_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            corrupt_zip = Path(tmp) / "corrupt.zip"
+            corrupt_zip.write_bytes(b"not-a-zip")
+            with patch.object(module, "RemoteZip", side_effect=module.remotezip.RangeNotSupported), \\
+                 patch.object(module.urllib.request, "urlretrieve", side_effect=lambda url, path: module.shutil.copyfile(corrupt_zip, path)):
+                with self.assertRaisesRegex(ValueError, "archive is invalid"):
+                    with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}):
+                        self.fail("A corrupt archive must never be yielded")
+
     def test_resolves_manifest_member_with_mojibake_directory_by_unique_basename(self):
         actual = "ayat-12-1-2020/045 Al-Jathiyah العربية/10-045001-A08.mp3"
         requested = "ayat-12-1-2020/045 Al-Jathiyah \ufffd\ufffd/10-045001-A08.mp3"
