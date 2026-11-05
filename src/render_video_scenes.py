@@ -201,6 +201,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", default="output/review.mp4")
+    parser.add_argument("--template", choices=("ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"), default=None,
+                        help="Review-only visual override; does not modify the source manifest.")
+    parser.add_argument("--reuse-background", action="store_true",
+                        help="Reuse build/background.mp4 from the immediately preceding comparison render.")
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest)
@@ -213,7 +217,7 @@ def main() -> None:
 
     # Template selection is manifest-driven. Keep the approved design as the
     # only enabled template until another design is separately reviewed.
-    template = visual.get("template", "ornate_gold_classic")
+    template = args.template or visual.get("template", "ornate_gold_classic")
     supported_templates = {"ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"}
     if template not in supported_templates:
         raise SystemExit(
@@ -255,6 +259,8 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     audio_file = Path(audio["production_audio_file"])
     bg_file = work / "background.mp4"
+    if args.reuse_background and not bg_file.is_file():
+        raise SystemExit("--reuse-background requested but build/background.mp4 does not exist.")
     if not audio_file.is_file():
         raise SystemExit(f"Approved audio file missing: {audio_file}")
     scenes = [{"scene": i, "verses": [n]} for i, n in enumerate(verse_numbers, 1)]
@@ -275,7 +281,8 @@ def main() -> None:
     if set(verse_durations) != set(verse_numbers):
         raise SystemExit("Processed verse timing data is incomplete.")
     inter_verse_gap = float(audio.get("inter_verse_silence_seconds", 0.05))
-    download(background_url, bg_file)
+    if not args.reuse_background:
+        download(background_url, bg_file)
 
     # Scene boundaries use the approved processed verse durations.
     scene_boundaries = []
