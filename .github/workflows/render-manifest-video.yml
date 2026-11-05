@@ -176,7 +176,7 @@ jobs:
                        '-of', 'default=nw=1:nk=1', str(target)], text=True).strip()
                   print(f'Verse {verse}: archive entry={matches[0]} duration={duration}s bytes={target.stat().st_size}')
           print('These are unmodified source clips for user listening review only; no production approval is implied.')
-           - name: Prepare exact approved Ash-Sharh 94:5-6 audio
+      - name: Prepare exact approved Ash-Sharh 94:5-6 audio
         if: steps.selection.outputs.manifest == 'content/first_video.json'
         shell: bash
         run: |
@@ -227,10 +227,10 @@ jobs:
                   '-c:a','libmp3lame','-q:a','2',str(processed)
               ],check=True)
           concat = work / 'concat.txt'
-          concat.write_text("\\n".join([
+          concat.write_text("\n".join([
               "file '%s'" % (work / 'processed_05.mp3').resolve(),
               "file '%s'" % (work / 'processed_06.mp3').resolve(),
-          ]) + "\\n", encoding='utf-8')
+          ]) + "\n", encoding='utf-8')
           output = work / 'ash_sharh_94_5_6.mp3'
           subprocess.run(['ffmpeg','-hide_banner','-y','-f','concat','-safe','0','-i',str(concat),'-c:a','libmp3lame','-q:a','2',str(output)],check=True)
           manifest = json.loads(Path('content/first_video.json').read_text(encoding='utf-8'))
