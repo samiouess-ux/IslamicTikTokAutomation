@@ -37,7 +37,7 @@ class QuranBatchAudioTests(unittest.TestCase):
                 module.shutil.copyfile(source_zip, destination)
                 return str(destination), None
 
-            with patch.object(module, "RemoteZip", side_effect=module.remotezip.RangeNotSupported), \\
+            with patch.object(module, "RemoteZip", side_effect=module.remotezip.RangeNotSupported), \
                  patch.object(module.urllib.request, "urlretrieve", side_effect=fake_download):
                 with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}) as archive:
                     self.assertEqual(archive.namelist(), ["audio/001.mp3"])
@@ -47,7 +47,7 @@ class QuranBatchAudioTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             corrupt_zip = Path(tmp) / "corrupt.zip"
             corrupt_zip.write_bytes(b"not-a-zip")
-            with patch.object(module, "RemoteZip", side_effect=module.remotezip.RangeNotSupported), \\
+            with patch.object(module, "RemoteZip", side_effect=module.remotezip.RangeNotSupported), \
                  patch.object(module.urllib.request, "urlretrieve", side_effect=lambda url, path: module.shutil.copyfile(corrupt_zip, path)):
                 with self.assertRaisesRegex(ValueError, "archive is invalid"):
                     with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}):
