@@ -990,3 +990,11 @@ Re-fetched and inspected the current versions of:
 - All work stayed on `feature/quran-video-pro`. No changes to `main` or `feature/telegram-review-notifications`, original Quran code, active production workflow, Telegram secrets, bot settings, Cron, or schedule.
 - No Actions workflow was dispatched; no tests, render, Telegram API request, TikTok publish, or secret access occurred. Eight-suite Pro safety workflow remains NOT RUN. The changes are source-level guards; runtime Actions behavior has not been exercised.
 - Next: verify the complete 21-file workflow matrix, then address the preview-test fixture and remaining Pro delivery gates separately. Do not create or dispatch a Pro Telegram delivery workflow or send a preview without separate explicit authorization.
+
+
+## 2026-11-06 — Preview fixture correction and complete workflow guard matrix
+- Corrected `tests/test_send_pro_preview_telegram.py::manifest()` by adding the required top-level `source` object (Quran.com / Al-Baqarah 2:201). Commit: `4c9f25c36765a4fe97f1e448345e790bcd7c98e2`; re-fetch verified blob `da477d948c62dc57d4b95815435098569687553b`. This repairs the statically identified fixture/validator mismatch; tests were not run.
+- Cross-check of the 21 workflow files on this Pro branch: 18 legacy workflows now have a job-level condition that skips their job when `github.ref` is `refs/heads/feature/quran-video-pro`; `inspect-official-audio.yml` already had the same Pro-blocking condition; `pro-safety-tests-manual.yml` retains its exact Pro-only gate; `telegram-quran-request.yml` remains explicitly limited to `feature/telegram-review-notifications`. This is a static configuration check, not an Actions execution test.
+- The original production branch/workflow, Telegram bot credentials, schedule, Cron and delivery path remain untouched. No secret values were read or changed.
+- No tests were run, no workflow was dispatched, no render or Telegram request occurred, and no TikTok publish occurred. The eight-suite Pro safety workflow remains NOT RUN.
+- Next: continue with a separate Pro-only preview-delivery design. Keep candidate rendering, Telegram send, and TikTok publishing as distinct approval gates. Do not create or dispatch an active delivery path or send a preview until the exact action is separately authorized.
