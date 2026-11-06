@@ -725,3 +725,10 @@ Inspected `src/pro_orchestrator.py`, `src/render_dua_video.py`, `src/validate_co
 - Wire the preview delivery separately from production delivery; never silently relax the existing production validator.
 
 No code changed in this step. No render, Telegram send, or TikTok publication occurred. This is now a documented blocker and next implementation task.
+
+
+## 2026-11-06 — Corrected stale duration test
+
+Code inspection found a mismatch: `src/render_dua_video.py` defines both target and hard maximum as 40 seconds, while `tests/test_render_dua_video.py` still asserted 60/65 seconds. Updated the regression to assert 40/40 and reject a 41-second item. Commit: `8ae136c9434fe822786950a287a8bb495a52cf42`.
+
+No renderer code changed. Offline tests have not yet been rerun after this commit. No render or Telegram send occurred.
