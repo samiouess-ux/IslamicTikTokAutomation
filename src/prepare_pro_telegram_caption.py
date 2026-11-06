@@ -20,6 +20,9 @@ def main() -> None:
         raise SystemExit("Pro caption accepts dua/dhikr only.")
     if data.get("publishing", {}).get("auto_publish", False):
         raise SystemExit("TikTok auto-publishing is disabled.")
+    manifest_id = data.get("id")
+    if not isinstance(manifest_id, str) or not manifest_id.strip():
+        raise SystemExit("Pro manifest must include a stable id for delivery-ledger protection.")
     items = data["items"]
     arabic = "\n".join(item["arabic"] for item in items)
     english = "\n".join(
@@ -27,6 +30,7 @@ def main() -> None:
         if isinstance(item.get("english"), str) and item["english"].strip()
     )
     payload = {
+        "manifest_id": manifest_id,
         "content_type": content_type,
         "review_only": True,
         "auto_publish": False,
