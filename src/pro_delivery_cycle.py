@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Callable
 
-from persist_pro_ledger import persist_ledger
+from persist_pro_ledger import LEDGER_RELATIVE_PATH, persist_ledger
 from pro_delivery_ledger import reserve
 from send_pro_telegram import send_video
 
@@ -32,6 +32,14 @@ def run_delivery_cycle(
     uncertain state before propagating the error. If that persistence fails,
     the already-pushed reserved state remains a duplicate-send block.
     """
+    repo_path = repo_path.resolve()
+    ledger_path = ledger_path.resolve()
+    expected_ledger = (repo_path / LEDGER_RELATIVE_PATH).resolve()
+    if ledger_path != expected_ledger:
+        raise ValueError(
+            f"Ledger path must match the persisted Pro branch file: {expected_ledger}"
+        )
+
     caption_data = json.loads(caption_path.read_text(encoding="utf-8"))
     manifest_id = caption_data.get("manifest_id")
     content_type = caption_data.get("content_type")
@@ -44,7 +52,10 @@ def run_delivery_cycle(
 
     # Phase 1: reserve locally, then commit/push before any Telegram request.
     reserve_fn(ledger_path, manifest_id, content_type, run_id)
-    persist_fn(repo_path)
+    if persist_fn(repo_path) is not True:
+        raise RuntimeError(
+            "Reservation ledger was not committed and pushed; refusing Telegram request."
+        )
 
     # Phase 2: sender requires the exact persisted reservation for this run.
     try:
@@ -61,7 +72,8 @@ def run_delivery_cycle(
         try:
             # Sender records an ambiguous outcome as uncertain. Persist it.
             # If this push fails, the previously pushed reserved entry still blocks duplicates.
-            persist_fn(repo_path)
+            if persist_fn(repo_path) is not True:
+                raise RuntimeError("Outcome ledger was not committed and pushed.")
         except Exception as persistence_error:
             raise RuntimeError(
                 "Telegram outcome is not confirmed and outcome-ledger persistence failed; "
@@ -70,7 +82,11 @@ def run_delivery_cycle(
         raise send_error
 
     # A failure here leaves the already-persisted reserved entry blocking duplicates.
-    persist_fn(repo_path)
+    if persist_fn(repo_path) is not True:
+        raise RuntimeError(
+            "Delivery outcome ledger was not committed and pushed; "
+            "the prior reservation remains blocking."
+        )
     return result
 
 
