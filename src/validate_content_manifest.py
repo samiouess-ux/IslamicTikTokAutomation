@@ -13,7 +13,7 @@ CONTENT_TYPES = {"quran", "dua", "dhikr"}
 AUDIO_KINDS = {"quran_recitation", "spoken_dua", "ambient_nature", "silent"}
 
 
-def validate_content_manifest(data: dict[str, Any]) -> None:
+def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: bool = False) -> None:
     if not isinstance(data, dict):
         raise SystemExit("Manifest must be a JSON object.")
 
@@ -90,6 +90,17 @@ def validate_content_manifest(data: dict[str, Any]) -> None:
             if not isinstance(verse.get("english"), str) or not verse["english"].strip():
                 raise SystemExit("Every Quran verse needs its verified translation.")
     else:
+        preview_candidate = (
+            allow_candidate_preview is True
+            and data.get("lifecycle_status") == "candidate_preview"
+            and data.get("preview_only") is True
+        )
+        if data.get("lifecycle_status") == "candidate_preview" and not preview_candidate:
+            raise SystemExit("Candidate preview is accepted only by the explicit preview-only validator path.")
+        if data.get("lifecycle_status") == "production_approved" and data.get("preview_only") is True:
+            raise SystemExit("A preview-only candidate cannot be marked production-approved.")
+        if not preview_candidate and data.get("lifecycle_status", "production_approved") != "production_approved":
+            raise SystemExit("Dua/dhikr lifecycle_status must be candidate_preview or production_approved.")
         if not data.get("items") or not isinstance(data["items"], list):
             raise SystemExit("Dua/dhikr manifest must contain sourced items.")
         seen_item_ids: set[str] = set()
@@ -107,7 +118,8 @@ def validate_content_manifest(data: dict[str, Any]) -> None:
             if item.get("verification_status") != "verified":
                 raise SystemExit("Dua/dhikr item is not marked as source-verified.")
             if item.get("human_reviewed") is not True:
-                raise SystemExit("Dua/dhikr item requires explicit human review before production.")
+                if not (preview_candidate and item.get("human_reviewed") is False):
+                    raise SystemExit("Dua/dhikr item requires explicit human review before production.")
             if item.get("kind") not in {"quranic_dua", "prophetic_dua", "dhikr", "general_supplication"}:
                 raise SystemExit("Dua/dhikr item kind must be explicitly classified.")
             repeat_count = item.get("repeat_count")
