@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import date
@@ -86,8 +87,8 @@ def build_preview_plan(manifest_path: Path) -> dict:
     if total > HARD_MAX_DURATION_SECONDS:
         raise SystemExit(f"Preview exceeds the {HARD_MAX_DURATION_SECONDS:.0f}-second hard limit.")
     manifest_id = manifest.get("id")
-    if not isinstance(manifest_id, str) or not manifest_id.strip():
-        raise SystemExit("Preview candidate has no stable id.")
+    if not isinstance(manifest_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", manifest_id):
+        raise SystemExit("Preview candidate id must be a safe filename component (1-80 ASCII letters, digits, dot, underscore or hyphen).")
     return {"content_type": manifest["content_type"], "manifest": str(manifest_path),
             "content_id": manifest_id, "item_ids": [item["id"] for item in manifest["items"]],
             "lifecycle_status": "candidate_preview", "preview_only": True}
