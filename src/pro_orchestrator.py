@@ -10,6 +10,7 @@ from pathlib import Path
 
 from content_rotation import choose_manifests
 from validate_content_manifest import validate_content_manifest
+from render_dua_video import HARD_MAX_DURATION_SECONDS
 
 
 def read_json(path: Path) -> dict:
@@ -46,8 +47,12 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
         if manifest.get("rotation_approved") is not True:
             raise SystemExit(f"Manifest is not approved for rotation: {manifest_path}")
         validate_content_manifest(manifest)
-        if len(manifest["items"]) != 1:
-            raise SystemExit(f"Each Pro video manifest must contain exactly one item: {manifest_path}")
+        durations = [item.get("duration_seconds") for item in manifest["items"]]
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0 for value in durations):
+            raise SystemExit(f"Every Pro item needs an explicit positive duration_seconds: {manifest_path}")
+        total_duration = sum(float(value) for value in durations)
+        if total_duration > HARD_MAX_DURATION_SECONDS:
+            raise SystemExit(f"Pro manifest exceeds the {HARD_MAX_DURATION_SECONDS:.0f}-second hard limit: {manifest_path}")
         publishing = manifest["publishing"]
         if publishing.get("approval_required") is not True or publishing.get("auto_publish", False):
             raise SystemExit(f"Manual review must be required and auto-publish disabled: {manifest_path}")
@@ -58,7 +63,7 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
             "content_type": content_type,
             "manifest": str(manifest_path),
             "content_id": manifest_id,
-            "item_id": manifest["items"][0]["id"],
+            "item_ids": [item["id"] for item in manifest["items"]],
         })
         recent.append(manifest_id)
     return plan
@@ -70,7 +75,7 @@ def render_plan(plan: list[dict], output_dir: Path) -> list[dict]:
     for entry in plan:
         output = output_dir / f"{entry['content_type']}-{entry['content_id']}.mp4"
         subprocess.run([
-            sys.executable, "src/render_dua_dhikr.py",
+            sys.executable, "src/render_dua_video.py",
             "--manifest", entry["manifest"], "--output", str(output)
         ], check=True)
         if not output.is_file() or output.stat().st_size == 0:
