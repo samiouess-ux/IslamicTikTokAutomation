@@ -420,3 +420,28 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - No Pro workflow was created or dispatched in this step.
 - No Pro content was fabricated; no Telegram delivery occurred.
 - Production Quran branch, production workflow, Cron, secrets, and Telegram route remain untouched.
+
+
+## 2026-11-06 — Pre-persisted reservation sender mode
+
+### Implemented on Pro only
+- Added `assert_reserved_for_run()` to `src/pro_delivery_ledger.py`. It requires an existing `reserved` entry with matching manifest ID, content type, and workflow run ID.
+- Updated `src/send_pro_telegram.py` with an explicit `--reservation-persisted` mode. In that mode it verifies the pre-existing reservation and does not create a new local reservation before Telegram. The default local mode remains for isolated sender tests.
+- Added tests for reservation ownership/type validation, refusal before Telegram on a mismatched run, and successful use of a matching pre-persisted reservation.
+
+### Commits
+- Ledger assertion helper: `ece3e90accf93ee3e00ab8f4c14612a850eb90db`
+- Sender pre-persisted mode: `49d3b98e5793967761296b2168395c804bb88183`
+- Ledger tests: `921bc92fb516aae13b53873965016ce77a29d8b1`
+- Sender tests: `c6ceb17c9daf76e4e1153484004754cca8f05cef`
+
+### Explicit-ref verification
+- Re-fetched the four changed files from `feature/quran-video-pro`; current blob SHAs: ledger `6466ba9faee6c8c76dec47a216aac9818f4f5314`, sender `85667384593044f4fecb8e3306c2c1199edcf35d`, ledger tests `3002c1b102acc4391d71cd0513561f86c6d5347c`, sender tests `11357c3ae85e74d65e29b37e67133d77f453b151`.
+- Re-fetched the persistence design and both project docs from the Pro branch.
+- Rechecked production: both ledger source and ledger test remain absent from `feature/telegram-review-notifications`.
+
+### Not yet validated / remaining
+- Tests have NOT been executed. No workflow helper or Pro workflow has been added yet.
+- The pre-persisted mode is only a code capability; no actual branch reservation commit/push protocol is wired in.
+- No Actions workflow was dispatched, no render or Telegram request occurred, and no secrets were read or changed.
+- Next: add and test a narrow helper that commits only `data/pro_delivery_ledger.json` on the exact Pro branch, then add the dormant manual-only workflow after reviewing the helper and its failure behavior.
