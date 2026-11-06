@@ -75,6 +75,18 @@ class ProDeliveryCycleTests(unittest.TestCase):
         self.assertEqual(persist_mock.call_count, 2)
         self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "uncertain")
 
+    def test_uncertain_outcome_persistence_failure_keeps_cycle_blocked(self):
+        persist_mock = mock.Mock(side_effect=[True, RuntimeError("uncertain push failed")])
+
+        def fake_send(*args, **kwargs):
+            transition(self.ledger, "dua-cycle-1", "uncertain")
+            raise TimeoutError("ambiguous Telegram timeout")
+
+        with self.assertRaisesRegex(RuntimeError, "outcome-ledger persistence failed"):
+            self.run_cycle(persist_fn=persist_mock, send_fn=fake_send)
+        self.assertEqual(persist_mock.call_count, 2)
+        self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "uncertain")
+
     def test_success_persists_before_and_after_sender(self):
         events = []
 
