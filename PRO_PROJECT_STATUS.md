@@ -85,3 +85,23 @@
 - No reviewed Pro production manifest exists yet. Content intake remains blocked until exact Arabic, named primary source, precise reference, classification, verification, human review, hadith grading where applicable, media rights, and duration are checked.
 - Tests remain NOT RUN. The manual-only safety workflow remains undispatched. No delivery workflow, render, Telegram request, or TikTok publish has been started.
 - Latest development log update: `1fcd1385fb16bd0ef3a3197b68b8678523778dd0`.
+
+
+## 2026-11-06 — Offline Pro safety suite executed successfully
+
+This section supersedes earlier historical statements in this file that the current offline suite had not yet run.
+
+- User approved running the offline-only safety suite.
+- The manual workflow was registered on the repository default branch so GitHub would expose the workflow_dispatch entry, while the workflow itself checks out and tests only `feature/quran-video-pro`.
+- Registration commit on `feature/telegram-review-notifications`: `5b10d89407e2399c219271bb03f6db6f142c6969`. This was the only change on that branch for this setup; no production code, production workflow, Cron, secrets, or sender route was changed.
+- Workflow run: `42259731118`; result: `completed / success`.
+- Job `Pro-only offline safety tests` completed successfully. The branch guard, exact Pro checkout, Python setup, and combined test step all reported success.
+- The combined test step ran all four suites: `test_pro_delivery_ledger.py`, `test_send_pro_telegram.py`, `test_persist_pro_ledger.py`, and `test_pro_delivery_cycle.py`.
+- Run URL: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/42259731118
+- This was offline validation only. No MP4 render, Telegram API request, content delivery, or TikTok publishing occurred.
+- Content status remains unchanged: `content/pro` contains only its README; no reviewed dua/dhikr manifest exists. Delivery workflow and schedule remain absent; Telegram delivery remains disabled.
+
+## Next safe work
+1. Review trusted primary-source candidates and define a source-by-source content review record; do not mark content verified without human/source verification.
+2. Add only reviewed, individually approved dua/dhikr manifests to `content/pro`.
+3. Keep delivery workflow integration blocked until reviewed content exists and cross-run ledger persistence is implemented and reviewed.
