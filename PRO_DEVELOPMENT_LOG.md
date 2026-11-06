@@ -381,7 +381,7 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 -### Production cleanup completed (2026-11-06)
 - Deleted `tests/test_pro_delivery_ledger.py` from `feature/telegram-review-notifications` using the approved GitHub contents deletion operation.
 - Deletion commit: `980d8c88114b40272d537735e0e923d2c0e2ca01`.
-- Verified by explicit-ref fetch: `tests/test_pro_delivery_ledger.py` and `src/pro_delivery_ledger.py` both return 404 on production; both are also absent on `feature/quran-video-pro`.
+- Verified by explicit-ref fetch immediately after production cleanup: both files returned 404 on production and were absent on Pro at that moment. They were later recreated only on `feature/quran-video-pro`, as documented in the subsequent ledger integration entries.
 - No tests were run and no rendering, workflow dispatch, Telegram send, or TikTok publishing occurred.
 
 ### Explicit-ref verification after ledger/sender integration (2026-11-06)
