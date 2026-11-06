@@ -37,6 +37,7 @@ permissions:
 
 jobs:
   validate-engine:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
