@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from PIL import Image, ImageDraw, ImageFont, features
 
 from validate_content_manifest import validate_content_manifest
+from validate_pro_media_rights import validate_manifest_media_rights
 
 
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
@@ -160,6 +161,10 @@ def main() -> None:
     args = parser.parse_args()
     data = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
     validate_content_manifest(data, allow_candidate_preview=args.preview_only)
+    media_paths = validate_manifest_media_rights(
+        data, repo_root=Path.cwd(),
+        planned_use="private_review" if args.preview_only else "monetized_social",
+    )
     if data.get("lifecycle_status") == "candidate_preview" and not args.preview_only:
         raise SystemExit("Candidate preview manifests require the explicit --preview-only renderer path.")
     if args.preview_only and not (
@@ -183,19 +188,14 @@ def main() -> None:
     title = data.get("title_ar", "دعاء" if data["content_type"] == "dua" else "ذكر")
     duration = build_slideshow(data["items"], title, work)
 
-    bg_file = work / "background.mp4"
-    subprocess.run(["curl", "--fail", "--location", "--retry", "3",
-                    "--proto", "=https", "--tlsv1.2", bg, "-o", str(bg_file)],
-                   check=True)
+    bg_file = media_paths["visual"]
     kind = audio["kind"]
     inputs = ["-stream_loop", "-1", "-i", str(bg_file)]
     if kind == "silent":
         inputs += ["-f", "lavfi", "-t", f"{duration:.3f}",
                    "-i", "anullsrc=r=44100:cl=stereo"]
     else:
-        audio_file = Path(audio.get("production_audio_file", ""))
-        if not audio_file.is_file():
-            raise SystemExit("Approved spoken/ambient audio file is missing.")
+        audio_file = media_paths["audio"]
         validate_audio_duration(audio_file, duration)
         inputs += ["-i", str(audio_file)]
     inputs += ["-f", "concat", "-safe", "0", "-i", str(work / "overlays.ffconcat")]
