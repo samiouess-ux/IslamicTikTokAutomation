@@ -23,7 +23,7 @@ from quran_audio_parts import partition_contiguous_ayahs
 
 DEFAULT_ARCHIVE = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 MIN_SECONDS = 0.0
-MAX_SECONDS = 40.0  # Keep every preview at or below the user's 40-second maximum.
+MAX_SECONDS = 45.0  # User-approved maximum; keep every preview at or below 45 seconds.
 
 
 def probe(path: Path) -> float:
