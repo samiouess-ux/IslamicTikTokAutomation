@@ -292,3 +292,12 @@ This section supersedes earlier historical statements in this file that the curr
 - Recommended sequence: isolate legacy Quran workflows on Pro; fix preview fixture; add Pro-only preview-send idempotency with uncertain outcomes blocked; then add a separate manual Pro preview workflow using existing Telegram secrets via environment mapping. No implementation has been performed.
 - No code/workflow/secrets/Cron/bot configuration changed. No tests, dispatch, render, Telegram send, or TikTok publish occurred. Original Quran engine and production Telegram route remain untouched.
 - Current test status: expanded eight-suite workflow NOT RUN / NOT DISPATCHED. All findings are static and require approved follow-up before implementation.
+
+
+## 2026-11-06 — Workflow inventory and original-engine protection
+- Static review on `feature/quran-video-pro` identified legacy Quran workflows that must not be manually dispatched from Pro. Highest risk: `build-quran-audio-inventory.yml` (manual trigger without exact branch guard, `contents: write`, production-state commit/rebase/push to `feature/telegram-review-notifications`, and Telegram send using original secrets; even `test_only=true` does not skip Telegram send). Also high risk: `render-manifest-video.yml` (unguarded manual render path with original Telegram delivery path).
+- Other legacy Quran render/preparation/test workflows without exact Pro guards are classified for isolation before any Pro Actions activity. `render-second-ash-sharh-review.yml` currently has its Telegram send step disabled, but still can render Quran content.
+- Binding safety rule: do not modify, disable, dispatch, or reconfigure `feature/telegram-review-notifications`, its active Telegram workflow, bot secrets, or schedule. Its daily videos are intended to continue on their existing unchanged path. Only future Pro-branch-local isolation work may be considered, with explicit approval; it must not change the production branch or delivery configuration.
+- The Pro reuse of the existing Telegram bot is still only a design proposal, not an active integration. No secret values were read/changed and no Telegram send occurred.
+- This checkpoint was documentation/static inspection only: no code/workflow edits, tests, Actions dispatch, render, Telegram request, TikTok publication, Cron changes, or production-branch changes. Eight-suite Pro safety workflow remains NOT RUN.
+- Next: finish workflow inventory and prepare a reviewable Pro-only isolation plan; execution remains separately gated.
