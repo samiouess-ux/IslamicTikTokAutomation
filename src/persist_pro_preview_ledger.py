@@ -22,7 +22,7 @@ def persist_preview_ledger(repo: Path) -> bool:
     branch = _git(repo, "branch", "--show-current")
     if branch != EXPECTED_BRANCH:
         raise RuntimeError(f"Refusing preview ledger persistence: expected {EXPECTED_BRANCH}, got {branch!r}.")
-    _git(repo, "fetch", "origin", EXPECTED_BRANCH)
+    _git(repo, "fetch", "origin", f"refs/heads/{EXPECTED_BRANCH}:refs/remotes/origin/{EXPECTED_BRANCH}")
     local_head = _git(repo, "rev-parse", "HEAD")
     remote_head = _git(repo, "rev-parse", f"refs/remotes/origin/{EXPECTED_BRANCH}")
     if local_head != remote_head:
