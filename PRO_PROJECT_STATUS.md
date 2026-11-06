@@ -413,3 +413,10 @@ This section supersedes earlier historical statements in this file that the curr
 - Uncertain→delivered now requires explicit recovered-receipt confirmation; plain message ID alone is not sufficient.
 - Persistence fetches the exact remote tracking ref before freshness comparison. Preview input/output and ledger paths reject symlink escapes.
 - Cycle tests were added for post-reservation artifact mutation and final persistence failure. Tests remain NOT RUN.
+
+
+### Final static review corrections
+- Remote refspec refresh is explicit before and after persistence; persistence test newline fixtures corrected.
+- Latest verified code/test blobs: ledger `4165e0b9`, persistence `97cea2e3`, cycle `a96c1b62`; tests `2762f1b3`, `ebc9e66e`, `8cf87814`.
+- Activation blockers remain: no workflow/caller; private Telegram chat type not independently verified; a narrow artifact mutation race remains between final hash and sender file read; full per-asset rights evidence is not enforced by the shared validator.
+- Tests remain NOT RUN. No Telegram/render/TikTok/secret/Cron/original-engine or production branch operation.
