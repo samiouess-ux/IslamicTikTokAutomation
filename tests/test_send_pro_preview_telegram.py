@@ -44,9 +44,11 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
         }
 
     def files(self, folder):
-        manifest = folder / "candidate.json"
+        (folder / "content/pro").mkdir(parents=True)
+        (folder / "output/pro_preview").mkdir(parents=True)
+        manifest = folder / "content/pro/candidate.json"
         manifest.write_text(json.dumps(self.manifest(), ensure_ascii=False), encoding="utf-8")
-        video = folder / "PREVIEW-ONLY-dua-preview-dua-001.mp4"
+        video = folder / "output/pro_preview/PREVIEW-ONLY-dua-preview-dua-001.mp4"
         video.write_bytes(b"fake-mp4")
         (folder / "assets/pro/media").mkdir(parents=True)
         (folder / "content/pro/rights").mkdir(parents=True)
@@ -98,10 +100,10 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
     def test_only_preview_filename_and_private_numeric_chat_are_allowed(self):
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
-            video.rename(Path(tmp) / "dua.mp4")
+            video.rename(Path(tmp) / "output/pro_preview/dua.mp4")
             with self.assertRaisesRegex(ValueError, "PREVIEW-ONLY"):
-                sender.send_preview(Path(tmp) / "dua.mp4", manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
-            video = Path(tmp) / "PREVIEW-ONLY-dua-preview-dua-001.mp4"
+                sender.send_preview(Path(tmp) / "output/pro_preview/dua.mp4", manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
+            video = Path(tmp) / "output/pro_preview/PREVIEW-ONLY-dua-preview-dua-001.mp4"
             video.write_bytes(b"fake-mp4")
             with self.assertRaisesRegex(ValueError, "positive numeric private-chat"):
                 sender.send_preview(video, manifest, "token", "-100123", confirmed=True, repo_root=Path(tmp))
@@ -109,7 +111,7 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
     def test_video_filename_must_match_exact_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
-            wrong = Path(tmp) / "PREVIEW-ONLY-dua-another-id.mp4"
+            wrong = Path(tmp) / "output/pro_preview/PREVIEW-ONLY-dua-another-id.mp4"
             video.rename(wrong)
             with self.assertRaisesRegex(ValueError, "exactly match"):
                 sender.send_preview(wrong, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
