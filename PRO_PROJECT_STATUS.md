@@ -12,7 +12,7 @@
 - `src/render_dua_video.py`: dedicated dua/dhikr slideshow renderer; Pro orchestration currently applies a 40-second cap.
 - `src/pro_orchestrator.py`: Pro-only dua/dhikr planning, approved-manifest selection, recent-repeat avoidance, dry-run preflight and optional render path.
 - `src/send_pro_telegram.py`: isolated Pro-branded sender with dua/dhikr-only, review-only, and reservation-ledger safeguards. Its `--reservation-persisted` mode requires a pre-existing reserved entry matching manifest ID, content type, and workflow run ID.
-- `src/pro_delivery_cycle.py`: fail-closed two-phase coordinator. It persists the reservation before sender invocation and persists delivered/uncertain outcome afterward; it is not connected to or run by a delivery workflow.
+- `src/pro_delivery_cycle.py`: fail-closed two-phase coordinator. It verifies the ledger path belongs to the Pro checkout, requires an explicit successful push result before sender invocation, and requires outcome persistence afterward. It is not connected to or run by a delivery workflow.
 - `src/prepare_pro_telegram_caption.py`: validated review caption preparation.
 - Quran-specific `src/orchestrator.py`, `src/render_video_scenes.py`, and production workflow must remain untouched.
 
@@ -24,7 +24,7 @@
 - `src/prepare_pro_telegram_caption.py` now includes the stable manifest ID needed by the sender.
 - Sender tests cover successful confirmation, uncertain outcomes blocking a second attempt, refusal when a pre-persisted reservation is missing, and ambiguous timeout handling in pre-persisted mode.
 - Persistence-helper tests cover wrong-branch refusal, unrelated staged changes, ledger-only commits, and remote push failure (which must raise rather than report success).
-- Delivery-cycle tests cover first-push failure blocking sender invocation, uncertain-state persistence, persist/send/persist ordering, and final-push failure behavior.
+- Delivery-cycle tests cover first-push failure or no-op blocking sender invocation, uncertain-state persistence, persist/send/persist ordering, final-push failure behavior, and rejection of a ledger path outside the persisted checkout.
 - **Important:** no Pro workflow currently persists the ledger between runs. Cross-run duplicate protection is therefore not yet complete, and Telegram delivery remains disabled.
  
 ## Validation status
@@ -55,6 +55,9 @@
 - Cycle tests: `82d66a045cb8afd3a293960df3640c485d741ea3`.
 - Manual test workflow update: `fda5a62f89636b004e0bce77980e3cb9f26dc7fb`.
 - Persistence test fixture correction: `5bf69ce275b077a04ba92097b5fad2ee80c7d0ec`.
+- Strict persistence confirmation hardening: `efc65604523b0c3579fd8b38c3a8a927a8a3a7a8`.
+- Additional fail-closed tests: `885db308e84ec7cd97798bb41405ed377e2cb8a1`.
+- Latest development-log update: `40c8ab02956da15df4730debe5375bde338c724a`.
 - Development log update: `ace2159b6969e75f7a17571e1b9d025829a4a99d`.
 
 ## Safety and change control
