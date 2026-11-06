@@ -185,3 +185,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Added validator, orchestrator, and renderer regression tests for preview/production separation.
 - This implements local preview validation/rendering only. It does NOT yet deliver a preview to Telegram; a separately gated private-review sender and workflow still need implementation and tests. No render or Telegram request was performed.
 - Tests have not been executed after these code changes; the previous manual offline workflow success predates them.
+
+
+## 2026-11-06 — Candidate preview lifecycle implemented (local render only)
+- Added an explicit validator opt-in for candidate previews. A candidate must declare lifecycle_status=candidate_preview and preview_only=true; pending human review is allowed only on this narrow path. Normal production validation remains strict.
+- Added an explicit single-manifest preview preflight. It bypasses rotation selection but rejects rotation-approved candidates and retains source, metadata, media, timing, stable-ID, and 40-second checks.
+- Added renderer flag --preview-only. Candidate manifests cannot use the normal renderer path, and production manifests cannot use the preview flag.
+- Added orchestrator options --preview-manifest and --render-preview. Local output is isolated under output/pro_preview. It does not update rotation history, invoke Telegram, or publish to TikTok.
+- Added regression tests for validator, orchestrator, and renderer preview/production separation.
+- This is local preview capability only; private Telegram preview delivery still requires a separate sender/workflow and tests. No render or Telegram request occurred.
+- Tests have not been executed after these changes; the previous manual offline workflow success predates them.
