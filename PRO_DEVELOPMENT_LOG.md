@@ -671,3 +671,18 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - Kept the item at `candidate` status only. No Arabic text was copied into a production manifest, no validator approval flags were set, and no human approval is claimed.
 - Next review must compare the complete Arabic verse exactly against the source page, record its context and reference using the review template, and obtain human review. Media rights remain a separate later gate.
 - No render, Telegram request, or TikTok publishing occurred.
+
+
+## 2026-11-06 — Initial Qur'anic dua and morning/evening dhikr source comparison
+
+### Research and source comparison
+- Opened Quran.com Al-Baqarah 2:201 and checked the displayed Arabic verse, exact reference, and adjacent context (2:200–202).
+- Located the Abu Hurairah morning/evening supplication in Sunan Abi Dawud 5068 and Jami' at-Tirmidhi 3391, then compared it with Riyad as-Salihin 1453.
+- Found material wording differences between the collections/compilation. The exact variants are recorded independently in `content/pro/CANDIDATE_RESEARCH_001.md`; no blended wording is permitted.
+- Recorded source-specific grading statements separately: Tirmidhi's page reports Abu 'Isa's grade as hasan; the Abu Dawud listing displays Al-Albani's sahih grade. No claim of unanimous grading is made.
+
+### Commit and current status
+- Candidate comparison note: `a5a8c7c138371b6a44e19a224aff96963f64192a`.
+- Both entries remain research candidates, not human-approved production content. Exact-text/context review for the Qur'anic verse and source/variant/grading review for the hadith are still pending.
+- No production manifest, render, Telegram delivery, or TikTok publishing occurred. Media rights have not been reviewed.
+- Next: human reviewer to choose one exact hadith collection/version (or reject the candidate), then complete the review worksheet without merging variants.
