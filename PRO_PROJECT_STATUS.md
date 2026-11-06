@@ -149,3 +149,9 @@ This section supersedes earlier historical statements in this file that the curr
 - Re-opened the primary candidate pages directly. Tirmidhi 3391 contains Abu 'Isa's in-text statement `hadith hasan`, while the page's separate Grade metadata field displays `Sahih (Darussalam)`. These must remain distinct attributions; the initial note was incomplete on this distinction.
 - Updated `content/pro/CANDIDATE_RESEARCH_001.md` with the correction and additional exact wording detail for Riyad as-Salihin 1453.
 - No candidate is human-approved; no production manifest, render, or Telegram delivery created.
+
+
+## 2026-11-06 — Additional candidate located
+- Added PD-002, Sayyid al-Istighfar, sourced to Sahih al-Bukhari 6306 and attributed on the page to Shaddad bin Aws.
+- Source displays Arabic matn, narrator, exact collection reference, and day/night recitation context. It remains a research candidate pending human review, duration feasibility under 40 seconds, and media-rights review.
+- No production manifest or render/delivery was created.
