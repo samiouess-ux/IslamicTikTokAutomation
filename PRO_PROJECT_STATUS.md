@@ -133,3 +133,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Candidate status remains `candidate` only. This source lookup does not itself constitute the project's separate human-review approval, and no production manifest was created.
 - Any future use must copy the complete Arabic verse exactly from the primary source, preserve its full verse reference, and receive human text/context review using `content/pro/REVIEW_TEMPLATE.md`.
 - No audio/background rights were reviewed; no render or delivery is authorized.
+
+
+## 2026-11-06 — Initial dua/dhikr source comparison recorded
+- Added `content/pro/CANDIDATE_RESEARCH_001.md` (commit `a5a8c7c138371b6a44e19a224aff96963f64192a`).
+- Candidate QD-001: Qur'an 2:201 checked against the opened Quran.com verse page, including exact reference and adjacent context. It remains pending human exact-text/context review.
+- Candidate PD-001: morning/evening supplication of Abu Hurairah compared across Sunan Abi Dawud 5068, Jami' at-Tirmidhi 3391, and Riyad as-Salihin 1453.
+- Important finding: the source collections show distinct Arabic variants, especially the morning/evening wording and endings. The candidate note records them separately and explicitly prohibits merging variants.
+- Tirmidhi's page records Abu 'Isa's grading as hasan; Abu Dawud's Sunnah.com listing displays Al-Albani's sahih grading. These are recorded as separate source-specific grading statements, not as one consensus grade.
+- Both candidates remain unapproved. No production manifest or religious content library entry was created. Media rights have not been reviewed.
+- No tests, render, Telegram request, or TikTok publishing occurred.
