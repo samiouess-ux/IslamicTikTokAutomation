@@ -248,3 +248,14 @@ This section supersedes earlier historical statements in this file that the curr
 - These are code-path findings, not fixes. No code or workflow was changed. No test suite was run or dispatched, no render or Telegram request occurred, and no TikTok publication occurred.
 - Current expanded eight-suite workflow remains NOT RUN. Historical run `42259731118` covers only the earlier four suites.
 - Next: close the four validation gaps with focused negative tests, then review candidate manifest/asset records. Obtain separate approval before any code change, test dispatch, render, or Telegram send. Original Quran production engine remains untouched.
+
+
+## 2026-11-06 — Read-only regression-test coverage review
+- Re-fetched `tests/test_render_dua_video.py` (blob `6b0e01359d667682bd1f11ff317607518a07fa41`) and `tests/test_pro_orchestrator.py` from `feature/quran-video-pro`; inspected them alongside the current renderer, validator, and orchestrator.
+- Audio: existing tests cover total-file duration mismatch/fail-closed behavior and explicitly assert the renderer's documented limitation. They do not prove per-item audio-to-screen synchronization or a safe multi-item audio mapping.
+- Background: no regression test was found that supplies a different `visual.approved_background_url` from `visual.background_candidate.direct_video_url` and expects rejection. The previously identified binding gap remains untested.
+- Output identity: the orchestrator tests reject an unsafe ID on the candidate-preview path, but do not exercise an unsafe ID through normal production `build_plan()` / `render_plan()`. The production-path ID validation gap remains untested.
+- Media rights: the inspected tests do not require the complete per-asset provenance record described by `content/pro/MEDIA_RIGHTS_POLICY.md`; current validation tests focus on metadata/approval flags. Full rights-evidence enforcement remains unproven.
+- These are coverage gaps corresponding to the previously documented implementation gaps; they are not evidence that a specific rendered video was incorrect or that an asset was actually used without permission.
+- Validation boundary: source/test inspection only. No tests executed, no workflow dispatched, no code or workflow changed, no render, Telegram request, or TikTok publication. No secrets, Cron, or delivery settings changed. All work stayed on `feature/quran-video-pro`; `main` and `feature/telegram-review-notifications` were not touched. The original Quran production engine remains untouched.
+- Next: prepare focused negative/integration test cases for production IDs, approved-background URL binding, per-item audio timing, and required media-rights evidence. Implementation and test execution remain gated by separate explicit approval.
