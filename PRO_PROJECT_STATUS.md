@@ -445,3 +445,14 @@ This section supersedes earlier historical statements in this file that the curr
 - Focused tests remain NOT RUN. Existing eight-suite safety workflow remains NOT RUN. No workflow was created/dispatched, no render or Telegram/TikTok action occurred, and no manifest was approved.
 - This pass changed documentation only. No code, tests, workflow, secrets, Cron, original bot/workflow, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine was changed.
 - Development log review checkpoint: commit `8387ff349485d76667412f5517239c6d7aaf625e`.
+
+
+## 2026-11-06 — Strict preview activation contracts documented
+- `content/pro/MEDIA_RIGHTS_POLICY.md` now specifies a versioned per-asset rights JSON record under `content/pro/rights/`, bound to the exact asset SHA-256 and manifest asset ID.
+- Required evidence includes exact asset/recording page, creator/performer, rights owner, platform, download date, exact license/permission evidence, explicit intended-use permissions, territory/time scope, attribution, third-party rights review, human reviewer/date, and approved decision. Audio additionally requires performer/recording-owner distinction and explicit sync/public-posting/commercial scope as applicable. Silent output does not need an audio record.
+- Future Pro validator must reject missing/duplicate/orphaned records, path/symlink escapes, hash mismatch, missing/ambiguous/expired permissions, and boolean-only approvals.
+- Telegram gate: call Bot API `getChat` immediately before preview upload using the same bot token/chat ID; require API success, exact returned ID match, and `result.type == "private"`. Reject non-private, mismatched, malformed, or error responses before `sendVideo`; never log secrets or unnecessary personal metadata. Official reference: https://core.telegram.org/bots/api#getchat .
+- Policy update commit: `4a705b4185cba8f76f08a9c36f1bf2345bb93d03`. Development log update commit: `ceab6a08eca9bd04bfd7c65402aef177f6d51506`.
+- Documentation only. Rights validator, getChat code, tests, workflow, rights records, and content manifests are not implemented. Tests remain NOT RUN; no dispatch, render, Telegram, or TikTok action occurred.
+- No changes to secrets, Cron, original bot/workflow, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine.
+- Next: request explicit approval before implementing these two gates and their offline mocked tests. Keep delivery disabled.
