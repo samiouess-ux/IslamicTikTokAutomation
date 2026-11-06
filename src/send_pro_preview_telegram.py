@@ -80,7 +80,7 @@ def verify_private_chat(token: str, chat_id: str, *, urlopen_fn=None) -> None:
 
 def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str,
                  *, confirmed: bool = False, expected_video_sha256: str | None = None,
-                 expected_manifest_sha256: str | None = None) -> dict:
+                 expected_manifest_sha256: str | None = None,\n                 repo_root: Path | None = None, urlopen_fn=None) -> dict:
     if not confirmed:
         raise PermissionError("Explicit --confirm-preview-send is required before any Telegram request.")
     if not token.strip() or not chat_id.strip():
