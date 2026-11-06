@@ -41,3 +41,9 @@
 - Do not touch production Quran logic, production workflow, Cron, secrets, or delivery route.
 - Do not run Actions, render, send Telegram, or publish to TikTok without explicit approval.
 - Record every implementation commit and validation result in `PRO_DEVELOPMENT_LOG.md`.
+
+
+## Latest verified cleanup (2026-11-06)
+- Removed `tests/test_pro_delivery_ledger.py` from `feature/telegram-review-notifications` using the approved GitHub contents operation; commit `980d8c88114b40272d537735e0e923d2c0e2ca01`.
+- Verified both `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` are absent from production and Pro.
+- Ledger remains unimplemented on Pro. Tests have not been run. No render, workflow dispatch, Telegram send, or TikTok publish occurred.
