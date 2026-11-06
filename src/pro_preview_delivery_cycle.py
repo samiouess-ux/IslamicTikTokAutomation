@@ -4,7 +4,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 from pathlib import Path
 from typing import Callable
 
@@ -98,6 +97,11 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         committed["manifest_sha256"], committed["video_sha256"]
     ) != (checked["manifest_sha256"], checked["video_sha256"]):
         raise RuntimeError("Persisted preview reservation could not be verified; Telegram send blocked.")
+
+    # Re-hash after the remote reservation is committed to close the local
+    # preflight-to-send modification window. A mismatch leaves the reservation blocked.
+    if _sha256(checked["manifest"]) != checked["manifest_sha256"] or _sha256(checked["video"]) != checked["video_sha256"]:
+        raise RuntimeError("Preview manifest or MP4 changed after reservation; Telegram send blocked.")
 
     try:
         receipt = send_fn(checked["video"], checked["manifest"], token, chat_id, confirmed=True)
