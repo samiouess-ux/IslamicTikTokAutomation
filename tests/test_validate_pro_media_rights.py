@@ -110,6 +110,13 @@ class MediaRightsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "exact HTTPS URL"):
             self.validate()
 
+
+    def test_required_attribution_is_blocked_until_renderer_supports_it(self):
+        self.record["attribution"] = {"required": True, "text": "Credit Creator"}
+        self.save()
+        with self.assertRaisesRegex(ValueError, "attribution is not yet injected"):
+            self.validate()
+
     def test_audio_requires_performer_recording_owner_and_asset_record(self):
         audio = self.root / "assets/pro/media/voice.mp3"
         audio.write_bytes(b"recording")
