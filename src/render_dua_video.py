@@ -155,9 +155,17 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", default="output/dua-review.mp4")
+    parser.add_argument("--preview-only", action="store_true",
+                        help="Render a candidate for private review only; never production output.")
     args = parser.parse_args()
     data = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
-    validate_content_manifest(data)
+    validate_content_manifest(data, allow_candidate_preview=args.preview_only)
+    if data.get("lifecycle_status") == "candidate_preview" and not args.preview_only:
+        raise SystemExit("Candidate preview manifests require the explicit --preview-only renderer path.")
+    if args.preview_only and not (
+        data.get("lifecycle_status") == "candidate_preview" and data.get("preview_only") is True
+    ):
+        raise SystemExit("--preview-only accepts candidate_preview manifests only.")
     if data.get("content_type") not in {"dua", "dhikr"}:
         raise SystemExit("This renderer accepts dua/dhikr manifests only.")
     visual, audio = data["visual"], data["audio"]
