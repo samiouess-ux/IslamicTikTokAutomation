@@ -469,3 +469,26 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next
 - Inspect the new helper and tests by explicit-ref fetch, then create the dormant manual-only workflow with exact branch guard, fixed concurrency, and no schedule. Keep it undispatched until content is reviewed and the user explicitly approves a run.
+
+
+## 2026-11-06 — Manual-only Pro safety test workflow
+
+### Sender correction
+- Explicit source inspection found the prior sender edit had literal escaped newline text and did not expose the CLI flag correctly.
+- Fixed `src/send_pro_telegram.py` in commit `a9d5d1a242e653d123fca53eaef4b0b64231287f`: `--reservation-persisted` is now a real CLI flag; in that mode the sender validates the already-persisted reservation and does not create another reservation locally.
+- This correction was source-verified from the Pro branch. No Telegram call was made.
+
+### Workflow added
+- Added `.github/workflows/pro-safety-tests-manual.yml` in commit `2ab7b6da74210b71240834ebf25ff80532ef84c3`.
+- Trigger: `workflow_dispatch` only. No schedule, push, pull-request, or Telegram delivery.
+- Exact branch guard requires `refs/heads/feature/quran-video-pro`.
+- Fixed concurrency group with `cancel-in-progress: false`.
+- Permissions are read-only (`contents: read`); checkout credentials are not persisted.
+- Runs only the Pro ledger, sender, and persistence-helper offline unit-test files. No secrets, rendering, external API calls, or Telegram sender invocation are configured.
+
+### Safety / validation status
+- Workflow file was created and source-verified, but NOT dispatched. Therefore no test result is claimed.
+- No delivery workflow exists. This is only a manual offline test workflow.
+- The delivery workflow remains blocked until reviewed content manifests exist and the two-phase persistence/send/persistence sequence is fully integrated and tested.
+- No Telegram secret was read or changed; no render, Telegram API request, or TikTok publish occurred.
+- Production Quran branch/workflow/Cron/bot route remain untouched.
