@@ -84,6 +84,34 @@ class ContentManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "explicit human review"):
             validate_content_manifest(data)
 
+    def test_candidate_preview_allows_pending_human_review_only_on_explicit_path(self):
+        data = self.dua_manifest()
+        data["lifecycle_status"] = "candidate_preview"
+        data["preview_only"] = True
+        data["rotation_approved"] = False
+        data["items"][0]["human_reviewed"] = False
+        with self.assertRaisesRegex(SystemExit, "explicit preview-only"):
+            validate_content_manifest(data)
+        validate_content_manifest(data, allow_candidate_preview=True)
+
+    def test_candidate_preview_cannot_be_promoted_by_preview_flag_alone(self):
+        data = self.dua_manifest()
+        data["lifecycle_status"] = "candidate_preview"
+        data["preview_only"] = True
+        data["items"][0]["human_reviewed"] = False
+        with self.assertRaisesRegex(SystemExit, "explicit preview-only"):
+            validate_content_manifest(data)
+        with self.assertRaisesRegex(SystemExit, "cannot be marked production-approved"):
+            data["lifecycle_status"] = "production_approved"
+            validate_content_manifest(data, allow_candidate_preview=True)
+
+    def test_production_approved_manifest_still_requires_human_review(self):
+        data = self.dua_manifest()
+        data["lifecycle_status"] = "production_approved"
+        data["items"][0]["human_reviewed"] = False
+        with self.assertRaisesRegex(SystemExit, "explicit human review"):
+            validate_content_manifest(data)
+
     def test_prophetic_dua_requires_hadith_grading(self):
         data = self.dua_manifest()
         data["items"][0]["kind"] = "prophetic_dua"
