@@ -67,7 +67,7 @@ class MediaRightsTests(unittest.TestCase):
 
     def test_missing_rights_record_fails_closed(self):
         (self.root / "content/pro/rights/visual-001.json").unlink()
-        with self.assertRaisesRegex(ValueError, "record is missing"):
+        with self.assertRaisesRegex(ValueError, "file is missing"):
             self.validate()
 
     def test_file_hash_mismatch_fails_closed(self):
