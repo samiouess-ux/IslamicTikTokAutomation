@@ -113,7 +113,9 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         raise RuntimeError("Preview manifest or MP4 changed after reservation; Telegram send blocked.")
 
     try:
-        receipt = send_fn(checked["video"], checked["manifest"], token, chat_id, confirmed=True)
+        receipt = send_fn(checked["video"], checked["manifest"], token, chat_id, confirmed=True,
+                          expected_video_sha256=checked["video_sha256"],
+                          expected_manifest_sha256=checked["manifest_sha256"])
         message_id = receipt.get("message_id") if isinstance(receipt, dict) else None
         if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
             raise RuntimeError("Telegram response lacks a valid positive message_id; outcome is uncertain.")
