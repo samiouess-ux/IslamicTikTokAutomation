@@ -58,9 +58,15 @@ class DuaRendererTests(unittest.TestCase):
 
     def test_renderer_keeps_validation_and_separate_content_type_gate(self):
         source = (ROOT / "src" / "render_dua_video.py").read_text(encoding="utf-8")
-        self.assertIn("validate_content_manifest(data)", source)
+        self.assertIn("validate_content_manifest(data, allow_candidate_preview=args.preview_only)", source)
         self.assertIn('not in {"dua", "dhikr"}', source)
         self.assertIn("audio is checked as a whole, not synced per item", source)
+
+    def test_candidate_preview_requires_explicit_renderer_flag(self):
+        source = (ROOT / "src" / "render_dua_video.py").read_text(encoding="utf-8")
+        self.assertIn('data.get("lifecycle_status") == "candidate_preview" and not args.preview_only', source)
+        self.assertIn('data.get("lifecycle_status") == "candidate_preview" and data.get("preview_only") is True', source)
+        self.assertIn('parser.add_argument("--preview-only"', source)
 
     def test_overlay_rejects_missing_source_and_text(self):
         with self.assertRaises(SystemExit):
