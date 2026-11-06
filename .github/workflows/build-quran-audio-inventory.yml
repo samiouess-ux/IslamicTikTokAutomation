@@ -11,6 +11,8 @@ on:
       - "src/build_official_audio_inventory.py"
       - "tests/test_build_official_audio_inventory.py"
       - "data/background_candidates.json"
+      - "data/background_additions_review.json"
+      - "tests/test_background_additions_review.py"
       - "tests/test_background_candidates.py"
       - "src/prepare_background_review_previews.py"
       - "tests/test_prepare_background_review_previews.py"
@@ -77,6 +79,7 @@ jobs:
       - name: Validate staged background source URLs and disabled approval gates
         run: |
           python -m unittest discover -s tests -p 'test_background_candidates.py' -v
+          python -m unittest discover -s tests -p 'test_background_additions_review.py' -v
           python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
       - name: Inspect official archive and validate complete verse mapping
         run: |
