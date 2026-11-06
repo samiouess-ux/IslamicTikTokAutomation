@@ -1,5 +1,6 @@
 """Offline safety tests for the isolated Pro candidate-preview Telegram sender."""
 import json
+import hashlib
 import sys
 import tempfile
 import unittest
@@ -33,7 +34,8 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
                 "verification_status": "verified", "human_reviewed": False,
             }],
             "audio": {"kind": "silent", "music_allowed": False},
-            "visual": {"template": "ornate_gold_classic", "background_candidate": {
+            "media_assets": [{"asset_id": "bg-001", "media_type": "visual"}],
+            "visual": {"template": "ornate_gold_classic", "background_candidate": {"asset_id": "bg-001",
                 "source_url": "https://example.org/source",
                 "direct_video_url": "https://example.org/background.mp4",
                 "approved": True, "user_approved": True,
@@ -46,6 +48,29 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
         manifest.write_text(json.dumps(self.manifest(), ensure_ascii=False), encoding="utf-8")
         video = folder / "PREVIEW-ONLY-dua-preview-dua-001.mp4"
         video.write_bytes(b"fake-mp4")
+        (folder / "assets/pro/media").mkdir(parents=True)
+        (folder / "content/pro/rights").mkdir(parents=True)
+        media = folder / "assets/pro/media/bg.mp4"
+        media.write_bytes(b"approved-background")
+        record = {
+            "schema_version": 1, "asset_id": "bg-001", "media_type": "visual",
+            "file_path": "assets/pro/media/bg.mp4",
+            "file_sha256": hashlib.sha256(media.read_bytes()).hexdigest(),
+            "source_page_url": "https://example.org/source", "creator_or_performer": "Creator",
+            "rights_owner": "Rights owner", "source_platform": "Example stock",
+            "downloaded_at": "2026-01-01T00:00:00Z", "license_name": "Example license",
+            "license_evidence": {"kind": "url", "value": "https://example.org/license"},
+            "intended_uses": {"download": True, "editing": True, "video_synchronization": True,
+                "private_review_delivery": True, "public_social_posting": True,
+                "commercial_monetized_use": True},
+            "territories": ["worldwide"], "validity": {"start": "2025-01-01", "end": None},
+            "attribution": {"required": False},
+            "third_party_review": {key: {"reviewed": True, "resolved": True}
+                for key in ("people", "logos_trademarks", "artwork", "property_privacy", "endorsement")},
+            "reviewer": "Human reviewer", "reviewed_at": "2026-01-02T00:00:00Z",
+            "decision": "approved",
+        }
+        (folder / "content/pro/rights/bg-001.json").write_text(json.dumps(record), encoding="utf-8")
         return video, manifest
 
     def test_explicit_confirmation_is_required_before_network(self):
@@ -63,7 +88,7 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             data["lifecycle_status"] = "production_approved"
             manifest.write_text(json.dumps(data), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "Only candidate_preview"):
-                sender.send_preview(video, manifest, "token", "12345", confirmed=True)
+                sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
             data["lifecycle_status"] = "candidate_preview"
             data["rotation_approved"] = True
             manifest.write_text(json.dumps(data), encoding="utf-8")
@@ -96,18 +121,23 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
 
     def test_confirmed_preview_sends_once_and_does_not_touch_production_state(self):
         class Response:
+            def __init__(self, payload):
+                self.payload = payload
             def __enter__(self):
                 return self
             def __exit__(self, *args):
                 return False
             def read(self):
-                return b'{"ok":true,"result":{"message_id":77}}'
+                return json.dumps(self.payload).encode()
 
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
-            with patch.object(sender.urllib.request, "urlopen", return_value=Response()) as call:
-                result = sender.send_preview(video, manifest, "token", "12345", confirmed=True)
-            self.assertEqual(call.call_count, 1)
+            chat = Response({"ok": True, "result": {"id": 12345, "type": "private"}})
+            sent = Response({"ok": True, "result": {"message_id": 77}})
+            with patch.object(sender.urllib.request, "urlopen", side_effect=[chat, sent]) as call:
+                result = sender.send_preview(video, manifest, "token", "12345",
+                    confirmed=True, repo_root=Path(tmp))
+            self.assertEqual(call.call_count, 2)
             self.assertEqual(result["message_id"], 77)
             self.assertTrue(result["preview_only"])
             self.assertFalse(result["production_ledger_touched"])
@@ -125,13 +155,13 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "video bytes do not match"):
                     sender.send_preview(video, manifest, "token", "12345", confirmed=True,
                         expected_video_sha256="0" * 64,
-                        expected_manifest_sha256=expected_manifest)
+                        expected_manifest_sha256=expected_manifest, repo_root=Path(tmp))
                 call.assert_not_called()
             with patch.object(sender.urllib.request, "urlopen") as call:
                 with self.assertRaisesRegex(ValueError, "manifest bytes do not match"):
                     sender.send_preview(video, manifest, "token", "12345", confirmed=True,
                         expected_video_sha256=expected_video,
-                        expected_manifest_sha256="0" * 64)
+                        expected_manifest_sha256="0" * 64, repo_root=Path(tmp))
                 call.assert_not_called()
 
     def test_transport_error_is_not_retried(self):
