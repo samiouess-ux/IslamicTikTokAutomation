@@ -602,3 +602,27 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 ### Documentation correction
 - Updated this log's title to the current Dua & Adhkar Pro scope. Earlier Quran-oriented entries remain as historical records only; the current scope pivot entry governs this branch.
 - No production branch, `main`, production workflow, Cron, secrets, or original Telegram route was changed.
+
+
+## 2026-11-06 — Pro content intake gate documented
+
+### Implemented on Pro only
+- Added `content/pro/README.md` to establish the dedicated Dua & Adhkar Pro content intake and human-review process.
+- The directory is explicitly reserved for dua/dhikr manifests; Quran production manifests in other directories are not Pro content.
+- Documented the required exact Arabic check, named HTTPS source and precise reference, content classification, verification and human-review flags, hadith grading for prophetic duas, separate media-rights review, and the 40-second duration ceiling.
+- Explicitly prohibited guessed or AI-invented religious wording and marking items verified merely to pass validation.
+- The README is a review gate, not an approved content manifest. No religious content was added.
+
+### Commit
+- Content review guide: `d0f2215287c106928dd2c9aedd11cba6f8d8c1b5`.
+
+### Validation and safety
+- The new file was created on `feature/quran-video-pro` only.
+- No unit tests were run; no manifest was approved; no preflight, render, Actions workflow, Telegram request, or TikTok publish occurred.
+- The delivery workflow remains absent and Telegram delivery remains disabled.
+- Production Quran branch, `main`, Cron, secrets, and original Telegram route were not changed.
+
+### Next
+1. Review and run the offline Pro safety tests only after explicit user approval.
+2. Populate `content/pro` only with individually source-checked and human-reviewed manifests.
+3. Do not create or enable a delivery workflow until the content library exists and the two-phase workflow integration has been separately reviewed.
