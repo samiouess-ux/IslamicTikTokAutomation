@@ -360,25 +360,25 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ## 2026-11-06 — Ledger branch-placement incident and correction
 
-### Verified repository state
-- A follow-up read using explicit branch refs found that `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` were not present on `feature/quran-video-pro`.
-- The ledger source and test were found on `feature/telegram-review-notifications`, contrary to the intended Pro-only scope.
-- The ledger source file was successfully deleted from the production branch (delete commit: `bbf3378fe8ff80c0393dc0922fe155ace5b46277`).
-- The remaining `tests/test_pro_delivery_ledger.py` file was subsequently deleted from the production branch through the approved GitHub contents operation (deletion commit: `980d8c88114b40272d537735e0e923d2c0e2ca01`). A fresh explicit-ref fetch returned 404 for that test on production. No alternate Git data/ref operation was used.
-- The attempted creation of the ledger source and tests on `feature/quran-video-pro` was blocked. Therefore the ledger is **not implemented on Pro** and must not be described as integrated or available there.
+### Verified repository state and correction
+- Explicit-ref inspection confirmed the misplaced ledger source and test were removed from `feature/telegram-review-notifications` (source deletion commit `bbf3378fe8ff80c0393dc0922fe155ace5b46277`; test deletion commit `980d8c88114b40272d537735e0e923d2c0e2ca01`).
+- Recreated `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` only on `feature/quran-video-pro` (commits `e2622bb20fbd695ccf61f4847203afa691c3e6a7` and `2c989ba003b2f56b4b31ac1ce35e7f0096594986`).
+- Added a process-level file lock around ledger read/modify/write operations and atomic JSON replacement. This protects operations sharing one runner filesystem; it does not by itself provide cross-run persistence or serialize separate GitHub runners.
+- Integrated reservation before Telegram send, marking uncertain outcomes without automatic retries, and recording a delivered state only after a positive Telegram `message_id` (sender commit `9b7e2e4ab5bc807f74f4a64a485720caec7f2a22`).
+- Added the stable manifest ID to the generated Pro caption payload (commit `24a1e9eaf38ef1f4c1ee29f310db37b3b4426c46`).
+- Added mocked sender tests for confirmed delivery and uncertain-send duplicate blocking (commit `36739415e233e834e921d2319887e450e9aca3e5`).
+- Explicit-ref verification is still required after these writes. No unit tests have been run.
 
 ### Impact and safeguards
-- Pro orchestrator remains without ledger integration; no Pro workflow is enabled.
+- Pro Telegram delivery is still not enabled by a workflow. The local ledger is not yet persisted between separate workflow runs; do not claim cross-run idempotency until a safe persistence/serialization workflow is implemented and verified.
 - No workflow dispatch, render, Telegram API call, or TikTok publishing was performed.
-- No secrets, Cron configuration, or production workflow logic was changed. The remaining misplaced test file is a repository hygiene issue; do not run it on production.
+- No secrets, Cron configuration, or production workflow logic was changed.
 
 ### Next safe action
-- Production cleanup is verified complete. Next, reintroduce the ledger source and tests only on `feature/quran-video-pro` through an approved branch-targeted write, then fetch both using an explicit Pro ref. If that write is blocked, stop and report it; do not use alternate Git APIs to bypass the control.
-- Only after the production branch is verified clean should the ledger implementation be reintroduced on `feature/quran-video-pro` through an approved branch-targeted write and re-fetched with an explicit Pro ref.
-- Until then, keep Telegram delivery disabled and do not claim duplicate-delivery protection is active.
-
-
-### Production cleanup completed (2026-11-06)
+- Re-fetch all changed Pro files using the explicit `feature/quran-video-pro` ref and verify production remains free of Pro ledger files.
+- Then design a dormant manual-only Pro workflow that serializes runs and persists the ledger safely before/after Telegram delivery. Do not enable or dispatch it without explicit approval.
+- Build a reviewed dua/dhikr content library from trustworthy primary sources before any real delivery.
+-### Production cleanup completed (2026-11-06)
 - Deleted `tests/test_pro_delivery_ledger.py` from `feature/telegram-review-notifications` using the approved GitHub contents deletion operation.
 - Deletion commit: `980d8c88114b40272d537735e0e923d2c0e2ca01`.
 - Verified by explicit-ref fetch: `tests/test_pro_delivery_ledger.py` and `src/pro_delivery_ledger.py` both return 404 on production; both are also absent on `feature/quran-video-pro`.
