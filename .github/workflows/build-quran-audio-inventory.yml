@@ -350,8 +350,8 @@ jobs:
           for index, item in enumerate(report["items"], start=1):
               if item.get("source_candidate_id") not in batch_ids:
                   raise SystemExit("Preview source candidate is not present in the source batch.")
-              if item.get("duration_seconds", 999) > 40:
-                  raise SystemExit("Refusing to send a preview longer than 40 seconds.")
+              if item.get("duration_seconds", 999) > 45:
+                  raise SystemExit("Refusing to send a preview longer than 45 seconds.")
               manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
               caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
@@ -425,7 +425,7 @@ jobs:
                   report = json.load(source)
               blocked = [
                   item for item in report.get("items", [])
-                  if item.get("status") == "deferred_single_ayah_exceeds_40_seconds"
+                  if item.get("status") == "deferred_single_ayah_exceeds_45_seconds"
               ]
               if blocked:
                   item = blocked[0]
@@ -437,7 +437,7 @@ jobs:
                   duration_text = f" ({duration} ثانية)" if isinstance(duration, (int, float)) else ""
                   message = (
                       f"⚠️ توقّف تحضير سورة رقم {item.get('surah_number', '؟')} عند الآية {blocked_ayah}{duration_text}: "
-                      "مدّة الآية الكاملة تتجاوز حدّ 40 ثانية. لم نقصّ التلاوة ولم نتجاوز الآية؛ "
+                      "مدّة الآية الكاملة تتجاوز حدّ 45 ثانية. لم نقصّ التلاوة ولم نتجاوز الآية؛ "
                       "الآية تبقى مؤجّلة كاملة إلى أن يمكن تحضيرها دون تجاوز الحدّ."
                   )
           except (OSError, ValueError, TypeError):
