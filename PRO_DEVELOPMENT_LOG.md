@@ -1134,3 +1134,33 @@ Re-fetched and inspected the current versions of:
 
 ### Boundaries reaffirmed
 This mapping is static inspection only. No source/test/workflow implementation, test execution, workflow dispatch, render, Telegram request, TikTok publish, secret/Cron/bot setting, production branch, or original Quran engine was changed. Original Telegram workflow remains untouched. The eight-suite safety workflow remains NOT RUN.
+
+
+## 2026-11-06 — First isolated preview-ledger implementation (not executed)
+
+### Files created on `feature/quran-video-pro`
+- `src/pro_preview_send_ledger.py`: schema v1, strict top-level structure, candidate ID validation, content/state/hash/run/timestamp/message-ID validation, atomic JSON save, local process lock, unique candidate reservation, and constrained state transitions. Uncertain→delivered requires explicit `recovered_receipt=True`; there is no release/expiry operation.
+- `src/persist_pro_preview_ledger.py`: exact Pro branch only; fetches origin and refuses stale local HEAD; refuses pre-staged changes; stages only `data/pro_preview_send_ledger.json`; rejects any other staged path; normal push only (no force); fetches and verifies remote branch HEAD equals the committed local HEAD.
+- `src/pro_preview_delivery_cycle.py`: fixed-root manifest/output preflight; rejects symlink/non-regular/out-of-root inputs; validates candidate lifecycle via existing preview caption/manifest validation; enforces safe candidate ID and exact PREVIEW-ONLY filename; checks MP4 size and configuration; hashes manifest and MP4; reserves and persists before send; verifies reservation; re-hashes artifacts immediately before send; calls injected sender once; records uncertain on exceptions and delivered only with a positive integer message ID.
+- New offline test files:
+  - `tests/test_pro_preview_send_ledger.py`
+  - `tests/test_persist_pro_preview_ledger.py`
+  - `tests/test_pro_preview_delivery_cycle.py`
+  These cover ledger schema/identity/transitions, persistence branch/path/push boundaries, and cycle ordering/failure cases. They have NOT been run.
+
+### Latest verified file blobs
+- `src/pro_preview_send_ledger.py`: `4165e0b9fcf12d5666a867511392bf2f361583ad`
+- `src/persist_pro_preview_ledger.py`: `11e128186ca0c7ec87cd416f8ccfc59b89384869`
+- `src/pro_preview_delivery_cycle.py`: `4b564f139597261052a968f7c68c3fa610e9f79b`
+- `tests/test_pro_preview_send_ledger.py`: `2762f1b366f6ec75674a011c26f1b3c5cfc3ada1`
+- `tests/test_persist_pro_preview_ledger.py`: `9cb9d729436af9501840ac0a08e9c790fab818df`
+- `tests/test_pro_preview_delivery_cycle.py`: `8cf87814ce6abe798a765f6a1f815de9a8075957`
+
+### Important limits / remaining work
+- Static implementation only. No tests were executed and no workflow was created or dispatched.
+- The cycle accepts an injected persistence function; the real persistence helper performs remote HEAD verification. A future workflow must provide authenticated checkout/push credentials to that exact Pro-only step and a single fixed concurrency group. This has not been configured.
+- Telegram private-chat type is not independently proven by a numeric chat ID. Destination verification must be an explicit pre-send gate in a later approved step.
+- The sender still reads the MP4 from disk after the cycle's final hash check; a narrow filesystem race remains possible if another process mutates the artifact at that exact moment. The future workflow should run in an isolated workspace with no concurrent artifact writer; stronger file-descriptor/hash binding can be added before activation.
+- The new modules are not wired into any workflow or CLI delivery command. No Telegram request can be initiated by these files as committed unless a caller explicitly invokes the cycle.
+- No production delivery ledger, rotation history, original Telegram workflow/bot, production branch, Cron, secrets, renderer, TikTok publishing, or original Quran engine was changed. Existing eight-suite safety workflow remains NOT RUN.
+- Next: static review the newly added code and test logic, correct any issues found, then request separate approval before running offline tests. Workflow creation and any Telegram preview send remain separately gated.
