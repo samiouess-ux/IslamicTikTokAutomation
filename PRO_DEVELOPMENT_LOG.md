@@ -1295,3 +1295,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - No Pro delivery workflow was created or dispatched. No render, Telegram request, TikTok publish, secrets/Cron/bot settings change occurred.
 - Original Telegram bot/workflow, production delivery ledger/rotation, `main`, `feature/telegram-review-notifications`, and original Quran engine remain untouched.
 - Next: inspect workflow isolation/concurrency/secret scoping statically, then review all new source/tests and run only approved offline tests before considering any preview workflow. A Telegram send still requires a separate explicit approval.
+
+
+### Static workflow boundary review after gate implementation
+- Re-listed the current Pro branch workflow directory: 21 workflow files; there is still no Pro preview delivery workflow or automatic caller.
+- Re-fetched `.github/workflows/pro-safety-tests-manual.yml`: manual `workflow_dispatch` only, exact Pro ref guard, checkout pinned to `feature/quran-video-pro`, `contents: read`, no secrets, no render/send steps, and fixed test-only concurrency with `cancel-in-progress: false`.
+- The existing safety workflow already runs the updated `test_send_pro_preview_telegram.py` and `test_render_dua_video.py`, but does not yet include the new `test_validate_pro_media_rights.py` or `test_pro_preview_delivery_cycle.py`. Do not claim those suites are covered by the current workflow.
+- No workflow was changed. Adding these two test commands to the manual read-only safety workflow is a separate workflow edit and remains pending approval. Creating a delivery workflow is also not authorized by the gate-code approval.
+- Corrected current verified sender-test blob SHA: `2a1606744f83d1721d1fbd5c1c24f9cacbae7a1f` (older intermediate SHA in the previous checkpoint is superseded).
+- All focused tests remain NOT RUN; the eight-suite workflow remains NOT RUN. No dispatch, render, Telegram, TikTok, secrets, Cron, bot settings, production branch, or original Quran engine operation occurred.
