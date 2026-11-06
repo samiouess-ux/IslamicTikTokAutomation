@@ -686,3 +686,10 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - Both entries remain research candidates, not human-approved production content. Exact-text/context review for the Qur'anic verse and source/variant/grading review for the hadith are still pending.
 - No production manifest, render, Telegram delivery, or TikTok publishing occurred. Media rights have not been reviewed.
 - Next: human reviewer to choose one exact hadith collection/version (or reject the candidate), then complete the review worksheet without merging variants.
+
+
+## 2026-11-06 — Follow-up source verification and correction
+
+Re-opened Quran.com Al-Baqarah 2:201 and the exact hadith pages for Abu Dawud 5068, Tirmidhi 3391, and Riyad as-Salihin 1453. Confirmed the displayed Arabic text and source references. A grading metadata nuance was corrected in the candidate research note: Tirmidhi 3391's Arabic matn contains Abu 'Isa's statement that the hadith is hasan, while the separate Sunnah.com Grade field displays Sahih (Darussalam). Those statements are now kept as separate attributions. Riyad as-Salihin 1453 also records its own wording and attribution and must not be used to silently normalize either collection's matn.
+
+The candidate remains unapproved pending human review and an explicit choice of one source/version. No manifest, render, Telegram send, or TikTok publication occurred.
