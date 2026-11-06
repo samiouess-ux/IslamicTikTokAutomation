@@ -274,3 +274,11 @@ This section supersedes earlier historical statements in this file that the curr
 - Proposed future Pro-only workflow maps the existing secret names into the Pro sender's environment variables. No second bot and no original-workflow/secrets change are required by this design.
 - This is **not implemented or tested**. Secret values were not inspected. No workflow was created/dispatched, no render or Telegram send occurred.
 - Next: continue read-only integration review. Any Pro workflow creation, dispatch, render, and preview send require their own explicit approval. Original Quran engine and production branch remain untouched.
+
+
+## 2026-11-06 — Pro Telegram integration safety gates (read-only)
+- Future Pro integration must be a manual-only workflow on the exact Pro branch, with branch guard before exposing the existing Telegram secrets.
+- Existing secret mapping remains a proposal; values are not visible or verified. Pro sender requires explicit `--confirm-preview-send`, candidate-only manifest, exact preview MP4/manifest filename match, and does not auto-retry.
+- Separate approval gates: preparing/rendering a candidate does not authorize Telegram delivery. No failure-notification Telegram path is allowed to bypass the send gate.
+- Constrain all manifest/output paths to Pro preview locations; avoid arbitrary shell/path inputs. Numeric chat-ID validation alone does not independently prove Telegram chat type.
+- Review only. No workflow/code/test/dispatch/render/send/secret changes. Original Quran production engine remains untouched.
