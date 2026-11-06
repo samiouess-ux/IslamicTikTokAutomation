@@ -693,3 +693,10 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 Re-opened Quran.com Al-Baqarah 2:201 and the exact hadith pages for Abu Dawud 5068, Tirmidhi 3391, and Riyad as-Salihin 1453. Confirmed the displayed Arabic text and source references. A grading metadata nuance was corrected in the candidate research note: Tirmidhi 3391's Arabic matn contains Abu 'Isa's statement that the hadith is hasan, while the separate Sunnah.com Grade field displays Sahih (Darussalam). Those statements are now kept as separate attributions. Riyad as-Salihin 1453 also records its own wording and attribution and must not be used to silently normalize either collection's matn.
 
 The candidate remains unapproved pending human review and an explicit choice of one source/version. No manifest, render, Telegram send, or TikTok publication occurred.
+
+
+## 2026-11-06 — Candidate PD-002: Sayyid al-Istighfar
+
+Opened Sahih al-Bukhari 6306 directly. The source page identifies the report as narrated by Shaddad bin Aws, gives the Arabic matn and the day/night recitation context, and lists Book 80, Hadith 3. Recorded this as a separate source-checked candidate in `content/pro/CANDIDATE_RESEARCH_001.md`. The supplication is not yet approved: human exact-text/context review, media-rights review, and duration suitability under the 40-second cap remain open. It must not be truncated merely to meet the cap.
+
+No production manifest, render, Telegram delivery, or TikTok publishing occurred.
