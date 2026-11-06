@@ -4,36 +4,42 @@
 - Active Pro branch: `feature/quran-video-pro`
 - Product scope: dua and adhkar videos only.
 - Quran production remains on `feature/telegram-review-notifications`; do not modify it.
-- Original Telegram bot reuse is desired, but isolated Pro delivery is not yet implemented or verified.
+- Original Telegram bot reuse is desired. A separate Pro delivery route is not yet implemented or verified.
 - TikTok publishing remains manual; automatic publishing is prohibited.
 
 ## Verified implementation on Pro
 - `src/validate_content_manifest.py`: strict metadata/source/human-review checks for dua and dhikr, including hadith grading for prophetic duas.
-- `src/render_dua_dhikr.py`: dedicated review-only renderer for one dua/dhikr item per manifest; 1080×1920 Arabic overlay, optional English meaning/repeat count, approved audio or silent duration, approved background, and 40-second cap.
-- `src/pro_orchestrator.py`: separate dua/dhikr-only preflight and optional render routing; uses deterministic recent-repeat avoidance and a Pro-specific history file.
+- `src/render_dua_video.py` (pre-existing): dedicated dua/dhikr slideshow renderer with per-item explicit durations, Arabic overlay, audio-duration consistency checks, silent or approved spoken/ambient audio, and a 65-second hard cap (60-second target).
+- `src/pro_orchestrator.py` (added): separate dua/dhikr-only preflight and optional render routing; uses deterministic recent-repeat avoidance and a Pro-specific history file. It routes to the existing `render_dua_video.py`, validates explicit positive item durations and the renderer hard cap, and supports multiple reviewed items per manifest.
 - `src/orchestrator.py` and `src/render_video_scenes.py` remain Quran-specific and unchanged.
-- Tests added: `tests/test_validate_content_manifest.py`, `tests/test_render_dua_dhikr.py`, and `tests/test_pro_orchestrator.py`.
+- Existing renderer tests: `tests/test_render_dua_video.py`. New Pro orchestration tests: `tests/test_pro_orchestrator.py`.
 
-## Latest Pro implementation commits
+## Latest Pro-specific implementation commits
 - Validator: `545496fd29b590c38abf61f9a82b3750d90060c6`
 - Validator tests: `e4c3ae5365a44277012a226bb99a5ae191583e33`
-- Dua/dhikr renderer: `6eded850610126acdc10becac8e66d62cdcb8948`
-- Renderer tests: `463512211a001475b23cc5472c190f0de152ccc0`
 - Pro orchestrator: `28b0dba34a409497ec5b11f44be299525084205c`
-- Pro orchestrator tests: `75a603b2adedfdbeecf043ab75f48189513cbd7f`
+- Pro orchestration tests: `75a603b2adedfdbeecf043ab75f48189513cbd7f`
+- Renderer consolidation: `17921d5dc5aed0c10474c639ba29229b301c6154`
+- Updated orchestration tests: `c62e7cc042381ecdb8f85faab6f93faeb5b34fce`
+- Duplicate experimental renderer and its tests were removed; see the development log for exact removal commits.
+
+## Telegram architecture audit
+- Existing `telegram-quran-request.yml` is pinned to the production branch and must not be modified or reused for Pro.
+- Existing `send_telegram.py` uses `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, but its caption is hard-coded for Quran review.
+- A separate Pro sender and manual-only workflow are still needed to safely use the same bot without changing production delivery.
 
 ## Validation status
 - GitHub writes succeeded on `feature/quran-video-pro`.
 - Unit tests have NOT been run; no test is reported as passing.
 - No preflight command, MP4 render, GitHub Actions run, Telegram send, or TikTok publish has occurred.
-- FFmpeg filter graph, silent-audio path, installed-font/RAQM availability, and visual output remain unverified.
-- No sourced dua/dhikr production library or Telegram delivery route has been added.
+- No verified dua/dhikr production library or Pro Telegram delivery route has been added.
+- No production branch, Cron, secrets, or production delivery path was changed.
 
 ## Next steps
-1. Add a non-production schema/example template with no invented religious wording.
-2. Inspect the current Telegram workflow and bot-routing architecture read-only; design a separate Pro route without changing production behavior or secrets.
-3. Add or verify content-library quality gates and tests.
-4. Request explicit approval before any workflow, render, or Telegram test.
+1. Add a Pro-specific caption/sender and a manual-dispatch-only workflow with branch guards.
+2. Add tests for sender caption, file limits, and workflow isolation.
+3. Add a non-content schema/example and then build a verified library from reviewed primary sources.
+4. Request explicit approval before any workflow dispatch, render, or Telegram send.
 
 ## Safety and change control
 - All Pro changes only on `feature/quran-video-pro`.
