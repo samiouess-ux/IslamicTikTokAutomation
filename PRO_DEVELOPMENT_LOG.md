@@ -558,3 +558,10 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - Added tests for false/no-op first persistence preventing sender invocation and for rejecting a ledger path outside the persisted Pro checkout.
 - Commits: hardening `efc65604523b0c3579fd8b38c3a8a927a8a3a7a8`; tests `885db308e84ec7cd97798bb41405ed377e2cb8a1`.
 - These tests remain unexecuted. No workflow dispatch, render, Telegram request, or TikTok publish occurred.
+
+
+### Ambiguous-outcome persistence failure test — 2026-11-06
+- Added a delivery-cycle test for the case where Telegram outcome is ambiguous, the sender marks the local entry `uncertain`, and the follow-up Git push fails.
+- The test asserts the cycle reports a blocking persistence error and does not continue/retry. The pre-send remote reservation remains the duplicate guard.
+- Commit: `a34fcfffba92dd7bcb1f237487c9793c2596dfe8`.
+- Test remains unexecuted; no workflow dispatch or external delivery action occurred.
