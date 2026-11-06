@@ -9,7 +9,7 @@ from typing import Callable
 
 from persist_pro_preview_ledger import persist_preview_ledger
 from pro_preview_send_ledger import load_ledger, reserve, transition, validate_candidate_id
-from send_pro_preview_telegram import MAX_VIDEO_BYTES, build_preview_caption, send_preview, verify_private_chat
+from send_pro_preview_telegram import MAX_VIDEO_BYTES, build_preview_caption, send_preview, verify_private_chat, PreSendVerificationError
 from validate_pro_media_rights import validate_manifest_media_rights
 
 EXPECTED_BRANCH = "feature/quran-video-pro"
@@ -124,6 +124,10 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         message_id = receipt.get("message_id") if isinstance(receipt, dict) else None
         if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
             raise RuntimeError("Telegram response lacks a valid positive message_id; outcome is uncertain.")
+    except PreSendVerificationError:
+        # A failed getChat check is definite pre-upload failure, not an ambiguous send.
+        # Keep the reservation blocking duplicates; do not mark it as an uncertain upload.
+        raise
     except Exception:
         transition(ledger_path, checked["candidate_id"], "uncertain")
         try:
