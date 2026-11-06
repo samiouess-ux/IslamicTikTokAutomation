@@ -912,3 +912,15 @@ Re-fetched and inspected the current versions of:
 - Read-only source/test inspection only. No code or workflow changed; no tests executed or dispatched; no render, Telegram request, or TikTok publication occurred.
 - No secrets, Cron, or delivery configuration changed. All inspection remained on feature/quran-video-pro; main and feature/telegram-review-notifications were not modified. The original Quran production engine remains untouched.
 - The expanded eight-module safety suite remains NOT RUN. Historical run 42259731118 covers only the earlier four suites.
+
+## 2026-11-06 — Existing Telegram bot reuse design (documentation only)
+- User clarified that the existing Telegram bot is already connected to and working with the original Quran production engine. The Pro goal is to reuse that same bot and private review destination without changing or disturbing the original engine.
+- Read-only inspection of the Pro branch found that the original Quran request workflow references the existing repository secrets `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, while the isolated Pro preview sender expects `PRO_PREVIEW_TG_BOT_TOKEN` and `PRO_PREVIEW_TELEGRAM_CHAT_ID` as environment variables.
+- Proposed isolated mapping for a future Pro-only workflow:
+  - `PRO_PREVIEW_TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}`
+  - `PRO_PREVIEW_TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}`
+- This would let the Pro preview sender consume the existing secret values under its own environment-variable names, without creating a second bot or changing the original workflow/secrets. The secret values themselves are not readable through this inspection, so their validity and actual Telegram delivery have not been tested.
+- Proposed next integration: a separate manual-only workflow stored and run only on `feature/quran-video-pro`, with an exact Pro-branch guard and Pro-branch checkout. It would invoke only the candidate-preview sender, require an explicit per-send confirmation, accept only the exact `PREVIEW-ONLY-*.mp4` / candidate-manifest pairing, and remain preview-only. It must not call or modify the original Quran workflow, production orchestrator, ledger/rotation, or TikTok publishing.
+- Status: **design proposal only — NOT IMPLEMENTED or tested**. No workflow was created or changed; no secrets were read, added, or changed; no workflow was dispatched; no render or Telegram request was made; no TikTok publication occurred.
+- Scope protection: all inspection and documentation are confined to `feature/quran-video-pro`. `main`, `feature/telegram-review-notifications`, and the original production Quran engine remain untouched.
+- Next: continue static review of the isolated Pro workflow design and its gates. Creating the workflow, dispatching it, rendering a candidate, and sending a Telegram preview each remain separate actions requiring the relevant explicit approval.
