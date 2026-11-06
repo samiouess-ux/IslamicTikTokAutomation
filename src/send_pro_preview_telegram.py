@@ -65,6 +65,10 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
 
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     caption = build_preview_caption(data)
+    manifest_id = data.get("id")
+    expected_name = "PREVIEW-ONLY-{}-{}.mp4".format(data["content_type"], manifest_id)
+    if not isinstance(manifest_id, str) or video_path.name != expected_name:
+        raise ValueError("Preview filename must exactly match the selected candidate manifest id and content type.")
     boundary = "----DuaAdhkarProPreview" + secrets.token_hex(16)
     body = b"".join([
         f"--{boundary}\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n{chat_id}\r\n".encode(),
