@@ -407,3 +407,9 @@ This section supersedes earlier historical statements in this file that the curr
 - No preview delivery workflow or automatic caller was created. No Telegram request or render was performed. Workflow auth/concurrency and independent private-chat destination verification remain future gates.
 - Static implementation only. No change to production ledger/rotation, original Telegram bot/workflow, main or `feature/telegram-review-notifications`, Cron, secrets, TikTok, or original Quran engine. Eight-suite safety workflow remains NOT RUN.
 - Next: static review the new code/tests; request separate approval before executing offline tests. Workflow creation and Telegram send need separate approval.
+
+
+### Static hardening after initial implementation
+- Uncertain→delivered now requires explicit recovered-receipt confirmation; plain message ID alone is not sufficient.
+- Persistence fetches the exact remote tracking ref before freshness comparison. Preview input/output and ledger paths reject symlink escapes.
+- Cycle tests were added for post-reservation artifact mutation and final persistence failure. Tests remain NOT RUN.
