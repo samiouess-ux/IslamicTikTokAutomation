@@ -10,6 +10,7 @@ from typing import Callable
 from persist_pro_preview_ledger import persist_preview_ledger
 from pro_preview_send_ledger import load_ledger, reserve, transition, validate_candidate_id
 from send_pro_preview_telegram import MAX_VIDEO_BYTES, build_preview_caption, send_preview
+from validate_pro_media_rights import validate_manifest_media_rights
 
 EXPECTED_BRANCH = "feature/quran-video-pro"
 MANIFEST_ROOT = Path("content/pro")
@@ -60,6 +61,7 @@ def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
     if content_type not in {"dua", "dhikr"} or video.name != expected_name:
         raise ValueError("Preview MP4 filename must exactly match candidate ID and content type.")
     caption = build_preview_caption(data)
+    validate_manifest_media_rights(data, repo_root=repo_root, planned_use="private_review")
     return {
         "manifest": manifest, "video": video, "data": data,
         "candidate_id": candidate_id, "content_type": content_type,
@@ -115,7 +117,7 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
     try:
         receipt = send_fn(checked["video"], checked["manifest"], token, chat_id, confirmed=True,
                           expected_video_sha256=checked["video_sha256"],
-                          expected_manifest_sha256=checked["manifest_sha256"])
+                          expected_manifest_sha256=checked["manifest_sha256"], repo_root=root)
         message_id = receipt.get("message_id") if isinstance(receipt, dict) else None
         if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
             raise RuntimeError("Telegram response lacks a valid positive message_id; outcome is uncertain.")
