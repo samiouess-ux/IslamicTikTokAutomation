@@ -284,3 +284,26 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next step
 - Add a Pro-specific caption/sender and a manual-dispatch-only Pro workflow, with tests and strict branch guards. Keep it dormant; do not run it or send Telegram without explicit user approval.
+
+
+## 2026-11-06 — Isolated Pro Telegram sender
+
+### Implemented on Pro branch
+- Added `src/send_pro_telegram.py`; it is separate from the existing Quran sender and labels deliveries as `DUA & ADHKAR PRO`.
+- Sender accepts only `dua` or `dhikr` metadata and requires `review_only: true` plus `auto_publish: false`.
+- It enforces Telegram's 50 MB video limit and 1,024-character caption limit, requires the existing `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID` environment secrets, and verifies Telegram's returned message ID.
+- It deliberately does not retry ambiguous network failures; an uncertain result must be reconciled before another send to avoid duplicate review messages.
+- Added offline unit tests for Pro branding, rejection of Quran content, mandatory review-only metadata, disabled auto-publishing, and caption length.
+
+### Commits
+- Pro sender: `9f93f7a143763a2f1d2384c5f8be829ce733b457`
+- Sender tests: `b558c01736860d101e37e4aa3a175d4c97b43f61`
+
+### Validation and restrictions
+- GitHub file creation succeeded on `feature/quran-video-pro`.
+- Tests have NOT been executed. No Telegram API call was made and no credentials were read or changed.
+- No workflow was created or dispatched in this step. The Pro sender is not yet connected to an automated/manual workflow.
+- Existing Quran sender and production workflow were not edited. No production branch, Cron, secrets, TikTok publishing, or production delivery path was changed.
+
+### Next step
+- Design a manual-dispatch-only Pro workflow with a strict `feature/quran-video-pro` ref guard, validate the selected manifest and review-only metadata before rendering, and send only after a deliberate workflow dispatch. Keep it dormant until the user explicitly approves a Telegram test.
