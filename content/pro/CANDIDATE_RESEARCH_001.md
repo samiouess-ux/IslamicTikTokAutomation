@@ -68,3 +68,20 @@ A second direct page inspection clarified the grading display on Jami' at-Tirmid
 - Direct page checks also confirmed the exact Arabic matn and source reference for Abu Dawud 5068, the Tirmidhi 3391 wording, and the variant in Riyad as-Salihin 1453. See the linked source pages in the candidate entry.
 
 This correction does not approve the hadith. Human selection of one exact source/version and independent review remain pending.
+
+
+## Candidate PD-002 — Sayyid al-Istighfar (Chief supplication for forgiveness)
+
+- Classification: `prophetic_dua` / istighfar.
+- Companion narrator: Shaddad bin Aws (as identified by the source).
+- Primary collection: Sahih al-Bukhari 6306, Book 80, Hadith 3.
+- Source URL: https://sunnah.com/bukhari:6306
+- Source page displays the Arabic matn, narrator, collection/reference, and the report's day/night recitation context.
+- Arabic text as displayed by the source:
+  `سَيِّدُ الاِسْتِغْفَارِ أَنْ تَقُولَ اللَّهُمَّ أَنْتَ رَبِّي، لاَ إِلَهَ إِلاَّ أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَىَّ وَأَبُوءُ لَكَ بِذَنْبِي، فَاغْفِرْ لِي، فَإِنَّهُ لاَ يَغْفِرُ الذُّنُوبَ إِلاَّ أَنْتَ`
+- The source continues with the stated virtue for one who recites it during the day or night with certainty and dies before the corresponding period ends. Do not omit or paraphrase this context as though it were part of the supplication itself.
+- Research status: `source_checked_candidate`.
+- Human exact-text/context review: pending.
+- Duration suitability under the 40-second cap: not tested; Arabic plus English may require careful timing or a separate format decision. Do not truncate the dua to force a fit.
+- Media/audio rights: not reviewed.
+- Production status: blocked; do not create a manifest yet.
