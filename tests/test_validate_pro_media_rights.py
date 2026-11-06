@@ -26,7 +26,7 @@ def base_record(asset_id="visual-001", media_type="visual", file_path="assets/pr
             "commercial_monetized_use": True},
         "territories": ["worldwide"], "validity": {"start": "2025-01-01", "end": None},
         "attribution": {"required": False},
-        "third_party_review": {key: {"reviewed": True, "resolved": True}
+        "third_party_review": {key: {"reviewed": True, "resolved": True, "notes": "Reviewed; no unresolved third-party rights identified."}
             for key in ("people", "logos_trademarks", "artwork", "property_privacy", "endorsement")},
         "reviewer": "Human reviewer", "reviewed_at": "2026-01-02T00:00:00Z",
         "decision": "approved",
