@@ -470,3 +470,12 @@ This section supersedes earlier historical statements in this file that the curr
 - No actual media/rights record was approved or created. No preview workflow/caller was created or dispatched; no render, Telegram request, TikTok publish, secret/Cron/bot-setting change occurred.
 - No changes to original Telegram bot/workflow, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine. Eight-suite safety workflow and focused offline tests remain NOT RUN.
 - Next: static workflow isolation/concurrency/secret-scope review, then final source/test review and a separately authorized offline test run. Telegram send requires separate explicit approval.
+
+
+### Workflow review checkpoint
+- Current Pro branch has 21 workflows and no Pro preview delivery workflow/caller.
+- Existing `pro-safety-tests-manual.yml` remains manual-only, exact-Pro guarded, pinned to the Pro branch, `contents: read`, no secrets, no render/send, fixed test-only concurrency with cancellation disabled.
+- It includes the updated preview sender and renderer test modules, but not the new `test_validate_pro_media_rights.py` or `test_pro_preview_delivery_cycle.py`. Those two new suites are not wired into the current workflow.
+- No workflow changes were made. Adding those two test commands to the existing read-only safety workflow needs separate approval; creating a preview delivery workflow needs separate approval.
+- Latest verified sender-test blob SHA is `2a1606744f83d1721d1fbd5c1c24f9cacbae7a1f`.
+- Focused tests and eight-suite workflow remain NOT RUN. No dispatch, render, Telegram/TikTok, secrets/Cron/bot-setting change. Original Telegram and Quran production routes remain untouched.
