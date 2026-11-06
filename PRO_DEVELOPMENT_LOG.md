@@ -202,3 +202,29 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next step
 - Implement a dedicated dua/dhikr renderer with its own layouts and strict audio/background review gates; keep the Quran renderer unchanged. Then add renderer-focused unit tests and run only local tests when explicitly safe/approved. Telegram reuse remains a later isolated integration task.
+
+
+## 2026-11-06 — Dedicated Dua & Adhkar renderer milestone
+
+### Implemented on Pro branch
+- Added `src/render_dua_dhikr.py`, a separate renderer that accepts only `dua` or `dhikr` manifests and exactly one reviewed item per video.
+- It creates a 1080×1920 Arabic overlay using Amiri Bold and Pillow RAQM; preserves the manifest Arabic wording verbatim, supports an optional English meaning and repeat count, and refuses text that cannot fit the safe layout.
+- It uses the manifest's approved background candidate and the existing validation gates. It supports approved spoken-dua/ambient audio files or a deliberately silent clip with an explicit positive duration.
+- It enforces the 40-second maximum and outputs a review MP4 only. It contains no Telegram or TikTok publishing action and does not import the Quran renderer.
+- Added `tests/test_render_dua_dhikr.py` for vertical overlay dimensions, transparent PNG output, and rejection of empty/overlong Arabic.
+
+### Commits
+- Dedicated renderer: `6eded850610126acdc10becac8e66d62cdcb8948`
+- Renderer tests: `463512211a001475b23cc5472c190f0de152ccc0`
+
+### Validation status and limitations
+- GitHub file creation succeeded on `feature/quran-video-pro`.
+- Tests have NOT been executed. The PNG layout test requires a runtime with Pillow RAQM and the Amiri Bold font installed.
+- No MP4 render, workflow run, Telegram message, or TikTok publishing was performed.
+- The renderer is not yet wired into a Pro-specific orchestrator; current `src/orchestrator.py` remains Quran-only and was not modified.
+- The current manifest validator checks background approval flags and source URLs, but a future integration must ensure audio file paths and asset provenance are checked in the actual execution environment.
+- The silent-audio path and FFmpeg filter graph still require automated execution/technical validation before use.
+- No production branch, Cron, secrets, or production delivery path was changed.
+
+### Next step
+- Add an isolated Pro-only orchestrator for dua/dhikr selection, recent-repeat avoidance, and dry-run preflight. Keep the existing Quran orchestrator unchanged. Then add tests for content rotation and confirm the renderer CLI integration without running a render.
