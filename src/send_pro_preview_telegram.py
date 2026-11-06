@@ -15,7 +15,7 @@ import secrets
 import urllib.request
 from pathlib import Path
 
-from validate_content_manifest import validate_content_manifest
+from validate_content_manifest import validate_content_manifest\nfrom validate_pro_media_rights import validate_manifest_media_rights
 
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_CAPTION_CHARS = 1024
@@ -47,6 +47,35 @@ def build_preview_caption(data: dict) -> str:
     if len(caption) > MAX_CAPTION_CHARS:
         raise ValueError(f"Preview caption exceeds Telegram's {MAX_CAPTION_CHARS}-character limit.")
     return caption
+
+
+def verify_private_chat(token: str, chat_id: str, *, urlopen_fn=None) -> None:
+    """Fail closed unless Telegram confirms this exact destination is a private chat."""
+    if urlopen_fn is None:
+        urlopen_fn = urllib.request.urlopen
+    if not token.strip() or not chat_id.strip().isdigit() or int(chat_id) <= 0:
+        raise ValueError("A bot token and positive numeric destination are required.")
+    request = urllib.request.Request(
+        f"https://api.telegram.org/bot{token.strip()}/getChat?chat_id={chat_id.strip()}",
+        headers={"Accept": "application/json"},
+        method="GET",
+    )
+    try:
+        with urlopen_fn(request, timeout=30) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        # Do not propagate urllib exceptions: they may contain the token-bearing URL.
+        raise RuntimeError("Telegram private-chat verification failed; preview upload blocked.") from None
+    if not isinstance(payload, dict) or payload.get("ok") is not True:
+        raise RuntimeError("Telegram private-chat verification was not confirmed; preview upload blocked.")
+    chat = payload.get("result")
+    if not isinstance(chat, dict):
+        raise RuntimeError("Telegram private-chat verification returned malformed data; preview upload blocked.")
+    actual_id = chat.get("id")
+    if isinstance(actual_id, bool) or not isinstance(actual_id, int) or actual_id != int(chat_id):
+        raise RuntimeError("Telegram returned a different destination; preview upload blocked.")
+    if chat.get("type") != "private":
+        raise RuntimeError("Telegram destination is not a private chat; preview upload blocked.")
 
 
 def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str,
@@ -96,7 +125,7 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
     )
 
     # A timeout or lost response may follow successful delivery. Never retry here.
-    with urllib.request.urlopen(request, timeout=180) as response:
+    with (urlopen_fn or urllib.request.urlopen)(request, timeout=180) as response:
         result = json.loads(response.read().decode("utf-8"))
     if not result.get("ok") or not isinstance(result.get("result"), dict):
         raise RuntimeError("Telegram did not confirm the candidate preview. Outcome may be uncertain; do not retry automatically.")
