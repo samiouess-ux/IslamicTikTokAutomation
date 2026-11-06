@@ -8,7 +8,7 @@ import secrets
 import urllib.request
 from pathlib import Path
 
-from pro_delivery_ledger import reserve, transition
+from pro_delivery_ledger import assert_reserved_for_run, reserve, transition
 
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_CAPTION_CHARS = 1024
@@ -33,7 +33,7 @@ def build_caption(data: dict) -> str:
 
 
 def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
-               run_id: str, ledger_path: Path = Path("data/pro_delivery_ledger.json")) -> dict:
+               run_id: str, ledger_path: Path = Path("data/pro_delivery_ledger.json"),\n               reservation_persisted: bool = False) -> dict:
     if not token.strip() or not chat_id.strip():
         raise ValueError("TG_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured as GitHub Secrets.")
     if not isinstance(run_id, str) or not run_id.strip():
@@ -105,7 +105,7 @@ def main() -> None:
     parser.add_argument("--ledger", type=Path, default=Path("data/pro_delivery_ledger.json"))
     args = parser.parse_args()
     send_video(args.video, args.caption, os.environ.get("TG_BOT_TOKEN", ""),
-               os.environ.get("TELEGRAM_CHAT_ID", ""), args.run_id, args.ledger)
+               os.environ.get("TELEGRAM_CHAT_ID", ""), args.run_id, args.ledger,\n               reservation_persisted=args.reservation_persisted)
 
 
 if __name__ == "__main__":
