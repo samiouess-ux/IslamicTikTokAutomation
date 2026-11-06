@@ -44,6 +44,19 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
                 self.assertNotEqual(result.getpixel((270, 480)), (20, 80, 120))
 
 
+    def test_prepare_accepts_eight_source_only_candidates_without_claiming_download(self):
+        catalog = json.loads(Path("data/background_additions_review.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "catalog.json"
+            catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+            report = prepare(catalog_path, root / "output")
+            self.assertEqual(report["source_candidate_count"], 8)
+            self.assertEqual(report["candidate_count"], 0)
+            self.assertEqual(report["unresolved_count"], 8)
+            self.assertFalse(report["production_enabled"])
+            self.assertIsNone(report["contact_sheet"])
+
     def test_prepare_rejects_approved_candidate_without_explicit_user_approval(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
         catalog["candidates"][0]["approved"] = True
