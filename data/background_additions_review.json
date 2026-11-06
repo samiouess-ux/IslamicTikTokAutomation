@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "New Islamic and Arabic architectural video background leads for review. Separate from the existing four approved backgrounds; not production-enabled.",
-  "activation_policy": "These are source-page candidates only. Before use, download each clip, verify the direct media URL and license, run ffprobe, create 9:16 crops with Quran-text overlay, and obtain explicit visual approval. No candidate is active.",
+  "activation_policy": "Seven Pexels direct MP4 URLs were confirmed by following the official Free download links on their source pages. URLs are staged for review-only download and ffprobe; this does not mean the media bytes have been downloaded or probed. Pixabay remains source-page-only. No candidate is approved or production-enabled.",
   "candidates": [
     {
       "id": "pexels-islamic-dome-geometric-40564360",
@@ -13,7 +13,7 @@
       "dimensions": "2160x3840",
       "aspect_ratio": "9:16",
       "duration_seconds": 10,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/40564360/17335023_2160_3840_60fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
@@ -28,7 +28,7 @@
       "dimensions": "4320x7680",
       "aspect_ratio": "9:16",
       "duration_seconds": 14,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/35417846/15005883_4320_7680_30fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
@@ -43,7 +43,7 @@
       "dimensions": "1080x1920",
       "aspect_ratio": "9:16",
       "duration_seconds": 24,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/30733250/13147570_1080_1920_30fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
@@ -73,7 +73,7 @@
       "dimensions": "1920x1080",
       "aspect_ratio": "16:9",
       "duration_seconds": 7,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/19819594/19819594-hd_1920_1080_50fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
@@ -88,7 +88,7 @@
       "dimensions": null,
       "aspect_ratio": null,
       "duration_seconds": null,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/34928699/14795106_2160_3840_25fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
@@ -103,7 +103,7 @@
       "dimensions": "1080x1920",
       "aspect_ratio": "9:16",
       "duration_seconds": 9,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/34527220/14628540_1080_1920_30fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
@@ -118,7 +118,7 @@
       "dimensions": "3840x2160",
       "aspect_ratio": "16:9",
       "duration_seconds": 6,
-      "direct_video_url": null,
+      "direct_video_url": "https://videos.pexels.com/video-files/32719926/13948792_3840_2160_30fps.mp4",
       "download_verified": false,
       "approved": false,
       "user_approved": false
