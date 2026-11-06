@@ -54,6 +54,24 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         ])
         self.assertIn(["git", "add", "--", "data/pro_delivery_ledger.json"], commands)
 
+    def test_push_failure_raises_and_never_reports_persistence_success(self):
+        outputs = [
+            (0, EXPECTED_BRANCH, ""),  # branch
+            (0, "", ""),               # pre-existing staged paths
+            (0, "", ""),               # git add
+            (0, "data/pro_delivery_ledger.json\\n", ""),  # staged paths
+            (0, "[commit] saved", ""), # local commit
+            (1, "", "remote rejected push"),  # remote persistence failure
+        ]
+        with self.run_git(outputs) as patched:
+            with self.assertRaisesRegex(RuntimeError, "remote rejected push"):
+                persist_ledger(self.repo)
+        commands = [call.args[0] for call in patched.call_args_list]
+        self.assertEqual(commands[-1], [
+            "git", "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}"
+        ])
+        self.assertEqual(len(commands), 6)
+
     def test_refuses_unrelated_staged_path_after_add(self):
         outputs = [
             (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "", ""),
