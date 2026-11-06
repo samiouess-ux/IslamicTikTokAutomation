@@ -76,3 +76,12 @@
 - Do not run Actions, render, send Telegram, or publish to TikTok without explicit approval.
 - Record every implementation commit and validation result in `PRO_DEVELOPMENT_LOG.md`.
 
+
+
+## Pro content intake gate — 2026-11-06
+- Added `content/pro/README.md` (commit `d0f2215287c106928dd2c9aedd11cba6f8d8c1b5`) documenting the source-by-source human review requirements for future dua/dhikr manifests.
+- This adds process documentation only. It does not add or approve any religious content.
+- Quran-oriented files elsewhere in `content/` are not Pro dua/dhikr manifests and must not be selected by the Pro engine.
+- No reviewed Pro production manifest exists yet. Content intake remains blocked until exact Arabic, named primary source, precise reference, classification, verification, human review, hadith grading where applicable, media rights, and duration are checked.
+- Tests remain NOT RUN. The manual-only safety workflow remains undispatched. No delivery workflow, render, Telegram request, or TikTok publish has been started.
+- Latest development log update: `1fcd1385fb16bd0ef3a3197b68b8678523778dd0`.
