@@ -1,5 +1,6 @@
 """Offline orchestration tests; all persistence and Telegram calls are injected."""
 import json
+import hashlib
 import sys
 import tempfile
 import unittest
@@ -19,7 +20,8 @@ def manifest_data():
             "source_name":"Quran","source_url":"https://quran.com/2/201","source_reference":"2:201",
             "verification_status":"verified","human_reviewed":False}],
         "audio":{"kind":"silent","music_allowed":False},
-        "visual":{"template":"ornate_gold_classic","background_candidate":{
+        "media_assets":[{"asset_id":"bg-001","media_type":"visual"}],
+        "visual":{"template":"ornate_gold_classic","background_candidate":{"asset_id":"bg-001",
             "source_url":"https://example.org/source","direct_video_url":"https://example.org/bg.mp4",
             "approved":True,"user_approved":True}},
         "publishing":{"approval_required":True,"auto_publish":False}
@@ -37,6 +39,30 @@ class PreviewCycleTests(unittest.TestCase):
         self.manifest.write_text(json.dumps(manifest_data(), ensure_ascii=False), encoding="utf-8")
         self.video = self.root / "output/pro_preview/PREVIEW-ONLY-dua-candidate-001.mp4"
         self.video.write_bytes(b"fake-mp4")
+        (self.root / "assets/pro/media").mkdir(parents=True)
+        (self.root / "content/pro/rights").mkdir(parents=True)
+        media = self.root / "assets/pro/media/bg.mp4"
+        media.write_bytes(b"approved-background")
+        digest = hashlib.sha256(media.read_bytes()).hexdigest()
+        record = {
+            "schema_version": 1, "asset_id": "bg-001", "media_type": "visual",
+            "file_path": "assets/pro/media/bg.mp4", "file_sha256": digest,
+            "source_page_url": "https://example.org/source", "creator_or_performer": "Creator",
+            "rights_owner": "Rights owner", "source_platform": "Example stock",
+            "downloaded_at": "2026-01-01T00:00:00Z", "license_name": "Example license",
+            "license_evidence": {"kind": "url", "value": "https://example.org/license"},
+            "intended_uses": {"download": True, "editing": True, "video_synchronization": True,
+                "private_review_delivery": True, "public_social_posting": True,
+                "commercial_monetized_use": True},
+            "territories": ["worldwide"], "validity": {"start": "2025-01-01", "end": None},
+            "attribution": {"required": False},
+            "third_party_review": {key: {"reviewed": True, "resolved": True}
+                for key in ("people", "logos_trademarks", "artwork", "property_privacy", "endorsement")},
+            "reviewer": "Human reviewer", "reviewed_at": "2026-01-02T00:00:00Z",
+            "decision": "approved",
+        }
+        (self.root / "content/pro/rights/bg-001.json").write_text(
+            json.dumps(record), encoding="utf-8")
 
     def tearDown(self):
         self.tmp.cleanup()
