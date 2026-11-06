@@ -174,5 +174,21 @@ class PreviewCycleTests(unittest.TestCase):
         self.assertFalse((self.root / "data/pro_preview_send_ledger.json").exists())
 
 
+    def test_definite_pre_upload_sender_rejection_keeps_reserved_not_uncertain(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            return True
+        def send(*args, **kwargs):
+            calls.append("send")
+            from send_pro_preview_telegram import PreSendVerificationError
+            raise PreSendVerificationError("private chat check failed")
+        with self.assertRaisesRegex(RuntimeError, "private chat check failed"):
+            self.call_cycle(persist, send)
+        self.assertEqual(calls, ["persist", "send"])
+        data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
+        self.assertEqual(data["entries"]["candidate-001"]["state"], "reserved")
+
+
 if __name__ == "__main__":
     unittest.main()
