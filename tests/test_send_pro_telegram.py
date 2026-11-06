@@ -93,6 +93,38 @@ class ProTelegramSenderTests(unittest.TestCase):
                                reservation_persisted=True)
                 send_mock.assert_not_called()
 
+    def test_pre_persisted_mode_refuses_missing_reservation_before_telegram(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            with mock.patch("send_pro_telegram.urllib.request.urlopen") as send_mock:
+                with self.assertRaisesRegex(ValueError, "No persisted reservation"):
+                    send_video(video, caption, "token", "chat", "run-1", ledger,
+                               reservation_persisted=True)
+                send_mock.assert_not_called()
+
+    def test_pre_persisted_transport_failure_marks_reservation_uncertain(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            from pro_delivery_ledger import reserve
+            reserve(ledger, "dua-manifest-1", "dua", "run-1")
+            with mock.patch("send_pro_telegram.urllib.request.urlopen",
+                            side_effect=TimeoutError("ambiguous Telegram timeout")):
+                with self.assertRaisesRegex(TimeoutError, "ambiguous Telegram timeout"):
+                    send_video(video, caption, "token", "chat", "run-1", ledger,
+                               reservation_persisted=True)
+            entry = load_ledger(ledger)["entries"]["dua-manifest-1"]
+            self.assertEqual(entry["state"], "uncertain")
+
     def test_pre_persisted_mode_sends_only_after_matching_reservation(self):
         class FakeResponse:
             def __enter__(self):
