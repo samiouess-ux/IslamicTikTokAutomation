@@ -357,3 +357,13 @@ This section supersedes earlier historical statements in this file that the curr
 - A future preview workflow therefore needs a separate preview ledger, one fixed concurrency group (`cancel-in-progress: false`), exact Pro-ref guard before secrets/write permission, and a hard stop on persistence push failure before Telegram.
 - Preview identity must bind a unique candidate ID to immutable manifest/video SHA-256 hashes. Persist `reserved` before send; mark `delivered` only with a valid Telegram message ID; keep ambiguous outcomes blocked as `uncertain` until human reconciliation. Complete local preflight before reserving.
 - Review/design only: no code, workflow, test, dispatch, render, Telegram request, TikTok publish, secret, Cron, bot setting, or production-branch change. Original Quran engine untouched; eight-suite safety workflow NOT RUN.
+
+
+## 2026-11-06 — Preview ledger contract
+- A separate `data/pro_preview_send_ledger.json` is required; do not reuse `data/pro_delivery_ledger.json` or production rotation history.
+- Version 1 entries are keyed by immutable candidate ID and store content type, manifest SHA-256, MP4 SHA-256, workflow run ID, state, timestamps, and Telegram message ID only after confirmed delivery.
+- Existing candidate ID always blocks a second send. Changed hashes under the same ID are an identity conflict; create a new reviewed candidate ID instead.
+- Preflight all local inputs before reservation. Persist and verify `reserved` on the exact Pro branch before Telegram; send once; mark `delivered` only with a valid positive message ID. Ambiguous network/response outcomes become `uncertain`; failed final persistence leaves the earlier reservation blocking. No automatic retry or expiry.
+- Allowed transitions: reserved to delivered/uncertain; uncertain to delivered only with recovered receipt. Human confirmation and evidence are required before releasing an uncertain/not-delivered candidate.
+- Serialize the manual Pro workflow with fixed concurrency and no cancellation; fetch latest ledger before changes; stop on push conflict (never force-push). Grant write permission and expose existing bot secrets only after exact Pro-ref guard.
+- Design/documentation only: no code, workflow, tests, dispatch, render, Telegram, TikTok, secret, Cron, bot setting, or production branch changes. Original Quran engine untouched; eight-suite workflow NOT RUN.
