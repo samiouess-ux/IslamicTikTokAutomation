@@ -9,7 +9,7 @@ from typing import Callable
 
 from persist_pro_preview_ledger import persist_preview_ledger
 from pro_preview_send_ledger import load_ledger, reserve, transition, validate_candidate_id
-from send_pro_preview_telegram import MAX_VIDEO_BYTES, build_preview_caption, send_preview
+from send_pro_preview_telegram import MAX_VIDEO_BYTES, build_preview_caption, send_preview, verify_private_chat
 from validate_pro_media_rights import validate_manifest_media_rights
 
 EXPECTED_BRANCH = "feature/quran-video-pro"
@@ -73,13 +73,15 @@ def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
 def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
                       workflow_run_id: str, token: str, chat_id: str,
                       branch: str, persist_fn: Callable[[Path], bool] = persist_preview_ledger,
-                      send_fn: Callable[..., dict] = send_preview) -> dict:
+                      send_fn: Callable[..., dict] = send_preview,\n                      verify_chat_fn: Callable[..., None] = verify_private_chat) -> dict:
     if branch != EXPECTED_BRANCH:
         raise RuntimeError(f"Preview delivery is restricted to {EXPECTED_BRANCH}.")
     if not isinstance(workflow_run_id, str) or not workflow_run_id.strip():
         raise ValueError("workflow_run_id is required.")
     root = repo_root.resolve(strict=True)
     checked = preflight(manifest_path, video_path, repo_root=root, token=token, chat_id=chat_id)
+    # Verify the destination before creating a durable reservation; sender verifies again immediately before upload.
+    verify_chat_fn(token, chat_id)
     data_dir = root / "data"
     if data_dir.is_symlink():
         raise ValueError("Pro data directory must not be a symlink.")
