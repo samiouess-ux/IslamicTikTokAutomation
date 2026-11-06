@@ -145,3 +145,38 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - After checking the new coordinates against the English translation overlay's fixed lower-screen region, moved the `minimal_mushaf` and `cinematic_landscape` verse markers upward to avoid a likely collision with long (up to five-line) translations.
 - Commit: `1934a58626210788aebfb5b562239481d9f38d75`.
 - This is a source-level spacing correction only; visual clearance still needs confirmation in a rendered MP4.
+
+
+## 2026-11-06 — User-approved scope pivot: Dua & Adhkar Pro
+
+### Binding product decision
+- The user clarified that this Pro branch is to become the dua-and-adhkar specialist branch of the larger IslamicTikTokAutomation engine.
+- The existing production branch `feature/telegram-review-notifications` remains Quran-only and must continue unchanged.
+- This branch must focus exclusively on professionally produced dua and dhikr videos. Do not add Quran-video production to Pro.
+- Reuse safe shared engine capabilities where technically appropriate (content selection/rotation, manifest validation, visual asset selection, video encoding conventions, review safeguards). Do not duplicate the whole engine or couple Pro changes into production.
+- The user wants Pro to use the existing/original Telegram bot for review delivery if a safe isolated route can be established. This is a design requirement, not yet implemented or verified. Do not send Telegram messages or change bot configuration/secrets as part of this work without explicit approval.
+- All work and decisions must be recorded in this log and a Pro-specific status file so work can resume in a new chat without losing context.
+
+### Read-only source inspection findings
+- The current Pro `src/validate_content_manifest.py` already recognizes `content_type` values `quran`, `dua`, and `dhikr`.
+- For dua/dhikr it already requires a non-empty `items` list, exact Arabic wording, a named HTTPS religious source, no Quran-recitation audio mislabeled as dua/dhikr, and approval/rights gates for spoken dua or ambient audio.
+- The current `src/orchestrator.py` is explicitly Quran-only: `DAILY_CONTENT_TYPE = "quran"`, its plan builder insists on Quran manifests, and it calls the Quran-specific `src/render_video_scenes.py` renderer.
+- The current Pro renderer is explicitly Quran-specific (verse/surah overlays, Quran recitation checks and Quran cover). It must not be reused unchanged for dua/dhikr.
+- `src/asset_rotation.py` is a potentially reusable shared utility for approved, user-approved, rights-verified backgrounds/audio; its catalog schema must be respected and tested.
+- The existing Pro branch currently has no verified dua/dhikr production renderer, no verified dua/dhikr content library, and no verified Telegram delivery integration.
+- The existing Quran-oriented history in this log is retained as historical context only; it is not the current Pro product scope.
+
+### Safe implementation plan
+1. Map the shared modules and their callers on this branch; identify reusable components versus Quran-only code before changing behavior.
+2. Define a strict dua/dhikr content schema with exact wording, source title/URL, hadith grading or authenticity reference where applicable, category, repeat count where relevant, and human-review state. Never invent religious wording or authenticity.
+3. Build a dedicated dua/dhikr visual renderer and templates; do not route dua/dhikr through Quran verse/surah rendering.
+4. Extend the Pro orchestrator to plan dua/dhikr batches, avoid recent repeats, and fail closed on missing/invalid source metadata.
+5. Add unit tests for source validation, Arabic preservation, content selection/non-repetition, layout bounds, audio policy, and review-only publishing.
+6. Inspect the existing Telegram delivery architecture read-only and design a separate, clearly labeled Pro delivery route through the original bot. Do not change production workflow, bot secrets, Cron, or send messages until the isolation design is reviewed and explicitly approved.
+7. Only after code/tests are ready and separately approved: perform a review render and then a user-approved Telegram review test. No TikTok auto-publishing.
+
+### Current checkpoint and restrictions
+- This entry is a documentation-only scope decision based on read-only source inspection.
+- No source code, workflow, manifest, bot configuration, production branch, Cron, or secret was changed.
+- No GitHub Actions workflow was run; no render was performed; no Telegram message was sent; nothing was published.
+- Next action: implement the dedicated dua/dhikr content schema and renderer in this branch only, after mapping exact shared render/manifest helpers. Keep the Quran production engine untouched.
