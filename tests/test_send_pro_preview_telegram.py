@@ -114,6 +114,26 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             self.assertFalse(result["rotation_history_touched"])
             self.assertFalse(result["tiktok_published"])
 
+
+    def test_uploaded_bytes_must_match_reserved_hashes_before_network(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            expected_video = hashlib.sha256(video.read_bytes()).hexdigest()
+            expected_manifest = hashlib.sha256(manifest.read_bytes()).hexdigest()
+            with patch.object(sender.urllib.request, "urlopen") as call:
+                with self.assertRaisesRegex(ValueError, "video bytes do not match"):
+                    sender.send_preview(video, manifest, "token", "12345", confirmed=True,
+                        expected_video_sha256="0" * 64,
+                        expected_manifest_sha256=expected_manifest)
+                call.assert_not_called()
+            with patch.object(sender.urllib.request, "urlopen") as call:
+                with self.assertRaisesRegex(ValueError, "manifest bytes do not match"):
+                    sender.send_preview(video, manifest, "token", "12345", confirmed=True,
+                        expected_video_sha256=expected_video,
+                        expected_manifest_sha256="0" * 64)
+                call.assert_not_called()
+
     def test_transport_error_is_not_retried(self):
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
