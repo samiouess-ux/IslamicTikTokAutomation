@@ -1,4 +1,4 @@
-# Quran Video Pro — Development Log
+# Islamic Dua & Adhkar Pro — Development Log
 
 This log is the durable record for work on `feature/quran-video-pro`.
 Production branch `feature/telegram-review-notifications` is out of scope and must not be modified by Pro work.
@@ -584,3 +584,21 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next safe step
 - Await explicit approval before running the offline Pro unit-test suite. Keep delivery workflow creation blocked until reviewed dua/dhikr manifests exist and the workflow integration is separately reviewed.
+
+
+## 2026-11-06 — Pro content-validation and renderer boundary review
+
+### Read-only review
+- Re-fetched and inspected `src/validate_content_manifest.py`, `src/render_dua_video.py`, and `src/pro_orchestrator.py` from the exact Pro branch.
+- Confirmed the Pro orchestrator accepts only `dua` or `dhikr`, requires rotation-approved manifests, runs the shared validator, requires explicit positive item durations, applies the 40-second hard cap, and defaults to preflight; rendering requires the explicit `--render` flag.
+- Confirmed the dedicated renderer independently rejects non-dua/dhikr content, validates the manifest before rendering, requires an HTTPS background URL that has both approval and user approval metadata, and checks declared audio duration instead of silently padding or trimming it.
+- Confirmed the shared validator requires each dua/dhikr item to carry a stable unique ID, exact non-empty Arabic text, named HTTPS source, precise source reference, `verification_status: verified`, `human_reviewed: true`, and an explicit item classification. Prophetic duas require a non-empty hadith-grading field.
+
+### Important limitation recorded
+- These checks validate required metadata and workflow gates; they do not independently authenticate the Arabic wording, source interpretation, hadith grading, or media reuse rights. Those remain human/source-review responsibilities.
+- No reviewed Pro content library was found or added. Production content selection and all real rendering/delivery remain blocked until source-by-source review is completed.
+- No code tests were run, no render or workflow was started, and no Telegram/TikTok action occurred.
+
+### Documentation correction
+- Updated this log's title to the current Dua & Adhkar Pro scope. Earlier Quran-oriented entries remain as historical records only; the current scope pivot entry governs this branch.
+- No production branch, `main`, production workflow, Cron, secrets, or original Telegram route was changed.
