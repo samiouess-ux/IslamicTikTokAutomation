@@ -55,11 +55,11 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
         self.assertTrue(self.pending.exists())
         self.assertEqual(json.loads(self.history.read_text())["ayah_references"], [])
 
-    def test_reservation_rejects_preview_over_40_seconds(self):
+    def test_reservation_rejects_preview_over_45_seconds(self):
         preview = json.loads(self.preview.read_text(encoding="utf-8"))
-        preview["items"][0]["duration_seconds"] = 40.001
+        preview["items"][0]["duration_seconds"] = 45.001
         self.preview.write_text(json.dumps(preview), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "no longer than 40 seconds"):
+        with self.assertRaisesRegex(ValueError, "no longer than 45 seconds"):
             self.reserve()
         self.assertFalse(self.pending.exists())
 
