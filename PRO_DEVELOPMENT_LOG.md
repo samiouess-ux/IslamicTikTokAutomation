@@ -1173,3 +1173,17 @@ This mapping is static inspection only. No source/test/workflow implementation, 
 - Added a cycle test for artifact mutation after reservation: the second hash check must block Telegram and leave the reservation in its blocking reserved state.
 - Added a cycle test for final persistence failure: the first persisted reservation remains the remote duplicate-send boundary; no retry is attempted.
 - These changes are static source/test edits only. Tests remain NOT RUN.
+
+
+### 2026-11-06 — Final static review corrections
+- Persistence now refreshes the exact remote-tracking ref both before freshness comparison and after push verification.
+- Corrected escaped newline literals in the new persistence test fixtures; tests still have not been executed.
+- Re-fetched current code/test blobs after these corrections:
+  - `src/pro_preview_send_ledger.py`: `4165e0b9fcf12d5666a867511392bf2f361583ad`
+  - `src/persist_pro_preview_ledger.py`: `97cea2e30230aa2ab03f1aba2cefa620543a540d`
+  - `src/pro_preview_delivery_cycle.py`: `a96c1b624ba11178413e599020f6327fdb5f946a`
+  - `tests/test_pro_preview_send_ledger.py`: `2762f1b366f6ec75674a011c26f1b3c5cfc3ada1`
+  - `tests/test_persist_pro_preview_ledger.py`: `ebc9e66e4b191065d70e906cd49b8832e544661d`
+  - `tests/test_pro_preview_delivery_cycle.py`: `8cf87814ce6abe798a765f6a1f815de9a8075957`
+- Static limitations remain: no workflow/caller exists; Telegram private-chat type is not proven by numeric ID; the final hash-to-file-read interval in the existing sender leaves a narrow local mutation race; complete per-asset media-rights evidence is not enforced by the shared manifest validator. These must be closed before any real preview send.
+- No tests run, workflow created/dispatched, render, Telegram request, TikTok publish, secrets/Cron/bot settings, production branch, or original engine changed.
