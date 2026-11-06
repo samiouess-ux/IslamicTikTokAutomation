@@ -189,6 +189,9 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
             _fail("silent media must not declare an audio asset.")
     else:
         _fail("audio.kind must be explicit before rights validation.")
+    for ref in refs:
+        if not isinstance(ref.get("asset_id"), str) or not ASSET_ID.fullmatch(ref["asset_id"]):
+            _fail("each referenced visual/audio asset needs a safe asset_id.")
     declared = data.get("media_assets")
     if not isinstance(declared, list) or len(declared) != len(refs):
         _fail("media_assets must list exactly the visual and any required audio asset.")
