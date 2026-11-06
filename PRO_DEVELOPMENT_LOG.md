@@ -1244,3 +1244,25 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 
 ### Next safe step
 - Design and review the strict per-asset rights schema and independent Telegram private-chat verification contract, then request explicit approval before implementing them. Keep preview sending disabled until both gates and workflow isolation are independently reviewed.
+
+
+## 2026-11-06 — Defined strict preview activation contracts (documentation only)
+
+### Per-asset media rights
+- Extended `content/pro/MEDIA_RIGHTS_POLICY.md` with a machine-checkable, versioned per-asset rights-record contract.
+- Each exact media file must be linked to one stable asset ID and a rights JSON record under `content/pro/rights/`; the record binds the exact local file path and SHA-256 to its source page, creator/performer, rights owner, platform, download date, exact license/permission evidence, intended-use permissions, territory/time scope, attribution, third-party rights review, reviewer/date, and explicit approved decision.
+- Audio records additionally distinguish performer from recording owner and require explicit rights for download/edit, video sync, public social posting, and commercial/monetized use where relevant. Silent output does not require an audio record.
+- Future validator must reject missing/duplicate/orphaned records, symlinks/path escapes, invalid or mismatched hashes, absent evidence, ambiguous/expired scope, and missing human approval. Boolean flags alone are insufficient.
+
+### Telegram private-chat verification
+- Defined a mandatory pre-send Telegram Bot API `getChat` check using the same bot token and configured chat ID as the subsequent `sendVideo`.
+- Proceed only when API success is explicit, returned chat ID exactly matches configured ID, and `result.type == "private"`; reject all other/malformed/error responses before `sendVideo`.
+- Do not log token or unnecessary personal metadata. Add offline mocked tests for success, ID mismatch, non-private types, malformed/API-error responses, and zero upload calls on failure.
+- Official API reference: https://core.telegram.org/bots/api#getchat . The Bot API defines Chat.type values including private, group, supergroup and channel.
+
+### Verification and boundaries
+- Policy file update committed on `feature/quran-video-pro`: `4a705b4185cba8f76f08a9c36f1bf2345bb93d03`; blob `ec171000b57fc03d14681a8edddb1f4c30e7bb12`.
+- This is a design/policy checkpoint only. No validator code, sender code, tests, workflow, manifests, or rights records were created/changed in this pass.
+- No test run, workflow dispatch, render, Telegram API request, or TikTok publish occurred. No secrets, Cron, original bot/workflow, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine was changed.
+- Existing focused preview tests and eight-suite safety workflow remain NOT RUN.
+- Next: implement the rights-record validator and Telegram getChat preflight only after separate explicit approval; add mocked offline tests, then statically review workflow isolation before any delivery activation.
