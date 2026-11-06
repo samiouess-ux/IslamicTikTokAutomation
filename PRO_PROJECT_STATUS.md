@@ -259,3 +259,12 @@ This section supersedes earlier historical statements in this file that the curr
 - These are coverage gaps corresponding to the previously documented implementation gaps; they are not evidence that a specific rendered video was incorrect or that an asset was actually used without permission.
 - Validation boundary: source/test inspection only. No tests executed, no workflow dispatched, no code or workflow changed, no render, Telegram request, or TikTok publication. No secrets, Cron, or delivery settings changed. All work stayed on `feature/quran-video-pro`; `main` and `feature/telegram-review-notifications` were not touched. The original Quran production engine remains untouched.
 - Next: prepare focused negative/integration test cases for production IDs, approved-background URL binding, per-item audio timing, and required media-rights evidence. Implementation and test execution remain gated by separate explicit approval.
+
+## 2026-11-06 — Delivery preflight boundary review
+- Re-inspected the current Pro delivery cycle, Telegram sender, ledger tests, persistence tests, and manual safety workflow.
+- Confirmed local validation (secrets/configuration, MP4 existence/size, caption parsing/flags, manifest identity/type) occurs in the sender before the Telegram network-request exception boundary, but after the cycle has reserved and persisted the manifest.
+- If such local validation fails, the cycle attempts to persist the unchanged ledger; the reservation generally remains reserved, not uncertain, and blocks reuse despite no Telegram request having started. Actual request/response exceptions are separately transitioned to uncertain by the sender.
+- Recommended follow-up: preflight before reservation or a typed, provably pre-network failure path, plus tests for invalid local inputs and preserved uncertain handling for transport ambiguity. No implementation change was made.
+- The manual safety workflow remains manual-only, exact-Pro-branch guarded, and contents: read; its eight suites remain NOT RUN. Historical run 42259731118 covers only the earlier four suites.
+- Static review only. No test, dispatch, render, Telegram request, TikTok publish, secrets/Cron change, or production-branch modification occurred. Original Quran production engine remains untouched.
+- Next: continue read-only review of delivery-cycle call sites and preview/private-destination isolation; implementation and execution require separate explicit approval.
