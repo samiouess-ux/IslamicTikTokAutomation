@@ -77,6 +77,47 @@ class ProTelegramSenderTests(unittest.TestCase):
             self.assertEqual(entry["state"], "delivered")
             self.assertEqual(entry["telegram_message_id"], 321)
 
+    def test_pre_persisted_mode_refuses_wrong_run_before_telegram(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            from pro_delivery_ledger import reserve
+            reserve(ledger, "dua-manifest-1", "dua", "run-owner")
+            with mock.patch("send_pro_telegram.urllib.request.urlopen") as send_mock:
+                with self.assertRaisesRegex(ValueError, "different workflow run"):
+                    send_video(video, caption, "token", "chat", "run-other", ledger,
+                               reservation_persisted=True)
+                send_mock.assert_not_called()
+
+    def test_pre_persisted_mode_sends_only_after_matching_reservation(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return json.dumps({"ok": True, "result": {"message_id": 654}}).encode()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            from pro_delivery_ledger import reserve
+            reserve(ledger, "dua-manifest-1", "dua", "run-1")
+            with mock.patch("send_pro_telegram.urllib.request.urlopen", return_value=FakeResponse()):
+                message = send_video(video, caption, "token", "chat", "run-1", ledger,
+                                     reservation_persisted=True)
+            self.assertEqual(message["message_id"], 654)
+            entry = load_ledger(ledger)["entries"]["dua-manifest-1"]
+            self.assertEqual(entry["state"], "delivered")
+
     def test_uncertain_send_blocks_a_second_attempt(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
