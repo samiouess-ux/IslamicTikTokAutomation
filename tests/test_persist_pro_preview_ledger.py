@@ -51,7 +51,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
             self.assertTrue(persist_preview_ledger(self.repo))
         commands = [call.args[0] for call in patched.call_args_list]
         self.assertIn(["git", "add", "--", "data/pro_preview_send_ledger.json"], commands)
-        self.assertEqual(commands[-3], ["git", "rev-parse", "HEAD"])
+        self.assertEqual(commands[-2], ["git", "rev-parse", "HEAD"])
         self.assertEqual(commands[-1], ["git", "rev-parse", "refs/remotes/origin/feature/quran-video-pro"])
 
     def test_unrelated_staged_path_is_rejected(self):
