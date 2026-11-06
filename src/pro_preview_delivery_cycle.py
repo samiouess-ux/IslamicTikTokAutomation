@@ -83,8 +83,6 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
     checked = preflight(manifest_path, video_path, repo_root=root, token=token, chat_id=chat_id)
     # Verify before reserving; the sender repeats getChat immediately before sendVideo.
     verify_chat_fn(token, chat_id)
-    # Verify the destination before creating a durable reservation; sender verifies again immediately before upload.
-    verify_chat_fn(token, chat_id)
     data_dir = root / "data"
     if data_dir.is_symlink():
         raise ValueError("Pro data directory must not be a symlink.")
