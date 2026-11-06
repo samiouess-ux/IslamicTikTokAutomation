@@ -323,6 +323,43 @@ jobs:
               raise SystemExit("Actual Quran overlay contact sheet is missing.")
           print("Prepared four verified source downloads, 9:16 crops, and actual Quran-overlay legibility previews; none is production-approved.")
           PY
+
+      - name: Composite actual Quran overlay onto seven new review-only backgrounds
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from src.prepare_background_review_previews import composite_overlay_preview, build_contact_sheet
+
+          root = Path("output/background_additions_review")
+          report_path = root / "background_review_report.json"
+          report = json.loads(report_path.read_text(encoding="utf-8"))
+          overlay = next(iter(sorted(Path("output/quran_review_previews").glob("ayah_*.png"))), None)
+          if overlay is None:
+              raise SystemExit("Actual Quran overlay frame is missing.")
+          overlaid = []
+          for item in report["items"]:
+              if not item.get("download_probe_verified"):
+                  continue
+              crop = root / (item["id"] + "_vertical_crop.jpg")
+              destination = root / (item["id"] + "_quran_overlay.jpg")
+              if not crop.is_file():
+                  raise SystemExit(f"Missing verified crop for {item['id']}")
+              composite_overlay_preview(crop, overlay, destination)
+              overlaid.append({**item, "preview_path": str(destination),
+                               "description": item["description"] + " — Quran text overlay"})
+          if len(overlaid) != 7 or report["unresolved_count"] != 1:
+              raise SystemExit("Expected seven overlay previews and one unresolved source.")
+          overlay_sheet = root / "background_quran_overlay_contact_sheet.jpg"
+          build_contact_sheet(overlaid, overlay_sheet)
+          report["quran_overlay_contact_sheet"] = str(overlay_sheet)
+          report["quran_overlay_frame_source"] = str(overlay)
+          report["overlay_legibility_review_required"] = True
+          report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+          if not overlay_sheet.is_file():
+              raise SystemExit("New-background Quran overlay contact sheet was not created.")
+          print("Created seven new-background Quran overlay previews; visual legibility review remains required and production stays disabled.")
+          PY
       - name: Reserve Telegram delivery attempt before sending
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true)
         run: |
