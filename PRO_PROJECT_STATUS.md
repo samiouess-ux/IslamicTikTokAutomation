@@ -11,7 +11,7 @@
 - `src/validate_content_manifest.py`: strict dua/dhikr source, exact Arabic, human-review and hadith-grading checks.
 - `src/render_dua_video.py`: dedicated dua/dhikr slideshow renderer; Pro orchestration currently applies a 40-second cap.
 - `src/pro_orchestrator.py`: Pro-only dua/dhikr planning, approved-manifest selection, recent-repeat avoidance, dry-run preflight and optional render path.
-- `src/send_pro_telegram.py`: isolated Pro-branded sender with dua/dhikr-only, review-only, and local reservation-ledger safeguards. It has not been executed or connected to a workflow.
+- `src/send_pro_telegram.py`: isolated Pro-branded sender with dua/dhikr-only, review-only, and reservation-ledger safeguards. Its `--reservation-persisted` mode requires a pre-existing reserved entry matching manifest ID, content type, and workflow run ID; it has not been executed or connected to a workflow.
 - `src/prepare_pro_telegram_caption.py`: validated review caption preparation.
 - Quran-specific `src/orchestrator.py`, `src/render_video_scenes.py`, and production workflow must remain untouched.
 
@@ -37,10 +37,10 @@
 - No Pro workflow exists yet, and no reviewed `content/pro` manifests exist.
 
 ## Next steps
-1. Add sender support for a pre-persisted reservation bound to the current workflow run ID.
-2. Add a narrow ledger-only persistence helper and tests for all failure boundaries.
-3. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions; no schedule or production secrets.
-4. Build a reviewed dua/dhikr content library from trustworthy primary sources.
+1. Add a narrow ledger-only persistence helper and tests for all failure boundaries. Sender support for a pre-persisted reservation is implemented, but not yet wired to GitHub persistence.
+2. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions; no schedule or production secrets.
+3. Build a reviewed dua/dhikr content library from trustworthy primary sources.
+4. Run the offline test suite in an approved environment and record exact results.
 5. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
 
 ## Safety and change control
