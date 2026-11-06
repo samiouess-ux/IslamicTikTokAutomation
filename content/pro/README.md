@@ -25,7 +25,7 @@ The shared validator also requires structured `source`, `visual`, `audio`, and `
 
 Dua/dhikr items require unique stable IDs, non-empty exact Arabic wording, a named HTTPS source, a precise source reference, verified status, human review, and an explicit classification. Prophetic duas additionally require a non-empty hadith grading field.
 
-These are metadata and workflow gates, not proof that the religious text, interpretation, grading, or media rights are authentic. Human/source review remains mandatory before production approval. The current validator still requires `human_reviewed: true` even for rendering; this prevents the user's intended first Telegram preview and must be resolved with a separate fail-closed preview-only state before any preview is rendered or sent.
+These are metadata and workflow gates, not proof that the religious text, interpretation, grading, or media rights are authentic. Human/source review remains mandatory before production approval. The validator now has a separate opt-in candidate-preview path. A candidate must declare `lifecycle_status: "candidate_preview"` and `preview_only: true`; pending human review is allowed only through this explicit path. The normal production path still requires `human_reviewed: true`. The orchestrator can validate one explicitly selected candidate and, with `--render-preview`, render locally into `output/pro_preview`. This is not yet a Telegram delivery path; no candidate has been rendered or sent.
 
 ## Do not
 
@@ -33,7 +33,8 @@ These are metadata and workflow gates, not proof that the religious text, interp
 - Mark a candidate verified or human-reviewed just to make validation pass.
 - Treat Quran production manifests from other directories as Pro dua/dhikr content.
 - Treat a preview candidate as production-approved or eligible for public posting.
-- Render or send preview candidates until a separate preview-only validation and delivery path has been implemented and tested.
+- Treat a local candidate preview as a Telegram delivery or as user approval.
+- Send preview candidates to Telegram until a separate private preview sender/workflow has been implemented, tested, and explicitly authorized for a real send.
 - Publish to TikTok as part of content intake.
 - Enable a delivery workflow until the library, offline tests, and workflow safety review are complete.
 
