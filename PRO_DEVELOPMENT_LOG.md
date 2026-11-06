@@ -1104,3 +1104,33 @@ Re-fetched and inspected the current versions of:
 - The existing eight-suite `pro-safety-tests-manual.yml` remains NOT RUN; no workflow dispatch was performed.
 - No render, Telegram send, TikTok publish, secret read/change, Cron change, original bot/workflow change, production branch change, or original engine operation occurred.
 - Next review item: inspect current branch tree and test conventions to map each checklist item to exact files/fixtures, then request explicit approval before implementation. Keep test execution and any Telegram preview send separately gated.
+
+
+## 2026-11-06 — Checklist mapped to current source/test layout (static inspection)
+
+### Existing files and reusable conventions
+- `src/send_pro_preview_telegram.py` (SHA `14070ef7bcfcaa0d0f6818f81b926322674910c0`): keep as the one-shot transport adapter, but do not wire it directly to a workflow until the separate preview ledger/orchestration exists. Its current tests mock `urllib.request.urlopen`.
+- `tests/test_send_pro_preview_telegram.py` (SHA `da477d948c62dc57d4b95815435098569687553b`): current `ProPreviewTelegramSenderTests` provides temporary-file manifest/video fixtures and mocks `urlopen`. Extend for transport-response validation and assert no second attempt; avoid real network.
+- `src/pro_delivery_ledger.py` + `tests/test_pro_delivery_ledger.py`: useful patterns for JSON ledger state transitions, duplicate blocking, and bool-vs-int message ID validation. Do not import/reuse its production ledger path/schema as the preview ledger; implement a separate module and separate tests.
+- `src/persist_pro_ledger.py` + `tests/test_persist_pro_ledger.py`: useful exact-branch, staged-path, commit/push failure test patterns. Current constant/path target is `data/pro_delivery_ledger.json`; future preview persistence must use a separate explicit path and must not silently change this production delivery helper.
+- `src/pro_delivery_cycle.py` + `tests/test_pro_delivery_cycle.py`: useful reserve→persist→send→persist ordering and mocked dependency injection patterns. It imports the production ledger/persistence path and is not suitable for direct preview reuse; create a distinct preview cycle.
+- `.github/workflows/pro-safety-tests-manual.yml` (SHA `a6516c54dccdbd93227a76d59e253dccaa5f7f26`): existing workflow is manual-only, exact Pro branch guarded, checkout pinned to Pro, read-only, and has its own concurrency group `quran-video-pro-safety-tests`. It runs eight test modules and remains NOT RUN. Do not change its purpose or add secrets/write permissions to it.
+
+### Proposed new files and focused tests
+- `src/pro_preview_send_ledger.py`: schema parsing, validation, immutable candidate identity, state transitions, atomic save, local lock.
+- `tests/test_pro_preview_send_ledger.py`: schema/type/hash/duplicate/transition/atomicity/lock tests; use temporary directories only.
+- `src/persist_pro_preview_ledger.py`: exact Pro branch and preview-ledger-only Git persistence, fresh-state verification, no force push.
+- `tests/test_persist_pro_preview_ledger.py`: mock `subprocess.run` in the existing persistence-test style; verify wrong branch, unrelated staged paths, push conflict, and exact path only.
+- `src/pro_preview_delivery_cycle.py`: preflight→reserve→persist→verify remote reservation→one send→persist delivered/uncertain. Inject persistence, sender, hash and clock dependencies for deterministic offline tests.
+- `tests/test_pro_preview_delivery_cycle.py`: order assertions, no send on preflight/persist/verification failure, one send only, ambiguous outcomes, duplicate and hash-conflict blocks, final persistence failure.
+- Future workflow file (name not selected): separate `workflow_dispatch` only; do not add delivery steps to `pro-safety-tests-manual.yml`. Static workflow checks can live in a dedicated test such as `tests/test_pro_preview_workflow_security.py`, parsing YAML with an already available dependency only if confirmed; otherwise use robust text/structure checks without introducing a new runtime dependency.
+
+### Specific current coverage gaps confirmed by test-name inventory
+- Existing preview sender tests cover explicit confirmation, lifecycle guard, preview filename/private numeric chat, manifest filename match, warning caption, one successful request/no production side effects, and no retry after transport error. They do not cover durable duplicate prevention, manifest/video hash binding, or a second invocation/concurrent invocation.
+- Existing production ledger tests cover duplicate reservation, run/type binding, receipt requirement, uncertain blocking/reconciliation, terminal delivered state, invalid type and boolean message ID. These are patterns only; they do not test the new preview schema.
+- Existing persistence tests cover wrong branch, pre-staged changes, ledger-only commit/push, push failure, and unexpected staged paths. They target the production ledger path only.
+- Existing delivery-cycle tests cover first persistence failure, no-op persistence, persisted path rejection, ambiguous sender→uncertain, uncertainty persistence failure, happy-path ordering, and final persistence failure. They do not exercise preview preflight/hash verification/remote reservation re-fetch.
+- Current safety workflow's concurrency group serializes only safety-test runs; a future preview-send workflow must have its own single fixed send concurrency group. Do not confuse the two groups.
+
+### Boundaries reaffirmed
+This mapping is static inspection only. No source/test/workflow implementation, test execution, workflow dispatch, render, Telegram request, TikTok publish, secret/Cron/bot setting, production branch, or original Quran engine was changed. Original Telegram workflow remains untouched. The eight-suite safety workflow remains NOT RUN.
