@@ -1187,3 +1187,18 @@ This mapping is static inspection only. No source/test/workflow implementation, 
   - `tests/test_pro_preview_delivery_cycle.py`: `8cf87814ce6abe798a765f6a1f815de9a8075957`
 - Static limitations remain: no workflow/caller exists; Telegram private-chat type is not proven by numeric ID; the final hash-to-file-read interval in the existing sender leaves a narrow local mutation race; complete per-asset media-rights evidence is not enforced by the shared manifest validator. These must be closed before any real preview send.
 - No tests run, workflow created/dispatched, render, Telegram request, TikTok publish, secrets/Cron/bot settings, production branch, or original engine changed.
+
+
+## 2026-11-06 — Static review: bind exact bytes sent + test fixture correction
+
+### Issues found and corrected
+- The first persistence test fixture omitted the mocked `git add` subprocess result, shifting subsequent mock outputs. Corrected both success and unrelated-staged-path fixtures; tests remain NOT RUN.
+- Closed the previously identified hash-to-file-read race: `send_preview()` now reads the manifest and MP4 bytes once, verifies each against the reserved SHA-256 values passed by the preview cycle, and builds the Telegram multipart request from those exact in-memory bytes. A mismatch fails before `urlopen`.
+- `pro_preview_delivery_cycle.py` passes the reserved manifest/video digests into the sender.
+- Added sender test coverage asserting either hash mismatch causes no Telegram request.
+
+### Activation limitations still open
+- No dedicated preview workflow/caller exists yet; do not invoke the cycle manually.
+- Numeric Telegram chat ID does not prove `chat.type == private`; destination verification remains a separate pre-send requirement.
+- The shared content validator checks source/approval flags but does not enforce the complete per-asset rights evidence record required by `MEDIA_RIGHTS_POLICY.md`. A separate strict Pro preview rights gate is still needed before any preview send.
+- No tests were run. No workflow dispatch, render, Telegram request, TikTok publish, secrets/Cron/bot changes, production branch or original Quran engine changes.
