@@ -282,3 +282,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Separate approval gates: preparing/rendering a candidate does not authorize Telegram delivery. No failure-notification Telegram path is allowed to bypass the send gate.
 - Constrain all manifest/output paths to Pro preview locations; avoid arbitrary shell/path inputs. Numeric chat-ID validation alone does not independently prove Telegram chat type.
 - Review only. No workflow/code/test/dispatch/render/send/secret changes. Original Quran production engine remains untouched.
+
+
+## 2026-11-06 — Latest read-only preview and workflow-isolation review
+- Confirmed statically that the preview sender test fixture omits the top-level `source` object required by `validate_content_manifest.py`. Four tests are likely to stop at validation before reaching their intended caption, exact-name, successful-send, and transport-timeout assertions. This is static inference only; tests were NOT run. Correct the fixture, not the validator.
+- Confirmed the eight-suite manual safety workflow includes the preview sender suite, exact Pro branch guard, Pro checkout, `contents: read`, and no render/send step. It remains undispatched.
+- Identified two legacy Quran render workflows in the Pro branch that lack an exact branch guard: `.github/workflows/render-first-video.yml` has manual dispatch plus a push-path trigger without branch filtering; `.github/workflows/render-manifest-video.yml` has manual dispatch and checks out the triggering ref by default. Both can enter Quran rendering paths if invoked from Pro and should be branch-isolated before any Pro Actions activity. Neither was run.
+- The original `telegram-quran-request.yml` remains scoped to `feature/telegram-review-notifications`; it was not changed.
+- Recommended sequence: isolate legacy Quran workflows on Pro; fix preview fixture; add Pro-only preview-send idempotency with uncertain outcomes blocked; then add a separate manual Pro preview workflow using existing Telegram secrets via environment mapping. No implementation has been performed.
+- No code/workflow/secrets/Cron/bot configuration changed. No tests, dispatch, render, Telegram send, or TikTok publish occurred. Original Quran engine and production Telegram route remain untouched.
+- Current test status: expanded eight-suite workflow NOT RUN / NOT DISPATCHED. All findings are static and require approved follow-up before implementation.
