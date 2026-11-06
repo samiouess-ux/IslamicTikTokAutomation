@@ -549,3 +549,12 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 ### Remaining
 - Review the new cycle and test files for correctness, then execute the offline test suite only after explicit approval.
 - Before any delivery workflow is created or enabled, obtain a trustworthy, source-verified, human-reviewed Pro dua/dhikr content library. No such library currently exists.
+
+
+### Additional fail-closed hardening — 2026-11-06
+- The delivery cycle now verifies that its ledger path is exactly the Pro branch-committed file under the supplied repository checkout. A different/local-only ledger path is rejected before reservation or send.
+- The cycle now requires the persistence helper to return an explicit `True` after the reservation push. A no-op/false result blocks Telegram just like a push exception.
+- It likewise requires explicit confirmation that the outcome state was committed/pushed. A false result is treated as persistence failure; the already-pushed reservation remains the remote duplicate block.
+- Added tests for false/no-op first persistence preventing sender invocation and for rejecting a ledger path outside the persisted Pro checkout.
+- Commits: hardening `efc65604523b0c3579fd8b38c3a8a927a8a3a7a8`; tests `885db308e84ec7cd97798bb41405ed377e2cb8a1`.
+- These tests remain unexecuted. No workflow dispatch, render, Telegram request, or TikTok publish occurred.
