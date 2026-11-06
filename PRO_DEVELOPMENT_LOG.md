@@ -307,3 +307,27 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next step
 - Design a manual-dispatch-only Pro workflow with a strict `feature/quran-video-pro` ref guard, validate the selected manifest and review-only metadata before rendering, and send only after a deliberate workflow dispatch. Keep it dormant until the user explicitly approves a Telegram test.
+
+
+## 2026-11-06 — Pro Telegram caption preparation and duration gate
+
+### Implemented
+- Added `src/prepare_pro_telegram_caption.py` to validate a dua/dhikr manifest and produce a caption payload explicitly marked `review_only=true` and `auto_publish=false`.
+- Caption text is assembled only from the validated manifest's Arabic items and optional supplied English fields; the script does not invent translations.
+- Reduced the Pro renderer's target and hard maximum duration to 40 seconds. Anything longer is rejected before media composition.
+- Added a focused offline test for the caption-preparation entry point.
+
+### Commits
+- Renderer 40-second cap: `3a2fdffb1ec1ba5b9e2fcae4f50eba08f1b57dc3`
+- Caption preparation: `d81dc90d07b50c0c8d95d58f55d634bd333f96c4`
+- Caption preparation test: `1404abe2c2097252614f95270d5298bf2ae16b3c`
+
+### Not yet done / safety
+- Tests have NOT been run.
+- No GitHub Actions workflow was added or dispatched in this step.
+- No render, Telegram API request, secret access, or TikTok publishing occurred.
+- A workflow must not be connected yet: durable reservation/idempotency for content history must be designed first. Current Pro orchestration selects against history but does not persist a reservation after a confirmed delivery. This must be solved before enabling a Telegram workflow, otherwise a later run could select the same manifest again.
+- No production branch, production workflow, Cron, or Quran sender was changed.
+
+### Next
+- Implement and test a Pro-only reservation ledger with safe states (reserved, delivered, uncertain) and explicit reconciliation semantics. Only after that should a manual-dispatch workflow be added, with both render and Telegram send requiring explicit input confirmations.
