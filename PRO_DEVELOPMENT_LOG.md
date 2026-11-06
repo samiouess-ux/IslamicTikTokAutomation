@@ -228,3 +228,28 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next step
 - Add an isolated Pro-only orchestrator for dua/dhikr selection, recent-repeat avoidance, and dry-run preflight. Keep the existing Quran orchestrator unchanged. Then add tests for content rotation and confirm the renderer CLI integration without running a render.
+
+
+## 2026-11-06 — Isolated Pro orchestration milestone
+
+### Implemented on Pro branch
+- Added `src/pro_orchestrator.py`; it accepts only `dua` or `dhikr`, uses the existing deterministic `content_rotation.choose_manifests` helper, and requires rotation-approved manifests with a complete, distinct batch.
+- Every manifest is passed through the shared fail-closed validator and must contain exactly one item, a stable manifest ID, and mandatory manual review with auto-publishing disabled.
+- Added a Pro-specific history path defaulting to `data/dua_dhikr_rotation_history.json`; the Quran orchestrator and its history path remain unchanged.
+- The default command is dry-run preflight. Rendering requires the explicit `--render` flag and routes only to `src/render_dua_dhikr.py`.
+- Rendering does not consume rotation history. Telegram delivery is not implemented; history must not be committed until a later delivery/approval design defines a confirmed event.
+- Added `tests/test_pro_orchestrator.py` for dua plan creation, repeat rejection, wrong content-type rejection, and one-item-per-video enforcement.
+
+### Commits
+- Pro orchestrator: `28b0dba34a409497ec5b11f44be299525084205c`
+- Pro orchestrator tests: `75a603b2adedfdbeecf043ab75f48189513cbd7f`
+
+### Validation status
+- GitHub writes succeeded on `feature/quran-video-pro`.
+- Tests have NOT been executed; no passing test claim is made.
+- No preflight command, render, Actions workflow, Telegram send, or TikTok publish was run.
+- No verified production content library exists yet. The Pro content directory is expected to contain explicitly reviewed manifests; an empty/missing directory correctly blocks selection.
+- No production branch, Cron, secrets, or production delivery path was changed.
+
+### Next step
+- Add a safe example manifest schema/template without real religious content, then inspect Telegram workflow/bot routing read-only to determine whether a distinct Pro route can share the original bot without changing production behavior.
