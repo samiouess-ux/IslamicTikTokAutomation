@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   archive-connectivity:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
