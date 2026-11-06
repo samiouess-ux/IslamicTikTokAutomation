@@ -761,3 +761,15 @@ No renderer code changed. Offline tests have not yet been rerun after this commi
 1. Review and execute the offline test suite for the new preview lifecycle.
 2. Implement a separate private Telegram preview route with explicit preview labels and no production-ledger/rotation side effects; keep it uninvoked until the user explicitly authorizes an actual send.
 3. Add negative tests proving preview candidates cannot enter production rotation/delivery and production-approved manifests cannot be demoted into preview mode.
+
+
+## 2026-11-06 — Implemented isolated candidate preview path
+
+- Validator: explicit allow_candidate_preview opt-in. Only candidate_preview plus preview_only=true may bypass pending human review; the default production path remains strict.
+- Orchestrator: explicit single-manifest preview preflight and local render options. Candidate previews are excluded from rotation and must pass source, media, timing, stable-ID, and 40-second gates.
+- Renderer: --preview-only required for candidate manifests; production manifests cannot use that flag.
+- Added validator, orchestrator, and renderer regression tests.
+- Commits: validator 6340df9; renderer 7912b68; orchestrator 62ba4b3; validator tests 81ed08d; orchestrator tests 704312d; CLI fix 7ea0169; renderer tests f66afa9.
+- This does not yet deliver previews to Telegram. No render, Telegram request, TikTok publish, history update, or production workflow run occurred.
+- Tests have not been run after these changes. Earlier manual offline workflow success predates this implementation.
+- Next: run offline tests, then implement a separate private Telegram preview route with explicit authorization before any real send.
