@@ -37,8 +37,8 @@
 - No Pro workflow exists yet, and no reviewed `content/pro` manifests exist.
 
 ## Next steps
-1. Add a narrow ledger-only persistence helper and tests for all failure boundaries. Sender support for a pre-persisted reservation is implemented, but not yet wired to GitHub persistence.
-2. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions; no schedule or production secrets.
+1. Wire `src/persist_pro_ledger.py` into the two-phase workflow and add integration/failure-boundary checks. Sender support for a pre-persisted reservation and the ledger-only helper are implemented, but not yet wired together.
+2. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions; the ledger-only persistence helper now exists but is not wired into a workflow. No schedule or production secrets.
 3. Build a reviewed dua/dhikr content library from trustworthy primary sources.
 4. Run the offline test suite in an approved environment and record exact results.
 5. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
