@@ -46,7 +46,7 @@ def persist_preview_ledger(repo: Path) -> bool:
         raise RuntimeError("Could not determine whether the preview ledger changed.")
     _git(repo, "commit", "-m", "chore(pro): persist preview-send ledger")
     _git(repo, "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}")
-    _git(repo, "fetch", "origin", EXPECTED_BRANCH)
+    _git(repo, "fetch", "origin", f"refs/heads/{EXPECTED_BRANCH}:refs/remotes/origin/{EXPECTED_BRANCH}")
     committed_head = _git(repo, "rev-parse", "HEAD")
     verified_remote = _git(repo, "rev-parse", f"refs/remotes/origin/{EXPECTED_BRANCH}")
     if committed_head != verified_remote:
