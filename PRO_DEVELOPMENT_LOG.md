@@ -649,3 +649,17 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - No religious text or manifest was added; no code or workflow was changed.
 - No tests, render, Telegram request, or TikTok publishing occurred in this step.
 - Next: define the content review record/schema, then assess individual candidates one by one against the full primary source and grading evidence.
+
+
+## 2026-11-06 — Per-item Pro content review template
+
+### Implemented on Pro only
+- Added `content/pro/REVIEW_TEMPLATE.md` as a structured human-review worksheet.
+- Captures the exact Arabic and primary source, precise reference and numbering scheme, narrator, hadith grading authority/evidence, context/classification, human-review decision, separate audio/background rights checks, duration, and readiness status.
+- Explicitly states that this worksheet is not a production manifest, does not set validator approval flags, and does not authorize render or delivery.
+
+### Commit and validation
+- Template commit: `372351501a60139963091b43a1d044ca6fe8277e`.
+- File created on `feature/quran-video-pro` only. No religious content was added.
+- No tests or render were run; no Telegram request or TikTok publishing occurred.
+- Next: use the template to evaluate individual candidates from the full primary source. Keep any unresolved candidate blocked.
