@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from pro_delivery_ledger import reserve, transition, reconcile_not_delivered
+from pro_delivery_ledger import reserve, transition, reconcile_not_delivered, assert_reserved_for_run
 
 
 class ProDeliveryLedgerTests(unittest.TestCase):
@@ -21,6 +21,17 @@ class ProDeliveryLedgerTests(unittest.TestCase):
         reserve(self.ledger, "dua-1", "dua", "run-1")
         with self.assertRaisesRegex(ValueError, "refusing duplicate"):
             reserve(self.ledger, "dua-1", "dua", "run-2")
+
+    def test_pre_persisted_reservation_is_bound_to_run_and_type(self):
+        reserve(self.ledger, "dua-pre", "dua", "run-expected")
+        entry = assert_reserved_for_run(self.ledger, "dua-pre", "dua", "run-expected")
+        self.assertEqual(entry["state"], "reserved")
+        with self.assertRaisesRegex(ValueError, "different workflow run"):
+            assert_reserved_for_run(self.ledger, "dua-pre", "dua", "run-other")
+        with self.assertRaisesRegex(ValueError, "content type"):
+            assert_reserved_for_run(self.ledger, "dua-pre", "dhikr", "run-expected")
+        with self.assertRaisesRegex(ValueError, "No persisted reservation"):
+            assert_reserved_for_run(self.ledger, "missing", "dua", "run-expected")
 
     def test_confirmed_delivery_requires_message_id(self):
         reserve(self.ledger, "dhikr-1", "dhikr", "run-1")
