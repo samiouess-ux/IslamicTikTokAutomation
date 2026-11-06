@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   request-pipeline-tests:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
