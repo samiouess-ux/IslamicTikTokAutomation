@@ -24,26 +24,30 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _inside_regular_file(path: Path, root: Path) -> Path:
-    root = root.resolve(strict=True)
-    if path.is_symlink():
-        raise ValueError("Symlink inputs are not allowed for Pro previews.")
-    resolved = path.resolve(strict=True)
-    if not resolved.is_file() or not resolved.is_relative_to(root):
-        raise ValueError("Preview input must be a regular file beneath its fixed Pro directory.")
-    current = path.absolute()
-    while current != current.parent and current != root:
+def _inside_regular_file(path: Path, root: Path, repo_root: Path) -> Path:
+    repo_root = repo_root.resolve(strict=True)
+    root = root.absolute()
+    if root.is_symlink():
+        raise ValueError("Fixed Pro input directory must not be a symlink.")
+    resolved_root = root.resolve(strict=True)
+    if not resolved_root.is_relative_to(repo_root):
+        raise ValueError("Fixed Pro input directory resolves outside the repository.")
+    candidate = path.absolute()
+    current = candidate
+    while current != repo_root and current != current.parent:
         if current.is_symlink():
             raise ValueError("Symlink path components are not allowed.")
         current = current.parent
+    resolved = candidate.resolve(strict=True)
+    if not resolved.is_file() or not resolved.is_relative_to(resolved_root):
+        raise ValueError("Preview input must be a regular file beneath its fixed Pro directory.")
     return resolved
-
 
 def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
               token: str, chat_id: str) -> dict:
     repo_root = repo_root.resolve(strict=True)
-    manifest = _inside_regular_file(repo_root / manifest_path, repo_root / MANIFEST_ROOT)
-    video = _inside_regular_file(repo_root / video_path, repo_root / PREVIEW_ROOT)
+    manifest = _inside_regular_file(repo_root / manifest_path, repo_root / MANIFEST_ROOT, repo_root)
+    video = _inside_regular_file(repo_root / video_path, repo_root / PREVIEW_ROOT, repo_root)
     if not token.strip() or not chat_id.strip() or not chat_id.strip().isdigit() or int(chat_id) <= 0:
         raise ValueError("A bot token and positive numeric private-chat ID are required.")
     if video.suffix.lower() != ".mp4" or video.stat().st_size <= 0 or video.stat().st_size > MAX_VIDEO_BYTES:
@@ -74,8 +78,13 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         raise ValueError("workflow_run_id is required.")
     root = repo_root.resolve(strict=True)
     checked = preflight(manifest_path, video_path, repo_root=root, token=token, chat_id=chat_id)
-    ledger_path = root / "data" / "pro_preview_send_ledger.json"
-    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    data_dir = root / "data"
+    if data_dir.is_symlink():
+        raise ValueError("Pro data directory must not be a symlink.")
+    data_dir.mkdir(parents=True, exist_ok=True)
+    ledger_path = data_dir / "pro_preview_send_ledger.json"
+    if ledger_path.is_symlink():
+        raise ValueError("Pro preview ledger must not be a symlink.")
 
     # Refuse if a previous reservation exists locally before writing another one.
     current = load_ledger(ledger_path)
