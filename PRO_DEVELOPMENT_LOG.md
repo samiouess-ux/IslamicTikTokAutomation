@@ -700,3 +700,14 @@ The candidate remains unapproved pending human review and an explicit choice of 
 Opened Sahih al-Bukhari 6306 directly. The source page identifies the report as narrated by Shaddad bin Aws, gives the Arabic matn and the day/night recitation context, and lists Book 80, Hadith 3. Recorded this as a separate source-checked candidate in `content/pro/CANDIDATE_RESEARCH_001.md`. The supplication is not yet approved: human exact-text/context review, media-rights review, and duration suitability under the 40-second cap remain open. It must not be truncated merely to meet the cap.
 
 No production manifest, render, Telegram delivery, or TikTok publishing occurred.
+
+
+## 2026-11-06 — Media rights and user's Telegram text-review decision
+
+### Media rights baseline
+Added `content/pro/MEDIA_RIGHTS_POLICY.md`. Pexels and Pixabay may be used as discovery sources for background visuals, but their general licenses do not automatically clear every depicted person, logo, artwork, or property. Each exact downloaded asset needs a retained URL, creator, download date, license evidence, intended use, and third-party-rights check. Audio recordings need explicit recording-specific permission for editing, video synchronization, social posting, and monetization if applicable. No recording is pre-approved. No music.
+
+### User's review workflow decision
+The user explicitly stated that they will verify the Arabic texts when preview videos arrive on Telegram and tell us corrections/approval. Record this as the human text-review gate at the Telegram preview stage. It does not mean any current candidate is approved; candidates remain unapproved until the user reviews the delivered preview. Do not claim a Telegram preview delivery has occurred. The delivery cycle is still not wired into a workflow.
+
+No render, Telegram delivery, or TikTok publication occurred in this step.
