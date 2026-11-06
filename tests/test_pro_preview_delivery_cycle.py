@@ -105,6 +105,22 @@ class PreviewCycleTests(unittest.TestCase):
         data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
         self.assertEqual(data["entries"]["candidate-001"]["state"], "reserved")
 
+
+    def test_final_persistence_failure_keeps_reserved_remote_boundary(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            return len(calls) == 1
+        def send(*args, **kwargs):
+            calls.append("send")
+            return {"message_id": 77}
+        with self.assertRaisesRegex(RuntimeError, "final ledger persistence failed"):
+            self.call_cycle(persist, send)
+        self.assertEqual(calls, ["persist", "send", "persist"])
+        data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
+        self.assertEqual(data["entries"]["candidate-001"]["state"], "delivered")
+        # The first successful persistence happened while the remote state was reserved.
+
     def test_wrong_branch_prevents_preflight_and_send(self):
         with self.assertRaisesRegex(RuntimeError, "restricted"):
             run_preview_cycle(Path("missing.json"), Path("missing.mp4"), repo_root=self.root,
