@@ -68,7 +68,8 @@ def extract_vertical_crop(source: Path, destination: Path, duration: float) -> N
 
 
 def build_contact_sheet(items: list[dict], output: Path) -> None:
-    sheet = Image.new("RGB", (1080, 1920), (10, 16, 22))
+    rows = (len(items) + 1) // 2
+    sheet = Image.new("RGB", (1080, max(1, rows) * 960), (10, 16, 22))
     draw = ImageDraw.Draw(sheet)
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     title_font = ImageFont.truetype(font_path, 22)
