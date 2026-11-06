@@ -420,3 +420,10 @@ This section supersedes earlier historical statements in this file that the curr
 - Latest verified code/test blobs: ledger `4165e0b9`, persistence `97cea2e3`, cycle `a96c1b62`; tests `2762f1b3`, `ebc9e66e`, `8cf87814`.
 - Activation blockers remain: no workflow/caller; private Telegram chat type not independently verified; a narrow artifact mutation race remains between final hash and sender file read; full per-asset rights evidence is not enforced by the shared validator.
 - Tests remain NOT RUN. No Telegram/render/TikTok/secret/Cron/original-engine or production branch operation.
+
+
+## 2026-11-06 — Preview upload hash binding hardened
+- Corrected the mocked Git command sequence in preview persistence tests (not executed).
+- Preview sender now reads MP4 and manifest bytes once, checks both against reserved SHA-256 digests, and sends those same bytes. The preview cycle passes the hashes; mismatch is rejected before any Telegram request.
+- Added offline test assertions for manifest/video hash mismatch and zero network calls.
+- Still blocked from activation: no workflow/caller; Telegram chat type not independently confirmed private; full per-asset media-rights evidence gate not enforced. Tests NOT RUN.
