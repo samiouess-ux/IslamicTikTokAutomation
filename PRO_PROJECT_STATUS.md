@@ -15,13 +15,15 @@
 - `src/prepare_pro_telegram_caption.py`: validated review caption preparation.
 - Quran-specific `src/orchestrator.py`, `src/render_video_scenes.py`, and production workflow must remain untouched.
 
-## Critical ledger correction — 2026-11-06
-- Explicit-ref inspection confirmed `src/pro_delivery_ledger.py` is absent from `feature/quran-video-pro`.
-- `tests/test_pro_delivery_ledger.py` is also absent from Pro.
-- Both files were mistakenly found on `feature/telegram-review-notifications`. The ledger source was deleted from production in commit `bbf3378fe8ff80c0393dc0922fe155ace5b46277`; deletion of the misplaced test file was blocked and it remains on production at the time of this status update.
-- Attempts to create the ledger and its tests on Pro were blocked. Consequently, durable reservation/idempotency is **not implemented on Pro**. Do not claim that it is active.
-- Do not bypass the blocked deletion through alternate Git APIs. Resolve it through an approved GitHub operation or a user-side repository change, then reintroduce the ledger only on Pro with explicit branch verification.
-
+## Delivery ledger and Telegram integration — 2026-11-06
+- Production cleanup is complete: `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` are absent from `feature/telegram-review-notifications`.
+- Recreated both files only on `feature/quran-video-pro`. The ledger supports reserved, delivered, and uncertain states, requires a positive Telegram message ID for delivery confirmation, and requires explicit human confirmation before releasing an uncertain reservation.
+- The ledger uses atomic JSON replacement and a process-level file lock. This does not yet persist state across separate GitHub workflow runs or serialize independent runners.
+- `src/send_pro_telegram.py` now reserves before contacting Telegram, never auto-retries, marks failed/ambiguous outcomes uncertain, and records delivered only after a valid Telegram message ID.
+- `src/prepare_pro_telegram_caption.py` now includes the stable manifest ID needed by the sender.
+- Sender tests were added for successful confirmation and uncertain outcomes blocking a second attempt.
+- **Important:** no Pro workflow currently persists the ledger between runs. Cross-run duplicate protection is therefore not yet complete, and Telegram delivery remains disabled.
+ 
 ## Validation status
 - Unit tests have NOT been run; no test is reported as passing.
 - No Pro preflight command, MP4 render, GitHub Actions workflow, Telegram API call, or TikTok publish has occurred.
@@ -29,12 +31,11 @@
 - Pro has no verified content library yet; do not attempt delivery until reviewed manifests exist and idempotency is safely implemented.
 
 ## Next steps
-1. Resolve and verify the remaining misplaced test file on the production branch through an approved operation.
-2. Recreate the reservation ledger and tests on `feature/quran-video-pro`; fetch both with an explicit Pro ref.
-3. Integrate the ledger into Pro planning/delivery with serialized persistence before any Telegram request.
-4. Add a dormant manual-only Pro workflow with strict branch guard and separate explicit render/send confirmations.
-5. Build a reviewed dua/dhikr content library from trustworthy primary sources.
-6. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
+1. Re-fetch all changed Pro files and verify that production remains free of Pro ledger files.
+2. Design a dormant manual-only Pro workflow with strict branch guard, serialized runs, and safe cross-run ledger persistence.
+3. Verify the ledger/sender tests in an approved test environment; do not report tests as passing until run.
+4. Build a reviewed dua/dhikr content library from trustworthy primary sources.
+5. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
 
 ## Safety and change control
 - All Pro implementation commits only on `feature/quran-video-pro`.
