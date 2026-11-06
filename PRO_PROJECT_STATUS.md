@@ -367,3 +367,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Allowed transitions: reserved to delivered/uncertain; uncertain to delivered only with recovered receipt. Human confirmation and evidence are required before releasing an uncertain/not-delivered candidate.
 - Serialize the manual Pro workflow with fixed concurrency and no cancellation; fetch latest ledger before changes; stop on push conflict (never force-push). Grant write permission and expose existing bot secrets only after exact Pro-ref guard.
 - Design/documentation only: no code, workflow, tests, dispatch, render, Telegram, TikTok, secret, Cron, bot setting, or production branch changes. Original Quran engine untouched; eight-suite workflow NOT RUN.
+
+
+## 2026-11-06 — Pro preview workflow boundary
+- No preview-delivery workflow is active or present in the reviewed workflow inventory.
+- Future workflow must be manual `workflow_dispatch` only, exact job-level ref guard for `feature/quran-video-pro`, and explicit checkout of that branch. No schedule/push/PR/workflow_run triggers or pull_request_target.
+- Keep Telegram secrets out of global env; expose existing `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID` only to the final one-shot send step after validation and verified persisted reservation. Do not print or store secret values.
+- Use least privilege: read-only by default; `contents: write` only in the guarded ledger-persistence job. No unrelated write scopes.
+- Accept only fixed Pro candidate/output paths; reject traversal/symlinks and require exact PREVIEW-ONLY filename-to-manifest identity. Serialize all sends in one fixed concurrency group with `cancel-in-progress: false`; fetch latest ledger and stop on push conflict.
+- Validate/preflight, reserve and push ledger, verify remote reservation, send once, persist delivered/uncertain. No retry. Offline tests must remain separate and receive no secrets/write permission. No TikTok publishing step or credentials.
+- Design only: no workflow/code/test/dispatch/render/Telegram/TikTok/secret/Cron/bot-setting/production changes. Original Quran engine untouched; eight-suite safety workflow NOT RUN.
