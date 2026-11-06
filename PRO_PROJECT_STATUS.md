@@ -125,3 +125,11 @@ This section supersedes earlier historical statements in this file that the curr
 - The template is explicitly a worksheet, not a production manifest. It cannot be selected by the renderer and does not mark any religious content verified or approved.
 - Commit: `372351501a60139963091b43a1d044ca6fe8277e`.
 - No actual dua/dhikr wording or manifest was added. No tests, render, Telegram request, or publishing action occurred.
+
+
+## 2026-11-06 — First Qur'anic dua candidate identified (not approved)
+- Candidate reference: Qur'an, Surah Al-Baqarah 2:201.
+- Primary source page opened: https://quran.com/2/201 . The page displays the Arabic verse, reference 2:201, and surrounding context.
+- Candidate status remains `candidate` only. This source lookup does not itself constitute the project's separate human-review approval, and no production manifest was created.
+- Any future use must copy the complete Arabic verse exactly from the primary source, preserve its full verse reference, and receive human text/context review using `content/pro/REVIEW_TEMPLATE.md`.
+- No audio/background rights were reviewed; no render or delivery is authorized.
