@@ -139,7 +139,7 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
     if end_value is not None and _date(end_value, "validity.end") < datetime.now(timezone.utc).date():
         _fail("permission has expired.")
     attribution = record.get("attribution")
-    if not isinstance(attribution, dict) or attribution.get("required") not in {True, False}:
+    if not isinstance(attribution, dict) or type(attribution.get("required")) is not bool:
         _fail("attribution requirement must be explicit.")
     if attribution["required"] and (not isinstance(attribution.get("text"), str) or not attribution["text"].strip()):
         _fail("required attribution wording is missing.")
