@@ -397,3 +397,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Current preview sender tests do not cover durable idempotency, hash identity, or cross-run concurrency. Existing production ledger/persistence/cycle tests provide patterns but do not prove preview-specific behavior.
 - The existing safety workflow has its own test-only concurrency group; it must remain separate from a future single fixed concurrency group for preview sends. Do not add send permissions/secrets to the safety workflow.
 - This is a static file/test mapping only. No implementation or tests were run; eight-suite workflow remains NOT RUN. No render/Telegram/TikTok/secret/Cron/original-bot/production-engine changes occurred.
+
+
+## 2026-11-06 — Isolated preview ledger code added (tests not run)
+- Added `src/pro_preview_send_ledger.py` for a separate versioned preview ledger with strict validation, candidate-ID uniqueness, SHA-256 binding, atomic writes, local locking, and explicit transitions. Uncertain recovery requires an explicit recovered-receipt flag.
+- Added `src/persist_pro_preview_ledger.py` for exact-Pro-only persistence: fetch/check branch freshness, reject pre-staged or unrelated paths, stage only the preview ledger, normal push, then verify remote HEAD. No force push.
+- Added `src/pro_preview_delivery_cycle.py` for fixed-root preflight, candidate lifecycle/filename/size/config validation, manifest/video hashes, reservation persistence before send, reservation verification, artifact re-hash, one injected send attempt, and delivered/uncertain state handling.
+- Added focused offline tests: `tests/test_pro_preview_send_ledger.py`, `tests/test_persist_pro_preview_ledger.py`, and `tests/test_pro_preview_delivery_cycle.py`. These are authored but NOT RUN.
+- No preview delivery workflow or automatic caller was created. No Telegram request or render was performed. Workflow auth/concurrency and independent private-chat destination verification remain future gates.
+- Static implementation only. No change to production ledger/rotation, original Telegram bot/workflow, main or `feature/telegram-review-notifications`, Cron, secrets, TikTok, or original Quran engine. Eight-suite safety workflow remains NOT RUN.
+- Next: static review the new code/tests; request separate approval before executing offline tests. Workflow creation and Telegram send need separate approval.
