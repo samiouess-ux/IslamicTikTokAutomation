@@ -976,3 +976,11 @@ Theme: hope and ease after hardship.
 - The generated `preview_report.json` confirms the opening cover duration is 0.6 seconds, fade 0.0, `visible_only_at_start: true`; its note says the cover disappears before the ayah overlay. This is metadata/log evidence, not an independent visual inspection of the MP4.
 - Artifact upload failed because the GitHub Actions artifact storage quota was hit. The workflow is green because upload is best-effort, but no artifact was created; no downloadable MP4 is available from this run.
 - Telegram reservation/send/history steps were skipped; no Telegram delivery was made. Preserve manual review and production gates.
+
+## 2026-11-06 — Quran overlay frame path fix
+
+- Workflow run 42209101901 completed with failure after successfully rendering the review-only 9:16 Quran video and downloading/probing/cropping the four original background candidates.
+- Root cause: the background-additions overlay step searched only the top level with `glob("ayah_*.png")`, while the earlier workflow step found the actual overlay recursively. This caused the second step to report that the actual Quran overlay frame was missing.
+- Fixed the overlay lookup to use `rglob("ayah_*.png")` so both steps locate the same nested frame.
+- No background was activated; the four original candidates remain unchanged, and the seven staged additions remain unapproved. No Telegram delivery was attempted on this push run.
+- Fix commit: `ae374fa666ff736cdf74e08fbb0959196d0a9ac4`.
