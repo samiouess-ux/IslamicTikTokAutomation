@@ -59,7 +59,7 @@ class ProLedgerPersistenceTests(unittest.TestCase):
             (0, EXPECTED_BRANCH, ""),  # branch
             (0, "", ""),               # pre-existing staged paths
             (0, "", ""),               # git add
-            (0, "data/pro_delivery_ledger.json\\n", ""),  # staged paths
+            (0, "data/pro_delivery_ledger.json\n", ""),  # staged paths
             (0, "[commit] saved", ""), # local commit
             (1, "", "remote rejected push"),  # remote persistence failure
         ]
