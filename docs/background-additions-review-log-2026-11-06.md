@@ -29,3 +29,12 @@ The earlier version overstated what had been verified. At that time, the direct 
 
 ## CI record before staging
 Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded `success`. It validated the eight source-only leads but did not download or probe their media.
+
+## Follow-up CI and regression-test correction — 2026-11-06
+- Run `42204747258` (commit `174ec4d92fb7343b20eb57c872c2f9b0f57d8c8b`) failed before background downloading. The failure was in the review-catalog unit test: it still expected every `direct_video_url` to be null and required the exact policy phrase `No candidate is active`. The test had not been updated to reflect the seven officially captured Pexels URLs.
+- Corrected `tests/test_background_additions_review.py` in commit `86c50a73b994a6403b5bc4bb801ef2054c59db89`: it now checks seven resolved Pexels URLs, the single unresolved Pixabay candidate, and that every candidate remains unverified, unapproved, and not user-approved. It also preserves the assertion that the original four approved backgrounds remain unchanged.
+- Updated `data/background_additions_review.json` in commit `80b8fa88b44819cfea5d040ab228dfaa86a18592` to explicitly state `No candidate is active`, retaining the review-only and production-disabled policy.
+- Run `42208508139` for the test correction was cancelled when the subsequent catalog commit triggered a newer run. This cancellation is not a test result.
+- Latest run at the time of this log update: `42208519520`, commit `80b8fa88b44819cfea5d040ab228dfaa86a18592`, status `in_progress`. Setup and checkout succeeded; package installation was in progress. The corrected regression tests and seven-download/ffprobe/preview steps had not yet completed.
+- No new background has been activated. The four existing production backgrounds remain untouched. Do not mark the seven videos as downloaded, probed, cropped, or visually approved until the latest CI artifacts and logs confirm each stage.
+
