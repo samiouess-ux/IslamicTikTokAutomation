@@ -69,6 +69,40 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
     return plan
 
 
+def build_preview_plan(manifest_path: Path) -> dict:
+    """Validate one explicitly selected candidate without rotation eligibility."""
+    manifest = read_json(manifest_path)
+    if manifest.get("content_type") not in {"dua", "dhikr"}:
+        raise SystemExit("Preview candidate must be dua or dhikr.")
+    if manifest.get("lifecycle_status") != "candidate_preview" or manifest.get("preview_only") is not True:
+        raise SystemExit("Preview path requires lifecycle_status=candidate_preview and preview_only=true.")
+    if manifest.get("rotation_approved") is True:
+        raise SystemExit("A candidate preview must never be rotation-approved.")
+    validate_content_manifest(manifest, allow_candidate_preview=True)
+    durations = [item.get("duration_seconds") for item in manifest["items"]]
+    if any(isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0 for value in durations):
+        raise SystemExit("Every preview item needs an explicit positive duration_seconds.")
+    total = sum(float(value) for value in durations)
+    if total > HARD_MAX_DURATION_SECONDS:
+        raise SystemExit(f"Preview exceeds the {HARD_MAX_DURATION_SECONDS:.0f}-second hard limit.")
+    manifest_id = manifest.get("id")
+    if not isinstance(manifest_id, str) or not manifest_id.strip():
+        raise SystemExit("Preview candidate has no stable id.")
+    return {"content_type": manifest["content_type"], "manifest": str(manifest_path),
+            "content_id": manifest_id, "item_ids": [item["id"] for item in manifest["items"]],
+            "lifecycle_status": "candidate_preview", "preview_only": True}
+
+
+def render_preview(plan: dict, output_dir: Path) -> dict:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output = output_dir / f"PREVIEW-ONLY-{plan['content_type']}-{plan['content_id']}.mp4"
+    subprocess.run([sys.executable, "src/render_dua_video.py", "--preview-only",
+                    "--manifest", plan["manifest"], "--output", str(output)], check=True)
+    if not output.is_file() or output.stat().st_size == 0:
+        raise SystemExit(f"Preview renderer did not produce a non-empty MP4: {output}")
+    return {**plan, "output": str(output), "telegram_sent": False, "tiktok_published": False}
+
+
 def render_plan(plan: list[dict], output_dir: Path) -> list[dict]:
     output_dir.mkdir(parents=True, exist_ok=True)
     rendered = []
@@ -94,7 +128,33 @@ def main() -> int:
     parser.add_argument("--video-count", type=int, default=1)
     parser.add_argument("--render", action="store_true",
                         help="Render only after the complete Pro preflight passes.")
+    parser.add_argument("--preview-manifest", type=Path,
+                        help="Explicit candidate manifest for isolated preview-only validation.")
+    parser.add_argument("--render-preview", action="store_true",
+                        help="Render the selected candidate to the Pro preview folder only.")
     args = parser.parse_args()
+    if args.preview_manifest:
+        if args.render:
+            parser.error("Candidate preview mode cannot be combined with production --render.")
+        try:
+            preview_plan = build_preview_plan(args.preview_manifest)
+            if args.render_preview:
+                result = render_preview(preview_plan, Path("output/pro_preview"))
+                status = "candidate_preview_rendered_locally"
+            else:
+                result = preview_plan
+                status = "candidate_preview_preflight_passed"
+            print(json.dumps({"status": status, "preview_only": True, "videos": [result],
+                              "telegram_sent": False, "tiktok_published": False},
+                             ensure_ascii=False, indent=2))
+            return 0
+        except (FileNotFoundError, ValueError, LookupError, SystemExit) as exc:
+            print(json.dumps({"status": "blocked", "stage": "candidate_preview",
+                              "reason": str(exc), "videos": [], "telegram_sent": False,
+                              "tiktok_published": False}, ensure_ascii=False, indent=2))
+            return 2
+    if args.render_preview:
+        parser.error("--render-preview requires --preview-manifest.")
     try:
         history = load_history(args.history)
         plan = build_plan(args.content_dir, history, args.content_type, args.day, args.video_count)
