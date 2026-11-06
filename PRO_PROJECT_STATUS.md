@@ -105,3 +105,16 @@ This section supersedes earlier historical statements in this file that the curr
 1. Review trusted primary-source candidates and define a source-by-source content review record; do not mark content verified without human/source verification.
 2. Add only reviewed, individually approved dua/dhikr manifests to `content/pro`.
 3. Keep delivery workflow integration blocked until reviewed content exists and cross-run ledger persistence is implemented and reviewed.
+
+
+## 2026-11-06 — Content-source research started
+- Recorded the user's instruction to continue and keep progress durable on the Pro branch.
+- Reviewed source candidates for the future dua/dhikr library.
+- Primary-source starting points selected:
+  - Qur'anic supplications: Quran.com verse text and reference, using the official Quran Foundation developer/API documentation as the integration reference.
+  - Prophetic supplications and adhkar: the exact narration in its named hadith collection, using Sunnah.com as a searchable reader of the listed primary collections.
+- Sunnah.com explicitly cautions that it is a research resource rather than a fatwa site; its About page also explains that numbering can differ between Arabic and English editions and that grade metadata coverage is not uniform. Therefore every candidate must store collection, book/chapter where available, displayed reference scheme, exact Arabic, narrator, and grading authority/status as separate fields; no grade may be inferred from a search snippet.
+- Secondary dua compilations and third-party APIs are discovery aids only, not approval sources. Each wording must be opened in the underlying Qur'an verse or hadith narration and checked there.
+- No individual dua or dhikr has been selected, verified, or approved yet. No manifest was created and no religious text was added.
+- No code, workflow, renderer, Telegram, production branch, Cron, secret, or publishing setting was changed during this research step.
+- Next: define a machine-readable review record/schema, then review candidate items one by one against the exact primary source and grading evidence before any manifest can be approved.
