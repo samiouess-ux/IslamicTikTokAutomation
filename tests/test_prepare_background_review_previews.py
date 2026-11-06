@@ -46,6 +46,10 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
 
     def test_prepare_accepts_eight_source_only_candidates_without_claiming_download(self):
         catalog = json.loads(Path("data/background_additions_review.json").read_text(encoding="utf-8"))
+        # This test covers the source-only path; current production review catalog
+        # also contains staged direct URLs, so remove them from this isolated fixture.
+        for candidate in catalog["candidates"]:
+            candidate.pop("direct_video_url", None)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             catalog_path = root / "catalog.json"
