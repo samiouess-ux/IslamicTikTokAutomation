@@ -848,3 +848,29 @@ The Pro manual workflow `.github/workflows/pro-safety-tests-manual.yml` still ex
 1. Continue static review of content validation, media-rights gates, and any future workflow integration.
 2. Resolve the private-destination hardening question before authorizing a preview send.
 3. Obtain explicit authorization before dispatching the expanded offline test workflow; actual Telegram sending remains a separate approval.
+
+
+## 2026-11-06 — Read-only renderer, validator, and media-rights review
+
+### Scope inspected
+Re-fetched and inspected the current versions of:
+- `src/render_dua_video.py` (blob `b23130dbe184cdb4ccdcc680bb95cec7d4388b41`)
+- `src/validate_content_manifest.py` (blob `5146070fea6ab8ed65cd6d192e8a255472260ba1`)
+- `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`)
+- `content/pro/MEDIA_RIGHTS_POLICY.md` (blob `70de3ebb9755ba20a7e77b3cd87d306955e75506`)
+
+### Findings (not yet fixed)
+1. **Approved background URL is not bound to the approved candidate.** The validator requires `background_candidate.direct_video_url` and approval flags on that candidate. The renderer then selects `approved_background_url` first when present, without checking equality with the candidate URL. A different HTTPS URL can pass the later URL syntax check and be downloaded. Required fix: validate exact URL binding and reject mismatch; add negative tests.
+2. **Production manifest IDs lack the preview safe-ID constraint.** `build_preview_plan()` enforces a 1–80 character ASCII filename-component pattern. Normal `build_plan()` only requires a non-empty string, and `render_plan()` interpolates it into an output path. Required fix: use one shared strict ID validator for both paths and test slash/traversal-like IDs before rendering.
+3. **Audio is checked globally, not synchronized per screen.** `build_slideshow()` assigns per-item display durations, while `validate_audio_duration()` compares only the whole audio file with the total duration. The renderer comment explicitly states audio is not synced per item. This is a multi-item correctness risk; it does not establish that a specific rendered file is wrong. Required fix: define an explicit per-item audio/timing contract or constrain the first release to a safe single-item audio arrangement, then test boundaries.
+4. **Media-rights policy is stricter than manifest enforcement.** The policy requires exact asset page/ID, creator, platform, download date, license evidence, intended use/edits, and third-party-rights review. The current validator checks background candidate URLs and approval booleans but does not enforce that complete per-asset record. Required fix: add a structured rights record and fail closed when any required evidence is absent.
+
+### Validation and safety boundary
+- Static code review only. No code changes, test execution, workflow dispatch, render, Telegram request, or TikTok publication occurred.
+- The expanded eight-suite offline workflow remains NOT RUN. The historical successful run `42259731118` covered only the four original suites and is not evidence for the expanded suite.
+- No manifest or media asset was approved by this review. No candidate text/media has been cleared for rendering or delivery.
+- All review remained on `feature/quran-video-pro`. `main` and `feature/telegram-review-notifications` were not touched; the original Quran production engine remains untouched.
+
+### Documentation
+- Updated `PRO_PROJECT_STATUS.md` with this review summary. Status documentation commit: `d6dffa48ecfe2f068c87c1847117371167f4aa25`.
+- Next: close the four validation gaps with focused negative tests, then review candidate manifest/asset records. Any code change, test dispatch, render, or Telegram send still requires separate explicit approval.
