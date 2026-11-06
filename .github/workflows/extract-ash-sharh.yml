@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   extract-audio:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
