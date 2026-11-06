@@ -5,7 +5,6 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-from urllib.parse import urlparse
 
 from PIL import Image, ImageDraw, ImageFont, features
 
@@ -174,10 +173,6 @@ def main() -> None:
     if data.get("content_type") not in {"dua", "dhikr"}:
         raise SystemExit("This renderer accepts dua/dhikr manifests only.")
     visual, audio = data["visual"], data["audio"]
-    bg = visual.get("approved_background_url") or visual.get("background_candidate", {}).get("direct_video_url")
-    parsed = urlparse(bg or "")
-    if parsed.scheme != "https" or not parsed.netloc:
-        raise SystemExit("An approved HTTPS background URL is required.")
     if data.get("publishing", {}).get("auto_publish", False):
         raise SystemExit("Auto-publishing is disabled.")
 
