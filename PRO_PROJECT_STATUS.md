@@ -335,3 +335,10 @@ This section supersedes earlier historical statements in this file that the curr
 - Review only: no code/workflow/test/dispatch/render/Telegram/secret/Cron changes. Eight-suite workflow remains NOT RUN. Original production engine and delivery route untouched.
 
 - Design detail: keep preview idempotency in a separate Pro preview ledger rather than assuming the existing delivery ledger is sufficient. Bind each send to candidate ID plus manifest and MP4 SHA-256 hashes, persist across workflow runs, and serialize with one fixed Actions concurrency group. Existing local file locking alone is not cross-run protection.
+
+
+## 2026-11-06 — Preview idempotency test/concurrency requirements
+- A future preview-send workflow needs its own fixed concurrency group (`cancel-in-progress: false`); the current concurrency group only serializes the manual test workflow.
+- Ledger unique key must be candidate ID, with manifest/video SHA-256 stored and compared as immutable attributes. Same candidate ID with changed hashes must fail closed; do not key only by candidate+hash.
+- Test matrix required: duplicate candidate; changed manifest/video hashes; success terminal state; timeout/connection loss/invalid response uncertain state; preflight failures before reservation; pre-send persistence failure means no request; post-send persistence failure leaves remote reservation blocking; concurrent attempts allow only one reservation.
+- Static review only. No code/workflow/test/dispatch/render/Telegram/secret/Cron changes. Original production engine untouched; expanded eight-suite workflow NOT RUN.
