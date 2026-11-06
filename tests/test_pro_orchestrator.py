@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from pro_orchestrator import build_plan
+from pro_orchestrator import build_plan, build_preview_plan
 
 
 class ProOrchestratorTests(unittest.TestCase):
@@ -51,6 +51,35 @@ class ProOrchestratorTests(unittest.TestCase):
             self.write_manifest(folder, "dua.json", "already-used", "item-1")
             with self.assertRaisesRegex(FileNotFoundError, "refusing to repeat"):
                 build_plan(folder, {"content": ["already-used"]}, "dua", "2026-11-06", 1)
+
+    def test_candidate_preview_is_separate_from_rotation_and_production(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            path = self.write_manifest(folder, "candidate.json", "candidate-1", "candidate-item")
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["lifecycle_status"] = "candidate_preview"
+            data["preview_only"] = True
+            data["rotation_approved"] = False
+            data["items"][0]["human_reviewed"] = False
+            path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            plan = build_preview_plan(path)
+            self.assertTrue(plan["preview_only"])
+            self.assertEqual(plan["lifecycle_status"], "candidate_preview")
+            self.assertEqual(plan["content_id"], "candidate-1")
+            with self.assertRaisesRegex(SystemExit, "not approved for rotation|No eligible"):
+                build_plan(folder, {"content": []}, "dua", "2026-11-06", 1)
+
+    def test_candidate_preview_rejects_rotation_approval(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            path = self.write_manifest(folder, "candidate.json", "candidate-1", "candidate-item")
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["lifecycle_status"] = "candidate_preview"
+            data["preview_only"] = True
+            data["items"][0]["human_reviewed"] = False
+            path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "never be rotation-approved"):
+                build_preview_plan(path)
 
     def test_rejects_wrong_pro_content_type(self):
         with tempfile.TemporaryDirectory() as tmp:
