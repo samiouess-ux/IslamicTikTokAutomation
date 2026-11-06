@@ -88,6 +88,23 @@ class PreviewCycleTests(unittest.TestCase):
         data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
         self.assertEqual(data["entries"]["candidate-001"]["state"], "uncertain")
 
+
+    def test_input_changed_after_reservation_is_not_sent(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            if len(calls) == 1:
+                self.manifest.write_text(self.manifest.read_text() + " ", encoding="utf-8")
+            return True
+        def send(*args, **kwargs):
+            calls.append("send")
+            return {"message_id": 77}
+        with self.assertRaisesRegex(RuntimeError, "changed after reservation"):
+            self.call_cycle(persist, send)
+        self.assertEqual(calls, ["persist"])
+        data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
+        self.assertEqual(data["entries"]["candidate-001"]["state"], "reserved")
+
     def test_wrong_branch_prevents_preflight_and_send(self):
         with self.assertRaisesRegex(RuntimeError, "restricted"):
             run_preview_cycle(Path("missing.json"), Path("missing.mp4"), repo_root=self.root,
