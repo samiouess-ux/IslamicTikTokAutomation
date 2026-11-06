@@ -46,3 +46,11 @@ Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded 
 - Fixed the test fixture in commit `da5aa26c4a5c049d9178470b4ff3a161a08257d0` by removing `direct_video_url` only from its temporary in-test copy. The real review catalog and all seven official URLs remain unchanged.
 - Run `42208519520` confirmed: archive inventory tests passed; existing four-background tests passed; eight-addition policy tests passed; actual-overlay composition test passed. The source-only fixture failed as described above. Download/probe and Quran overlay workflow steps were skipped because the test step failed.
 - Next: verify the new CI run from commit `da5aa26`; only then report whether seven clips actually downloaded, passed `ffprobe`, produced 9:16 crops, and generated the Quran-overlay contact sheet. No production activation is authorized or performed.
+
+
+## Corrected actual download failure — 2026-11-06
+- Run 373 (`42208966090`, commit `da5aa26c4a5c049d9178470b4ff3a161a08257d0`) completed with failure during the real seven-clip download stage, not during the unit-test fixture. The four existing-background tests, eight-addition policy tests, and preview-composition unit tests all passed.
+- The actual exception was `Background candidate exceeds the 100 MiB review-download limit.` The source catalog includes high-resolution Pexels MP4s (including 4K/60fps); the 100 MiB per-file ceiling was too restrictive for legitimate source media.
+- Updated `src/prepare_background_review_previews.py` in commit `964900cfe3d55e0fd108cf6dfbece0245eda444c`: the bounded per-file ceiling is now 1 GiB, the error reports the candidate ID, and partial files are deleted on download failure. The bound remains finite; no download-size protection was removed.
+- The source-only unit-test fixture is correctly isolated and all four relevant unit-test groups passed in run 373. The next CI run must establish whether each real MP4 downloads within the new cap, passes ffprobe, creates a 9:16 crop, and supports the Quran-overlay contact sheet.
+- No new background has been enabled. The original four approved backgrounds remain unchanged; all eight additions remain review-only and require explicit user approval before activation.
