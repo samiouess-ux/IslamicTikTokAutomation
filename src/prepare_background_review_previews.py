@@ -99,8 +99,8 @@ def composite_overlay_preview(background_crop: Path, overlay_frame: Path, destin
 def prepare(catalog_path: Path, output_dir: Path) -> dict:
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     candidates = catalog.get("candidates", [])
-    if len(candidates) != 4:
-        raise RuntimeError("Expected exactly four staged background candidates.")
+    if not candidates:
+        raise RuntimeError("Background review catalog contains no candidates.")
     output_dir.mkdir(parents=True, exist_ok=True)
     items = []
     for candidate in candidates:
@@ -108,9 +108,21 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
             raise RuntimeError("An approved background must carry explicit user approval.")
         if candidate.get("download_verified") and not candidate.get("user_approved"):
             raise RuntimeError("A previously verified download without user approval is not eligible.")
-        url = candidate.get("direct_video_url", "")
-        if not url.startswith("https://videos.pexels.com/video-files/"):
-            raise RuntimeError(f"Untrusted or missing candidate URL: {candidate.get('id')}")
+        url = candidate.get("direct_video_url") or ""
+        if not url:
+            items.append({
+                "id": candidate["id"],
+                "description": candidate["description"],
+                "creator": candidate.get("creator"),
+                "source_page_url": candidate["source_page_url"],
+                "download_probe_verified": False,
+                "production_enabled": False,
+                "user_approved": candidate.get("user_approved", False),
+                "review_status": "missing_direct_video_url",
+            })
+            continue
+        if not url.startswith(("https://videos.pexels.com/video-files/", "https://cdn.pixabay.com/")):
+            raise RuntimeError(f"Untrusted candidate media URL: {candidate.get('id')}")
         video_path = output_dir / f'{candidate["id"]}.mp4'
         preview_path = output_dir / f'{candidate["id"]}_vertical_crop.jpg'
         byte_count = download_candidate(url, video_path)
@@ -130,12 +142,17 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
             "production_enabled": False,
             "user_approved": candidate.get("user_approved", False),
         })
+    verified_items = [item for item in items if item.get("download_probe_verified")]
     contact_sheet = output_dir / "background_candidates_contact_sheet.jpg"
-    build_contact_sheet(items, contact_sheet)
+    if verified_items:
+        build_contact_sheet(verified_items, contact_sheet)
     report = {
-        "status": "downloaded_and_probe_verified_requires_user_visual_review",
-        "candidate_count": len(items),
-        "contact_sheet": str(contact_sheet),
+        "status": "downloaded_and_probe_verified_requires_user_visual_review" if verified_items else "source_candidates_registered_media_urls_pending",
+        "source_candidate_count": len(candidates),
+        "candidate_count": len(verified_items),
+        "unresolved_count": len(candidates) - len(verified_items),
+        "unresolved_candidates": [item["id"] for item in items if not item.get("download_probe_verified")],
+        "contact_sheet": str(contact_sheet) if verified_items else None,
         "production_enabled": False,
         "user_approval_required": True,
         "items": [{k: v for k, v in item.items() if k != "preview_path"} for item in items],
@@ -154,6 +171,8 @@ def main() -> None:
     args = parser.parse_args()
     report = prepare(Path(args.catalog), Path(args.output_dir))
     if args.overlay_frame:
+        if not report["candidate_count"]:
+            raise RuntimeError("Cannot composite Quran overlays: no candidates have verified downloadable media URLs.")
         if not args.overlay_frame.is_file():
             raise FileNotFoundError(f"Actual Quran overlay frame not found: {args.overlay_frame}")
         overlaid_items = []
@@ -171,7 +190,9 @@ def main() -> None:
         (Path(args.output_dir) / "background_review_report.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-    print(f"Prepared {report['candidate_count']} review-only background crops.")
+    print(f"Prepared {report['candidate_count']} review-only background crops from {report['source_candidate_count']} source candidates.")
+    if report["unresolved_count"]:
+        print(f"{report['unresolved_count']} candidates still need verified direct media URLs.")
     print("No background was activated; explicit user approval is still required.")
 
 
