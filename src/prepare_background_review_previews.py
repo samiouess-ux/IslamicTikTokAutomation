@@ -9,7 +9,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024
+MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024  # 1 GiB per source clip; Pexels 4K/60fps files can exceed 100 MiB
 USER_AGENT = "IslamicTikTokAutomation/1.0 (background-review-only)"
 
 
@@ -26,7 +26,7 @@ def download_candidate(url: str, destination: Path) -> int:
                 break
             total += len(chunk)
             if total > MAX_DOWNLOAD_BYTES:
-                raise RuntimeError("Background candidate exceeds the 100 MiB review-download limit.")
+                raise RuntimeError("Background candidate exceeds the 1 GiB review-download limit.")
             target.write(chunk)
     if total == 0:
         raise RuntimeError("Downloaded background candidate is empty.")
@@ -126,7 +126,11 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
             raise RuntimeError(f"Untrusted candidate media URL: {candidate.get('id')}")
         video_path = output_dir / f'{candidate["id"]}.mp4'
         preview_path = output_dir / f'{candidate["id"]}_vertical_crop.jpg'
-        byte_count = download_candidate(url, video_path)
+        try:
+            byte_count = download_candidate(url, video_path)
+        except Exception as exc:
+            video_path.unlink(missing_ok=True)
+            raise RuntimeError(f"Failed to download review candidate {candidate['id']}: {exc}") from exc
         metadata = probe_video(video_path)
         extract_vertical_crop(video_path, preview_path, metadata["duration_seconds"])
         items.append({
