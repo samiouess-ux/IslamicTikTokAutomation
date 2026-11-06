@@ -173,7 +173,7 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
                 "__exit__": lambda self, *args: False,
                 "read": lambda self: b'{"ok":true,"result":{"id":12345,"type":"private"}}'})()
             with patch.object(sender.urllib.request, "urlopen", side_effect=[chat, TimeoutError("unknown")]) as call:
-                with self.assertRaises(TimeoutError):
+                with self.assertRaisesRegex(RuntimeError, "outcome is uncertain"):
                     sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
             self.assertEqual(call.call_count, 2)
 
