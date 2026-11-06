@@ -90,3 +90,12 @@ Before a future preview send, the Pro-only sender must call Telegram Bot API `ge
 This check must happen in the same isolated send run immediately before the upload, and the verified token/chat pair must be the pair used for the subsequent send. Do not log the bot token or unnecessary personal chat metadata; logs should contain only a redacted outcome such as `private_chat_verified=true`. Add offline mocked tests for success, wrong ID, non-private type, malformed response, API error, and zero `sendVideo` calls on every failed check.
 
 Official API reference: https://core.telegram.org/bots/api#getchat (Chat objects expose a `type` value of `private`, `group`, `supergroup`, or `channel`).
+
+
+### Implemented enforcement details
+- Exact media bytes must live under `assets/pro/media/`; rights records live at `content/pro/rights/{asset_id}.json`; saved license evidence, when used, lives under `content/pro/rights/evidence/`.
+- The manifest must reference exactly one visual asset and, for spoken/ambient audio, exactly one audio asset. Silent media must not declare an audio file. The validator rejects mismatched, missing, duplicate, unsafe, symlinked, or out-of-root references and verifies each exact file's SHA-256.
+- The current preview/render gate requires worldwide distribution permission, explicit download/edit/synchronization/private-review/public-social/commercial-use permissions, active validity dates, full third-party review notes, and an approved human decision. This is intentionally stricter than private review alone because the candidate is intended for eventual public social use.
+- Required attribution is currently blocked even when wording is supplied, because the renderer/caption does not yet inject attribution. Such an asset cannot pass until that capability is implemented and tested.
+- The Pro renderer now consumes the exact local rights-cleared background/audio files; it no longer downloads a background URL during rendering. Candidate preview delivery independently rechecks the same rights records.
+- These checks validate the recorded evidence and exact file identity; they do not independently adjudicate the legal meaning or authenticity of a license. Human review remains mandatory.
