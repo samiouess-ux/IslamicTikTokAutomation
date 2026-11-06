@@ -143,3 +143,9 @@ This section supersedes earlier historical statements in this file that the curr
 - Tirmidhi's page records Abu 'Isa's grading as hasan; Abu Dawud's Sunnah.com listing displays Al-Albani's sahih grading. These are recorded as separate source-specific grading statements, not as one consensus grade.
 - Both candidates remain unapproved. No production manifest or religious content library entry was created. Media rights have not been reviewed.
 - No tests, render, Telegram request, or TikTok publishing occurred.
+
+
+## 2026-11-06 — Grading metadata clarification
+- Re-opened the primary candidate pages directly. Tirmidhi 3391 contains Abu 'Isa's in-text statement `hadith hasan`, while the page's separate Grade metadata field displays `Sahih (Darussalam)`. These must remain distinct attributions; the initial note was incomplete on this distinction.
+- Updated `content/pro/CANDIDATE_RESEARCH_001.md` with the correction and additional exact wording detail for Riyad as-Salihin 1453.
+- No candidate is human-approved; no production manifest, render, or Telegram delivery created.
