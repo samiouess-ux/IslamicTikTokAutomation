@@ -301,3 +301,12 @@ This section supersedes earlier historical statements in this file that the curr
 - The Pro reuse of the existing Telegram bot is still only a design proposal, not an active integration. No secret values were read/changed and no Telegram send occurred.
 - This checkpoint was documentation/static inspection only: no code/workflow edits, tests, Actions dispatch, render, Telegram request, TikTok publication, Cron changes, or production-branch changes. Eight-suite Pro safety workflow remains NOT RUN.
 - Next: finish workflow inventory and prepare a reviewable Pro-only isolation plan; execution remains separately gated.
+
+
+## 2026-11-06 — Workflow inventory checkpoint
+- Branch reviewed: `feature/quran-video-pro` only.
+- Additional static classifications: media extraction/preparation workflows are read-only and artifact-producing, without Telegram or Git push steps; archive inspection/connectivity workflows are read-only network checks; `cloud-runner-check.yml` is an environment check; `official-audio-preflight-tests.yml` checks out a separate repair branch; `review-background-candidates.yml` checks out the original production branch and must not be run from Pro.
+- Manual dispatch without exact Pro guard remains a reason not to run legacy workflows from Pro, even where no write/send side effect was found.
+- Previously recorded high-risk workflows remain blocked: especially `build-quran-audio-inventory.yml` (production branch push + original Telegram send) and legacy Quran render workflows.
+- Pro/original Telegram integration remains design-only. Existing production bot/workflow/secrets/Cron have not been changed. No tests, dispatch, render, Telegram send, or TikTok publish occurred.
+- Current next step: consolidate the workflow allow/deny matrix, then seek explicit approval before any Pro-only workflow edits. The production Quran engine remains untouched.
