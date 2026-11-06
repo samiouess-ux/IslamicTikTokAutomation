@@ -1,4 +1,4 @@
-"""Dua & Adhkar Pro Telegram review sender; no TikTok publishing."""
+"""Dua & Adhkar Pro Telegram review sender with delivery-ledger protection."""
 from __future__ import annotations
 
 import argparse
@@ -7,6 +7,8 @@ import os
 import secrets
 import urllib.request
 from pathlib import Path
+
+from pro_delivery_ledger import reserve, transition
 
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_CAPTION_CHARS = 1024
@@ -30,16 +32,28 @@ def build_caption(data: dict) -> str:
     return caption
 
 
-def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str) -> dict:
+def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
+               run_id: str, ledger_path: Path = Path("data/pro_delivery_ledger.json")) -> dict:
     if not token.strip() or not chat_id.strip():
         raise ValueError("TG_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured as GitHub Secrets.")
+    if not isinstance(run_id, str) or not run_id.strip():
+        raise ValueError("A non-empty workflow run_id is required.")
     if not video_path.is_file() or video_path.stat().st_size == 0:
         raise FileNotFoundError(f"Review MP4 is missing or empty: {video_path}")
-    size = video_path.stat().st_size
-    if size > MAX_VIDEO_BYTES:
+    if video_path.stat().st_size > MAX_VIDEO_BYTES:
         raise ValueError("Review MP4 exceeds Telegram's 50 MB sendVideo limit.")
+
     data = json.loads(caption_path.read_text(encoding="utf-8"))
     caption = build_caption(data)
+    manifest_id = data.get("manifest_id")
+    content_type = data.get("content_type")
+    if not isinstance(manifest_id, str) or not manifest_id.strip():
+        raise ValueError("Caption data must include the stable manifest_id.")
+    if content_type not in {"dua", "dhikr"}:
+        raise ValueError("Pro Telegram sender accepts dua/dhikr only.")
+
+    # Reserve before contacting Telegram. Existing/uncertain reservations block duplicates.
+    reserve(ledger_path, manifest_id, content_type, run_id)
 
     boundary = "----DuaAdhkarPro" + secrets.token_hex(16)
     body = b"".join([
@@ -56,15 +70,30 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str) -
         headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
         method="POST",
     )
-    # Do not automatically retry: a lost response can mean Telegram already accepted the video.
-    with urllib.request.urlopen(request, timeout=180) as response:
-        result = json.loads(response.read().decode("utf-8"))
-    if not result.get("ok") or not isinstance(result.get("result"), dict):
-        raise RuntimeError("Telegram API did not confirm Pro review delivery.")
-    message = result["result"]
-    if not isinstance(message.get("message_id"), int) or message["message_id"] <= 0:
-        raise RuntimeError("Telegram response lacks a valid message_id; reconcile before retrying.")
-    print(f"Telegram confirmed Dua & Adhkar Pro review delivery: message_id={message['message_id']}.")
+
+    # Never auto-retry: a lost response can mean Telegram already accepted the video.
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        if not result.get("ok") or not isinstance(result.get("result"), dict):
+            raise RuntimeError("Telegram API did not confirm Pro review delivery.")
+        message = result["result"]
+        message_id = message.get("message_id")
+        if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
+            raise RuntimeError("Telegram response lacks a valid message_id; reconcile before retrying.")
+    except Exception as send_error:
+        try:
+            transition(ledger_path, manifest_id, "uncertain")
+        except Exception as ledger_error:
+            raise RuntimeError(
+                "Telegram outcome is uncertain and the ledger could not be advanced; "
+                "the existing reservation must remain blocking."
+            ) from send_error
+        raise
+
+    # If this write fails, the earlier reservation still blocks a duplicate send.
+    transition(ledger_path, manifest_id, "delivered", message_id)
+    print(f"Telegram confirmed Dua & Adhkar Pro review delivery: message_id={message_id}.")
     return message
 
 
@@ -72,9 +101,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--video", type=Path, required=True)
     parser.add_argument("--caption", type=Path, required=True)
+    parser.add_argument("--run-id", required=True)
+    parser.add_argument("--ledger", type=Path, default=Path("data/pro_delivery_ledger.json"))
     args = parser.parse_args()
     send_video(args.video, args.caption, os.environ.get("TG_BOT_TOKEN", ""),
-               os.environ.get("TELEGRAM_CHAT_ID", ""))
+               os.environ.get("TELEGRAM_CHAT_ID", ""), args.run_id, args.ledger)
 
 
 if __name__ == "__main__":
