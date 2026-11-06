@@ -161,3 +161,10 @@ This section supersedes earlier historical statements in this file that the curr
 - Added `content/pro/MEDIA_RIGHTS_POLICY.md`. Pexels/Pixabay are discovery sources only; each exact background asset still needs a per-item rights record. Audio recordings require explicit recording-specific permission/license covering edits, video synchronization, social posting, and possible monetization; no recording is pre-approved.
 - User decision: the user will personally inspect and validate Arabic text when the Pro preview videos arrive in Telegram and report corrections/approval. Text review is therefore a Telegram preview-stage human gate, not a claim that candidates are already approved. Keep candidate texts clearly marked unapproved until that review.
 - No music. No render or Telegram delivery yet; the delivery workflow remains unwired.
+
+
+## 2026-11-06 — Telegram preview review gate architecture finding
+- Code inspection found a workflow mismatch with the user's explicit review preference: user wants to inspect Arabic wording on the private Telegram preview and then report corrections/approval, but `src/validate_content_manifest.py` currently requires `human_reviewed: true` before any dua/dhikr manifest can render. This blocks the intended first preview.
+- Safe design required: distinguish `candidate_preview` from `production_approved`. A candidate may render and be sent only to the owner's private review Telegram destination with explicit preview-only metadata; it must never be treated as publish-ready, enter normal rotation as approved content, or trigger TikTok publishing. User approval/corrections must be recorded before promotion to production manifest.
+- Existing renderer and orchestrator currently do not implement this two-stage content state. No code changed in this step; do not render or send until the gate is implemented and tested.
+- Current Pro sender/ledger remain review-only but that alone does not resolve the content-manifest preflight mismatch.
