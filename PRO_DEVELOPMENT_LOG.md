@@ -1212,3 +1212,35 @@ Before any preview can be sent, each exact media file must have a linked per-ass
 **Audio recording record:** exact recording/file URL; performer; recording owner; source platform; download date; exact permission/license evidence; explicit permission for download/editing, video synchronization, public social posting, commercial/monetized use if applicable, territories and duration; attribution wording; reviewer and checked date. Any missing scope or unclear ownership must fail closed.
 
 The strict gate should bind each rights record to the exact media file SHA-256 and manifest asset reference, reject generic platform-level evidence, and reject expired/limited permissions outside their stated scope. Silent videos must not be forced to have an audio rights record; any declared audio file must have one. No individual asset is approved by writing this contract.
+
+
+## 2026-11-06 — Static activation-gate review of preview delivery
+
+### Re-fetched implementation evidence
+- `src/pro_preview_send_ledger.py`: blob `4165e0b9fcf12d5666a867511392bf2f361583ad`.
+- `src/persist_pro_preview_ledger.py`: blob `97cea2e30230aa2ab03f1aba2cefa620543a540d`.
+- `src/pro_preview_delivery_cycle.py`: blob `ca07c7e5289a09cfb3888115b2fb697b721539b4`.
+- `src/send_pro_preview_telegram.py`: blob `0e816cb3d1668571117220179a8ca72da30d1764`.
+- `src/validate_content_manifest.py`: blob `5146070fea6ab8ed65cd6d192e8a255472260ba1`.
+- Focused test blobs: ledger `2762f1b366f6ec75674a011c26f1b3c5cfc3ada1`, persistence `63effcc8037e28795e0e285769c2bb065e2e3fce`, cycle `8cf87814ce6abe798a765f6a1f815de9a8075957`.
+
+### Confirmed safeguards
+- Preview ledger has versioned schema, safe candidate IDs, SHA-256 format checks, candidate-ID uniqueness, explicit reserved/delivered/uncertain states, and positive non-boolean Telegram message IDs for delivered state.
+- Persistence is exact-Pro-branch only, rejects stale local branch and unrelated staged paths, stages only the preview ledger, uses normal push, and verifies remote HEAD.
+- Cycle confines inputs to fixed Pro directories, rejects symlinks/out-of-root files, checks exact preview filename and size, hashes both inputs, persists reservation before sender, verifies reservation, and re-hashes before send.
+- Sender reads manifest and video bytes once, checks them against reserved hashes, and constructs the Telegram request from those same bytes. No automatic retry is implemented.
+- No delivery workflow/caller exists in the repository state reviewed here; the preview cycle is not automatically invoked.
+
+### Activation blockers / precise limitations
+1. A positive numeric Telegram chat ID is not proof that Telegram reports `chat.type == "private"`. Sender and cycle currently do not perform an independent `getChat` verification. Require an explicit pre-send private-chat verification gate before any approved preview.
+2. Shared manifest validation checks selected approval/rights booleans and source metadata, but it does not enforce the full per-asset evidence record in `content/pro/MEDIA_RIGHTS_POLICY.md`. Add a strict Pro rights validator binding each exact visual/audio asset record to the actual file SHA-256, source/creator, download date, exact license/permission evidence, intended-use scope, attribution, third-party rights review, reviewer and date. Missing/unclear evidence must fail closed. Silent videos need no audio-file record.
+3. A future delivery workflow must serialize all preview sends under one fixed concurrency group with `cancel-in-progress: false`, use an exact Pro ref guard and pinned Pro checkout, and scope write permission/secrets to only the necessary guarded steps. No such workflow exists yet.
+4. Current focused tests are authored but have not been executed. Add tests for chat-type verification and strict per-asset rights validation before any send workflow is considered.
+
+### Change boundary
+- This checkpoint is static review and documentation only. No source, test, workflow, or manifest file was changed in this pass; no test, dispatch, render, Telegram API call, or TikTok publish occurred.
+- No secrets, Cron, original bot/workflow, production ledger/rotation history, `main`, `feature/telegram-review-notifications`, or original Quran engine was changed.
+- Existing eight-suite Pro safety workflow remains NOT RUN.
+
+### Next safe step
+- Design and review the strict per-asset rights schema and independent Telegram private-chat verification contract, then request explicit approval before implementing them. Keep preview sending disabled until both gates and workflow isolation are independently reviewed.
