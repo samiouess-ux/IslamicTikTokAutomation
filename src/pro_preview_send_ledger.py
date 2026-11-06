@@ -154,7 +154,7 @@ def reserve(path: Path, candidate_id: str, content_type: str, manifest_sha256: s
     return dict(entry)
 
 
-def transition(path: Path, candidate_id: str, state: str, message_id: int | None = None) -> dict[str, Any]:
+def transition(path: Path, candidate_id: str, state: str, message_id: int | None = None, *, recovered_receipt: bool = False) -> dict[str, Any]:
     if state not in {"delivered", "uncertain"}:
         raise ValueError("Only delivered or uncertain transitions are supported.")
     with file_lock(path):
@@ -164,10 +164,10 @@ def transition(path: Path, candidate_id: str, state: str, message_id: int | None
             raise ValueError("Unknown preview candidate reservation.")
         if entry["state"] == "reserved":
             pass
-        elif entry["state"] == "uncertain" and state == "delivered":
-            pass  # caller must supply a recovered Telegram receipt
+        elif entry["state"] == "uncertain" and state == "delivered" and recovered_receipt is True:
+            pass  # explicit caller assertion that a Telegram receipt was recovered
         else:
-            raise ValueError(f"Invalid preview ledger transition {entry['state']} -> {state}.")
+            raise ValueError(f"Invalid preview ledger transition {entry['state']} -> {state}; uncertain recovery requires recovered_receipt=True.")
         if state == "delivered":
             if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
                 raise ValueError("Delivered state requires a positive integer Telegram message_id.")
