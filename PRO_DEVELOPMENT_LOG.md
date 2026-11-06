@@ -802,3 +802,14 @@ The Pro manual workflow `.github/workflows/pro-safety-tests-manual.yml` still ex
 - No local render, Telegram request, TikTok publish, or production delivery occurred.
 - No change was made to `main` or `feature/telegram-review-notifications`.
 - Next: run the expanded offline workflow through a supported manual dispatch route. Continue Telegram preview sender implementation only after test results are available, and keep any real send behind a separate explicit user authorization.
+
+
+## 2026-11-06 — Isolated Telegram candidate-preview sender added
+- Added `src/send_pro_preview_telegram.py`, a separate sender for a single candidate-preview MP4. It accepts only dua/dhikr manifests marked `candidate_preview` and `preview_only: true`, rejects rotation-approved candidates, and reuses the strict preview validator.
+- Requires an explicit `--confirm-preview-send` flag, a separately named Pro preview bot token and private numeric chat ID, and a `PREVIEW-ONLY-*.mp4` file. Caption is clearly marked “PREVIEW — NOT APPROVED FOR POSTING”.
+- No automatic retries. A transport/response ambiguity is not retried. This sender does not touch the production delivery ledger or rotation history and never publishes to TikTok.
+- Added `tests/test_send_pro_preview_telegram.py` covering confirmation gate, candidate-only gate, private destination/file checks, caption labeling, one-call send behavior, isolation from production state, and no automatic retry.
+- Expanded `.github/workflows/pro-safety-tests-manual.yml` to include the new preview-sender test module. It now invokes eight focused offline test modules.
+- Commits: sender `80e290cf2d77edb172d6794bdb0f2c38cf60d5bd`; tests `4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a`; workflow `06fda285fd198382c6cd3df4ee018eea66bfb034`.
+- This is implementation only. The sender was not invoked, no token/chat secret was added, no MP4 was rendered, no Telegram request was made, and no TikTok post occurred. Tests have not been executed; the workflow has not been dispatched.
+- Next: re-fetch and statically review the sender/tests/workflow, update the durable status/log, then obtain a supported manual workflow-dispatch path for offline tests. Keep actual Telegram preview delivery disabled until the user explicitly authorizes a specific send.
