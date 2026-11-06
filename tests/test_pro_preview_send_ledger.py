@@ -60,7 +60,9 @@ class PreviewLedgerTests(unittest.TestCase):
         transition(self.path, "candidate-001", "uncertain")
         with self.assertRaisesRegex(ValueError, "refusing duplicate"):
             self.reserve_one()
-        self.assertEqual(transition(self.path, "candidate-001", "delivered", 88)["telegram_message_id"], 88)
+        with self.assertRaisesRegex(ValueError, "recovered_receipt"):
+            transition(self.path, "candidate-001", "delivered", 88)
+        self.assertEqual(transition(self.path, "candidate-001", "delivered", 88, recovered_receipt=True)["telegram_message_id"], 88)
 
     def test_rejects_unsafe_candidate_id(self):
         with self.assertRaisesRegex(ValueError, "safe"):
