@@ -175,7 +175,6 @@ jobs:
               --catalog output/quran_joined_candidate.json \
               --count 1 \
               --only-surah 18 \
-              --sequential-unused \
               --history data/quran_delivery_history.json \
               --seed "quran-friday-$(date -u +%F-%H)" \
               --output output/quran_review_batch.json
