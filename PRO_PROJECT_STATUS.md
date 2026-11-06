@@ -155,3 +155,9 @@ This section supersedes earlier historical statements in this file that the curr
 - Added PD-002, Sayyid al-Istighfar, sourced to Sahih al-Bukhari 6306 and attributed on the page to Shaddad bin Aws.
 - Source displays Arabic matn, narrator, exact collection reference, and day/night recitation context. It remains a research candidate pending human review, duration feasibility under 40 seconds, and media-rights review.
 - No production manifest or render/delivery was created.
+
+
+## 2026-11-06 — Media-rights policy baseline and review timing
+- Added `content/pro/MEDIA_RIGHTS_POLICY.md`. Pexels/Pixabay are discovery sources only; each exact background asset still needs a per-item rights record. Audio recordings require explicit recording-specific permission/license covering edits, video synchronization, social posting, and possible monetization; no recording is pre-approved.
+- User decision: the user will personally inspect and validate Arabic text when the Pro preview videos arrive in Telegram and report corrections/approval. Text review is therefore a Telegram preview-stage human gate, not a claim that candidates are already approved. Keep candidate texts clearly marked unapproved until that review.
+- No music. No render or Telegram delivery yet; the delivery workflow remains unwired.
