@@ -626,3 +626,26 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 1. Review and run the offline Pro safety tests only after explicit user approval.
 2. Populate `content/pro` only with individually source-checked and human-reviewed manifests.
 3. Do not create or enable a delivery workflow until the content library exists and the two-phase workflow integration has been separately reviewed.
+
+
+## 2026-11-06 — Pro content-source research started
+
+### Research performed
+- Began the content-library phase after the successful offline Pro safety workflow run recorded above.
+- Identified Quran.com / Quran Foundation developer documentation as the primary starting point for Qur'anic verse text and exact verse references.
+- Identified Sunnah.com as a searchable reader across named hadith collections for locating exact Prophetic dua/dhikr narrations.
+- Read Sunnah.com's own About page and recorded its limitations: it is a research resource, not a fatwa service; Arabic and English numbering may differ; and grading metadata coverage is not uniform across collections.
+- Third-party compilations and APIs may help discover candidates but will not be treated as the primary evidence or as proof of authenticity.
+
+### Review policy for each candidate
+- Open and compare the exact Arabic against the cited Qur'anic verse or full hadith narration.
+- Record source collection, book/chapter where available, reference and numbering scheme, narrator, and grade together with the grading authority/status.
+- Do not infer a grade from a search result, a website badge without provenance, or a secondary compilation.
+- Preserve the exact source wording; do not paraphrase religious Arabic or combine separate narrations into one item.
+- Require human review before marking any item verified or adding it to the production manifest.
+
+### Current outcome and safety
+- This is source-discovery research only. No specific dua/dhikr has been selected, authenticated, or approved.
+- No religious text or manifest was added; no code or workflow was changed.
+- No tests, render, Telegram request, or TikTok publishing occurred in this step.
+- Next: define the content review record/schema, then assess individual candidates one by one against the full primary source and grading evidence.
