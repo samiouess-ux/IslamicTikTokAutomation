@@ -30,11 +30,18 @@
 - No secrets, Cron settings, or production workflow logic were changed.
 - Pro has no verified content library yet; do not attempt delivery until reviewed manifests exist and idempotency is safely implemented.
 
+## Cross-run persistence design
+- Design committed in `PRO_LEDGER_PERSISTENCE_DESIGN.md` (commit `e3c50a6c66a13d23c753cb9c7f975c1b633accd5`).
+- Selected approach: commit the ledger JSON to this Pro branch using normal checkout/commit/push, protected by one fixed Actions concurrency group.
+- Required order: persist reservation before Telegram; send once; persist delivered/uncertain outcome. A failed final push leaves the pre-send reservation blocking duplicates.
+- No Pro workflow exists yet, and no reviewed `content/pro` manifests exist.
+
 ## Next steps
-1. Design a dormant manual-only Pro workflow with strict branch guard, serialized runs, and safe cross-run ledger persistence.
-2. Verify the ledger/sender tests in an approved test environment; do not report tests as passing until run.
-3. Build a reviewed dua/dhikr content library from trustworthy primary sources.
-4. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
+1. Add sender support for a pre-persisted reservation bound to the current workflow run ID.
+2. Add a narrow ledger-only persistence helper and tests for all failure boundaries.
+3. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions; no schedule or production secrets.
+4. Build a reviewed dua/dhikr content library from trustworthy primary sources.
+5. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
 
 ## Safety and change control
 - All Pro implementation commits only on `feature/quran-video-pro`.
