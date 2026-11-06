@@ -15,7 +15,8 @@ import secrets
 import urllib.request
 from pathlib import Path
 
-from validate_content_manifest import validate_content_manifest\nfrom validate_pro_media_rights import validate_manifest_media_rights
+from validate_content_manifest import validate_content_manifest
+from validate_pro_media_rights import validate_manifest_media_rights
 
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_CAPTION_CHARS = 1024
@@ -80,7 +81,8 @@ def verify_private_chat(token: str, chat_id: str, *, urlopen_fn=None) -> None:
 
 def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str,
                  *, confirmed: bool = False, expected_video_sha256: str | None = None,
-                 expected_manifest_sha256: str | None = None,\n                 repo_root: Path | None = None, urlopen_fn=None) -> dict:
+                 expected_manifest_sha256: str | None = None,
+                 repo_root: Path | None = None, urlopen_fn=None) -> dict:
     if not confirmed:
         raise PermissionError("Explicit --confirm-preview-send is required before any Telegram request.")
     if not token.strip() or not chat_id.strip():
