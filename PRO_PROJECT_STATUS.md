@@ -427,3 +427,11 @@ This section supersedes earlier historical statements in this file that the curr
 - Preview sender now reads MP4 and manifest bytes once, checks both against reserved SHA-256 digests, and sends those same bytes. The preview cycle passes the hashes; mismatch is rejected before any Telegram request.
 - Added offline test assertions for manifest/video hash mismatch and zero network calls.
 - Still blocked from activation: no workflow/caller; Telegram chat type not independently confirmed private; full per-asset media-rights evidence gate not enforced. Tests NOT RUN.
+
+
+### Next rights gate requirements
+- Require a per-asset rights record bound to the exact file SHA-256 and manifest asset reference.
+- Visual record: exact asset page/ID, creator, platform, download date, exact license and saved evidence, intended uses, edits, third-party people/logos/artwork/property/privacy review, reviewer and checked date.
+- Audio record: exact recording URL, performer and recording owner, platform/download date, explicit permission evidence and scopes for download/edit, video sync, public social posting, monetization if applicable, territory/duration, attribution, reviewer and checked date.
+- Missing/unclear evidence fails closed; generic provider license page or boolean approval alone is insufficient. Silent media does not require an audio-file record.
+- This is a policy-to-validator design checkpoint only; no individual asset has been approved.
