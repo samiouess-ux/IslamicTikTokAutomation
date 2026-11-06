@@ -813,3 +813,12 @@ The Pro manual workflow `.github/workflows/pro-safety-tests-manual.yml` still ex
 - Commits: sender `80e290cf2d77edb172d6794bdb0f2c38cf60d5bd`; tests `4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a`; workflow `06fda285fd198382c6cd3df4ee018eea66bfb034`.
 - This is implementation only. The sender was not invoked, no token/chat secret was added, no MP4 was rendered, no Telegram request was made, and no TikTok post occurred. Tests have not been executed; the workflow has not been dispatched.
 - Next: re-fetch and statically review the sender/tests/workflow, update the durable status/log, then obtain a supported manual workflow-dispatch path for offline tests. Keep actual Telegram preview delivery disabled until the user explicitly authorizes a specific send.
+
+
+## 2026-11-06 — Isolated preview sender hardening
+- Added `src/send_pro_preview_telegram.py`: candidate-preview only; explicit `--confirm-preview-send`; separate Pro preview token/chat variables; positive numeric private-chat ID; preview-only MP4; warning caption `PREVIEW — NOT APPROVED FOR POSTING`; one request, no automatic retry; no production ledger or rotation-history use.
+- Added exact manifest/filename binding and safe 1–80 character preview IDs to prevent path traversal or mismatched files.
+- Added offline sender tests and included them in the manual workflow (eight test modules total). Static re-fetch verified exact Pro branch guard, read-only contents permission, and no secrets or delivery/publish steps.
+- Commits: sender 80e290cf2d77edb172d6794bdb0f2c38cf60d5bd; tests 4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a; workflow 06fda285fd198382c6cd3df4ee018eea66bfb034; safe ID 9a8577fae641c5fa64369293594bf9dc3d0cc6e5; exact file binding a687af0cef089dc2265570061f64c5bc6c11bd3f; tests 25ee33f4272aee847187a3550c6b9d19cffb8d5f and 141a630af57a840abe49e99897f6e3c8e6182042.
+- Static re-fetch only: tests NOT RUN; workflow NOT DISPATCHED. No render, Telegram request, secrets, TikTok publish, or production-branch changes.
+- Next: obtain a supported manual dispatch path, run offline tests, then continue with candidate manifest/assets. Actual preview sending still requires explicit authorization for that exact send.
