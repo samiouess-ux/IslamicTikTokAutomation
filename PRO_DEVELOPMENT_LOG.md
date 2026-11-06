@@ -1164,3 +1164,12 @@ This mapping is static inspection only. No source/test/workflow implementation, 
 - The new modules are not wired into any workflow or CLI delivery command. No Telegram request can be initiated by these files as committed unless a caller explicitly invokes the cycle.
 - No production delivery ledger, rotation history, original Telegram workflow/bot, production branch, Cron, secrets, renderer, TikTok publishing, or original Quran engine was changed. Existing eight-suite safety workflow remains NOT RUN.
 - Next: static review the newly added code and test logic, correct any issues found, then request separate approval before running offline tests. Workflow creation and any Telegram preview send remain separately gated.
+
+
+### 2026-11-06 — Static hardening pass after initial implementation
+- Required explicit `recovered_receipt=True` for uncertain→delivered transitions; the offline ledger test now asserts that a plain message ID is insufficient for this recovery path.
+- Persistence now fetches the exact remote branch refspec into `refs/remotes/origin/feature/quran-video-pro` before comparing local/remote HEAD, avoiding ambiguity about which remote-tracking ref was refreshed.
+- Preview path preflight now rejects symlinked fixed input directories, symlink path components, paths resolving outside the repository/fixed directories, and a symlinked `data` directory or preview ledger.
+- Added a cycle test for artifact mutation after reservation: the second hash check must block Telegram and leave the reservation in its blocking reserved state.
+- Added a cycle test for final persistence failure: the first persisted reservation remains the remote duplicate-send boundary; no retry is attempted.
+- These changes are static source/test edits only. Tests remain NOT RUN.
