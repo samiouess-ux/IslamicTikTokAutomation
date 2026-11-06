@@ -492,3 +492,28 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - The delivery workflow remains blocked until reviewed content manifests exist and the two-phase persistence/send/persistence sequence is fully integrated and tested.
 - No Telegram secret was read or changed; no render, Telegram API request, or TikTok publish occurred.
 - Production Quran branch/workflow/Cron/bot route remain untouched.
+
+
+## 2026-11-06 — Sender and persistence failure-boundary test expansion
+
+### Implemented on Pro only
+- Expanded `tests/test_send_pro_telegram.py`:
+  - A sender invocation using `--reservation-persisted` now has an explicit test proving that a missing pre-persisted reservation is rejected before `urlopen` (no Telegram request).
+  - Added a test proving an ambiguous timeout from the pre-persisted path changes the local reservation to `uncertain`.
+- Expanded `tests/test_persist_pro_ledger.py`:
+  - Added a push-rejection test proving that a remote persistence failure raises an error and is not reported as a successful persistence.
+  - The test also verifies that the failed push is the final Git operation; no later operation can proceed to the sender in a correctly fail-fast workflow.
+
+### Commits
+- Sender failure-boundary tests: `a9dcc3129e80e20605a5d858627a0827459e2f1d`
+- Persistence push-failure test: `927f0b1c0f5f49bba02bba6f228b186f6c245c9f`
+
+### Validation and safety
+- Both test files were fetched again from the exact Pro branch after their commits.
+- Tests have NOT been executed; these are added assertions, not passing test results.
+- No workflow was dispatched. No render, Telegram API request, or TikTok publish occurred.
+- No production branch, main branch, Cron, secrets, or original bot route was changed.
+
+### Remaining integration gap
+- The workflow-level guarantee is still not implemented: the first ledger push must complete successfully before the sender step is reachable, and the post-send ledger state must be pushed even when the sender exits with an ambiguous error.
+- The delivery workflow remains intentionally absent because there is no reviewed Pro content library. The manual-only workflow is still test-only.
