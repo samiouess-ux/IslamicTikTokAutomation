@@ -8,8 +8,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-ASSET_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}\\Z")
-HASH = re.compile(r"[0-9a-f]{64}\\Z")
+ASSET_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}\Z")
+HASH = re.compile(r"[0-9a-f]{64}\Z")
 MEDIA_ROOT = Path("assets/pro/media")
 RIGHTS_ROOT = Path("content/pro/rights")
 EVIDENCE_ROOT = RIGHTS_ROOT / "evidence"
@@ -192,7 +192,10 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
     for item in declared:
         if not isinstance(item, dict):
             _fail("each media_assets entry must be an object.")
-        normalized.append({"asset_id": item.get("asset_id"), "media_type": item.get("media_type")})
+        aid, media_type = item.get("asset_id"), item.get("media_type")
+        if not isinstance(aid, str) or not ASSET_ID.fullmatch(aid) or media_type not in {"visual", "audio"}:
+            _fail("each media_assets entry needs a safe asset_id and valid media_type.")
+        normalized.append({"asset_id": aid, "media_type": media_type})
     if sorted((x["asset_id"], x["media_type"]) for x in normalized) != sorted((x["asset_id"], x["media_type"]) for x in refs):
         _fail("media_assets references do not exactly match visual/audio asset IDs.")
     root = repo_root.resolve(strict=True)
