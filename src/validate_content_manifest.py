@@ -92,11 +92,30 @@ def validate_content_manifest(data: dict[str, Any]) -> None:
     else:
         if not data.get("items") or not isinstance(data["items"], list):
             raise SystemExit("Dua/dhikr manifest must contain sourced items.")
+        seen_item_ids: set[str] = set()
         for item in data["items"]:
             if not isinstance(item, dict) or not isinstance(item.get("arabic"), str) or not item["arabic"].strip():
                 raise SystemExit("Every dua/dhikr item needs its exact Arabic wording.")
+            item_id = item.get("id")
+            if not isinstance(item_id, str) or not item_id.strip() or item_id in seen_item_ids:
+                raise SystemExit("Every dua/dhikr item needs a unique, stable id.")
+            seen_item_ids.add(item_id)
             if not item.get("source_name") or not str(item.get("source_url", "")).startswith("https://"):
                 raise SystemExit("Every dua/dhikr item needs a named HTTPS religious source.")
+            if not isinstance(item.get("source_reference"), str) or not item["source_reference"].strip():
+                raise SystemExit("Every dua/dhikr item needs an exact source reference (book/chapter/hadith or Quran reference).")
+            if item.get("verification_status") != "verified":
+                raise SystemExit("Dua/dhikr item is not marked as source-verified.")
+            if item.get("human_reviewed") is not True:
+                raise SystemExit("Dua/dhikr item requires explicit human review before production.")
+            if item.get("kind") not in {"quranic_dua", "prophetic_dua", "dhikr", "general_supplication"}:
+                raise SystemExit("Dua/dhikr item kind must be explicitly classified.")
+            repeat_count = item.get("repeat_count")
+            if repeat_count is not None and (not isinstance(repeat_count, int) or repeat_count < 1):
+                raise SystemExit("repeat_count must be a positive integer when provided.")
+            grading = item.get("hadith_grading")
+            if item["kind"] == "prophetic_dua" and (not isinstance(grading, str) or not grading.strip()):
+                raise SystemExit("Prophetic dua requires its hadith grading/authenticity reference.")
         if kind == "quran_recitation":
             raise SystemExit("Dua/dhikr audio must not be mislabeled as Quran recitation.")
         if kind in {"spoken_dua", "ambient_nature"}:
