@@ -45,3 +45,4 @@ jobs:
           python -m unittest discover -s tests -p 'test_pro_delivery_ledger.py' -v
           python -m unittest discover -s tests -p 'test_send_pro_telegram.py' -v
           python -m unittest discover -s tests -p 'test_persist_pro_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_pro_delivery_cycle.py' -v
