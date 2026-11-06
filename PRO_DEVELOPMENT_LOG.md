@@ -822,3 +822,29 @@ The Pro manual workflow `.github/workflows/pro-safety-tests-manual.yml` still ex
 - Commits: sender 80e290cf2d77edb172d6794bdb0f2c38cf60d5bd; tests 4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a; workflow 06fda285fd198382c6cd3df4ee018eea66bfb034; safe ID 9a8577fae641c5fa64369293594bf9dc3d0cc6e5; exact file binding a687af0cef089dc2265570061f64c5bc6c11bd3f; tests 25ee33f4272aee847187a3550c6b9d19cffb8d5f and 141a630af57a840abe49e99897f6e3c8e6182042.
 - Static re-fetch only: tests NOT RUN; workflow NOT DISPATCHED. No render, Telegram request, secrets, TikTok publish, or production-branch changes.
 - Next: obtain a supported manual dispatch path, run offline tests, then continue with candidate manifest/assets. Actual preview sending still requires explicit authorization for that exact send.
+
+
+## 2026-11-06 — Read-only review of Pro safety tests
+### Files reviewed
+- `tests/test_send_pro_preview_telegram.py`
+- `tests/test_pro_delivery_cycle.py`
+- `tests/test_persist_pro_ledger.py`
+- `.github/workflows/pro-safety-tests-manual.yml`
+- Current `PRO_PROJECT_STATUS.md` and recent implementation history.
+
+### Review findings
+- Preview sender tests assert no network call without explicit confirmation; reject production/rotation-approved manifests; reject non-preview or mismatched filenames; require a positive numeric destination; check the not-approved-for-posting caption; and verify one request/no retry plus no production ledger or rotation-history side effects.
+- Delivery-cycle tests exercise first-persistence failure/no-op, ambiguous sender outcomes, uncertain-state persistence failure, correct persist/send/persist order, final-persistence failure, and rejection of an out-of-checkout ledger path.
+- Persistence-helper tests exercise exact Pro-branch enforcement, refusal of pre-staged or unrelated files, ledger-only staging/commit/push, and fail-closed behavior on remote push failure.
+- The manual workflow remains manual-only, guarded to `refs/heads/feature/quran-video-pro`, with `contents: read`, and invokes eight offline test modules. It contains no render/send/publish command; invoking the renderer's unit-test module is not a render.
+- Static review did not establish an immediate defect. Follow-up hardening idea: the preview sender's positive numeric chat-ID check is a practical private-chat restriction, but the current test does not verify Telegram's returned `chat.type`; assess whether a preflight/type check is needed before enabling any real preview route.
+
+### Validation and change boundary
+- These test files were inspected only; the expanded eight-suite workflow was NOT run or dispatched.
+- Historical workflow run `42259731118` is still the confirmed successful run for the four original suites only. It must not be represented as a pass for the expanded eight-suite set.
+- No code or workflow was modified in this review. No render, Telegram request, TikTok publication, secret/Cron change, or production/main change occurred. The original Quran engine remains untouched.
+
+### Next
+1. Continue static review of content validation, media-rights gates, and any future workflow integration.
+2. Resolve the private-destination hardening question before authorizing a preview send.
+3. Obtain explicit authorization before dispatching the expanded offline test workflow; actual Telegram sending remains a separate approval.
