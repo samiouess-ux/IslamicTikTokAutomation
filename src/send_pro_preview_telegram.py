@@ -50,6 +50,28 @@ def build_preview_caption(data: dict) -> str:
     return caption
 
 
+class PreSendVerificationError(RuntimeError):
+    """A definite pre-upload verification failure; no sendVideo request was made."""
+
+
+def _safe_pro_file(path: Path, repo_root: Path, allowed: Path) -> Path:
+    root = repo_root.resolve(strict=True)
+    allowed_root = root / allowed
+    if allowed_root.is_symlink():
+        raise ValueError("Fixed Pro artifact directory must not be a symlink.")
+    resolved_root = allowed_root.resolve(strict=True)
+    candidate = path if path.is_absolute() else root / path
+    current = candidate
+    while current != root and current != current.parent:
+        if current.is_symlink():
+            raise ValueError("Symlink path components are not allowed.")
+        current = current.parent
+    resolved = candidate.resolve(strict=True)
+    if not resolved.is_file() or not resolved.is_relative_to(resolved_root):
+        raise ValueError("Sender accepts files only beneath fixed Pro artifact directories.")
+    return resolved
+
+
 def verify_private_chat(token: str, chat_id: str, *, urlopen_fn=None) -> None:
     """Fail closed unless Telegram confirms this exact destination is a private chat."""
     if urlopen_fn is None:
@@ -66,17 +88,17 @@ def verify_private_chat(token: str, chat_id: str, *, urlopen_fn=None) -> None:
             payload = json.loads(response.read().decode("utf-8"))
     except Exception:
         # Do not propagate urllib exceptions: they may contain the token-bearing URL.
-        raise RuntimeError("Telegram private-chat verification failed; preview upload blocked.") from None
+        raise PreSendVerificationError("Telegram private-chat verification failed; preview upload blocked.") from None
     if not isinstance(payload, dict) or payload.get("ok") is not True:
-        raise RuntimeError("Telegram private-chat verification was not confirmed; preview upload blocked.")
+        raise PreSendVerificationError("Telegram private-chat verification was not confirmed; preview upload blocked.")
     chat = payload.get("result")
     if not isinstance(chat, dict):
-        raise RuntimeError("Telegram private-chat verification returned malformed data; preview upload blocked.")
+        raise PreSendVerificationError("Telegram private-chat verification returned malformed data; preview upload blocked.")
     actual_id = chat.get("id")
     if isinstance(actual_id, bool) or not isinstance(actual_id, int) or actual_id != int(chat_id):
-        raise RuntimeError("Telegram returned a different destination; preview upload blocked.")
+        raise PreSendVerificationError("Telegram returned a different destination; preview upload blocked.")
     if chat.get("type") != "private":
-        raise RuntimeError("Telegram destination is not a private chat; preview upload blocked.")
+        raise PreSendVerificationError("Telegram destination is not a private chat; preview upload blocked.")
 
 
 def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str,
@@ -89,8 +111,11 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
         raise ValueError("Separate PRO_PREVIEW_TG_BOT_TOKEN and PRO_PREVIEW_TELEGRAM_CHAT_ID are required.")
     if not chat_id.strip().isdigit() or int(chat_id) <= 0:
         raise ValueError("Preview destination must be a positive numeric private-chat ID.")
-    if not video_path.is_file() or video_path.stat().st_size == 0:
-        raise FileNotFoundError(f"Preview MP4 is missing or empty: {video_path}")
+    effective_root = repo_root or Path.cwd()
+    manifest_path = _safe_pro_file(manifest_path, effective_root, Path("content/pro"))
+    video_path = _safe_pro_file(video_path, effective_root, Path("output/pro_preview"))
+    if video_path.stat().st_size == 0:
+        raise FileNotFoundError("Preview MP4 is empty.")
     if not video_path.name.startswith("PREVIEW-ONLY-") or video_path.suffix.lower() != ".mp4":
         raise ValueError("Only PREVIEW-ONLY-*.mp4 files can be sent by this sender.")
     if video_path.stat().st_size > MAX_VIDEO_BYTES:
