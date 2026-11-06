@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import os
 import secrets
 import urllib.request
@@ -49,7 +50,8 @@ def build_preview_caption(data: dict) -> str:
 
 
 def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str,
-                 *, confirmed: bool = False) -> dict:
+                 *, confirmed: bool = False, expected_video_sha256: str | None = None,
+                 expected_manifest_sha256: str | None = None) -> dict:
     if not confirmed:
         raise PermissionError("Explicit --confirm-preview-send is required before any Telegram request.")
     if not token.strip() or not chat_id.strip():
@@ -63,7 +65,15 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
     if video_path.stat().st_size > MAX_VIDEO_BYTES:
         raise ValueError("Preview MP4 exceeds Telegram's 50 MB sendVideo limit.")
 
-    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    # Read each artifact once, then hash and use those exact bytes in the request.
+    # This binds the ledger identity to the bytes actually uploaded, not a prior path check.
+    video_bytes = video_path.read_bytes()
+    manifest_bytes = manifest_path.read_bytes()
+    if expected_video_sha256 is not None and hashlib.sha256(video_bytes).hexdigest() != expected_video_sha256:
+        raise ValueError("Preview video bytes do not match the reserved SHA-256 identity.")
+    if expected_manifest_sha256 is not None and hashlib.sha256(manifest_bytes).hexdigest() != expected_manifest_sha256:
+        raise ValueError("Preview manifest bytes do not match the reserved SHA-256 identity.")
+    data = json.loads(manifest_bytes.decode("utf-8"))
     caption = build_preview_caption(data)
     manifest_id = data.get("id")
     expected_name = "PREVIEW-ONLY-{}-{}.mp4".format(data["content_type"], manifest_id)
@@ -75,7 +85,7 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
         f"--{boundary}\r\nContent-Disposition: form-data; name=\"caption\"\r\n\r\n{caption}\r\n".encode("utf-8"),
         f"--{boundary}\r\nContent-Disposition: form-data; name=\"supports_streaming\"\r\n\r\ntrue\r\n".encode(),
         f"--{boundary}\r\nContent-Disposition: form-data; name=\"video\"; filename=\"{video_path.name}\"\r\nContent-Type: video/mp4\r\n\r\n".encode(),
-        video_path.read_bytes(),
+        video_bytes,
         f"\r\n--{boundary}--\r\n".encode("ascii"),
     ])
     request = urllib.request.Request(
