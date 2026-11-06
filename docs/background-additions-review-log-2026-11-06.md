@@ -20,7 +20,7 @@ The seven URLs are now staged in `data/background_additions_review.json` strictl
 
 ## Remaining source
 - `pixabay-chain-dome-rock-131292` remains without a verified direct media URL.
-- The workflow assertion was updated to expect seven downloadable candidates and one unresolved Pixabay candidate.
+- The workflow assertion was updated to expect seven downloadable candidates and one unresolved Pixabay candidate. A later workflow change adds Quran-overlay contact-sheet composition for those seven crops, reusing the actual rendered Quran overlay frame without downloading the clips a second time.
 - Next checks: actual download, `ffprobe`, 9:16 crop, Quran overlay preview and visual legibility review.
 - No approval gate may be opened without explicit user approval.
 
