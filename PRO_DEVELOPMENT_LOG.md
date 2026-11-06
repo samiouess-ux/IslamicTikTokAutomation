@@ -1266,3 +1266,32 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - No test run, workflow dispatch, render, Telegram API request, or TikTok publish occurred. No secrets, Cron, original bot/workflow, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine was changed.
 - Existing focused preview tests and eight-suite safety workflow remain NOT RUN.
 - Next: implement the rights-record validator and Telegram getChat preflight only after separate explicit approval; add mocked offline tests, then statically review workflow isolation before any delivery activation.
+
+
+## 2026-11-07 — Implemented media-rights and Telegram private-chat gates (offline tests authored; NOT RUN)
+
+### Per-asset media-rights validator
+- Added `src/validate_pro_media_rights.py` with a version-1 per-asset JSON evidence contract. Manifest `media_assets` must exactly match its visual background and any spoken/ambient audio asset IDs.
+- Each record binds the exact local file under `assets/pro/media/` to SHA-256 and an asset-specific HTTPS source page. Rights records are read from `content/pro/rights/{asset_id}.json`; optional saved license evidence is confined to `content/pro/rights/evidence/` and hash-checked.
+- Enforced: exact asset/source identifiers, creator/performer, rights owner, platform, download/review dates, license name/evidence, explicit intended-use booleans, worldwide territory, active validity dates, attribution declaration, complete third-party review notes, reviewer, and `decision=approved`.
+- Preview use is deliberately held to eventual public-use standard: download/edit/sync/private review/public social posting/commercial monetization must all be explicitly permitted. Silent output must not declare audio. Audio requires separate performer and recording-owner fields.
+- Required attribution is blocked until the renderer/caption can inject it; missing, ambiguous, expired, mismatched, symlinked, traversal, out-of-root, or hash-mismatched evidence fails closed.
+
+### Renderer and delivery integration
+- `src/render_dua_video.py` now validates per-asset rights before rendering and consumes the exact local approved visual/audio files returned by the validator. It no longer downloads a background URL at render time; the previous approved-URL override mismatch is avoided.
+- `src/pro_preview_delivery_cycle.py` validates rights before creating a reservation and checks Telegram private-chat identity before reservation.
+- `src/send_pro_preview_telegram.py` independently revalidates rights and artifact-root confinement, then calls Bot API `getChat` immediately before `sendVideo`. It requires `ok=true`, exact returned chat ID match, and `type=private`; group/supergroup/channel/mismatch/malformed/API failures block upload. Token-bearing network exceptions are redacted.
+- The cycle repeats `getChat` after the reservation and immediately before upload. A definite pre-upload failure leaves the durable reservation in `reserved` (duplicate-blocking) rather than incorrectly labelling it `uncertain`; ambiguous sendVideo transport outcomes become `uncertain`, with no retry.
+
+### Focused tests authored (not executed)
+- Added `tests/test_validate_pro_media_rights.py` for valid silent media, missing record, hash mismatch, asset-reference mismatch, absent public/commercial permission, expired license, unresolved third-party rights, generic root URL, unsupported required attribution, and recording-owner requirements.
+- Expanded `tests/test_send_pro_preview_telegram.py` with mocked private getChat success, group/supergroup/channel rejection, returned-ID mismatch, malformed/API/network failures, no upload on failed verification, redacted errors, and single upload/no retry.
+- Expanded `tests/test_pro_preview_delivery_cycle.py` with pre-reservation chat verification failure and definite pre-upload rejection state handling.
+- Updated `tests/test_render_dua_video.py` to assert the renderer consumes rights-cleared local media and does not fetch background URLs.
+- All tests are authored only. No Python test command or GitHub Actions workflow was run. Existing eight-suite Pro safety workflow remains NOT RUN.
+
+### Current activation state and boundaries
+- No per-asset rights records or actual media assets were approved/created. Until valid records and exact local files are supplied, preview rendering/delivery correctly fails closed.
+- No Pro delivery workflow was created or dispatched. No render, Telegram request, TikTok publish, secrets/Cron/bot settings change occurred.
+- Original Telegram bot/workflow, production delivery ledger/rotation, `main`, `feature/telegram-review-notifications`, and original Quran engine remain untouched.
+- Next: inspect workflow isolation/concurrency/secret scoping statically, then review all new source/tests and run only approved offline tests before considering any preview workflow. A Telegram send still requires a separate explicit approval.
