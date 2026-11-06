@@ -123,7 +123,7 @@ def main() -> int:
     parser.add_argument("--content-dir", type=Path, default=Path("content/pro"))
     parser.add_argument("--history", type=Path, default=Path("data/dua_dhikr_rotation_history.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("output/pro_review"))
-    parser.add_argument("--content-type", choices=("dua", "dhikr"), required=True)
+    parser.add_argument("--content-type", choices=("dua", "dhikr"))
     parser.add_argument("--day", default=date.today().isoformat())
     parser.add_argument("--video-count", type=int, default=1)
     parser.add_argument("--render", action="store_true",
@@ -155,6 +155,8 @@ def main() -> int:
             return 2
     if args.render_preview:
         parser.error("--render-preview requires --preview-manifest.")
+    if not args.content_type:
+        parser.error("--content-type is required outside candidate preview mode.")
     try:
         history = load_history(args.history)
         plan = build_plan(args.content_dir, history, args.content_type, args.day, args.video_count)
