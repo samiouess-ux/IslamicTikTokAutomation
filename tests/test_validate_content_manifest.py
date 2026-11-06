@@ -44,9 +44,14 @@ class ContentManifestTests(unittest.TestCase):
             "content_type": "dua",
             "source": {"collection": "review_pending"},
             "items": [{
+                "id": "test-dua-001",
+                "kind": "quranic_dua",
                 "arabic": "نص دعاء تجريبي غير مخصص للإنتاج",
                 "source_name": "Test source",
-                "source_url": "https://example.org/test"
+                "source_url": "https://example.org/test",
+                "source_reference": "Test reference 1",
+                "verification_status": "verified",
+                "human_reviewed": True
             }],
             "audio": {
                 "kind": "ambient_nature", "approved": True,
@@ -71,6 +76,24 @@ class ContentManifestTests(unittest.TestCase):
         data = self.dua_manifest()
         data["items"][0]["source_url"] = ""
         with self.assertRaisesRegex(SystemExit, "HTTPS religious source"):
+            validate_content_manifest(data)
+
+    def test_dua_without_human_review_is_rejected(self):
+        data = self.dua_manifest()
+        data["items"][0]["human_reviewed"] = False
+        with self.assertRaisesRegex(SystemExit, "explicit human review"):
+            validate_content_manifest(data)
+
+    def test_prophetic_dua_requires_hadith_grading(self):
+        data = self.dua_manifest()
+        data["items"][0]["kind"] = "prophetic_dua"
+        with self.assertRaisesRegex(SystemExit, "hadith grading"):
+            validate_content_manifest(data)
+
+    def test_duplicate_item_ids_are_rejected(self):
+        data = self.dua_manifest()
+        data["items"].append(dict(data["items"][0]))
+        with self.assertRaisesRegex(SystemExit, "unique, stable id"):
             validate_content_manifest(data)
 
     def test_dua_cannot_use_quran_recitation_audio_kind(self):
