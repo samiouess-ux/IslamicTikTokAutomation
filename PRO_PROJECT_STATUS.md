@@ -350,3 +350,10 @@ This section supersedes earlier historical statements in this file that the curr
 - No Pro delivery workflow is enabled. Private destination type is not independently verified by the sender; its positive numeric chat-ID check is only a guard, not proof of Telegram `chat.type`.
 - No code, workflow, tests, dispatch, render, Telegram request, TikTok publish, secrets, Cron, original bot configuration, or production branch changed in this review. Expanded eight-suite Pro safety workflow remains NOT RUN.
 - Next: complete the fail-closed integration design and destination verification requirements before any implementation. Original Quran engine remains untouched.
+
+
+## 2026-11-06 — Preview ledger persistence checkpoint
+- Existing ledger persistence writes only the existing delivery ledger and pushes only to the exact Pro branch; it requires `contents: write`. Existing file locking is local to one runner and does not prevent two separate GitHub runners from racing.
+- A future preview workflow therefore needs a separate preview ledger, one fixed concurrency group (`cancel-in-progress: false`), exact Pro-ref guard before secrets/write permission, and a hard stop on persistence push failure before Telegram.
+- Preview identity must bind a unique candidate ID to immutable manifest/video SHA-256 hashes. Persist `reserved` before send; mark `delivered` only with a valid Telegram message ID; keep ambiguous outcomes blocked as `uncertain` until human reconciliation. Complete local preflight before reserving.
+- Review/design only: no code, workflow, test, dispatch, render, Telegram request, TikTok publish, secret, Cron, bot setting, or production-branch change. Original Quran engine untouched; eight-suite safety workflow NOT RUN.
