@@ -435,3 +435,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Audio record: exact recording URL, performer and recording owner, platform/download date, explicit permission evidence and scopes for download/edit, video sync, public social posting, monetization if applicable, territory/duration, attribution, reviewer and checked date.
 - Missing/unclear evidence fails closed; generic provider license page or boolean approval alone is insufficient. Silent media does not require an audio-file record.
 - This is a policy-to-validator design checkpoint only; no individual asset has been approved.
+
+
+## 2026-11-06 — Preview delivery activation gate review
+- Re-fetched and statically reviewed the preview ledger, persistence helper, cycle, Telegram sender, shared content validator, and focused offline tests on `feature/quran-video-pro`.
+- Confirmed: unique candidate-ID reservation with manifest/video SHA-256 identity; explicit reserved/delivered/uncertain states; safe IDs and strict message-ID typing; exact-Pro ledger-only persistence; fixed input-root/symlink checks; exact preview filename and size checks; reservation persisted before send; pre-send hash recheck; sender uploads the same in-memory bytes it hashes; no automatic retry.
+- Confirmed activation blockers: (1) numeric chat ID does not prove Telegram `chat.type == private`; an independent destination verification gate is absent; (2) shared manifest validator does not enforce complete per-asset license/permission evidence bound to exact asset hashes; (3) no isolated preview delivery workflow/caller exists, so cross-run concurrency and workflow secret/permission boundaries are not yet implemented.
+- Required next work: define strict visual/audio rights evidence schema and validator; add an independent private-chat verification step; add focused offline tests for both; only then design/review a manual-only exact-Pro delivery workflow with one fixed concurrency group and least-privilege secrets/permissions.
+- Focused tests remain NOT RUN. Existing eight-suite safety workflow remains NOT RUN. No workflow was created/dispatched, no render or Telegram/TikTok action occurred, and no manifest was approved.
+- This pass changed documentation only. No code, tests, workflow, secrets, Cron, original bot/workflow, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine was changed.
+- Development log review checkpoint: commit `8387ff349485d76667412f5517239c6d7aaf625e`.
