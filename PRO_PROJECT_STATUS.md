@@ -118,3 +118,10 @@ This section supersedes earlier historical statements in this file that the curr
 - No individual dua or dhikr has been selected, verified, or approved yet. No manifest was created and no religious text was added.
 - No code, workflow, renderer, Telegram, production branch, Cron, secret, or publishing setting was changed during this research step.
 - Next: define a machine-readable review record/schema, then review candidate items one by one against the exact primary source and grading evidence before any manifest can be approved.
+
+
+## 2026-11-06 — Per-item content review template added
+- Added `content/pro/REVIEW_TEMPLATE.md` to capture exact source text, stable URL/reference, numbering scheme, narrator, grading authority, context, human review, separate media-rights review, and production readiness.
+- The template is explicitly a worksheet, not a production manifest. It cannot be selected by the renderer and does not mark any religious content verified or approved.
+- Commit: `372351501a60139963091b43a1d044ca6fe8277e`.
+- No actual dua/dhikr wording or manifest was added. No tests, render, Telegram request, or publishing action occurred.
