@@ -1,0 +1,48 @@
+name: Pro Safety Tests (Manual Only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quran-video-pro-safety-tests
+  cancel-in-progress: false
+
+jobs:
+  pro-safety-tests:
+    name: Pro-only offline safety tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Enforce exact Pro branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" != "refs/heads/feature/quran-video-pro" ]]; then
+            echo "::error::This workflow is restricted to feature/quran-video-pro."
+            exit 1
+          fi
+
+      - name: Check out exact Pro branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/quran-video-pro
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run Pro ledger and sender unit tests
+        shell: bash
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_pro_delivery_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_send_pro_telegram.py' -v
+          python -m unittest discover -s tests -p 'test_persist_pro_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_pro_delivery_cycle.py' -v
