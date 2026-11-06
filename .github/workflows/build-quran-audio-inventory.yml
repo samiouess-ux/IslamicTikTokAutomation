@@ -81,6 +81,17 @@ jobs:
           python -m unittest discover -s tests -p 'test_background_candidates.py' -v
           python -m unittest discover -s tests -p 'test_background_additions_review.py' -v
           python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
+          python src/prepare_background_review_previews.py --catalog data/background_additions_review.json --output-dir output/background_additions_review
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("output/background_additions_review/background_review_report.json").read_text(encoding="utf-8"))
+          if report["source_candidate_count"] != 8 or report["candidate_count"] != 0 or report["unresolved_count"] != 8:
+              raise SystemExit("New background leads must remain source-only until direct media URLs are verified.")
+          if report["production_enabled"] is not False:
+              raise SystemExit("New background candidates must remain disabled in production.")
+          print("Validated eight additional source leads; media download and production activation remain safely blocked pending verified direct URLs.")
+          PY
       - name: Inspect official archive and validate complete verse mapping
         run: |
           python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
