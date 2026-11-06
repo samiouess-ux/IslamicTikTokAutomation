@@ -253,3 +253,34 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next step
 - Add a safe example manifest schema/template without real religious content, then inspect Telegram workflow/bot routing read-only to determine whether a distinct Pro route can share the original bot without changing production behavior.
+
+
+## 2026-11-06 — Renderer consolidation and Telegram architecture audit
+
+### Renderer consolidation correction
+- A deeper branch inventory found that `src/render_dua_video.py` and `tests/test_render_dua_video.py` already existed before the new Pro renderer work. The existing renderer supports multiple sourced items per video, explicit per-item durations, checks spoken/ambient audio duration against the full slideshow, and has a 65-second hard cap (with a 60-second target).
+- To avoid two competing renderers, the Pro orchestrator was changed to route to the existing `src/render_dua_video.py` and to validate explicit positive per-item durations plus the renderer's hard cap.
+- Pro manifests may contain multiple reviewed items; the orchestrator records all item IDs. It still requires a complete approved manifest batch and uses the separate Pro history.
+- The temporary duplicate `src/render_dua_dhikr.py` and its test file were removed from this branch. Their creation/removal is recorded here for transparency.
+- Existing `tests/test_render_dua_video.py` is the renderer regression suite; it has not been run in this session.
+
+### Consolidation commits
+- Pro orchestrator routed to existing renderer: `17921d5dc5aed0c10474c639ba29229b301c6154`
+- Pro orchestrator tests aligned with multi-item manifests: `c62e7cc042381ecdb8f85faab6f93faeb5b34fce`
+- Removed duplicate renderer: `5adb589e0bc46c8738cb90d2aa374b2f32ddf15d`
+- Removed duplicate renderer tests: `fcd8265d93cf5704cd6c4a671e44df98caf95282`
+
+### Read-only Telegram architecture findings
+- `.github/workflows/telegram-quran-request.yml` is guarded to run only on `feature/telegram-review-notifications`; its checkout is also pinned to that production branch. It must not be reused or modified for Pro.
+- The existing workflow references repository secrets `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, then calls `src/send_telegram.py`.
+- `src/send_telegram.py` uploads a review MP4 to Telegram and does not publish to TikTok, but its caption is hard-coded as `QURAN PRO REVIEW`; it is not an appropriate Pro caption as-is.
+- The Pro branch can likely reuse the same original bot credentials through a separate manually dispatched Pro workflow, but this has not been implemented or tested. No secrets were read, changed, or exposed.
+- A safe Pro route should be isolated behind a manual-only workflow on `feature/quran-video-pro`, use the existing secret names without changing them, label the message as Dua/Adhkar Pro review, require review-only metadata, and have no TikTok publishing step. Do not dispatch it until the user explicitly approves a send test.
+
+### Validation status
+- All changes remain on `feature/quran-video-pro`.
+- No tests were executed, no preflight or render command was run, no workflow was dispatched, and no Telegram message was sent.
+- Production workflow, production branch, Cron, secrets, and TikTok publishing remain untouched.
+
+### Next step
+- Add a Pro-specific caption/sender and a manual-dispatch-only Pro workflow, with tests and strict branch guards. Keep it dormant; do not run it or send Telegram without explicit user approval.
