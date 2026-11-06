@@ -86,11 +86,13 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/background_additions_review/background_review_report.json").read_text(encoding="utf-8"))
-          if report["source_candidate_count"] != 8 or report["candidate_count"] != 0 or report["unresolved_count"] != 8:
-              raise SystemExit("New background leads must remain source-only until direct media URLs are verified.")
+          if report["source_candidate_count"] != 8 or report["candidate_count"] != 7 or report["unresolved_count"] != 1:
+              raise SystemExit("Expected seven review-only Pexels downloads to pass ffprobe and one unresolved Pixabay source.")
           if report["production_enabled"] is not False:
               raise SystemExit("New background candidates must remain disabled in production.")
-          print("Validated eight additional source leads; media download and production activation remain safely blocked pending verified direct URLs.")
+          if report["contact_sheet"] is None:
+              raise SystemExit("Review-only contact sheet for the seven downloaded candidates is missing.")
+          print("Validated seven review-only Pexels downloads and one unresolved Pixabay source; production activation remains disabled.")
           PY
       - name: Inspect official archive and validate complete verse mapping
         run: |
