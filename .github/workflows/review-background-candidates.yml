@@ -8,6 +8,7 @@ permissions:
 
 jobs:
   background-review:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
