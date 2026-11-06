@@ -268,3 +268,9 @@ This section supersedes earlier historical statements in this file that the curr
 - The manual safety workflow remains manual-only, exact-Pro-branch guarded, and contents: read; its eight suites remain NOT RUN. Historical run 42259731118 covers only the earlier four suites.
 - Static review only. No test, dispatch, render, Telegram request, TikTok publish, secrets/Cron change, or production-branch modification occurred. Original Quran production engine remains untouched.
 - Next: continue read-only review of delivery-cycle call sites and preview/private-destination isolation; implementation and execution require separate explicit approval.
+
+## 2026-11-06 — Telegram bot reuse checkpoint
+- Existing bot reuse is feasible in design: original workflow uses repository secrets `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; Pro preview sender expects `PRO_PREVIEW_TG_BOT_TOKEN` and `PRO_PREVIEW_TELEGRAM_CHAT_ID`.
+- Proposed future Pro-only workflow maps the existing secret names into the Pro sender's environment variables. No second bot and no original-workflow/secrets change are required by this design.
+- This is **not implemented or tested**. Secret values were not inspected. No workflow was created/dispatched, no render or Telegram send occurred.
+- Next: continue read-only integration review. Any Pro workflow creation, dispatch, render, and preview send require their own explicit approval. Original Quran engine and production branch remain untouched.
