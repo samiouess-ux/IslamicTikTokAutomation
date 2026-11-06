@@ -517,3 +517,35 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 ### Remaining integration gap
 - The workflow-level guarantee is still not implemented: the first ledger push must complete successfully before the sender step is reachable, and the post-send ledger state must be pushed even when the sender exits with an ambiguous error.
 - The delivery workflow remains intentionally absent because there is no reviewed Pro content library. The manual-only workflow is still test-only.
+
+
+## 2026-11-06 — Two-phase Pro delivery cycle added (not activated)
+
+### Implemented on Pro only
+- Added `src/pro_delivery_cycle.py` to coordinate the two-phase sequence:
+  1. Read the stable manifest ID/type from the Telegram caption payload.
+  2. Create the local `reserved` ledger entry.
+  3. Call the ledger-only Git persistence helper; if this fails, the sender is never called.
+  4. Call the sender only with `reservation_persisted=True`, which verifies the reservation is bound to this workflow run.
+  5. Persist the sender's resulting `delivered` or `uncertain` state.
+- If the sender raises after an ambiguous Telegram request, the cycle attempts to persist the `uncertain` state before propagating the error.
+- If final persistence fails, the first already-persisted `reserved` entry remains the remote duplicate-send block; no retry is attempted.
+- Added `tests/test_pro_delivery_cycle.py` for first-push failure preventing send, uncertain outcome persistence, successful persist/send/persist ordering, and final-push failure behavior.
+- Added the new cycle tests to the existing manual-only offline safety-test workflow.
+- Corrected the staged-path test fixture so its simulated Git output contains an actual newline.
+
+### Commits
+- Two-phase cycle implementation: `e34b1d087b009e010809afd92a96cd2f791b2f72`
+- Cycle failure-boundary tests: `82d66a045cb8afd3a293960df3640c485d741ea3`
+- Manual safety suite includes cycle tests: `fda5a62f89636b004e0bce77980e3cb9f26dc7fb`
+- Corrected persistence test fixture: `5bf69ce275b077a04ba92097b5fad2ee80c7d0ec`
+
+### Validation and safety
+- Source and test files have been committed on `feature/quran-video-pro`.
+- Tests have NOT been executed; the manual safety workflow has NOT been dispatched.
+- The cycle is not connected to a delivery workflow and has not been run. No Pro content was rendered and no Telegram request or TikTok publish occurred.
+- No production branch, `main`, production workflow, Cron, secrets, or original bot route was changed.
+
+### Remaining
+- Review the new cycle and test files for correctness, then execute the offline test suite only after explicit approval.
+- Before any delivery workflow is created or enabled, obtain a trustworthy, source-verified, human-reviewed Pro dua/dhikr content library. No such library currently exists.
