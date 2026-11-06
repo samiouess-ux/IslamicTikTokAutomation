@@ -390,3 +390,33 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - On `feature/telegram-review-notifications`, explicit-ref fetch returned 404 for both ledger source and ledger test.
 - `PRO_DEVELOPMENT_LOG.md` and `PRO_PROJECT_STATUS.md` were updated on Pro. No unit tests were run. No workflow was dispatched, no render occurred, and no Telegram or TikTok action occurred.
 - Remaining blocker: the local ledger must be persisted before the Telegram request and after its outcome, with serialized workflow runs, so a fresh runner cannot lose the reservation. Until that workflow exists and is verified, cross-run duplicate prevention is incomplete and Telegram sending stays disabled.
+
+
+## 2026-11-06 — Cross-run ledger persistence design
+
+### Read-only audit
+- Re-fetched the Pro status, development log, ledger, sender, caption preparer, orchestrator, and ledger/sender tests from `feature/quran-video-pro`.
+- Confirmed there is currently no Pro-specific workflow in `.github/workflows`.
+- Confirmed the repository currently has no `content/pro` directory or reviewed Pro dua/dhikr manifest library; the existing content files are Quran-oriented and are not valid Pro content.
+- Rechecked production: `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` remain absent from `feature/telegram-review-notifications`.
+- No code tests were run; no Actions workflow, render, Telegram API call, or publishing action occurred.
+
+### Design committed
+- Added `PRO_LEDGER_PERSISTENCE_DESIGN.md` in commit `e3c50a6c66a13d23c753cb9c7f975c1b633accd5`.
+- Selected a branch-committed JSON ledger on the Pro branch, protected by a single fixed GitHub Actions concurrency group.
+- Delivery must use a two-phase protocol: reserve and push the ledger before Telegram; send once only after the reservation commit is confirmed; then persist delivered/uncertain outcome. If the final persistence fails, the previously committed reservation remains a duplicate-send block.
+- Artifact-only persistence was rejected for now because immutable uploads, retention expiry, discovery/order, and concurrency make it less straightforward to audit.
+- The design explicitly prohibits Git data API shortcuts; persistence must use normal checkout/commit/push subject to branch protections.
+
+### Current blockers and next implementation steps
+1. Implement sender support for a pre-existing reservation bound to the current workflow run ID.
+2. Implement a narrow workflow persistence helper that only commits the ledger file and fails closed on wrong branch or push failure.
+3. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions. It must not include schedules or production secrets.
+4. Add offline tests for reservation persistence failure, wrong reservation/run ID, uncertain result, confirmed delivery, post-send persistence failure, and duplicate blocking after reload.
+5. Create and human-review verified dua/dhikr manifests before any delivery workflow can be used.
+
+### Safety
+- The design file is documentation, not an enabled delivery path.
+- No Pro workflow was created or dispatched in this step.
+- No Pro content was fabricated; no Telegram delivery occurred.
+- Production Quran branch, production workflow, Cron, secrets, and Telegram route remain untouched.
