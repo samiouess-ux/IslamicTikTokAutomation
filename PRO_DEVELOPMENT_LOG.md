@@ -773,3 +773,32 @@ No renderer code changed. Offline tests have not yet been rerun after this commi
 - This does not yet deliver previews to Telegram. No render, Telegram request, TikTok publish, history update, or production workflow run occurred.
 - Tests have not been run after these changes. Earlier manual offline workflow success predates this implementation.
 - Next: run offline tests, then implement a separate private Telegram preview route with explicit authorization before any real send.
+
+
+## 2026-11-06 — Manual offline workflow updated to cover candidate preview tests
+
+### Review finding
+The Pro manual workflow `.github/workflows/pro-safety-tests-manual.yml` still executed only the original four delivery-ledger/sender/persistence/cycle test modules. The recently added candidate-preview validator, orchestrator, and renderer tests were not included, so a green run would not have verified the new preview lifecycle.
+
+### Change
+- Expanded the manual-only workflow to run all seven Pro offline test modules:
+  - `test_pro_delivery_ledger.py`
+  - `test_send_pro_telegram.py`
+  - `test_persist_pro_ledger.py`
+  - `test_pro_delivery_cycle.py`
+  - `test_validate_content_manifest.py`
+  - `test_pro_orchestrator.py`
+  - `test_render_dua_video.py`
+- Preserved the exact `feature/quran-video-pro` branch guard, read-only `contents: read` permission, and manual-only `workflow_dispatch` trigger.
+- No Telegram token/secret, rendering command, network delivery, TikTok publication, or production workflow was added.
+
+### Commit and verification
+- Workflow update commit: `56476b87d25c7da651f51819cad64cb983179bbe`.
+- Status record commit: `3554439d0bdbd3a5fb45458a8a56f640268eb79b`.
+- Re-fetched the workflow from `feature/quran-video-pro` and verified all seven test commands, the branch guard, and read-only permission.
+- The workflow has NOT been dispatched; tests have NOT run. The available GitHub connector actions in this session do not include workflow dispatch, so no test result is claimed.
+
+### Safety / next step
+- No local render, Telegram request, TikTok publish, or production delivery occurred.
+- No change was made to `main` or `feature/telegram-review-notifications`.
+- Next: run the expanded offline workflow through a supported manual dispatch route. Continue Telegram preview sender implementation only after test results are available, and keep any real send behind a separate explicit user authorization.
