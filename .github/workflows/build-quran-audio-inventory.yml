@@ -334,7 +334,7 @@ jobs:
           root = Path("output/background_additions_review")
           report_path = root / "background_review_report.json"
           report = json.loads(report_path.read_text(encoding="utf-8"))
-          overlay = next(iter(sorted(Path("output/quran_review_previews").glob("ayah_*.png"))), None)
+          overlay = next(iter(sorted(Path("output/quran_review_previews").rglob("ayah_*.png"))), None)
           if overlay is None:
               raise SystemExit("Actual Quran overlay frame is missing.")
           overlaid = []
