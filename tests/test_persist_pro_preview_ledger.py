@@ -16,7 +16,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
         self.repo = Path(self.tmp.name)
         ledger = self.repo / "data" / "pro_preview_send_ledger.json"
         ledger.parent.mkdir()
-        ledger.write_text('{"version":1,"entries":{}}\\n', encoding="utf-8")
+        ledger.write_text('{"version":1,"entries":{}}\n', encoding="utf-8")
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -28,7 +28,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
         return mock.patch("persist_pro_preview_ledger.subprocess.run", side_effect=fake_run)
 
     def test_wrong_branch_stops_before_fetch_or_add(self):
-        with self.run_git([(0, "main\\n", "")]) as patched:
+        with self.run_git([(0, "main\n", "")]) as patched:
             with self.assertRaisesRegex(RuntimeError, "expected"):
                 persist_preview_ledger(self.repo)
         self.assertEqual(patched.call_count, 1)
@@ -43,7 +43,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
     def test_commits_only_preview_ledger_and_verifies_remote_head(self):
         outputs = [
             (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
-            (0, "", ""), (0, "data/pro_preview_send_ledger.json\\n", ""),
+            (0, "", ""), (0, "data/pro_preview_send_ledger.json\n", ""),
             (1, "", ""), (0, "[commit]", ""), (0, "pushed", ""),
             (0, "", ""), (0, "same-new", ""), (0, "same-new", ""),
         ]
@@ -56,7 +56,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
 
     def test_unrelated_staged_path_is_rejected(self):
         outputs = [(0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
-                   (0, "", ""), (0, "data/pro_preview_send_ledger.json\\nREADME.md\\n", "")]
+                   (0, "", ""), (0, "data/pro_preview_send_ledger.json\nREADME.md\n", "")]
         with self.run_git(outputs):
             with self.assertRaisesRegex(RuntimeError, "unexpected staged paths"):
                 persist_preview_ledger(self.repo)
