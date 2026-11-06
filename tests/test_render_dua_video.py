@@ -47,10 +47,10 @@ class DuaRendererTests(unittest.TestCase):
         self.assertIn('validate_audio_duration(audio_file, duration)', source)
         self.assertNotIn('apad', source)
 
-    def test_duration_policy_targets_under_one_minute_and_fails_above_65(self):
-        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 60.0)
-        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 65.0)
-        items = [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 66}]
+    def test_duration_policy_enforces_the_40_second_cap(self):
+        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 40.0)
+        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 40.0)
+        items = [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 41}]
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(render_dua_video, "create_overlay"):
                 with self.assertRaises(SystemExit):
