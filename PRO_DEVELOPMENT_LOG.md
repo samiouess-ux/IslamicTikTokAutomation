@@ -180,3 +180,25 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - No source code, workflow, manifest, bot configuration, production branch, Cron, or secret was changed.
 - No GitHub Actions workflow was run; no render was performed; no Telegram message was sent; nothing was published.
 - Next action: implement the dedicated dua/dhikr content schema and renderer in this branch only, after mapping exact shared render/manifest helpers. Keep the Quran production engine untouched.
+
+
+## 2026-11-06 — Dua/dhikr source-validation hardening
+
+### Implemented on this branch
+- Updated `src/validate_content_manifest.py` to require every dua/dhikr item to have a unique stable `id`, exact Arabic wording, named HTTPS source, precise `source_reference`, `verification_status: verified`, explicit `human_reviewed: true`, and a supported `kind` classification.
+- Optional `repeat_count` must be a positive integer.
+- Items classified as `prophetic_dua` must include a non-empty `hadith_grading` field.
+- Updated `tests/test_validate_content_manifest.py` fixtures and added regression tests for missing human review, missing hadith grading, and duplicate item IDs.
+
+### Commits
+- Validator: `545496fd29b590c38abf61f9a82b3750d90060c6`
+- Tests: `e4c3ae5365a44277012a226bb99a5ae191583e33`
+
+### Verification status
+- GitHub file writes succeeded on `feature/quran-video-pro`.
+- Unit tests were NOT run in this session; these are added tests, not passing test results.
+- No GitHub Actions workflow was run, no render was performed, no Telegram message was sent, and no TikTok publishing occurred.
+- No production branch, Cron, secrets, or production delivery path was changed.
+
+### Next step
+- Implement a dedicated dua/dhikr renderer with its own layouts and strict audio/background review gates; keep the Quran renderer unchanged. Then add renderer-focused unit tests and run only local tests when explicitly safe/approved. Telegram reuse remains a later isolated integration task.
