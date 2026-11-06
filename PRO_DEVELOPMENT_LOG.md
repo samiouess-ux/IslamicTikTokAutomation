@@ -356,3 +356,23 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next
 - Integrate the ledger with Pro preflight and design serialized manual-dispatch workflow commits. Keep rendering and Telegram send behind separate explicit confirmation inputs.
+
+
+## 2026-11-06 — Ledger branch-placement incident and correction
+
+### Verified repository state
+- A follow-up read using explicit branch refs found that `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` were not present on `feature/quran-video-pro`.
+- The ledger source and test were found on `feature/telegram-review-notifications`, contrary to the intended Pro-only scope.
+- The ledger source file was successfully deleted from the production branch (delete commit: `bbf3378fe8ff80c0393dc0922fe155ace5b46277`).
+- Deletion of `tests/test_pro_delivery_ledger.py` from the production branch was blocked. At the time of this entry, that test file remains there. No alternate Git data/ref operation will be used to bypass the blocked deletion.
+- The attempted creation of the ledger source and tests on `feature/quran-video-pro` was blocked. Therefore the ledger is **not implemented on Pro** and must not be described as integrated or available there.
+
+### Impact and safeguards
+- Pro orchestrator remains without ledger integration; no Pro workflow is enabled.
+- No workflow dispatch, render, Telegram API call, or TikTok publishing was performed.
+- No secrets, Cron configuration, or production workflow logic was changed. The remaining misplaced test file is a repository hygiene issue; do not run it on production.
+
+### Next safe action
+- Resolve the blocked deletion through an approved GitHub operation or user-side repository change. Do not use a different API path to evade the safety block.
+- Only after the production branch is verified clean should the ledger implementation be reintroduced on `feature/quran-video-pro` through an approved branch-targeted write and re-fetched with an explicit Pro ref.
+- Until then, keep Telegram delivery disabled and do not claim duplicate-delivery protection is active.
