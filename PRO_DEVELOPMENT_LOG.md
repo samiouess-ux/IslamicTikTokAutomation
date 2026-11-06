@@ -998,3 +998,12 @@ Re-fetched and inspected the current versions of:
 - The original production branch/workflow, Telegram bot credentials, schedule, Cron and delivery path remain untouched. No secret values were read or changed.
 - No tests were run, no workflow was dispatched, no render or Telegram request occurred, and no TikTok publish occurred. The eight-suite Pro safety workflow remains NOT RUN.
 - Next: continue with a separate Pro-only preview-delivery design. Keep candidate rendering, Telegram send, and TikTok publishing as distinct approval gates. Do not create or dispatch an active delivery path or send a preview until the exact action is separately authorized.
+
+
+## 2026-11-06 — Preview sender duplicate-send review (static)
+- Re-fetched `src/send_pro_preview_telegram.py` (blob `14070ef7bcfcaa0d0f6818f81b926322674910c0`) and `tests/test_send_pro_preview_telegram.py` (blob `da477d948c62dc57d4b95815435098569687553b`) from `feature/quran-video-pro`.
+- Confirmed the sender requires explicit `--confirm-preview-send`, validates candidate-only lifecycle and exact preview filename/manifest binding, makes one Telegram API request per invocation, and does not automatically retry transport failures.
+- Confirmed a remaining duplicate-send limitation: the preview sender has no durable idempotency record or message ledger. A person or future workflow could invoke it again with the same candidate and send another preview. This is a static code-path finding; no duplicate send is known to have occurred.
+- Recommended design before any delivery workflow: a Pro-only durable preview-send ledger keyed by stable candidate ID plus immutable video/manifest identity; reserve before the request, persist the reservation before network access, and mark delivered only after a valid Telegram message ID. Ambiguous transport outcomes must remain blocked pending human resolution; never auto-retry. Keep this preview ledger separate from production rotation and the original Quran engine.
+- No code or workflow was changed in this review. No tests were run, no workflow dispatched, no render, Telegram request, TikTok publish, secret access, or Cron change occurred. The original production branch and Telegram route remain untouched. The expanded eight-suite Pro workflow remains NOT RUN.
+- Next: design and review the preview idempotency state machine and its failure-boundary tests. Implementation requires separate explicit approval; delivery workflow creation/dispatch and an actual preview send remain separate approval gates.
