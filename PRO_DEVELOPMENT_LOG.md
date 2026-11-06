@@ -331,3 +331,28 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 
 ### Next
 - Implement and test a Pro-only reservation ledger with safe states (reserved, delivered, uncertain) and explicit reconciliation semantics. Only after that should a manual-dispatch workflow be added, with both render and Telegram send requiring explicit input confirmations.
+
+
+## 2026-11-06 — Durable Pro delivery reservation ledger
+
+### Implemented
+- Added `src/pro_delivery_ledger.py` with durable JSON ledger operations and atomic file replacement.
+- Supported states: `reserved`, `delivered`, and `uncertain`.
+- Any existing state blocks a second reservation for the same manifest ID.
+- A delivery can be marked `delivered` only with a positive Telegram `message_id`.
+- Ambiguous delivery can be marked `uncertain`; it remains blocked from resend.
+- Releasing an uncertain/reserved item requires the exact human confirmation token `CONFIRM_NOT_DELIVERED`. Delivered entries are terminal.
+- Added offline tests covering duplicate blocking, confirmed delivery, uncertain reconciliation, and terminal delivered state.
+
+### Commits
+- Ledger module: `acfa42ea76285f6a6383325617b1bf2ad2bd1e69`
+- Ledger tests: `ceb5c3f35ce52786c7bc49d31fcc3934dc60b31c`
+
+### Important integration boundary
+- This ledger module is implemented but not yet wired into the Pro orchestrator or a workflow. Before any workflow is enabled, it must reserve a manifest and persist that reservation to the Pro branch before attempting Telegram delivery; then persist delivered/uncertain state after the API result. The workflow must serialize runs and commit ledger updates to avoid concurrent duplicate reservations.
+- Tests have NOT been executed.
+- No workflow was created or dispatched, no render occurred, no Telegram request was made, and no TikTok publishing occurred.
+- Production Quran branch, its workflow, Cron, secrets, and delivery route remain untouched.
+
+### Next
+- Integrate the ledger with Pro preflight and design serialized manual-dispatch workflow commits. Keep rendering and Telegram send behind separate explicit confirmation inputs.
