@@ -327,3 +327,9 @@ This section supersedes earlier historical statements in this file that the curr
 - The original production branch/workflow, Telegram bot credentials, schedule, Cron and delivery path remain untouched. No secret values were read or changed.
 - No tests were run, no workflow was dispatched, no render or Telegram request occurred, and no TikTok publish occurred. The eight-suite Pro safety workflow remains NOT RUN.
 - Next: continue with a separate Pro-only preview-delivery design. Keep candidate rendering, Telegram send, and TikTok publishing as distinct approval gates. Do not create or dispatch an active delivery path or send a preview until the exact action is separately authorized.
+
+
+## 2026-11-06 — Preview sender idempotency review
+- Static re-fetch confirms explicit confirmation and no automatic retry, but no durable preview-send idempotency record exists. Re-running the same preview command could send the same candidate again; no duplicate send is known to have occurred.
+- Required before delivery: a Pro-only durable reservation/receipt ledger keyed to candidate and immutable artifact identity; persist reservation before network access; delivered only with valid Telegram message ID; ambiguous outcomes stay blocked for human resolution. Keep it separate from production rotation and original Quran state.
+- Review only: no code/workflow/test/dispatch/render/Telegram/secret/Cron changes. Eight-suite workflow remains NOT RUN. Original production engine and delivery route untouched.
