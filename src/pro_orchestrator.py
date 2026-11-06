@@ -1,0 +1,122 @@
+"""Dua/adhkar-only Pro orchestrator; isolated from the Quran production path."""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import date
+from pathlib import Path
+
+from content_rotation import choose_manifests
+from validate_content_manifest import validate_content_manifest
+
+
+def read_json(path: Path) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"Cannot read JSON file {path}: {exc}") from exc
+    if not isinstance(value, dict):
+        raise SystemExit(f"Expected a JSON object in {path}.")
+    return value
+
+
+def load_history(path: Path) -> dict:
+    if not path.exists():
+        return {"content": []}
+    history = read_json(path)
+    if not isinstance(history.get("content", []), list):
+        raise SystemExit("Pro history field 'content' must be a list.")
+    return history
+
+
+def build_plan(content_dir: Path, history: dict, content_type: str,
+               day_key: str, video_count: int = 1) -> list[dict]:
+    """Preflight a complete distinct batch; never invent or partially select items."""
+    if content_type not in {"dua", "dhikr"}:
+        raise ValueError("Pro content_type must be dua or dhikr.")
+    recent = list(history.get("content", []))
+    paths = choose_manifests(content_dir, content_type, video_count, recent, day_key)
+    plan: list[dict] = []
+    for manifest_path in paths:
+        manifest = read_json(manifest_path)
+        if manifest.get("content_type") != content_type:
+            raise SystemExit(f"{manifest_path} must explicitly declare content_type={content_type}.")
+        if manifest.get("rotation_approved") is not True:
+            raise SystemExit(f"Manifest is not approved for rotation: {manifest_path}")
+        validate_content_manifest(manifest)
+        if len(manifest["items"]) != 1:
+            raise SystemExit(f"Each Pro video manifest must contain exactly one item: {manifest_path}")
+        publishing = manifest["publishing"]
+        if publishing.get("approval_required") is not True or publishing.get("auto_publish", False):
+            raise SystemExit(f"Manual review must be required and auto-publish disabled: {manifest_path}")
+        manifest_id = manifest.get("id")
+        if not isinstance(manifest_id, str) or not manifest_id.strip():
+            raise SystemExit(f"Manifest has no stable id: {manifest_path}")
+        plan.append({
+            "content_type": content_type,
+            "manifest": str(manifest_path),
+            "content_id": manifest_id,
+            "item_id": manifest["items"][0]["id"],
+        })
+        recent.append(manifest_id)
+    return plan
+
+
+def render_plan(plan: list[dict], output_dir: Path) -> list[dict]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    rendered = []
+    for entry in plan:
+        output = output_dir / f"{entry['content_type']}-{entry['content_id']}.mp4"
+        subprocess.run([
+            sys.executable, "src/render_dua_dhikr.py",
+            "--manifest", entry["manifest"], "--output", str(output)
+        ], check=True)
+        if not output.is_file() or output.stat().st_size == 0:
+            raise SystemExit(f"Renderer did not produce a non-empty MP4: {output}")
+        rendered.append({**entry, "output": str(output)})
+    return rendered
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Dua & Adhkar Pro manual-review batch preflight.")
+    parser.add_argument("--content-dir", type=Path, default=Path("content/pro"))
+    parser.add_argument("--history", type=Path, default=Path("data/dua_dhikr_rotation_history.json"))
+    parser.add_argument("--output-dir", type=Path, default=Path("output/pro_review"))
+    parser.add_argument("--content-type", choices=("dua", "dhikr"), required=True)
+    parser.add_argument("--day", default=date.today().isoformat())
+    parser.add_argument("--video-count", type=int, default=1)
+    parser.add_argument("--render", action="store_true",
+                        help="Render only after the complete Pro preflight passes.")
+    args = parser.parse_args()
+    try:
+        history = load_history(args.history)
+        plan = build_plan(args.content_dir, history, args.content_type, args.day, args.video_count)
+    except (FileNotFoundError, ValueError, LookupError, SystemExit) as exc:
+        print(json.dumps({
+            "status": "blocked", "stage": "preflight", "reason": str(exc),
+            "content_type": args.content_type, "videos": [],
+            "telegram_sent": False, "tiktok_published": False,
+        }, ensure_ascii=False, indent=2))
+        return 2
+
+    if not args.render:
+        print(json.dumps({
+            "status": "preflight_passed", "day": args.day,
+            "content_type": args.content_type, "videos": plan,
+            "rendered": False, "telegram_sent": False, "tiktok_published": False,
+        }, ensure_ascii=False, indent=2))
+        return 0
+
+    rendered = render_plan(plan, args.output_dir)
+    # Do not consume history on render; reserve it for confirmed review delivery.
+    print(json.dumps({
+        "status": "rendered_for_manual_review", "videos": rendered,
+        "history_updated": False, "telegram_sent": False, "tiktok_published": False,
+    }, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
