@@ -195,3 +195,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Added regression tests for validator, orchestrator, and renderer preview/production separation.
 - This is local preview capability only; private Telegram preview delivery still requires a separate sender/workflow and tests. No render or Telegram request occurred.
 - Tests have not been executed after these changes; the previous manual offline workflow success predates them.
+
+
+## 2026-11-06 — Offline test workflow expanded for preview lifecycle
+- Static review found that the manual Pro safety workflow still ran only the original ledger/sender/persistence/delivery-cycle suites; it omitted the newly added validator, orchestrator, and renderer tests.
+- Updated `.github/workflows/pro-safety-tests-manual.yml` on `feature/quran-video-pro` to run all seven Pro offline test modules, including the candidate-preview lifecycle regressions.
+- Verified the saved workflow content on the exact Pro branch: exact branch guard retained, `contents: read` only, no Telegram secrets, no rendering command, and no publishing/delivery step.
+- Commit: `56476b87d25c7da651f51819cad64cb983179bbe`.
+- The workflow has NOT been dispatched and tests have NOT run. The available GitHub actions in this session do not expose a workflow-dispatch operation; only a rerun operation for an existing job is available. Do not report tests as passed.
+- No render, Telegram API request, TikTok publish, production workflow run, or changes to `main` / `feature/telegram-review-notifications` occurred.
+- Next: obtain a supported manual dispatch path and verify all seven suites. Only after tests pass, continue with a separate private Telegram preview sender; keep actual send disabled until the user authorizes a specific preview.
