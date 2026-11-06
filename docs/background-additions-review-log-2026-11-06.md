@@ -38,3 +38,11 @@ Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded 
 - Latest run at the time of this log update: `42208519520`, commit `80b8fa88b44819cfea5d040ab228dfaa86a18592`, status `in_progress`. Setup and checkout succeeded; package installation was in progress. The corrected regression tests and seven-download/ffprobe/preview steps had not yet completed.
 - No new background has been activated. The four existing production backgrounds remain untouched. Do not mark the seven videos as downloaded, probed, cropped, or visually approved until the latest CI artifacts and logs confirm each stage.
 
+
+
+## Latest CI failure diagnosis and correction — 2026-11-06
+- Run `42208519520` completed with failure in `test_prepare_accepts_eight_source_only_candidates_without_claiming_download`.
+- The test intended to cover eight source-only candidates, but copied the live review catalog after seven Pexels direct URLs had been staged. It therefore attempted real downloads and hit the intentional 100 MiB per-file safety limit. The download limit is correct and was not weakened.
+- Fixed the test fixture in commit `da5aa26c4a5c049d9178470b4ff3a161a08257d0` by removing `direct_video_url` only from its temporary in-test copy. The real review catalog and all seven official URLs remain unchanged.
+- Run `42208519520` confirmed: archive inventory tests passed; existing four-background tests passed; eight-addition policy tests passed; actual-overlay composition test passed. The source-only fixture failed as described above. Download/probe and Quran overlay workflow steps were skipped because the test step failed.
+- Next: verify the new CI run from commit `da5aa26`; only then report whether seven clips actually downloaded, passed `ffprobe`, produced 9:16 crops, and generated the Quran-overlay contact sheet. No production activation is authorized or performed.
