@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "New Islamic and Arabic architectural video background leads for review. Separate from the existing four approved backgrounds; not production-enabled.",
-  "activation_policy": "Seven Pexels direct MP4 URLs were confirmed by following the official Free download links on their source pages. URLs are staged for review-only download and ffprobe; this does not mean the media bytes have been downloaded or probed. Pixabay remains source-page-only. No candidate is approved or production-enabled.",
+  "activation_policy": "No candidate is active. Seven Pexels direct MP4 URLs were confirmed by following the official Free download links on their source pages. URLs are staged for review-only download and ffprobe; this does not mean the media bytes have been downloaded or probed. Pixabay remains source-page-only. No candidate is approved or production-enabled.",
   "candidates": [
     {
       "id": "pexels-islamic-dome-geometric-40564360",
