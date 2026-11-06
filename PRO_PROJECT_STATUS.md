@@ -342,3 +342,11 @@ This section supersedes earlier historical statements in this file that the curr
 - Ledger unique key must be candidate ID, with manifest/video SHA-256 stored and compared as immutable attributes. Same candidate ID with changed hashes must fail closed; do not key only by candidate+hash.
 - Test matrix required: duplicate candidate; changed manifest/video hashes; success terminal state; timeout/connection loss/invalid response uncertain state; preflight failures before reservation; pre-send persistence failure means no request; post-send persistence failure leaves remote reservation blocking; concurrent attempts allow only one reservation.
 - Static review only. No code/workflow/test/dispatch/render/Telegram/secret/Cron changes. Original production engine untouched; expanded eight-suite workflow NOT RUN.
+
+
+## 2026-11-06 — Telegram integration review checkpoint
+- Original Quran request workflow remains pinned to `feature/telegram-review-notifications`; unchanged.
+- Pro preview sender expects `PRO_PREVIEW_TG_BOT_TOKEN` and `PRO_PREVIEW_TELEGRAM_CHAT_ID`; original workflow uses `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`. Mapping the existing secrets into a future Pro-only workflow is a design proposal only; values were not read and availability was not verified.
+- No Pro delivery workflow is enabled. Private destination type is not independently verified by the sender; its positive numeric chat-ID check is only a guard, not proof of Telegram `chat.type`.
+- No code, workflow, tests, dispatch, render, Telegram request, TikTok publish, secrets, Cron, original bot configuration, or production branch changed in this review. Expanded eight-suite Pro safety workflow remains NOT RUN.
+- Next: complete the fail-closed integration design and destination verification requirements before any implementation. Original Quran engine remains untouched.
