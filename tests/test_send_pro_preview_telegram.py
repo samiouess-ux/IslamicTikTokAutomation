@@ -93,18 +93,18 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             data["rotation_approved"] = True
             manifest.write_text(json.dumps(data), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "must not be approved"):
-                sender.send_preview(video, manifest, "token", "12345", confirmed=True)
+                sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
 
     def test_only_preview_filename_and_private_numeric_chat_are_allowed(self):
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
             video.rename(Path(tmp) / "dua.mp4")
             with self.assertRaisesRegex(ValueError, "PREVIEW-ONLY"):
-                sender.send_preview(Path(tmp) / "dua.mp4", manifest, "token", "12345", confirmed=True)
+                sender.send_preview(Path(tmp) / "dua.mp4", manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
             video = Path(tmp) / "PREVIEW-ONLY-dua-preview-dua-001.mp4"
             video.write_bytes(b"fake-mp4")
             with self.assertRaisesRegex(ValueError, "positive numeric private-chat"):
-                sender.send_preview(video, manifest, "token", "-100123", confirmed=True)
+                sender.send_preview(video, manifest, "token", "-100123", confirmed=True, repo_root=Path(tmp))
 
     def test_video_filename_must_match_exact_manifest(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -112,7 +112,7 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             wrong = Path(tmp) / "PREVIEW-ONLY-dua-another-id.mp4"
             video.rename(wrong)
             with self.assertRaisesRegex(ValueError, "exactly match"):
-                sender.send_preview(wrong, manifest, "token", "12345", confirmed=True)
+                sender.send_preview(wrong, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
 
     def test_caption_clearly_marks_not_approved_for_posting(self):
         caption = sender.build_preview_caption(self.manifest())
@@ -167,11 +167,51 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
     def test_transport_error_is_not_retried(self):
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
-            with patch.object(sender.urllib.request, "urlopen", side_effect=TimeoutError("unknown")) as call:
+            chat = type("Response", (), {"__enter__": lambda self: self,
+                "__exit__": lambda self, *args: False,
+                "read": lambda self: b'{"ok":true,"result":{"id":12345,"type":"private"}}'})()
+            with patch.object(sender.urllib.request, "urlopen", side_effect=[chat, TimeoutError("unknown")]) as call:
                 with self.assertRaises(TimeoutError):
-                    sender.send_preview(video, manifest, "token", "12345", confirmed=True)
+                    sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
+            self.assertEqual(call.call_count, 2)
+
+
+    def test_non_private_chat_blocks_upload(self):
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return b'{"ok":true,"result":{"id":12345,"type":"group"}}'
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            with patch.object(sender.urllib.request, "urlopen", return_value=Response()) as call:
+                with self.assertRaisesRegex(RuntimeError, "not a private chat"):
+                    sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
             self.assertEqual(call.call_count, 1)
 
+    def test_mismatched_chat_id_blocks_upload(self):
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return b'{"ok":true,"result":{"id":99999,"type":"private"}}'
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            with patch.object(sender.urllib.request, "urlopen", return_value=Response()) as call:
+                with self.assertRaisesRegex(RuntimeError, "different destination"):
+                    sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
+            self.assertEqual(call.call_count, 1)
+
+    def test_malformed_or_failed_getchat_blocks_upload_without_leaking_token(self):
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def read(self): return b'{"ok":true,"result":null}'
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            with patch.object(sender.urllib.request, "urlopen", return_value=Response()) as call:
+                with self.assertRaisesRegex(RuntimeError, "malformed data"):
+                    sender.send_preview(video, manifest, "secret-token", "12345", confirmed=True, repo_root=Path(tmp))
+            self.assertEqual(call.call_count, 1)
+            self.assertNotIn("secret-token", str(call.call_args))
 
 if __name__ == "__main__":
     unittest.main()
