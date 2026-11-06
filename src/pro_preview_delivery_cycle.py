@@ -124,9 +124,9 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         message_id = receipt.get("message_id") if isinstance(receipt, dict) else None
         if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
             raise RuntimeError("Telegram response lacks a valid positive message_id; outcome is uncertain.")
-    except PreSendVerificationError:
-        # A failed getChat check is definite pre-upload failure, not an ambiguous send.
-        # Keep the reservation blocking duplicates; do not mark it as an uncertain upload.
+    except (PreSendVerificationError, ValueError, FileNotFoundError, PermissionError):
+        # These failures are definite local/pre-upload rejections; no sendVideo request was made.
+        # Keep the reservation blocking duplicates, but do not mislabel it as an ambiguous upload.
         raise
     except Exception:
         transition(ledger_path, checked["candidate_id"], "uncertain")
