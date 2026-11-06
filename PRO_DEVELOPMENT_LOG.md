@@ -364,7 +364,7 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - A follow-up read using explicit branch refs found that `src/pro_delivery_ledger.py` and `tests/test_pro_delivery_ledger.py` were not present on `feature/quran-video-pro`.
 - The ledger source and test were found on `feature/telegram-review-notifications`, contrary to the intended Pro-only scope.
 - The ledger source file was successfully deleted from the production branch (delete commit: `bbf3378fe8ff80c0393dc0922fe155ace5b46277`).
-- Deletion of `tests/test_pro_delivery_ledger.py` from the production branch was blocked. At the time of this entry, that test file remains there. No alternate Git data/ref operation will be used to bypass the blocked deletion.
+- The remaining `tests/test_pro_delivery_ledger.py` file was subsequently deleted from the production branch through the approved GitHub contents operation (deletion commit: `980d8c88114b40272d537735e0e923d2c0e2ca01`). A fresh explicit-ref fetch returned 404 for that test on production. No alternate Git data/ref operation was used.
 - The attempted creation of the ledger source and tests on `feature/quran-video-pro` was blocked. Therefore the ledger is **not implemented on Pro** and must not be described as integrated or available there.
 
 ### Impact and safeguards
@@ -373,6 +373,13 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - No secrets, Cron configuration, or production workflow logic was changed. The remaining misplaced test file is a repository hygiene issue; do not run it on production.
 
 ### Next safe action
-- Resolve the blocked deletion through an approved GitHub operation or user-side repository change. Do not use a different API path to evade the safety block.
+- Production cleanup is verified complete. Next, reintroduce the ledger source and tests only on `feature/quran-video-pro` through an approved branch-targeted write, then fetch both using an explicit Pro ref. If that write is blocked, stop and report it; do not use alternate Git APIs to bypass the control.
 - Only after the production branch is verified clean should the ledger implementation be reintroduced on `feature/quran-video-pro` through an approved branch-targeted write and re-fetched with an explicit Pro ref.
 - Until then, keep Telegram delivery disabled and do not claim duplicate-delivery protection is active.
+
+
+### Production cleanup completed (2026-11-06)
+- Deleted `tests/test_pro_delivery_ledger.py` from `feature/telegram-review-notifications` using the approved GitHub contents deletion operation.
+- Deletion commit: `980d8c88114b40272d537735e0e923d2c0e2ca01`.
+- Verified by explicit-ref fetch: `tests/test_pro_delivery_ledger.py` and `src/pro_delivery_ledger.py` both return 404 on production; both are also absent on `feature/quran-video-pro`.
+- No tests were run and no rendering, workflow dispatch, Telegram send, or TikTok publishing occurred.
