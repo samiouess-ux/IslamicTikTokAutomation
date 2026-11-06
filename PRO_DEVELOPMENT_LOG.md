@@ -885,3 +885,30 @@ Re-fetched and inspected the current versions of:
 - These are coverage gaps corresponding to the previously documented implementation gaps; they are not evidence that a specific rendered video was incorrect or that an asset was actually used without permission.
 - Validation boundary: source/test inspection only. No tests executed, no workflow dispatched, no code or workflow changed, no render, Telegram request, or TikTok publication. No secrets, Cron, or delivery settings changed. All work stayed on `feature/quran-video-pro`; `main` and `feature/telegram-review-notifications` were not touched. The original Quran production engine remains untouched.
 - Next: prepare focused negative/integration test cases for production IDs, approved-background URL binding, per-item audio timing, and required media-rights evidence. Implementation and test execution remain gated by separate explicit approval.
+
+## 2026-11-06 — Read-only delivery preflight boundary review
+
+### Files re-fetched and inspected
+- src/pro_delivery_cycle.py (blob f84580d8b58cf3debc959946ff7284be5fb3734c)
+- src/send_pro_telegram.py (blob 4d232e5fdeb947b977dc099ca610178beb01fd93)
+- tests/test_pro_delivery_ledger.py
+- tests/test_persist_pro_ledger.py
+- .github/workflows/pro-safety-tests-manual.yml (blob a6516c54dccdbd93227a76d59e253dccaa5f7f26)
+
+### Confirmed behavior and finding
+- The cycle validates the ledger path, reads/parses caption JSON, validates manifest ID/content type/run ID, reserves the manifest locally, and persists the reservation before calling the sender. A failed or false first persistence result prevents the Telegram sender from being called.
+- The sender validates configured token/chat values, run ID, MP4 existence/non-zero size/50 MiB cap, caption JSON and review-only flags, manifest ID, and content type before constructing and executing the Telegram request.
+- These local sender validations occur before the sender's network-request try/except. If one fails after the cycle has already persisted the reservation, the cycle catches the exception and attempts a second persistence of the ledger as it stands. Because the sender has not transitioned the entry to uncertain, this generally leaves the already-persisted entry in reserved state, blocking reuse of that manifest even though no Telegram request was attempted.
+- By contrast, exceptions inside the actual request/response boundary are handled by the sender by attempting to transition the reservation to uncertain; the cycle then persists that outcome. Local preflight failure is therefore distinct from an ambiguous Telegram outcome.
+- Ledger tests cover duplicate blocking, run/type binding, message-ID requirements, uncertain reconciliation, and terminal delivered state. Persistence tests cover exact-branch restriction, staged-change refusal, ledger-only push, and push failure. The manual workflow is manual-only, exact-Pro-branch guarded, and read-only (contents: read); it lists eight offline test modules.
+- Static search did not return a caller reference for run_delivery_cycle; that search result alone is insufficient to prove there is no caller elsewhere. The inspected workflow itself is a safety-test workflow, not a delivery workflow.
+
+### Recommended follow-up (not implemented)
+- Split local preflight validation from the transport attempt and run it before reserving/persisting, or introduce a distinct typed pre-send failure path that safely handles a reservation only when it is proven no Telegram request began.
+- Add tests proving invalid/missing MP4, oversized MP4, invalid caption, and missing configuration do not cause a Telegram request and do not leave an unreconciled reservation blocking a safe retry. Keep transport timeout/ambiguous-response tests asserting uncertain and no automatic retry.
+- Do not weaken duplicate protection or automatically release a reservation after a transport ambiguity.
+
+### Validation and safety boundary
+- Read-only source/test inspection only. No code or workflow changed; no tests executed or dispatched; no render, Telegram request, or TikTok publication occurred.
+- No secrets, Cron, or delivery configuration changed. All inspection remained on feature/quran-video-pro; main and feature/telegram-review-notifications were not modified. The original Quran production engine remains untouched.
+- The expanded eight-module safety suite remains NOT RUN. Historical run 42259731118 covers only the earlier four suites.
