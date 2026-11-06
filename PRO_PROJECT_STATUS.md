@@ -34,13 +34,13 @@
 - Design committed in `PRO_LEDGER_PERSISTENCE_DESIGN.md` (commit `e3c50a6c66a13d23c753cb9c7f975c1b633accd5`).
 - Selected approach: commit the ledger JSON to this Pro branch using normal checkout/commit/push, protected by one fixed Actions concurrency group.
 - Required order: persist reservation before Telegram; send once; persist delivered/uncertain outcome. A failed final push leaves the pre-send reservation blocking duplicates.
-- No Pro workflow exists yet, and no reviewed `content/pro` manifests exist.
+- A manual-only Pro safety-test workflow exists at `.github/workflows/pro-safety-tests-manual.yml`; it is not a delivery workflow and has not been dispatched. No reviewed `content/pro` manifests exist.
 
 ## Next steps
 1. Wire `src/persist_pro_ledger.py` into the two-phase workflow and add integration/failure-boundary checks. Sender support for a pre-persisted reservation and the ledger-only helper are implemented, but not yet wired together.
-2. Add a dormant `workflow_dispatch`-only Pro workflow with exact branch guard, fixed concurrency, and minimal permissions; the ledger-only persistence helper now exists but is not wired into a workflow. No schedule or production secrets.
+2. Build a separate delivery workflow only after the two-phase protocol is integrated and reviewed content exists. The current manual-only workflow runs offline tests only; no delivery workflow or schedule exists.
 3. Build a reviewed dua/dhikr content library from trustworthy primary sources.
-4. Run the offline test suite in an approved environment and record exact results.
+4. Dispatch the manual-only safety-test workflow only after explicit user approval, then record exact test results.
 5. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
 
 ## Safety and change control
