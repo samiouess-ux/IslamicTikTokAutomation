@@ -175,3 +175,13 @@ This section supersedes earlier historical statements in this file that the curr
 - The regression now asserts both constants are 40 seconds and verifies that a 41-second item is rejected.
 - This is a test correction only; no renderer behavior changed. The manual offline safety workflow has not yet been rerun for this commit.
 - Preview-only lifecycle implementation remains the next code task; no rendering or Telegram delivery occurred.
+
+
+## 2026-11-06 — Candidate preview lifecycle implemented (local render only)
+- Added an explicit validator opt-in `allow_candidate_preview=True`. Candidate previews must declare `lifecycle_status: candidate_preview` and `preview_only: true`; pending human review is allowed only on this narrow path. Existing production validation remains strict.
+- Added `build_preview_plan()` to accept one explicitly named candidate without rotation selection. It rejects rotation-approved candidates, requires source/metadata/media gates, explicit positive timings, stable IDs, and the 40-second hard cap.
+- Added renderer flag `--preview-only`. A candidate manifest cannot use the normal renderer path; the preview flag itself cannot be used with a production manifest.
+- Added orchestrator options `--preview-manifest` and `--render-preview`. The local output is isolated under `output/pro_preview` with a `PREVIEW-ONLY-` filename. It does not update rotation history, invoke Telegram, or publish to TikTok.
+- Added validator, orchestrator, and renderer regression tests for preview/production separation.
+- This implements local preview validation/rendering only. It does NOT yet deliver a preview to Telegram; a separately gated private-review sender and workflow still need implementation and tests. No render or Telegram request was performed.
+- Tests have not been executed after these code changes; the previous manual offline workflow success predates them.
