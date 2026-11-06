@@ -377,3 +377,15 @@ This section supersedes earlier historical statements in this file that the curr
 - Accept only fixed Pro candidate/output paths; reject traversal/symlinks and require exact PREVIEW-ONLY filename-to-manifest identity. Serialize all sends in one fixed concurrency group with `cancel-in-progress: false`; fetch latest ledger and stop on push conflict.
 - Validate/preflight, reserve and push ledger, verify remote reservation, send once, persist delivered/uncertain. No retry. Offline tests must remain separate and receive no secrets/write permission. No TikTok publishing step or credentials.
 - Design only: no workflow/code/test/dispatch/render/Telegram/TikTok/secret/Cron/bot-setting/production changes. Original Quran engine untouched; eight-suite safety workflow NOT RUN.
+
+
+## 2026-11-06 — Preview ledger implementation/test checklist (not implemented)
+- Planned order: standalone versioned preview ledger → strict schema/identity/state validation → atomic persistence + local lock → exact-Pro persistence wrapper → offline tests → manual-only guarded workflow → preflight/reserve/verify/send-once/finalize orchestration.
+- Ledger identity: unique candidate ID bound to manifest and MP4 SHA-256; an existing ID always blocks another send, and changed hashes under the same ID are a conflict. Do not reuse production delivery ledger or rotation history.
+- Validation must reject malformed/unknown schema, unsupported states/types, invalid SHA-256, mismatched IDs, unsafe paths/symlinks, wrong PREVIEW-ONLY filename, invalid/oversized/missing MP4, invalid caption/config, and invalid Telegram message IDs (including bool).
+- State machine: reserved→delivered/uncertain; uncertain→delivered only with recovered receipt. No automatic retry, expiry, deletion, or release. If final persistence fails, the remote reservation remains a duplicate-send block.
+- Persistence must check exact Pro branch, commit only the preview-ledger file, reject unrelated staged changes, verify remote reservation, and stop on push conflict; never force-push.
+- Offline tests must mock filesystem, Git and Telegram. Cover schema/identity, atomicity, locking/concurrent attempts, state transitions, all preflight failures, persistence-before-send ordering, exactly-one-send/no-retry, uncertain outcomes, final-persist failure, and workflow static security guards.
+- Workflow checks: workflow_dispatch only; exact Pro ref guard; pinned Pro checkout; one fixed concurrency group with cancel-in-progress false; least permissions; secrets only in final send step; no secret logging; no TikTok; no production sender/workflow.
+- Tests must assert no live network, Telegram, GitHub writes, render, secrets, or TikTok calls. Existing eight-suite Pro safety workflow remains NOT RUN.
+- Status: checklist/matrix documented only. No implementation, test run, dispatch, render, Telegram, TikTok, secret/Cron/bot change, or production/original engine change. Next: map checklist to exact source/test files, then seek explicit approval before implementation.
