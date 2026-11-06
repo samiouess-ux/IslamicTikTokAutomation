@@ -52,6 +52,7 @@ permissions:
 
 jobs:
   inventory:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
