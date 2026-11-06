@@ -33,7 +33,8 @@ def build_caption(data: dict) -> str:
 
 
 def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
-               run_id: str, ledger_path: Path = Path("data/pro_delivery_ledger.json"),\n               reservation_persisted: bool = False) -> dict:
+               run_id: str, ledger_path: Path = Path("data/pro_delivery_ledger.json"),
+               reservation_persisted: bool = False) -> dict:
     if not token.strip() or not chat_id.strip():
         raise ValueError("TG_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured as GitHub Secrets.")
     if not isinstance(run_id, str) or not run_id.strip():
@@ -52,8 +53,12 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
     if content_type not in {"dua", "dhikr"}:
         raise ValueError("Pro Telegram sender accepts dua/dhikr only.")
 
-    # Reserve before contacting Telegram. Existing/uncertain reservations block duplicates.
-    reserve(ledger_path, manifest_id, content_type, run_id)
+    # In cross-run mode, the reservation must already be committed to the Pro branch.
+    # Local mode remains available for isolated offline tests.
+    if reservation_persisted:
+        assert_reserved_for_run(ledger_path, manifest_id, content_type, run_id)
+    else:
+        reserve(ledger_path, manifest_id, content_type, run_id)
 
     boundary = "----DuaAdhkarPro" + secrets.token_hex(16)
     body = b"".join([
@@ -103,9 +108,12 @@ def main() -> None:
     parser.add_argument("--caption", type=Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--ledger", type=Path, default=Path("data/pro_delivery_ledger.json"))
+    parser.add_argument("--reservation-persisted", action="store_true",
+                        help="Require a previously persisted reservation; never create one here.")
     args = parser.parse_args()
     send_video(args.video, args.caption, os.environ.get("TG_BOT_TOKEN", ""),
-               os.environ.get("TELEGRAM_CHAT_ID", ""), args.run_id, args.ledger,\n               reservation_persisted=args.reservation_persisted)
+               os.environ.get("TELEGRAM_CHAT_ID", ""), args.run_id, args.ledger,
+               reservation_persisted=args.reservation_persisted)
 
 
 if __name__ == "__main__":
