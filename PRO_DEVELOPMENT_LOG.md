@@ -663,3 +663,11 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - File created on `feature/quran-video-pro` only. No religious content was added.
 - No tests or render were run; no Telegram request or TikTok publishing occurred.
 - Next: use the template to evaluate individual candidates from the full primary source. Keep any unresolved candidate blocked.
+
+
+## 2026-11-06 — First Qur'anic dua candidate located (not approved)
+- Located a candidate supplication at Qur'an 2:201 (Surah Al-Baqarah) and opened its Quran.com primary-source page: https://quran.com/2/201 .
+- The page shows the Arabic text, exact verse reference, English meaning, and nearby verses/context.
+- Kept the item at `candidate` status only. No Arabic text was copied into a production manifest, no validator approval flags were set, and no human approval is claimed.
+- Next review must compare the complete Arabic verse exactly against the source page, record its context and reference using the review template, and obtain human review. Media rights remain a separate later gate.
+- No render, Telegram request, or TikTok publishing occurred.
