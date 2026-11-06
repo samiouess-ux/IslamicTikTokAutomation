@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   prepare-audio-review:
+    if: github.ref != 'refs/heads/feature/quran-video-pro'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
