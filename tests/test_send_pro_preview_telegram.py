@@ -76,6 +76,14 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "positive numeric private-chat"):
                 sender.send_preview(video, manifest, "token", "-100123", confirmed=True)
 
+    def test_video_filename_must_match_exact_manifest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            wrong = Path(tmp) / "PREVIEW-ONLY-dua-another-id.mp4"
+            video.rename(wrong)
+            with self.assertRaisesRegex(ValueError, "exactly match"):
+                sender.send_preview(wrong, manifest, "token", "12345", confirmed=True)
+
     def test_caption_clearly_marks_not_approved_for_posting(self):
         caption = sender.build_preview_caption(self.manifest())
         self.assertTrue(caption.startswith("PREVIEW — NOT APPROVED FOR POSTING"))
