@@ -1073,3 +1073,34 @@ Re-fetched and inspected the current versions of:
 - Test separation: offline safety tests remain a separate manual read-only workflow and must not receive Telegram secrets or `contents: write`. Do not dispatch either workflow without a separate explicit instruction.
 - This is a static architecture checkpoint, not an implementation. No workflow/code/test/dispatch/render/Telegram/TikTok/secret/Cron/bot-setting/production-branch change occurred. Original Quran engine remains untouched; eight-suite safety workflow remains NOT RUN.
 - Next: prepare an implementation checklist and targeted offline test matrix for the ledger wrapper and workflow guards. Request explicit approval before creating/changing code or workflows; keep render and Telegram send as separate approvals.
+
+
+## 2026-11-06 — Implementation checklist and targeted offline test matrix (design only)
+
+### Implementation sequence (not yet authorized or started)
+1. Add a standalone preview-ledger module and schema version 1 at `data/pro_preview_send_ledger.json`; do not alter or reuse the production delivery ledger.
+2. Implement strict parsing and fail-closed validation: top-level object/schema version/entries shape; candidate key and embedded ID agreement; supported content type/state; exact lowercase 64-hex SHA-256 values; non-empty workflow run ID and timestamps; Telegram message ID null except for delivered, and a positive integer for delivered (explicitly reject bool, because Python bool is an int subclass).
+3. Implement immutable candidate identity: candidate ID is the unique key; any existing ID blocks another send; changed manifest/video hashes under that ID are a conflict, not a new attempt.
+4. Implement atomic write (temporary file + replace), fsync where supported, and local process lock. Treat local lock as same-runner protection only; rely on the workflow-wide fixed concurrency group for cross-run serialization.
+5. Implement explicit transition validation only: reserved→delivered/uncertain; uncertain→delivered only with a recovered valid receipt; no automatic expiry/deletion/release. Human reconciliation must be a separate deliberate operation with evidence.
+6. Implement a Pro-only persistence wrapper: exact branch check; fresh remote state; only the preview-ledger path may be committed; reject unrelated staged changes; no force push; any conflict or failed verification stops before Telegram.
+7. Implement a manual-only Pro workflow only after the ledger wrapper and offline tests are ready. Keep exact ref guard, pinned checkout, fixed concurrency, least permissions, and secrets scoped only to the final send step.
+8. Add the orchestration wrapper so complete local preflight occurs before reservation; verify the remote reservation before the single Telegram call; persist delivered/uncertain afterwards. Keep preview flow separate from production delivery/rotation.
+9. Keep actual render and Telegram send as separate approvals. Do not connect a schedule, TikTok publishing, or the original Quran workflow.
+
+### Targeted offline test matrix (mocked filesystem/network/Git; no live services)
+- Schema: valid empty ledger; valid entries; malformed JSON; non-object root; missing/unknown schema version; malformed entries container; unknown fields/states where strict policy requires rejection; key/embedded candidate ID mismatch.
+- Types and identity: reject bool/zero/negative/non-integer message IDs; reject malformed SHA-256 and wrong content types; reject empty run IDs/timestamps; duplicate candidate ID; same ID with changed manifest hash; same ID with changed video hash; same hashes with duplicate ID.
+- Atomicity/concurrency: simulated write/replace failure leaves previous file intact; lock contention serializes local writers; two independent mocked workflow attempts against the same remote ledger result in only one reservation; stale read/push conflict stops before send.
+- State machine: reserved→delivered with valid receipt; reserved→uncertain on timeout/connection loss/invalid or ambiguous response; reject delivered without receipt; reject invalid transitions; uncertain→delivered only with recovered receipt; no automatic release/expiry.
+- Preflight: invalid manifest/lifecycle, unsafe candidate ID, path traversal, symlink, wrong PREVIEW-ONLY filename, missing/empty/oversized MP4, caption over limit, missing config, or hash/read failure all fail before reservation and before network call.
+- Ordering: no Telegram call if initial persistence fails; no Telegram call until remote reservation is re-fetched and verified; exactly one Telegram attempt on success path; no retry on timeout/connection loss/malformed response; ambiguous result is persisted as uncertain; final persistence failure leaves the previously persisted reserved record blocking duplicates.
+- Persistence boundary: exact Pro branch accepted; any other branch rejected; only preview-ledger path committed; unrelated staged changes rejected; push conflict/non-fast-forward fails closed; no force-push.
+- Workflow static checks: workflow_dispatch only; exact Pro ref guard; checkout pinned to Pro branch; fixed global concurrency group with cancel-in-progress false; read-only default permissions and narrowly scoped guarded write job; no global Telegram secrets; secret mapping only in final send step; no echo/log/upload of secrets; no TikTok credentials/publish step; no production branch reference or production sender invocation.
+- Negative guarantees: tests assert no real HTTP/network, Telegram, GitHub write, render, secrets, or TikTok calls. Use injected fakes/mocks and temporary directories only.
+
+### Test execution gates and current state
+- This matrix is a plan, not evidence of passing tests. No new module, workflow, or test has been implemented in this checkpoint.
+- The existing eight-suite `pro-safety-tests-manual.yml` remains NOT RUN; no workflow dispatch was performed.
+- No render, Telegram send, TikTok publish, secret read/change, Cron change, original bot/workflow change, production branch change, or original engine operation occurred.
+- Next review item: inspect current branch tree and test conventions to map each checklist item to exact files/fixtures, then request explicit approval before implementation. Keep test execution and any Telegram preview send separately gated.
