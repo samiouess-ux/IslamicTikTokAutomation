@@ -27,7 +27,7 @@ This file records source comparison. It is not a renderer manifest and must not 
   - Sunan Abi Dawud 5068 — https://sunnah.com/abudawud/43/296
   - Jami` at-Tirmidhi 3391 — https://sunnah.com/tirmidhi/48/22
 - Additional compilation reference: Riyad as-Salihin 1453, Book 15, Hadith 46 — https://sunnah.com/riyadussalihin/15
-- Tirmidhi page gives Abu 'Isa's grading: `hadith hasan`.
+- The Arabic matn on the Tirmidhi 3391 page includes Abu 'Isa's statement: `هَذَا حَدِيثٌ حَسَنٌ` ("this is a hasan hadith"). Separately, the page's displayed Grade metadata says `Sahih (Darussalam)`. Preserve these as two distinct attributions; do not conflate Abu 'Isa's in-text statement with the site's displayed grade.
 - Sunnah.com listing for Abu Dawud 5068 displays grading `Sahih (Al-Albani)`.
 - These are separate grading statements by named authorities. Preserve them separately; do not collapse them into a single unqualified grade.
 
@@ -41,7 +41,7 @@ This file records source comparison. It is not a renderer manifest and must not 
 - Morning: `اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ`
 - Evening: `اللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ`
 
-**Riyad as-Salihin 1453** displays a further wording difference in its Arabic text for the evening ending (`وَإِلَيْكَ الْمَصِيرُ`) and does not reproduce the added `وَبِكَ أَصْبَحْنَا` phrase in the evening line. This is why the production candidate must be tied to one exact collection/reference and must not mix variants.
+**Riyad as-Salihin 1453** displays a further wording difference in its Arabic text for the evening ending (`وَإِلَيْكَ الْمَصِيرُ`) and does not reproduce the added `وَبِكَ أَصْبَحْنَا` phrase in the evening line. Its Arabic text also attributes the report to Abu Dawud and at-Tirmidhi and states that they said it is hasan. This is why the production candidate must be tied to one exact collection/reference and must not mix variants.
 
 - Research status: `source_checked_candidate_with_variant_conflict`
 - Human review of chain, exact source wording, and selection of a single reference/version: pending.
@@ -57,3 +57,14 @@ This file records source comparison. It is not a renderer manifest and must not 
 3. Record grading authority and source-specific grading without implying all scholars give one unanimous grade.
 4. Complete the review template, including media rights and duration, before a separate production manifest is considered.
 5. No render, Telegram delivery, or TikTok publishing is authorized by this research note.
+
+
+## Verification addendum — 2026-11-06
+
+A second direct page inspection clarified the grading display on Jami' at-Tirmidhi 3391:
+- The Arabic matn itself includes Abu 'Isa's statement `قَالَ أَبُو عِيسَى هَذَا حَدِيثٌ حَسَنٌ`.
+- The separate Sunnah.com Grade metadata field displays `Sahih (Darussalam)`.
+- These are different attributions/fields and must both be recorded exactly; the earlier shorthand that only mentioned Abu 'Isa's hasan statement was incomplete.
+- Direct page checks also confirmed the exact Arabic matn and source reference for Abu Dawud 5068, the Tirmidhi 3391 wording, and the variant in Riyad as-Salihin 1453. See the linked source pages in the candidate entry.
+
+This correction does not approve the hadith. Human selection of one exact source/version and independent review remain pending.
