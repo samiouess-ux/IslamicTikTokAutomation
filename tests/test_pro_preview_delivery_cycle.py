@@ -153,5 +153,26 @@ class PreviewCycleTests(unittest.TestCase):
                 workflow_run_id="run", token="t", chat_id="123", branch="main")
 
 
+    def test_private_chat_verification_failure_prevents_reservation_and_send(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            return True
+        def send(*args, **kwargs):
+            calls.append("send")
+            return {"message_id": 77}
+        def reject_chat(token, chat_id):
+            calls.append("verify")
+            raise RuntimeError("not private")
+        with self.assertRaisesRegex(RuntimeError, "not private"):
+            run_preview_cycle(Path("content/pro/candidate.json"),
+                Path("output/pro_preview/PREVIEW-ONLY-dua-candidate-001.mp4"),
+                repo_root=self.root, workflow_run_id="run-1", token="fake-token",
+                chat_id="12345", branch="feature/quran-video-pro",
+                persist_fn=persist, send_fn=send, verify_chat_fn=reject_chat)
+        self.assertEqual(calls, ["verify"])
+        self.assertFalse((self.root / "data/pro_preview_send_ledger.json").exists())
+
+
 if __name__ == "__main__":
     unittest.main()
