@@ -43,7 +43,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
     def test_commits_only_preview_ledger_and_verifies_remote_head(self):
         outputs = [
             (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
-            (0, "", ""), (0, "data/pro_preview_send_ledger.json\n", ""),
+            (0, "", ""), (0, "", ""), (0, "data/pro_preview_send_ledger.json\n", ""),
             (1, "", ""), (0, "[commit]", ""), (0, "pushed", ""),
             (0, "", ""), (0, "same-new", ""), (0, "same-new", ""),
         ]
@@ -56,7 +56,7 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
 
     def test_unrelated_staged_path_is_rejected(self):
         outputs = [(0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
-                   (0, "", ""), (0, "data/pro_preview_send_ledger.json\nREADME.md\n", "")]
+                   (0, "", ""), (0, "", ""), (0, "data/pro_preview_send_ledger.json\nREADME.md\n", "")]
         with self.run_git(outputs):
             with self.assertRaisesRegex(RuntimeError, "unexpected staged paths"):
                 persist_preview_ledger(self.repo)
