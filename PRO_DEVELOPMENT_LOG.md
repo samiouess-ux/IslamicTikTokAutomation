@@ -935,3 +935,27 @@ Re-fetched and inspected the current versions of:
 - The sender's numeric positive chat-ID check is a local format restriction, not an independent Telegram API verification of chat type. Do not claim the destination was verified as a private chat until a separately approved test or reliable API check establishes that. The existing secret values are not visible to this inspection.
 - Status: design review only. No code/workflow changes, tests, workflow dispatch, render, Telegram API request, secret access/change, TikTok publication, or production-branch activity occurred. Original Quran production engine remains untouched.
 - Next: retain this gate design; do not create or run the Pro delivery workflow, render a preview, or send Telegram until each corresponding action is explicitly authorized.
+
+
+## 2026-11-06 — Read-only preview integration and workflow-isolation review
+
+### New static findings
+- Re-fetched `.github/workflows/pro-safety-tests-manual.yml`, `src/send_pro_preview_telegram.py`, `tests/test_send_pro_preview_telegram.py`, `src/validate_content_manifest.py`, `.github/workflows/render-first-video.yml`, and `.github/workflows/render-manifest-video.yml` from the exact Pro branch.
+- Preview test fixture gap reconfirmed: `tests/test_send_pro_preview_telegram.py::manifest()` omits the required top-level `source` object. The shared validator rejects that fixture before caption assertions, exact-filename mismatch assertions, mocked successful-send assertions, or mocked transport-timeout assertions can reach their intended code paths. This is a static control-flow inference only; tests were NOT executed and no runtime failure is claimed. Fix the fixture by supplying a valid source object; do not weaken the validator.
+- The eight-suite manual safety workflow does include `test_send_pro_preview_telegram.py` and is manual-only, guarded to exact `refs/heads/feature/quran-video-pro`, checks out that branch with persisted credentials disabled, and has `contents: read`. It does not render or send Telegram; the test module is only invoked as an offline unit-test suite. The workflow was NOT dispatched.
+- Workflow-isolation risk: `.github/workflows/render-first-video.yml` has `workflow_dispatch` without an exact-branch guard and a `push.paths` trigger without a branch filter. Its checkout is not pinned to a safe Pro-only branch, and its steps download Quran recitation/background assets and render an Ash-Sharh Quran video. It must be disabled from Pro execution by an exact branch guard and trigger scoping, or otherwise safely isolated, before Pro branch work can be considered workflow-safe. This is a configuration risk from static inspection, not evidence that it ran.
+- `.github/workflows/render-manifest-video.yml` also exposes `workflow_dispatch` without an exact Pro branch guard and checks out the triggering ref by default; its steps validate Quran references and can render manifest videos. Treat it as another legacy mixed-scope workflow requiring exact branch protection or isolation before any Pro Actions use. It was NOT run.
+- `.github/workflows/telegram-quran-request.yml` remains explicitly scoped to `feature/telegram-review-notifications` and checks out that same production branch. It was only read for comparison and was not changed.
+
+### Recommended safe remediation order (not implemented)
+1. Add exact Pro branch guards / trigger scoping to legacy Quran render workflows on the Pro branch so they cannot run from Pro. Keep the production branch's workflow untouched.
+2. Correct the preview-test manifest fixture with the required top-level `source` object and add assertions that the validator accepts the intended candidate fixture before network mocks are evaluated.
+3. Add a separate preview-only idempotency record for Pro candidate sends, preserving no-auto-retry behavior for uncertain transport outcomes; do not reuse the production ledger.
+4. Add a dormant Pro-only manual preview workflow using the existing Telegram secrets mapped to the Pro sender's environment names, with explicit render/send confirmations and exact Pro branch guard. This remains a proposed design only.
+5. Run the eight offline suites only after separate explicit approval; do not dispatch a render or Telegram workflow as part of test validation.
+
+### Verification boundary
+- Static inspection and documentation planning only. No code, workflow, manifest, secret, Cron, or bot configuration changed in this review.
+- No tests were executed; the eight-suite workflow remains NOT RUN / NOT DISPATCHED.
+- No render, Telegram request, TikTok publish, or workflow dispatch occurred.
+- All inspected Pro files were read from `feature/quran-video-pro`. No change was made to `main` or `feature/telegram-review-notifications`; the original Quran production engine and its active Telegram route remain untouched.
