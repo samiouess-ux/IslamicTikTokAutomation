@@ -53,7 +53,7 @@ def _https(value: object, field: str) -> str:
     if not isinstance(value, str):
         _fail(field + " must be an exact HTTPS URL.")
     parsed = urlparse(value)
-    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+    if parsed.scheme != "https" or not parsed.netloc or parsed.path in {"", "/"} or parsed.username or parsed.password:
         _fail(field + " must be an exact HTTPS URL.")
     return value
 
