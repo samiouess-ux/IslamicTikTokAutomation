@@ -78,9 +78,7 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
     media_type = asset_ref.get("media_type")
     if media_type not in {"visual", "audio"}:
         _fail("manifest media_type must be visual or audio.")
-    record_path = repo_root / RIGHTS_ROOT / (asset_id + ".json")
-    if record_path.is_symlink() or not record_path.is_file():
-        _fail("exact per-asset rights JSON record is missing.")
+    record_path = _safe_file(repo_root, (RIGHTS_ROOT / (asset_id + ".json")).as_posix(), RIGHTS_ROOT)
     try:
         record = json.loads(record_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -129,6 +127,8 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
     territories = record.get("territories")
     if not isinstance(territories, list) or not territories or any(not isinstance(x, str) or not x.strip() for x in territories):
         _fail("permitted territories must be explicit.")
+    if not any(x.strip().lower() in {"worldwide", "global", "all"} for x in territories):
+        _fail("permission must cover worldwide public distribution for this channel.")
     validity = record.get("validity")
     if not isinstance(validity, dict):
         _fail("license validity scope is required.")
@@ -153,6 +153,8 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
             _fail("third-party review is incomplete: " + field + ".")
         if item.get("resolved") is not True:
             _fail("third-party rights remain unresolved: " + field + ".")
+        if not isinstance(item.get("notes"), str) or not item["notes"].strip():
+            _fail("third-party review notes are required: " + field + ".")
     if media_type == "audio":
         if not isinstance(record.get("performer"), str) or not record["performer"].strip():
             _fail("audio performer must be identified separately.")
@@ -206,5 +208,7 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
             expected = background.get("source_url")
             if expected and expected != source_url:
                 _fail("background source URL does not match its rights record.")
+        elif audio.get("source_url") and audio["source_url"] != source_url:
+            _fail("audio source URL does not match its recording rights record.")
         result[ref["media_type"]] = path
     return result
