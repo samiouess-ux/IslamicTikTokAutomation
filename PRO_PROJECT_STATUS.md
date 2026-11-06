@@ -205,3 +205,12 @@ This section supersedes earlier historical statements in this file that the curr
 - The workflow has NOT been dispatched and tests have NOT run. The available GitHub actions in this session do not expose a workflow-dispatch operation; only a rerun operation for an existing job is available. Do not report tests as passed.
 - No render, Telegram API request, TikTok publish, production workflow run, or changes to `main` / `feature/telegram-review-notifications` occurred.
 - Next: obtain a supported manual dispatch path and verify all seven suites. Only after tests pass, continue with a separate private Telegram preview sender; keep actual send disabled until the user authorizes a specific preview.
+
+
+## Latest implementation — 2026-11-06
+- Added isolated candidate-preview Telegram sender and offline safety tests. Explicit CLI confirmation and separate Pro preview bot/chat environment variables are required; only `PREVIEW-ONLY-*.mp4` is accepted.
+- Preview caption explicitly says it is not approved for posting. Sender has no automatic retry and does not touch the production ledger, rotation history, or TikTok publishing.
+- Manual offline workflow now includes eight focused test modules.
+- Commits: sender `80e290cf2d77edb172d6794bdb0f2c38cf60d5bd`; tests `4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a`; workflow `06fda285fd198382c6cd3df4ee018eea66bfb034`.
+- Tests NOT RUN; workflow NOT DISPATCHED. No render, Telegram request, secret change, TikTok publish, or production-branch change.
+- Next: static review and obtain a supported manual dispatch route for the offline suite. Do not send a real preview until the user authorizes that specific send.
