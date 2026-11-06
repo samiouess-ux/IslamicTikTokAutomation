@@ -732,3 +732,32 @@ No code changed in this step. No render, Telegram send, or TikTok publication oc
 Code inspection found a mismatch: `src/render_dua_video.py` defines both target and hard maximum as 40 seconds, while `tests/test_render_dua_video.py` still asserted 60/65 seconds. Updated the regression to assert 40/40 and reject a 41-second item. Commit: `8ae136c9434fe822786950a287a8bb495a52cf42`.
 
 No renderer code changed. Offline tests have not yet been rerun after this commit. No render or Telegram send occurred.
+
+
+## 2026-11-06 — Implemented isolated candidate preview path
+
+### Code changes
+- `src/validate_content_manifest.py`: introduced an explicit `allow_candidate_preview` argument. Only a manifest marked both `candidate_preview` and `preview_only` can use the opt-in path. Pending human review is allowed only there; the production/default path still rejects it. Production-approved manifests cannot be marked preview-only.
+- `src/pro_orchestrator.py`: added explicit single-manifest preview preflight and local render options. Preview candidates bypass rotation discovery but must not be rotation-approved. They retain source verification, media approval, item timing, stable ID, and 40-second checks. Local output goes only to `output/pro_preview`.
+- `src/render_dua_video.py`: added `--preview-only`; candidate manifests are rejected by the normal render invocation, and production manifests are rejected when the preview flag is used.
+- Added regression tests for validator gating, production/preview separation, rotation exclusion, and renderer flag requirements.
+
+### Commits
+- Validator: `6340df9520ff8b494a057edb61d9946332a8ae79`
+- Renderer: `7912b6878d086193c97dc580185f5e1fd2654bce`
+- Orchestrator: `62ba4b3292ef3fce39b6cbbe60c2d85e54a1d9b2`
+- Validator tests: `81ed08db8cc14102d26d042b5a60ace054282d45`
+- Orchestrator tests: `704312d80d9f878cf0b7bb58098795d72aedd53d`
+- Preview CLI fix: `7ea0169dcaf3cb683e78e33cc552245f9b8dafc6`
+- Renderer tests: `f66afa9eabc1784280c8cf02971e8c47ed3d6e58`
+
+### Safety status
+- This is local preview-only capability, not Telegram preview delivery. No private Telegram sender/workflow has been added or enabled in this change.
+- No actual render, Telegram API call, TikTok publish, rotation-history update, or production workflow execution occurred.
+- Tests have not been run after these changes. The earlier offline test workflow success predates this implementation.
+- All changes are confined to `feature/quran-video-pro`.
+
+### Next
+1. Review and execute the offline test suite for the new preview lifecycle.
+2. Implement a separate private Telegram preview route with explicit preview labels and no production-ledger/rotation side effects; keep it uninvoked until the user explicitly authorizes an actual send.
+3. Add negative tests proving preview candidates cannot enter production rotation/delivery and production-approved manifests cannot be demoted into preview mode.
