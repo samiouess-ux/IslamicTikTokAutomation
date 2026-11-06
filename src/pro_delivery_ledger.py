@@ -106,6 +106,27 @@ def reserve(path: Path, manifest_id: str, content_type: str, run_id: str) -> dic
         return entry
 
 
+
+def assert_reserved_for_run(path: Path, manifest_id: str, content_type: str, run_id: str) -> dict[str, Any]:
+    """Verify a reservation was persisted before this run is allowed to call Telegram."""
+    if content_type not in {"dua", "dhikr"}:
+        raise ValueError("Only dua/dhikr can be sent by Pro.")
+    if not isinstance(run_id, str) or not run_id.strip():
+        raise ValueError("A non-empty run_id is required.")
+    with _file_lock(path):
+        data = load_ledger(path)
+        entry = data["entries"].get(manifest_id)
+        if entry is None:
+            raise ValueError("No persisted reservation exists; refusing Telegram request.")
+        if entry.get("state") != "reserved":
+            raise ValueError("Persisted reservation is not in reserved state; refusing Telegram request.")
+        if entry.get("run_id") != run_id:
+            raise ValueError("Persisted reservation belongs to a different workflow run.")
+        if entry.get("content_type") != content_type:
+            raise ValueError("Persisted reservation content type does not match the manifest.")
+        return dict(entry)
+
+
 def transition(path: Path, manifest_id: str, new_state: str,
                telegram_message_id: int | None = None) -> dict[str, Any]:
     if new_state not in VALID_STATES:
