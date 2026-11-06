@@ -1,16 +1,21 @@
 """Offline tests for the Dua & Adhkar Pro Telegram sender."""
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from send_pro_telegram import build_caption, MAX_CAPTION_CHARS
+from send_pro_telegram import build_caption, send_video, MAX_CAPTION_CHARS
+from pro_delivery_ledger import load_ledger
 
 
 class ProTelegramSenderTests(unittest.TestCase):
     def valid(self):
         return {
+            "manifest_id": "dua-manifest-1",
             "content_type": "dua",
             "review_only": True,
             "auto_publish": False,
@@ -46,6 +51,48 @@ class ProTelegramSenderTests(unittest.TestCase):
         data["english_caption"] = "x" * MAX_CAPTION_CHARS
         with self.assertRaisesRegex(ValueError, "exceeds"):
             build_caption(data)
+
+    def test_send_video_records_confirmed_delivery_in_ledger(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def read(self):
+                return json.dumps({"ok": True, "result": {"message_id": 321}}).encode()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            with mock.patch("send_pro_telegram.urllib.request.urlopen", return_value=FakeResponse()):
+                message = send_video(video, caption, "token", "chat", "run-1", ledger)
+            self.assertEqual(message["message_id"], 321)
+            entry = load_ledger(ledger)["entries"]["dua-manifest-1"]
+            self.assertEqual(entry["state"], "delivered")
+            self.assertEqual(entry["telegram_message_id"], 321)
+
+    def test_uncertain_send_blocks_a_second_attempt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            with mock.patch("send_pro_telegram.urllib.request.urlopen", side_effect=TimeoutError("timeout")):
+                with self.assertRaises(TimeoutError):
+                    send_video(video, caption, "token", "chat", "run-1", ledger)
+            self.assertEqual(load_ledger(ledger)["entries"]["dua-manifest-1"]["state"], "uncertain")
+            with mock.patch("send_pro_telegram.urllib.request.urlopen") as send_mock:
+                with self.assertRaisesRegex(ValueError, "refusing duplicate"):
+                    send_video(video, caption, "token", "chat", "run-2", ledger)
+                send_mock.assert_not_called()
 
 
 if __name__ == "__main__":
