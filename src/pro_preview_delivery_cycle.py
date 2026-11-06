@@ -73,7 +73,8 @@ def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
 def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
                       workflow_run_id: str, token: str, chat_id: str,
                       branch: str, persist_fn: Callable[[Path], bool] = persist_preview_ledger,
-                      send_fn: Callable[..., dict] = send_preview,\n                      verify_chat_fn: Callable[..., None] = verify_private_chat) -> dict:
+                      send_fn: Callable[..., dict] = send_preview,
+                      verify_chat_fn: Callable[..., None] = verify_private_chat) -> dict:
     if branch != EXPECTED_BRANCH:
         raise RuntimeError(f"Preview delivery is restricted to {EXPECTED_BRANCH}.")
     if not isinstance(workflow_run_id, str) or not workflow_run_id.strip():
