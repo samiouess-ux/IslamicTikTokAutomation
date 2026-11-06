@@ -214,3 +214,14 @@ This section supersedes earlier historical statements in this file that the curr
 - Commits: sender `80e290cf2d77edb172d6794bdb0f2c38cf60d5bd`; tests `4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a`; workflow `06fda285fd198382c6cd3df4ee018eea66bfb034`.
 - Tests NOT RUN; workflow NOT DISPATCHED. No render, Telegram request, secret change, TikTok publish, or production-branch change.
 - Next: static review and obtain a supported manual dispatch route for the offline suite. Do not send a real preview until the user authorizes that specific send.
+
+
+## 2026-11-06 — Preview sender hardening and current status
+- Added an isolated candidate-only Telegram preview sender in `src/send_pro_preview_telegram.py`. It requires explicit `--confirm-preview-send`, separate `PRO_PREVIEW_TG_BOT_TOKEN` and `PRO_PREVIEW_TELEGRAM_CHAT_ID` values, a positive numeric private chat ID, and a preview-prefixed MP4.
+- Sender validates the candidate manifest through the explicit preview-only validator; caption begins `PREVIEW — NOT APPROVED FOR POSTING`. It makes one request only, does not retry ambiguous outcomes, and has no import/use of the production delivery ledger or rotation history.
+- Hardened preview output identity: candidate manifest IDs must be safe 1–80 character filename components, and the sender requires the exact filename `PREVIEW-ONLY-{content_type}-{manifest_id}.mp4`. This prevents path traversal and prevents a different preview MP4 from being paired with a candidate manifest.
+- Added offline regression tests for sender confirmation, destination/file restrictions, exact manifest/file binding, caption warning, single request/no retry, and safe output IDs.
+- Expanded manual offline workflow to eight test modules. Static re-fetch verified exact Pro branch guard, read-only contents permission, inclusion of the new sender tests, and absence of secrets or delivery/render/publish steps (the renderer test module is a unit-test invocation only).
+- Commits: preview sender `80e290cf2d77edb172d6794bdb0f2c38cf60d5bd`; sender tests `4997fe46c0695f1eb2144c0d2f1d5c4f6a04a07a`; workflow `06fda285fd198382c6cd3df4ee018eea66bfb034`; safe ID guard `9a8577fae641c5fa64369293594bf9dc3d0cc6e5`; exact MP4/manifest binding `a687af0cef089dc2265570061f64c5bc6c11bd3f`; orchestrator test `25ee33f4272aee847187a3550c6b9d19cffb8d5f`; sender binding test `141a630af57a840abe49e99897f6e3c8e6182042`.
+- Current verification is static re-fetch only. The offline tests have NOT been executed and the workflow has NOT been dispatched. No render, Telegram API request, token/chat secret addition, TikTok publish, or production-branch change occurred.
+- Next: use a supported manual workflow-dispatch path to run the offline suites. Only after tests pass, prepare a specific candidate manifest and rights-cleared assets. Do not send a real preview until the user explicitly authorizes that exact send.
