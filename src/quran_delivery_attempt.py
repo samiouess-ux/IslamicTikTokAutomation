@@ -56,8 +56,8 @@ def reserve_attempt(
     if preview_item.get("review_only") is not True:
         raise ValueError("Reservation requires a review-only preview.")
     preview_duration = preview_item.get("duration_seconds")
-    if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > 40.0:
-        raise ValueError("Preview duration must be positive and no longer than 40 seconds.")
+    if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > 45.0:
+        raise ValueError("Preview duration must be positive and no longer than 45 seconds.")
     audio_items = [p for p in audio_report.get("items", []) if p.get("candidate_id") == candidate_id]
     if len(audio_items) != 1:
         raise ValueError("Could not match exactly one preview and audio report item.")
@@ -72,8 +72,8 @@ def reserve_attempt(
     if not str(audio_item.get("status", "")).startswith("audio_prepared"):
         raise ValueError("Cannot reserve a passage without prepared audio.")
     audio_duration = audio_item.get("duration_seconds")
-    if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > 40.0:
-        raise ValueError("Prepared audio duration must be positive and no longer than 40 seconds.")
+    if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > 45.0:
+        raise ValueError("Prepared audio duration must be positive and no longer than 45 seconds.")
 
     source_verses = passage.get("verses", [])
     selected = audio_item.get("selected_verses")
