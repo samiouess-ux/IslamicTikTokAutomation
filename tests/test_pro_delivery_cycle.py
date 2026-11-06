@@ -53,6 +53,17 @@ class ProDeliveryCycleTests(unittest.TestCase):
         send_mock.assert_not_called()
         self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "reserved")
 
+    def test_noop_first_persistence_result_prevents_sender(self):
+        with mock.patch("pro_delivery_cycle.send_video") as send_mock:
+            with self.assertRaisesRegex(RuntimeError, "refusing Telegram"):
+                self.run_cycle(persist_fn=lambda repo: False, send_fn=send_mock)
+        send_mock.assert_not_called()
+
+    def test_rejects_ledger_outside_branch_persisted_path(self):
+        other_ledger = self.root / "elsewhere.json"
+        with self.assertRaisesRegex(ValueError, "Ledger path must match"):
+            self.run_cycle(ledger_path=other_ledger)
+
     def test_ambiguous_sender_failure_persists_uncertain_state(self):
         def fake_send(*args, **kwargs):
             transition(self.ledger, "dua-cycle-1", "uncertain")
