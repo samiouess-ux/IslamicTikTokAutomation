@@ -81,6 +81,19 @@ class ProOrchestratorTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "never be rotation-approved"):
                 build_preview_plan(path)
 
+    def test_candidate_preview_rejects_unsafe_output_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            path = self.write_manifest(folder, "candidate.json", "../escape", "candidate-item")
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["lifecycle_status"] = "candidate_preview"
+            data["preview_only"] = True
+            data["rotation_approved"] = False
+            data["items"][0]["human_reviewed"] = False
+            path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "safe filename component"):
+                build_preview_plan(path)
+
     def test_rejects_wrong_pro_content_type(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "dua or dhikr"):
