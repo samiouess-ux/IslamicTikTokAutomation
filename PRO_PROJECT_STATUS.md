@@ -24,7 +24,7 @@
 - `src/prepare_pro_telegram_caption.py` now includes the stable manifest ID needed by the sender.
 - Sender tests cover successful confirmation, uncertain outcomes blocking a second attempt, refusal when a pre-persisted reservation is missing, and ambiguous timeout handling in pre-persisted mode.
 - Persistence-helper tests cover wrong-branch refusal, unrelated staged changes, ledger-only commits, and remote push failure (which must raise rather than report success).
-- Delivery-cycle tests cover first-push failure or no-op blocking sender invocation, uncertain-state persistence, persist/send/persist ordering, final-push failure behavior, and rejection of a ledger path outside the persisted checkout.
+- Delivery-cycle tests cover first-push failure or no-op blocking sender invocation, uncertain-state persistence, failure to persist an uncertain outcome, persist/send/persist ordering, final-push failure behavior, and rejection of a ledger path outside the persisted checkout.
 - **Important:** no Pro workflow currently persists the ledger between runs. Cross-run duplicate protection is therefore not yet complete, and Telegram delivery remains disabled.
  
 ## Validation status
@@ -57,6 +57,8 @@
 - Persistence test fixture correction: `5bf69ce275b077a04ba92097b5fad2ee80c7d0ec`.
 - Strict persistence confirmation hardening: `efc65604523b0c3579fd8b38c3a8a927a8a3a7a8`.
 - Additional fail-closed tests: `885db308e84ec7cd97798bb41405ed377e2cb8a1`.
+- Ambiguous-outcome persistence failure test: `a34fcfffba92dd7bcb1f237487c9793c2596dfe8`.
+- Latest documentation updates: development log `3fa3121f96bcfc3845507aafecf0e727151d32e1`.
 - Latest development-log update: `40c8ab02956da15df4730debe5375bde338c724a`.
 - Development log update: `ace2159b6969e75f7a17571e1b9d025829a4a99d`.
 
