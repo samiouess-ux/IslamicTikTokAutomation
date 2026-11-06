@@ -19,6 +19,11 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             "lifecycle_status": "candidate_preview",
             "preview_only": True,
             "rotation_approved": False,
+            "source": {
+                "name": "Quran.com",
+                "url": "https://quran.com/2/201",
+                "reference": "Al-Baqarah 2:201",
+            },
             "title_ar": "دعاء تجريبي",
             "items": [{
                 "id": "item-1", "kind": "quranic_dua",
