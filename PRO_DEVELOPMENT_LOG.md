@@ -445,3 +445,27 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - The pre-persisted mode is only a code capability; no actual branch reservation commit/push protocol is wired in.
 - No Actions workflow was dispatched, no render or Telegram request occurred, and no secrets were read or changed.
 - Next: add and test a narrow helper that commits only `data/pro_delivery_ledger.json` on the exact Pro branch, then add the dormant manual-only workflow after reviewing the helper and its failure behavior.
+
+
+## 2026-11-06 — Ledger-only Git persistence helper
+
+### Implemented on Pro only
+- Added `src/persist_pro_ledger.py`.
+- The helper rejects any branch other than the exact `feature/quran-video-pro` branch.
+- It refuses to run when unrelated staged changes already exist, stages only `data/pro_delivery_ledger.json`, verifies that this is the sole staged path, then uses normal `git commit` and `git push` to the exact Pro branch.
+- It fails closed on any Git command failure. It does not use Git data/tree/ref APIs and does not touch other paths.
+- Added `tests/test_persist_pro_ledger.py` for wrong-branch refusal, pre-existing staged-change refusal, ledger-only commit/push, and unexpected staged-path refusal.
+
+### Commits
+- Persistence helper: `8bc5ea2d2eaf7ca4b339cb755b06f959d2e68860`
+- Persistence helper tests: `04f7dddb0055f28f47ac522930dd2bde60139766`
+
+### Validation and limits
+- Source files were created on `feature/quran-video-pro`; tests have NOT been executed.
+- The helper is not yet called by a GitHub Actions workflow. It assumes the workflow checks out the exact branch, configures a commit identity, and grants only the required contents write permission.
+- The workflow must still serialize runs and execute reserve -> persist -> send with `--reservation-persisted` -> persist outcome. No Telegram call may happen if the first persistence push fails.
+- No Pro workflow was created or dispatched; no render or Telegram request occurred; no secrets were read or changed.
+- Production Quran branch and workflow remain untouched.
+
+### Next
+- Inspect the new helper and tests by explicit-ref fetch, then create the dormant manual-only workflow with exact branch guard, fixed concurrency, and no schedule. Keep it undispatched until content is reviewed and the user explicitly approves a run.
