@@ -383,3 +383,10 @@ Build a genuinely professional Quran video engine whose opening captures attenti
 - Deletion commit: `980d8c88114b40272d537735e0e923d2c0e2ca01`.
 - Verified by explicit-ref fetch: `tests/test_pro_delivery_ledger.py` and `src/pro_delivery_ledger.py` both return 404 on production; both are also absent on `feature/quran-video-pro`.
 - No tests were run and no rendering, workflow dispatch, Telegram send, or TikTok publishing occurred.
+
+### Explicit-ref verification after ledger/sender integration (2026-11-06)
+- On `feature/quran-video-pro`, confirmed these files exist: `src/pro_delivery_ledger.py`, `tests/test_pro_delivery_ledger.py`, `src/send_pro_telegram.py`, `src/prepare_pro_telegram_caption.py`, and `tests/test_send_pro_telegram.py`.
+- Current blob SHAs: ledger `309a5afb915a1a25c7ddf5ee7c9a2a4706348828`; ledger tests `d0fc3dfd50f10abb1b4c6622449b2d9afe44e53f`; sender `f93548d0938112072b72600528f5d7362c8d11ad`; caption prep `9551f47852d1460b962b266870952a44bf920e4a`; sender tests `f36a9a86efb89227d134caece6ace000d2591e26`.
+- On `feature/telegram-review-notifications`, explicit-ref fetch returned 404 for both ledger source and ledger test.
+- `PRO_DEVELOPMENT_LOG.md` and `PRO_PROJECT_STATUS.md` were updated on Pro. No unit tests were run. No workflow was dispatched, no render occurred, and no Telegram or TikTok action occurred.
+- Remaining blocker: the local ledger must be persisted before the Telegram request and after its outcome, with serialized workflow runs, so a fresh runner cannot lose the reservation. Until that workflow exists and is verified, cross-run duplicate prevention is incomplete and Telegram sending stays disabled.
