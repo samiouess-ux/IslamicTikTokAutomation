@@ -2,26 +2,30 @@
 
 ## Scope and safety
 - The four existing approved backgrounds were not edited.
-- All eight additions remain review-only; no `approved`, `user_approved`, or `download_verified` flag was changed.
+- All eight additions remain review-only. Their `approved`, `user_approved`, and `download_verified` flags remain false.
 - No new background was enabled for production.
 
-## Source-page verification
-The official Pexels page's **Free download** action was followed for each of these seven candidates. Pexels returned a direct MP4 redirect for each:
-1. `pexels-islamic-dome-geometric-40564360`
-2. `pexels-modern-mosque-interior-35417846`
-3. `pexels-historic-mosque-stained-glass-30733250`
-4. `pexels-mosque-interior-calligraphy-19819594`
-5. `pexels-illuminated-mosque-night-34928699`
-6. `pexels-moroccan-courtyard-tiles-34527220`
-7. `pexels-moroccan-courtyard-decor-32719926`
+## Verified official Pexels download redirects
+For each of the following Pexels pages, the official **Free download** link was followed and its redirect target was captured. These are genuine Pexels-hosted MP4 URLs, not guessed filenames:
 
-This verifies the official download redirect exists, but does **not** yet verify that the MP4 bytes download successfully or pass `ffprobe`.
+1. `pexels-islamic-dome-geometric-40564360` — `https://videos.pexels.com/video-files/40564360/17335023_2160_3840_60fps.mp4`
+2. `pexels-modern-mosque-interior-35417846` — `https://videos.pexels.com/video-files/35417846/15005883_4320_7680_30fps.mp4`
+3. `pexels-historic-mosque-stained-glass-30733250` — `https://videos.pexels.com/video-files/30733250/13147570_1080_1920_30fps.mp4`
+4. `pexels-mosque-interior-calligraphy-19819594` — `https://videos.pexels.com/video-files/19819594/19819594-hd_1920_1080_50fps.mp4`
+5. `pexels-illuminated-mosque-night-34928699` — `https://videos.pexels.com/video-files/34928699/14795106_2160_3840_25fps.mp4`
+6. `pexels-moroccan-courtyard-tiles-34527220` — `https://videos.pexels.com/video-files/34527220/14628540_1080_1920_30fps.mp4`
+7. `pexels-moroccan-courtyard-decor-32719926` — `https://videos.pexels.com/video-files/32719926/13948792_3840_2160_30fps.mp4`
 
-## Still pending
-- The Pixabay candidate `pixabay-chain-dome-rock-131292` has no verified direct media URL.
-- The seven Pexels direct URLs have not yet been written into the review catalog because the GitHub catalog update was blocked before a commit was created.
-- Run the review-only downloader, `ffprobe`, 9:16 crop, and Quran-overlay visual QA after safely staging those URLs.
-- Keep all approval and production gates closed until the user explicitly approves a visual preview.
+The seven URLs are now staged in `data/background_additions_review.json` strictly for review-only processing. Capturing a redirect does not itself prove the MP4 bytes download or pass `ffprobe`; CI must establish that.
 
-## CI record
-Latest confirmed workflow run before this log: `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, conclusion `success`. That run only validated the eight source-only entries; it did not download or probe the seven Pexels clips.
+## Remaining source
+- `pixabay-chain-dome-rock-131292` remains without a verified direct media URL.
+- The workflow assertion was updated to expect seven downloadable candidates and one unresolved Pixabay candidate.
+- Next checks: actual download, `ffprobe`, 9:16 crop, Quran overlay preview and visual legibility review.
+- No approval gate may be opened without explicit user approval.
+
+## Correction to the earlier log
+The earlier version overstated what had been verified. At that time, the direct URLs had not been captured and the catalog update had not succeeded. This entry records the later successful official-link redirect checks and catalog staging.
+
+## CI record before staging
+Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded `success`. It validated the eight source-only leads but did not download or probe their media.
