@@ -1202,3 +1202,13 @@ This mapping is static inspection only. No source/test/workflow implementation, 
 - Numeric Telegram chat ID does not prove `chat.type == private`; destination verification remains a separate pre-send requirement.
 - The shared content validator checks source/approval flags but does not enforce the complete per-asset rights evidence record required by `MEDIA_RIGHTS_POLICY.md`. A separate strict Pro preview rights gate is still needed before any preview send.
 - No tests were run. No workflow dispatch, render, Telegram request, TikTok publish, secrets/Cron/bot changes, production branch or original Quran engine changes.
+
+
+### Rights-gate contract prepared for next static implementation pass
+Before any preview can be sent, each exact media file must have a linked per-asset record; a platform-wide license URL or boolean `rights_verified` is insufficient.
+
+**Visual asset record:** exact asset page URL and asset ID where available; creator/uploader; source platform; download date; exact license name and saved license evidence/URL; intended use (editing, synchronization, private review, public social posting, and monetization if applicable); edits made; third-party people/logos/artwork/property/privacy review and resolution; reviewer and checked date.
+
+**Audio recording record:** exact recording/file URL; performer; recording owner; source platform; download date; exact permission/license evidence; explicit permission for download/editing, video synchronization, public social posting, commercial/monetized use if applicable, territories and duration; attribution wording; reviewer and checked date. Any missing scope or unclear ownership must fail closed.
+
+The strict gate should bind each rights record to the exact media file SHA-256 and manifest asset reference, reject generic platform-level evidence, and reject expired/limited permissions outside their stated scope. Silent videos must not be forced to have an audio rights record; any declared audio file must have one. No individual asset is approved by writing this contract.
