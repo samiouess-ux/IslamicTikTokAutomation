@@ -141,8 +141,10 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
     attribution = record.get("attribution")
     if not isinstance(attribution, dict) or type(attribution.get("required")) is not bool:
         _fail("attribution requirement must be explicit.")
-    if attribution["required"] and (not isinstance(attribution.get("text"), str) or not attribution["text"].strip()):
-        _fail("required attribution wording is missing.")
+    if attribution["required"]:
+        if not isinstance(attribution.get("text"), str) or not attribution["text"].strip():
+            _fail("required attribution wording is missing.")
+        _fail("required attribution is not yet injected into the Pro render/caption; asset remains blocked.")
     third = record.get("third_party_review")
     third_fields = ("people", "logos_trademarks", "artwork", "property_privacy", "endorsement")
     if not isinstance(third, dict):
