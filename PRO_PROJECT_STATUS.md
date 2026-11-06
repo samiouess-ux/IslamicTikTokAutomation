@@ -168,3 +168,10 @@ This section supersedes earlier historical statements in this file that the curr
 - Safe design required: distinguish `candidate_preview` from `production_approved`. A candidate may render and be sent only to the owner's private review Telegram destination with explicit preview-only metadata; it must never be treated as publish-ready, enter normal rotation as approved content, or trigger TikTok publishing. User approval/corrections must be recorded before promotion to production manifest.
 - Existing renderer and orchestrator currently do not implement this two-stage content state. No code changed in this step; do not render or send until the gate is implemented and tested.
 - Current Pro sender/ledger remain review-only but that alone does not resolve the content-manifest preflight mismatch.
+
+
+## 2026-11-06 — Duration regression test corrected
+- Fixed a stale renderer test that still expected a 60-second target and 65-second hard cap. The current Pro renderer's actual policy is a strict 40-second target and 40-second hard maximum.
+- The regression now asserts both constants are 40 seconds and verifies that a 41-second item is rejected.
+- This is a test correction only; no renderer behavior changed. The manual offline safety workflow has not yet been rerun for this commit.
+- Preview-only lifecycle implementation remains the next code task; no rendering or Telegram delivery occurred.
