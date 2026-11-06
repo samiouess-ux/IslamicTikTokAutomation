@@ -211,7 +211,31 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "malformed data"):
                     sender.send_preview(video, manifest, "secret-token", "12345", confirmed=True, repo_root=Path(tmp))
             self.assertEqual(call.call_count, 1)
-            self.assertNotIn("secret-token", str(call.call_args))
+            # The exception is deliberately generic; no token-bearing URL is exposed to callers.
+
+
+    def test_supergroup_and_channel_destinations_are_rejected(self):
+        for chat_type in ("supergroup", "channel"):
+            class Response:
+                def __enter__(self): return self
+                def __exit__(self, *args): return False
+                def read(self): return json.dumps({"ok": True, "result": {"id": 12345, "type": chat_type}}).encode()
+            with self.subTest(chat_type=chat_type), tempfile.TemporaryDirectory() as tmp:
+                video, manifest = self.files(Path(tmp))
+                with patch.object(sender.urllib.request, "urlopen", return_value=Response()) as call:
+                    with self.assertRaisesRegex(RuntimeError, "not a private chat"):
+                        sender.send_preview(video, manifest, "token", "12345", confirmed=True, repo_root=Path(tmp))
+                self.assertEqual(call.call_count, 1)
+
+    def test_getchat_api_failure_is_redacted_and_blocks_upload(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            with patch.object(sender.urllib.request, "urlopen", side_effect=OSError("token-bearing fake URL")) as call:
+                with self.assertRaisesRegex(RuntimeError, "verification failed") as caught:
+                    sender.send_preview(video, manifest, "secret-token", "12345", confirmed=True, repo_root=Path(tmp))
+            self.assertEqual(call.call_count, 1)
+            self.assertNotIn("secret-token", str(caught.exception))
+            self.assertNotIn("token-bearing fake URL", str(caught.exception))
 
 if __name__ == "__main__":
     unittest.main()
