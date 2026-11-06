@@ -1038,3 +1038,23 @@ Re-fetched and inspected the current versions of:
 - The future workflow's `contents: write` permission should be job-scoped and granted only after an exact Pro ref guard; never expose the existing bot secrets to non-Pro refs. The production workflow remains unchanged.
 - This was static inspection and design documentation only. No code, workflow, tests, dispatch, render, Telegram request, TikTok publish, secrets, Cron, bot settings, or production branch changed. Original Quran production engine remains untouched; eight-suite safety workflow remains NOT RUN.
 - Next: define the exact preview-ledger schema and state-transition contract, then review the proposed manual-only workflow boundary. Implementation and all execution/delivery actions remain separately gated.
+
+
+## 2026-11-06 — Preview ledger schema and transition contract
+- Re-fetched preview sender, existing delivery ledger, and delivery cycle. Preview sender currently has no persistence/idempotency integration; the production delivery cycle is a different interface and must not be reused unchanged for candidate previews.
+- Proposed separate file: `data/pro_preview_send_ledger.json`, schema version 1, top-level `entries` keyed by immutable candidate ID. Each entry must include:
+  - `candidate_id`, `content_type` (`dua` or `dhikr`), `manifest_sha256`, `video_sha256`, `workflow_run_id`;
+  - `state` (`reserved`, `delivered`, or `uncertain`), `created_at`, `updated_at`;
+  - `telegram_message_id` (null unless delivered), plus optional non-secret diagnostic outcome metadata.
+- Identity rule: candidate ID is the unique key. If it already exists, reject every second send regardless of state. If the same candidate ID is presented with changed manifest/video hashes, reject as an identity conflict; a materially changed candidate must receive a new reviewed candidate ID. Hashes are immutable evidence, not a way to bypass the uniqueness rule.
+- Required order:
+  1. Preflight every local input before reservation: exact Pro ref, manifest lifecycle and validator, candidate ID/path safety, exact PREVIEW-ONLY filename, MP4 existence/size, caption length, bot/chat configuration presence, and compute SHA-256 for manifest and MP4.
+  2. Acquire the Pro workflow's fixed concurrency group (`cancel-in-progress: false`); load the latest remote ledger and reject malformed/unknown schema or an existing candidate ID.
+  3. Write `reserved` with hashes/run ID and push only this ledger file to the exact Pro branch. Telegram must not be called unless that push succeeds and the committed reservation is re-read/verified.
+  4. Call Telegram once only. No automatic retry for timeout, connection loss, malformed response, or any uncertain outcome.
+  5. On a valid Telegram success response with positive integer `message_id`, write/push `delivered`. If Telegram outcome is ambiguous, write/push `uncertain`. If final ledger persistence fails, the previously persisted `reserved` record remains a duplicate-send block and must be manually reconciled.
+- State transitions: `reserved -> delivered`, `reserved -> uncertain`, and human-confirmed `uncertain -> delivered` only when a valid message receipt is recovered. Releasing `reserved/uncertain` as not delivered requires a separate explicit human confirmation and evidence check. Never auto-delete or auto-expire a reservation.
+- Concurrency/persistence: local file locks alone do not protect different GitHub runners. Serialize preview workflow runs with one fixed concurrency group; use a fresh checkout/fetch before read-modify-write; on push conflict/non-fast-forward, stop before Telegram and reconcile from the remote ledger rather than force-pushing. The workflow should grant `contents: write` only in its exact-Pro-guarded job.
+- Keep this file and lifecycle entirely separate from `data/pro_delivery_ledger.json`, production rotation/history, the original Quran sender/workflow, and TikTok publishing. The existing preview sender must not be called directly by a workflow until this ledger wrapper is implemented and tested.
+- This is a design checkpoint only. No code, workflow, tests, dispatch, render, Telegram request, TikTok publish, secret, Cron, bot setting, or production branch changed. Original Quran engine remains untouched; expanded eight-suite safety workflow remains NOT RUN.
+- Next: review the complete manual-only Pro workflow security boundary (trigger, exact ref guard, secret exposure, write permissions, artifact paths, concurrency, and failure behavior) before requesting approval for implementation.
