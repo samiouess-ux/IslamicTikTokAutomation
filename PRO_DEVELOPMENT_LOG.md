@@ -711,3 +711,17 @@ Added `content/pro/MEDIA_RIGHTS_POLICY.md`. Pexels and Pixabay may be used as di
 The user explicitly stated that they will verify the Arabic texts when preview videos arrive on Telegram and tell us corrections/approval. Record this as the human text-review gate at the Telegram preview stage. It does not mean any current candidate is approved; candidates remain unapproved until the user reviews the delivered preview. Do not claim a Telegram preview delivery has occurred. The delivery cycle is still not wired into a workflow.
 
 No render, Telegram delivery, or TikTok publication occurred in this step.
+
+
+## 2026-11-06 — Code inspection: preview-stage human review mismatch
+
+Inspected `src/pro_orchestrator.py`, `src/render_dua_video.py`, `src/validate_content_manifest.py`, and `content/pro/README.md`. The validator currently rejects any dua/dhikr item unless `human_reviewed: true`; the orchestrator validates before rendering. This conflicts with the user's explicit desired process: receive the first Arabic-text preview in private Telegram, inspect it personally, then report corrections/approval.
+
+### Required safe design (not implemented yet)
+- Introduce explicit content lifecycle states such as `candidate_preview` and `production_approved`.
+- Permit only a source-cited, rights-cleared, preview-only candidate through the preview render/send path; it must be clearly marked as a private review preview and must not be eligible for production rotation or public posting.
+- Keep production manifests strict: user text approval/corrections recorded, required media rights checks complete, and normal rotation/production approval only after the Telegram review step.
+- Add negative tests proving candidate previews cannot pass as production manifests and cannot enter TikTok/publication paths.
+- Wire the preview delivery separately from production delivery; never silently relax the existing production validator.
+
+No code changed in this step. No render, Telegram send, or TikTok publication occurred. This is now a documented blocker and next implementation task.
