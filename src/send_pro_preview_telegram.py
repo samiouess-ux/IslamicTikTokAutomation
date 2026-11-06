@@ -136,7 +136,6 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
     expected_name = "PREVIEW-ONLY-{}-{}.mp4".format(data["content_type"], manifest_id)
     if not isinstance(manifest_id, str) or video_path.name != expected_name:
         raise ValueError("Preview filename must exactly match the selected candidate manifest id and content type.")
-    verify_private_chat(token, chat_id, urlopen_fn=urlopen_fn)
     boundary = "----DuaAdhkarProPreview" + secrets.token_hex(16)
     body = b"".join([
         f"--{boundary}\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n{chat_id}\r\n".encode(),
@@ -153,9 +152,15 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
         method="POST",
     )
 
+    # Verify after all local checks and immediately before the single upload request.
+    verify_private_chat(token, chat_id, urlopen_fn=urlopen_fn)
     # A timeout or lost response may follow successful delivery. Never retry here.
-    with (urlopen_fn or urllib.request.urlopen)(request, timeout=180) as response:
-        result = json.loads(response.read().decode("utf-8"))
+    try:
+        with (urlopen_fn or urllib.request.urlopen)(request, timeout=180) as response:
+            result = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        # The upload may have been accepted despite a lost response; redact token-bearing URL.
+        raise RuntimeError("Telegram sendVideo transport outcome is uncertain; do not retry automatically.") from None
     if not result.get("ok") or not isinstance(result.get("result"), dict):
         raise RuntimeError("Telegram did not confirm the candidate preview. Outcome may be uncertain; do not retry automatically.")
     message_id = result["result"].get("message_id")
