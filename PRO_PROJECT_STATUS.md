@@ -26,17 +26,17 @@
 ## Telegram architecture audit
 - Existing `telegram-quran-request.yml` is pinned to the production branch and must not be modified or reused for Pro.
 - Existing `send_telegram.py` uses `TG_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, but its caption is hard-coded for Quran review.
-- A separate Pro sender and manual-only workflow are still needed to safely use the same bot without changing production delivery.
+- Added `src/send_pro_telegram.py`: separate Pro branding, dua/dhikr-only metadata gate, review-only and auto-publish safeguards, 50 MB/1,024-character limits, and Telegram message-ID confirmation. It reuses the existing secret names without reading or changing them. A manual-only Pro workflow is still needed.
 
-## Validation status
+## Latest Pro Telegram sender commits\n- Sender: `9f93f7a143763a2f1d2384c5f8be829ce733b457`\n- Offline sender tests: `b558c01736860d101e37e4aa3a175d4c97b43f61`\n\n## Validation status
 - GitHub writes succeeded on `feature/quran-video-pro`.
 - Unit tests have NOT been run; no test is reported as passing.
 - No preflight command, MP4 render, GitHub Actions run, Telegram send, or TikTok publish has occurred.
-- No verified dua/dhikr production library or Pro Telegram delivery route has been added.
+- No verified dua/dhikr production library or Pro Telegram workflow has been added. The sender module exists but has not been executed or connected to a workflow.
 - No production branch, Cron, secrets, or production delivery path was changed.
 
 ## Next steps
-1. Add a Pro-specific caption/sender and a manual-dispatch-only workflow with branch guards.
+1. Add a manual-dispatch-only Pro workflow with strict branch guards and safe manifest/render gates; sender module is implemented.
 2. Add tests for sender caption, file limits, and workflow isolation.
 3. Add a non-content schema/example and then build a verified library from reviewed primary sources.
 4. Request explicit approval before any workflow dispatch, render, or Telegram send.
