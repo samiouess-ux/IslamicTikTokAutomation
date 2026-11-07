@@ -85,3 +85,15 @@ This correction does not approve the hadith. Human selection of one exact source
 - Duration suitability under the 40-second cap: not tested; Arabic plus English may require careful timing or a separate format decision. Do not truncate the dua to force a fit.
 - Media/audio rights: not reviewed.
 - Production status: blocked; do not create a manifest yet.
+
+
+### QD-001 source corroboration addendum — 2026-11-07
+
+A further source check compared the Quran.com verse page with the Quranic Arabic Corpus verse 2:201 page. Both identify the item as Al-Baqarah 2:201 and display the Saheeh/Sahih International English rendering: “But among them is he who says, ‘Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.’” The Quranic Arabic Corpus page also provides parallel translations and word-by-word morphology. This corroborates the reference and the intended English translation; it does not replace the still-pending human letter-by-letter Arabic review, context review, or the separate media-rights process.
+
+Sources checked:
+- Quran.com: https://quran.com/al-baqarah/201?translations=131
+- Quranic Arabic Corpus: https://corpus.quran.com/translation.jsp?chapter=2&verse=201
+- Legacy Quran.com source rendering: https://legacy.quran.com/2/201
+
+Status remains `source_checked_candidate`; no manifest, approval flag, render, or delivery is authorized by this addendum.
