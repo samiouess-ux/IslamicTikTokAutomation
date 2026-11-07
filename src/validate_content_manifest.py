@@ -7,10 +7,21 @@ sources and explicit human review recorded in the manifest.
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import urlsplit
 
 
 CONTENT_TYPES = {"quran", "dua", "dhikr"}
 AUDIO_KINDS = {"quran_recitation", "spoken_dua", "ambient_nature", "silent"}
+
+def _is_valid_https_url(value: Any) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    try:
+        parsed = urlsplit(value)
+        return (parsed.scheme == "https" and bool(parsed.hostname)
+                and parsed.username is None and parsed.password is None)
+    except ValueError:
+        return False
 
 
 def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: bool = False) -> None:
@@ -113,8 +124,9 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
             if not isinstance(item_id, str) or not item_id.strip() or item_id in seen_item_ids:
                 raise SystemExit("Every dua/dhikr item needs a unique, stable id.")
             seen_item_ids.add(item_id)
-            if not item.get("source_name") or not str(item.get("source_url", "")).startswith("https://"):
-                raise SystemExit("Every dua/dhikr item needs a named HTTPS religious source.")
+            if (not isinstance(item.get("source_name"), str) or not item["source_name"].strip()
+                    or not _is_valid_https_url(item.get("source_url"))):
+                raise SystemExit("Every dua/dhikr item needs a named HTTPS religious source with a valid host.")
             if not isinstance(item.get("source_reference"), str) or not item["source_reference"].strip():
                 raise SystemExit("Every dua/dhikr item needs an exact source reference (book/chapter/hadith or Quran reference).")
             if item.get("verification_status") != "verified":
