@@ -2341,3 +2341,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated the dua test fixture and added regressions for missing theme, missing rationale, missing human review, and a valid topic-specific reviewed background.
 - Updated `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log on `feature/quran-video-pro` only.
 - Tests have not been executed because no local checkout or current-HEAD workflow dispatch is available in this session. The changes are source-committed but unvalidated. No render, Telegram request/send, TikTok publication, media approval, or production-branch change occurred.
+
+
+## 2026-11-07 — Repair 61: prevent same background video within a Pro batch
+
+- Source review found that Repair 60 enforced an item-specific, human-reviewed background theme and rationale, but the Pro batch orchestrator still accepted two different dua/dhikr manifests that pointed to the exact same background video.
+- Updated `src/pro_orchestrator.py` to track exact `visual.background_candidate.direct_video_url` values during one production batch and fail closed if a later video reuses one.
+- Added regression tests in `tests/test_pro_orchestrator.py` proving duplicate background URLs are rejected and distinct URLs remain accepted.
+- Scope is deliberately limited to the same batch. Cross-day background history/rotation is not claimed as implemented; the current history contract stores content IDs and there is no verified background-history persistence path yet.
+- Tests were authored but not executed: no local checkout is available in this session and no GitHub Actions workflow-dispatch action is exposed. No preview render, Telegram delivery, TikTok publication, media approval, secret change, or production-branch change was performed.
