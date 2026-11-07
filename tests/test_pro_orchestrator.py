@@ -118,6 +118,29 @@ class ProOrchestratorTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "dua or dhikr"):
                 build_plan(Path(tmp), {"content": []}, "quran", "2026-11-06", 1)
 
+    def test_batch_rejects_reusing_the_same_background_video(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            first = self.write_manifest(folder, "a.json", "dua-a", "item-a")
+            second = self.write_manifest(folder, "b.json", "dua-b", "item-b")
+            data = json.loads(second.read_text(encoding="utf-8"))
+            first_data = json.loads(first.read_text(encoding="utf-8"))
+            data["visual"]["background_candidate"]["direct_video_url"] = first_data["visual"]["background_candidate"]["direct_video_url"]
+            second.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "cannot reuse the same exact background video"):
+                build_plan(folder, {"content": []}, "dua", "2026-11-07", 2)
+
+    def test_batch_accepts_distinct_background_videos(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write_manifest(folder, "a.json", "dua-a", "item-a")
+            second = self.write_manifest(folder, "b.json", "dua-b", "item-b")
+            data = json.loads(second.read_text(encoding="utf-8"))
+            data["visual"]["background_candidate"]["direct_video_url"] = "https://example.org/other-background.mp4"
+            second.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            plan = build_plan(folder, {"content": []}, "dua", "2026-11-07", 2)
+            self.assertEqual(len(plan), 2)
+
     def test_supports_multiple_sourced_items_in_one_video(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
