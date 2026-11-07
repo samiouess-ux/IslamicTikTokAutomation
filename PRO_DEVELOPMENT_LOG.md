@@ -2091,3 +2091,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The cycle now returns a generic, non-chained uncertainty error after successfully persisting the uncertain state. If transition or persistence cannot be confirmed, it returns a separate generic non-chained error and never leaks the underlying exception.
 - Added regression tests for token-bearing sender exception redaction and failed uncertainty persistence.
 - Source, tests, and log committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 28: align preview-cycle timeout regression with redacted errors
+- After Repair 27, review found one older preview-cycle test still expected the raw `TimeoutError`, even though the cycle now deliberately converts ambiguous sender failures into a generic, non-chained `RuntimeError` after persisting `uncertain`.
+- Updated the older regression to assert the safe uncertainty message, absence of the original timeout detail, and absence of an exception cause. This removes a known stale expectation and makes the test suite's intended error contract consistent.
+- Test and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
