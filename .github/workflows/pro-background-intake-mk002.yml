@@ -77,7 +77,7 @@ jobs:
               raise SystemExit("Downloaded response is not reported as video content.")
           out_dir = Path("pro_background_intake")
           out_dir.mkdir(exist_ok=True)
-          target = out_dir / "MK-002-beautiful-sunrise-landscape.mp4"
+          target = out_dir / "MK-002-forest-during-the-morning.mp4"
           digest = hashlib.sha256()
           total = 0
           with target.open("wb") as handle:
@@ -117,14 +117,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          video="pro_background_intake/MK-002-beautiful-sunrise-landscape.mp4"
+          video="pro_background_intake/MK-002-forest-during-the-morning.mp4"
           ffprobe -v error -show_entries format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate -of json "$video" | tee pro_background_intake/ffprobe.json
           python - <<'PY'
           import json, subprocess
           from pathlib import Path
           from PIL import Image, ImageDraw
           root = Path("pro_background_intake")
-          video = root / "MK-002-beautiful-sunrise-landscape.mp4"
+          video = root / "MK-002-forest-during-the-morning.mp4"
           info = json.loads((root / "ffprobe.json").read_text())
           duration = float(info["format"]["duration"])
           if duration <= 0:
