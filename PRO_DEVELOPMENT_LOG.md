@@ -1582,3 +1582,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`), `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`), and `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`) from `feature/quran-video-pro`.
 - Static inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
+
+## 2026-11-07 — Static review: renderer workspace isolation and concat path encoding
+
+### Findings (review only; no code changes)
+- `render_dua_video.main()` uses the shared fixed workspace `build/dua` for every invocation. `build_slideshow()` writes deterministic names (`item_000.png`, etc.) and one shared `overlays.ffconcat` there. Two concurrent renders can overwrite each other's overlays or playlist while FFmpeg is consuming them, potentially producing a mixed or incorrect candidate. The current renderer tests use separate temporary directories for direct slideshow tests and do not exercise concurrent `main()` invocations or workspace isolation.
+- The concat playlist embeds absolute overlay paths inside single-quoted `file '…'` records without escaping FFconcat-special characters. A checkout/workspace path containing an apostrophe or backslash can make the playlist parse incorrectly; if such a path is attacker-controlled, concat syntax may also be interpreted unexpectedly. Current tests only assert ordinary filenames and do not cover special-character paths.
+- Recommended hardening: allocate a unique per-invocation temporary workspace (and clean it safely after FFmpeg completes), then use a documented FFconcat-safe path-escaping routine or a safer generated relative-path scheme. Add tests for concurrent workspace separation and paths containing apostrophes/backslashes. Keep output destinations separately constrained/validated according to the caller's intended output directory.
+- These are renderer isolation/path-encoding concerns. Static inspection did not establish an ordinary-flow approval bypass or prove that a malicious path has been exploited.
+
+### Verification and safety
+- Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`), `tests/test_render_dua_video.py` (blob `685937e838567c28c480262fc807268e28bde7f8`), and `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) from `feature/quran-video-pro`.
+- Read-only inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
