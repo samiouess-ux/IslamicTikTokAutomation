@@ -1798,3 +1798,45 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Static source/test inspection only; no tests or caption-generation command were run.
 - No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred.
 - No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: malformed Pro delivery metadata and ledger types
+
+### Findings (documentation only; no code changes)
+
+1. **Rotation batch count accepts a boolean**
+   - In `src/content_rotation.py`, `choose_manifests()` checks `isinstance(count, int)` and `count < 1`. Since Python booleans are integers, `count=True` is accepted as a batch size of one, despite the positive-integer contract.
+   - Recommended hardening: reject booleans explicitly (or require `type(count) is int`) and add `True`/`False` regression cases.
+
+2. **Local delivery ledger has weak JSON type guards**
+   - In `src/pro_delivery_ledger.py`, `load_ledger()` checks `data.get("version") != 1`; JSON `true` compares equal to integer 1 and is accepted as a schema version.
+   - The entry-state check uses set membership without first requiring a string. A JSON list/object in `state` is unhashable and raises `TypeError` instead of the intended controlled `ValueError`.
+   - Recommended hardening: require an exact integer schema version (excluding booleans) and a string state before membership validation; add malformed-type regression cases.
+
+3. **Caption JSON root is not checked in the standard delivery path**
+   - `src/pro_delivery_cycle.py` parses the caption JSON and immediately calls `.get()` on the root value. `null`, arrays, or scalar JSON values therefore raise `AttributeError` rather than a controlled input-validation error.
+   - `src/send_pro_telegram.py` has the same root-shape assumption: `build_caption()` calls `.get()`, and the sender later reads fields from the same decoded value. The malformed input is rejected only accidentally by an exception, not by an explicit schema check.
+   - Recommended hardening: require the decoded caption root to be a dictionary in both entry points before accessing fields; add null/list/scalar tests and verify no reservation or Telegram request occurs for malformed captions.
+
+4. **Malformed Telegram sendVideo JSON root is not normalized to an uncertain outcome**
+   - In `src/send_pro_telegram.py`, the decoded sendVideo response is accessed with `.get("ok")` without checking that the top-level JSON value is a dictionary.
+   - A valid JSON response such as `null`, a list, or a string raises `AttributeError` after the upload request. The exception path does move the ledger to `uncertain` and does not auto-retry, so the duplicate-send protection remains; the gap is the missing explicit, consistent ambiguous-outcome diagnostic.
+   - Recommended hardening: check the response root type and raise a clear uncertain-outcome error; test malformed roots while asserting exactly one sendVideo request and an uncertain ledger state.
+
+5. **Candidate-preview manifest root is not checked before field access**
+   - In `src/pro_preview_delivery_cycle.py::preflight()`, manifest JSON is decoded and `data.get("id")` is called immediately. A JSON null/list/scalar root raises `AttributeError` instead of the preflight's controlled `ValueError`.
+   - Recommended hardening: require a dictionary immediately after decoding and add malformed-root tests that assert no reservation, persistence, or Telegram request is attempted.
+
+6. **Preview ledger enum fields can raise TypeError on malformed JSON types**
+   - In `src/pro_preview_send_ledger.py::_validate_entry()`, `content_type` and `state` are checked with set membership without explicit string type checks. A list/object value in either field raises `TypeError` instead of the validator's controlled `ValueError`.
+   - The existing ledger tests cover unsupported schema versions and hashes, but do not cover list/object enum values.
+   - Recommended hardening: require strings before set membership and add list/object regression cases for both fields.
+
+### Source verification
+- Re-fetched the reviewed files from `feature/quran-video-pro`: `src/content_rotation.py` (blob `2ad7ca31cf8b5c54edc362c64f845fb4412fbb6a`), `src/pro_delivery_ledger.py` (blob `6466ba9faee6c8c76dec47a216aac9818f4f5314`), `src/pro_delivery_cycle.py` (blob `f84580d8b58cf3debc959946ff7284be5fb3734c`), `src/send_pro_telegram.py` (blob `4d232e5fdeb947b977dc099ca610178beb01fd93`), `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`), and `src/pro_preview_send_ledger.py` (blob `4165e0b9fcf12d5666a867511392bf2f361583ad`).
+- Relevant tests were re-fetched for static comparison: `tests/test_pro_delivery_cycle.py`, `tests/test_send_pro_telegram.py`, `tests/test_pro_preview_delivery_cycle.py`, and `tests/test_pro_preview_send_ledger.py`. No tests were executed.
+
+### Safety and status
+- These are input-validation and error-reporting robustness findings; no approval bypass, automatic retry, or TikTok publishing path was demonstrated.
+- Static review only. No source/test files changed, no tests or workflows were run, no render or ledger persistence was performed, and no Telegram request/send/upload or TikTok publishing occurred.
+- Only `feature/quran-video-pro` was updated. The production branch, original Quran engine/bot, secrets, and Cron were not touched.
