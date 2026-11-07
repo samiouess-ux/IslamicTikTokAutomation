@@ -2574,3 +2574,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Verified exact page facts: 26.066 seconds, 1080x1920, 7,097,794 bytes, video/webm, Commons SHA-1 `f731168d29e287072ba2a5dded194b072fe79d2e`, uploader/author JaredMcKenzie, source Own work, and CC0 1.0 dedication. The page explicitly allows commercial reuse under CC0; see https://commons.wikimedia.org/wiki/File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm.
 - Official CommonsMetadata documentation explains that extmetadata includes LicenseShortName, LicenseUrl, Copyrighted, Restrictions, and Artist, while warning that some metadata may be unreliable (notably multi-licensed files) and that Artist can contain complex HTML. This is why the workflow pins one exact file and retains manual review gates.
 - The updated workflow and this log entry were fetched back and verified. No successful intake run, downloaded file, SHA-256, playback inspection, rights approval, render, Telegram send, or TikTok publication is claimed.
+
+
+## 2026-11-07 — Link intake workflow changes to Pro offline safety CI
+
+- Updated `.github/workflows/pro-safety-tests-on-push.yml` in commit `ee5a4471948f23f21fb51c28ddbe1af3c6b7c98c` so changes to the exact WC-001 intake workflow also trigger the existing Pro-only offline safety suite.
+- This keeps the Pro test suite running on the latest branch state whenever this candidate-intake workflow is changed. It does not claim to test GitHub Actions workflow semantics or execute the intake itself; it runs the existing Python offline safety suites.
+- The push should trigger the suite because the changed path is now included. The run/result has not yet been observed through the available GitHub status interface; do not claim tests passed until a matching run and SHA are confirmed.
+- No Telegram, publishing, secrets, media approval, manifest, or render behavior was enabled.
