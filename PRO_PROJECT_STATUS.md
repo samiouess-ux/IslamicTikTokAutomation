@@ -496,3 +496,11 @@ This section supersedes earlier historical statements in this file that the curr
 - `test_render_dua_video.py` was not reached because the shell exits on the orchestrator suite failure. Full workflow is NOT green.
 - Next safe code fix to review: update only the test expectation to the actual `FileNotFoundError` (with the no-eligible message), then rerun the manual offline safety workflow after explicit approval. Do not weaken the production rotation guard.
 - No render, Telegram request/send, TikTok publish, secrets/Cron/bot-setting change, or original Quran engine operation occurred. No changes to `main` or `feature/telegram-review-notifications`.
+
+## 2026-11-07 — Pro offline safety workflow PASS
+- Fixed only the incorrect assertion in `tests/test_pro_orchestrator.py`: the test now expects `FileNotFoundError` with the actual no-eligible-approved-manifest message. Production rotation behavior was not weakened.
+- Test-fix commit: `17b537e78a8052c374afcc40368ba9164bf32430`; verified file blob SHA: `b86fb7dec3ec16f47b6eed51ab6d520fec5b36da`.
+- Re-ran the failed Pro-only offline safety job in workflow run [42318772835](https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/42318772835). Latest attempt job ID: `128245228932`; conclusion: SUCCESS. The job checked out the exact `feature/quran-video-pro` branch, installed Pillow, and completed all ten configured suites.
+- Verified 90 tests passed across 10 suites: 6 + 10 + 13 + 10 + 8 + 5 + 7 + 16 + 7 + 8. This includes media-rights validation, preview delivery-cycle guards, orchestrator, and renderer tests. Renderer tests include the 40-second cap and audio-duration checks.
+- This is an OFFLINE test result only. No video was rendered, no Telegram API send/upload occurred, no TikTok publishing occurred, and no production delivery workflow was run.
+- Original Quran engine, original Telegram bot, secrets, Cron, `main`, and `feature/telegram-review-notifications` remain untouched.
