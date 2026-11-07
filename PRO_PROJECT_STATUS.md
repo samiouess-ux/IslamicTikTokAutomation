@@ -27,11 +27,13 @@
 - Delivery-cycle tests cover first-push failure or no-op blocking sender invocation, uncertain-state persistence, failure to persist an uncertain outcome, persist/send/persist ordering, final-push failure behavior, and rejection of a ledger path outside the persisted checkout.
 - **Important:** no Pro workflow currently persists the ledger between runs. Cross-run duplicate protection is therefore not yet complete, and Telegram delivery remains disabled.
  
-## Validation status
-- Unit tests have NOT been run; no test is reported as passing. Additional sender and persistence failure-boundary tests were committed on 2026-11-06, but remain unexecuted.
-- No Pro preflight command, MP4 render, GitHub Actions workflow, Telegram API call, or TikTok publish has occurred.
-- No secrets, Cron settings, or production workflow logic were changed.
-- Pro has no verified content library yet; do not attempt delivery until reviewed manifests exist and idempotency is safely implemented.
+## Validation status — current as of 2026-11-07
+- The Pro-only manual offline safety workflow passed all 10 configured suites: 90 tests passed. Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/42318772835 (latest job attempt `128245228932`).
+- Covered tests include the Pro delivery ledger, Telegram sender safeguards, per-asset media-rights validator, preview delivery cycle, persistence, content manifest, orchestrator, and renderer (including the 40-second hard cap).
+- This is offline/mock validation only. No Pro MP4 was rendered, no Telegram API request/upload/send occurred, and no TikTok publish occurred.
+- No approved production Dua/Dhikr manifest, per-asset approved media rights record, or verified media bundle is available yet. Therefore no preview is ready to render or deliver.
+- Original Telegram bot reuse remains desired but not enabled/verified for Pro. No Pro delivery workflow or schedule exists. No secrets, Cron, or production workflow settings were changed.
+- Do not enable delivery until reviewed religious content, exact media rights evidence, private-chat destination verification, and durable cross-run duplicate protection are all in place.
 
 ## Cross-run persistence design
 - Design committed in `PRO_LEDGER_PERSISTENCE_DESIGN.md` (commit `e3c50a6c66a13d23c753cb9c7f975c1b633accd5`).
@@ -40,11 +42,11 @@
 - A manual-only Pro safety-test workflow exists at `.github/workflows/pro-safety-tests-manual.yml`; it is not a delivery workflow and has not been dispatched. No reviewed `content/pro` manifests exist.
 
 ## Next steps
-1. Review the new `src/pro_delivery_cycle.py` and tests, then run the offline safety suite only after explicit approval. The coordinator now wires reserve -> persist -> send -> persist in code, but is not connected to any delivery workflow.
-2. Build a separate delivery workflow only after the two-phase protocol is integrated and reviewed content exists. The current manual-only workflow runs offline tests only; no delivery workflow or schedule exists.
-3. Build a reviewed dua/dhikr content library from trustworthy primary sources.
-4. Dispatch the manual-only safety-test workflow only after explicit user approval, then record exact test results.
-5. Ask for explicit approval before any workflow dispatch, render, or Telegram send.
+1. Build and human-review the first small Dua/Dhikr content set from trustworthy primary sources; do not mark candidate content approved without exact source verification.
+2. Select exact local background/audio assets and complete per-asset rights evidence, including worldwide/public-social/commercial scope where intended. Unresolved attribution or third-party rights block rendering.
+3. Complete a read-only review of cross-run Pro preview-ledger persistence and the proposed reuse of the original Telegram bot through the separate Pro route. Do not inspect or change production secrets; any mapping/credential change needs separate explicit approval.
+4. Only after content and rights are approved, design a manual-only preview workflow with exact Pro branch guard, fixed concurrency, reservation persisted before send, no automatic retry, and outcome persisted afterward.
+5. Ask separately before any workflow dispatch, render, real Telegram request/send, or TikTok publish. The existing safety workflow remains offline-tests-only.
 
 ## Latest Pro-only commits — 2026-11-06
 - Sender failure-boundary tests: `a9dcc3129e80e20605a5d858627a0827459e2f1d`.
