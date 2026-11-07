@@ -56,6 +56,19 @@ class ProLedgerPersistenceTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "staged changes"):
                 persist_ledger(self.repo)
 
+    def test_unchanged_production_ledger_is_a_clean_noop(self):
+        outputs = self.aligned_prefix() + [
+            (0, "", ""),  # pre-existing staged paths
+            (0, "", ""),  # git add
+            (0, "", ""),  # no staged paths: unchanged ledger
+        ]
+        with self.run_git(outputs) as patched:
+            self.assertFalse(persist_ledger(self.repo))
+        self.assertEqual(len(patched.call_args_list), 7)
+        commands = [call.args[0] for call in patched.call_args_list]
+        self.assertIn(["git", "add", "--", "data/pro_delivery_ledger.json"], commands)
+        self.assertFalse(any(command[1] in {"commit", "push"} for command in commands))
+
     def test_commits_only_ledger_and_verifies_exact_remote_head(self):
         outputs = self.aligned_prefix() + [
             (0, "", ""),  # pre-existing staged paths
@@ -125,7 +138,7 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         ledger.symlink_to(target)
         outputs = self.aligned_prefix() + [(0, "", "")]
         with self.run_git(outputs):
-            with self.assertRaisesRegex(RuntimeError, "must not be a symlink"):
+            with self.assertRaisesRegex(RuntimeError, "storage paths must not contain symlinks"):
                 persist_ledger(self.repo)
 
     def test_refuses_symlinked_ledger_lock_file(self):
@@ -157,7 +170,7 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         data.symlink_to(outside, target_is_directory=True)
         outputs = self.aligned_prefix() + [(0, "", "")]
         with self.run_git(outputs):
-            with self.assertRaisesRegex(RuntimeError, "data directory must not be a symlink"):
+            with self.assertRaisesRegex(RuntimeError, "storage paths must not contain symlinks"):
                 persist_ledger(self.repo)
 
     def test_refuses_unrelated_staged_path_after_add(self):
