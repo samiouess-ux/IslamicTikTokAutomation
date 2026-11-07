@@ -1727,3 +1727,21 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Static source/test inspection only; no code or test files changed and no tests were run.
 - No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
 - This entry was recorded on `feature/quran-video-pro` only.
+
+
+## 2026-11-07 — Static review: malformed rotation history entries can escape preflight
+
+### Finding
+- Re-inspected `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`), `src/content_rotation.py` (blob `2ad7ca31cf8b5c54edc362c64f845fb4412fbb6a`), and `tests/test_pro_orchestrator.py` (blob `b86fb7dec3ec16f47b6eed51ab6d520fec5b36da`).
+- `load_history()` validates only that `history["content"]` is a list. It does not validate that each entry is a manifest ID string.
+- `choose_manifests()` / `choose_manifest()` convert the history entries to a set. A JSON list or object nested inside the history list is unhashable and raises `TypeError`.
+- The orchestrator's preflight exception handlers do not catch `TypeError`, so malformed persisted history can escape the structured `blocked` response. No render or send is triggered by this path; this is a preflight robustness/reporting issue.
+
+### Recommendation
+- Validate every history entry as a non-empty string before rotation selection; reject malformed history with a controlled validation error rather than silently coercing values.
+- Add tests for list/object entries in the history array and assert the orchestrator returns a structured blocked result with no render attempt.
+
+### Validation status and restrictions
+- Static source/test inspection only; no code or test files changed and no tests were run.
+- No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
+- This entry was recorded on `feature/quran-video-pro` only.
