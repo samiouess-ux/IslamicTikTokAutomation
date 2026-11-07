@@ -33,7 +33,12 @@ def persist_ledger(repo: Path) -> bool:
     if staged_before:
         raise RuntimeError("Refusing persistence because unrelated staged changes already exist.")
 
+    data_dir = repo / LEDGER_RELATIVE_PATH.parent
+    if data_dir.is_symlink():
+        raise RuntimeError("Pro ledger data directory must not be a symlink.")
     ledger_path = repo / LEDGER_RELATIVE_PATH
+    if ledger_path.is_symlink():
+        raise RuntimeError("Pro ledger file must not be a symlink.")
     if not ledger_path.is_file():
         raise FileNotFoundError(f"Pro ledger file is missing: {ledger_path}")
 
