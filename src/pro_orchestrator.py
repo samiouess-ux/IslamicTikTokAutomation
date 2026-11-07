@@ -84,7 +84,8 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
 def build_preview_plan(manifest_path: Path) -> dict:
     """Validate one explicitly selected candidate without rotation eligibility."""
     manifest = read_json(manifest_path)
-    if manifest.get("content_type") not in {"dua", "dhikr"}:
+    content_type = manifest.get("content_type")
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise SystemExit("Preview candidate must be dua or dhikr.")
     if manifest.get("lifecycle_status") != "candidate_preview" or manifest.get("preview_only") is not True:
         raise SystemExit("Preview path requires lifecycle_status=candidate_preview and preview_only=true.")
