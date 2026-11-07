@@ -17,9 +17,14 @@ def choose_manifest(
     recent_ids: Iterable[str] = (),
     rotation_key: str = "",
 ) -> Path:
-    if content_type not in {"quran", "dua", "dhikr"}:
+    if not isinstance(content_type, str) or content_type not in {"quran", "dua", "dhikr"}:
         raise ValueError("Unsupported content type.")
-    recent = set(recent_ids)
+    if not isinstance(rotation_key, str):
+        raise ValueError("rotation_key must be a string.")
+    recent_values = list(recent_ids)
+    if any(not isinstance(value, str) for value in recent_values):
+        raise ValueError("recent_ids must contain only strings.")
+    recent = set(recent_values)
     eligible: list[tuple[str, Path]] = []
     for path in sorted(content_dir.glob("*.json")):
         try:
@@ -62,7 +67,14 @@ def choose_manifests(
     """Select a batch of distinct approved manifests or fail without a partial batch."""
     if type(count) is not int or count < 1:
         raise ValueError("count must be a positive integer.")
-    recent = set(recent_ids)
+    if not isinstance(content_type, str) or content_type not in {"quran", "dua", "dhikr"}:
+        raise ValueError("Unsupported content type.")
+    if not isinstance(rotation_key, str):
+        raise ValueError("rotation_key must be a string.")
+    recent_values = list(recent_ids)
+    if any(not isinstance(value, str) for value in recent_values):
+        raise ValueError("recent_ids must contain only strings.")
+    recent = set(recent_values)
     selected: list[Path] = []
     for index in range(count):
         try:
