@@ -2189,3 +2189,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added a regression that creates a symlinked production lock file and verifies persistence stops before staging and leaves the external target unchanged.
 - Updated files: `src/persist_pro_ledger.py`, `tests/test_persist_pro_ledger.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 41: distinguish confirmed Telegram acceptance from local receipt failure
+- Review found a critical outcome-classification edge case: the production sender could receive Telegram's positive `ok: true` response and valid `message_id`, then fail while writing the local delivered receipt. The outer delivery cycle previously treated every sender exception as an ambiguous transport outcome and could label it uncertain, obscuring the fact that Telegram had already accepted the video.
+- Added a dedicated `TelegramAcceptedLedgerError` raised only after confirmed Telegram acceptance when local receipt finalization fails. The outer cycle now reports a confirmed-acceptance reconciliation condition, does not attempt an uncertain transition, and does not resend; the previously persisted reservation remains blocking.
+- Added sender-level and delivery-cycle regressions verifying the positive-acceptance path is kept distinct, diagnostics are redacted, and no second persistence/uncertain transition is attempted.
+- Updated files: `src/send_pro_telegram.py`, `src/pro_delivery_cycle.py`, `tests/test_send_pro_telegram.py`, `tests/test_pro_delivery_cycle.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
