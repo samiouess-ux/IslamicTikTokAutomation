@@ -48,7 +48,7 @@ def _file_lock(path: Path) -> Iterator[None]:
             descriptor = -1
             if os.name == "nt":
                 import msvcrt
-                stream.seek(0)
+                stream.seek(0, os.SEEK_END)
                 if stream.tell() == 0:
                     stream.write(b"0")
                     stream.flush()
