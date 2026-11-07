@@ -2434,3 +2434,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Recorded the official Free License scope (including social-media video posts and commercial projects), no mandatory attribution, and the fact that Mixkit User Terms and all existing per-asset/third-party review gates still apply.
 - Named MK-001 and MK-002 as example research leads only; no approval status or rights booleans were set. Exact downloaded bytes, file hashes, creator/owner confirmation, and visual third-party inspection are still outstanding.
 - No runtime code, manifest, media bytes, rights record, workflow, secret, Telegram configuration, or production branch was changed. No tests, render, Telegram request/send, or TikTok publication occurred.
+
+
+## 2026-11-07 — Mixkit User Terms caveat review
+
+- Read the official Mixkit User Terms (last revised 2025-10-02). They clarify that download grants a non-exclusive license, not ownership; prohibit scripts/bots for mass downloads or scraping the library; and warn that individual Item components (including trademarks/brands) may be third-party material not cleared for the user's use.
+- Refined the Pro policy: no Mixkit scraping or bulk downloads; acquisition must use the ordinary permitted individual download flow; exact file inspection and third-party review remain mandatory. This avoids building an automated scraper under the mistaken assumption that a general Free License authorizes it.
+- Updated policy and this log only. No media file, rights record, manifest, code, workflow, secret, Telegram configuration, render, send, or production branch changed.
