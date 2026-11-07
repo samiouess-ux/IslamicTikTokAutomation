@@ -163,6 +163,7 @@ def main() -> None:
     media_paths = validate_manifest_media_rights(
         data, repo_root=Path.cwd(),
         planned_use="private_review" if args.preview_only else "monetized_social",
+        planned_territory=data.get("review_delivery_territory") if args.preview_only else None,
     )
     if data.get("lifecycle_status") == "candidate_preview" and not args.preview_only:
         raise SystemExit("Candidate preview manifests require the explicit --preview-only renderer path.")
