@@ -53,8 +53,10 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
     background = visual.get("background_candidate", {})
     if not isinstance(background, dict):
         raise SystemExit("visual.background_candidate must be an object.")
-    if not background.get("direct_video_url") or not background.get("source_url"):
-        raise SystemExit("Background source and direct video URLs are required.")
+    if not _is_valid_https_url(background.get("source_url")):
+        raise SystemExit("Background source_url must be a valid HTTPS URL with a host.")
+    if not _is_valid_https_url(background.get("direct_video_url")):
+        raise SystemExit("Background direct_video_url must be a valid HTTPS URL with a host.")
     if background.get("approved") is not True or background.get("user_approved") is not True:
         raise SystemExit("Background must be approved and user-reviewed.")
 
