@@ -2223,3 +2223,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated the regression to expect the generic Git-operation failure and verify the raw stderr and exception cause are not exposed.
 - Updated files: `tests/test_persist_pro_ledger.py` and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 45: reject malformed Telegram configuration types before preview delivery
+- Review found preview sender configuration validation called string methods before checking input types. A non-string token or chat ID therefore failed with an incidental `AttributeError` instead of a controlled pre-network validation error.
+- Added explicit string-type checks for the preview sender and private-chat verifier; added a regression covering null and numeric token/chat values and asserting that no Telegram request is made.
+- Updated files: `src/send_pro_preview_telegram.py`, `tests/test_send_pro_preview_telegram.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
