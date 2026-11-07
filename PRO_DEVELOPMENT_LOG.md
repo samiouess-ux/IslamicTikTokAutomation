@@ -2895,3 +2895,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - This provides a better vocalized textual reference than the previously consulted unvocalized/partially vocalized editions. It does NOT by itself constitute expert recitation/pronunciation sign-off; the script must still be checked by a competent Arabic reader before any hosted TTS inference. Preserve the narrator-variant note and do not combine readings without attribution.
 - Cross-check: Sunnah.com lists the report as Sahih (Al-Albani): https://sunnah.com/abudawud/43/302. The Alifta portal page confirms the matn and hadith number.
 - Research only. No text was submitted to the TTS service, no GPU quota used, no audio/video generated or reviewed, no background approved, no manifest/render created, and no Telegram send. Existing Pro preview delivery gates remain closed.
+
+
+## 2026-11-07 — Identify a vertical background-video lead for dua visuals
+
+- Found a potentially useful vertical nature clip on Pixabay: `Creek, river, sunrise`, creator FreeFallAnnie, source https://pixabay.com/videos/creek-river-sunrise-morning-nature-184883/. The listing reports MP4, 1080x1920, 29 FPS, published 2023-10-14, and says it is free under the Pixabay Content License.
+- Pixabay's official license summary permits free use, adaptation, and use without required attribution, but prohibits standalone redistribution and warns that some uploads may carry third-party rights requiring separate checks: https://pixabay.com/service/license-summary/.
+- Candidate status only: visual content has not been downloaded or inspected frame-by-frame; exact duration, file hash, source provenance, and any third-party rights remain unverified. Do not add it to an approved asset manifest or use it in a render until downloaded through an allowed route, inspected, and recorded. This is only a possible river/sunrise theme; it does not replace WC-001 or establish a background approved by the user.
+- No inference, GPU use, audio/video render, manifest approval, Telegram send, or production-bot interaction occurred.
