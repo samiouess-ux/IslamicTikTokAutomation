@@ -25,6 +25,29 @@ class AssetRotationTests(unittest.TestCase):
             path.write_text(json.dumps({"background": entries}), encoding="utf-8")
             self.assertEqual(choose_asset(path, "background", ["used"], "daily-1")["id"], "fresh")
 
+    def test_rejects_malformed_catalog_shapes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "assets.json"
+            path.write_text('["not", "an", "object"]', encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "catalog must be a JSON object"):
+                choose_asset(path, "background")
+            path.write_text(json.dumps({"background": {"id": "not-a-list"}}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "entries must be a list"):
+                choose_asset(path, "background")
+
+    def test_rejects_malformed_rotation_arguments(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "assets.json"
+            path.write_text(json.dumps({"background": []}), encoding="utf-8")
+            for kind in ([], {}, 7, True):
+                with self.subTest(asset_kind=kind), self.assertRaisesRegex(ValueError, "asset_kind"):
+                    choose_asset(path, kind)
+            for recent in ("one-id", b"bytes", None, [["nested"]], [None]):
+                with self.subTest(recent_ids=recent), self.assertRaisesRegex(ValueError, "recent_ids"):
+                    choose_asset(path, "background", recent_ids=recent)
+            with self.assertRaisesRegex(ValueError, "rotation_key"):
+                choose_asset(path, "background", rotation_key=[])
+
     def test_rejects_unapproved_or_unlicensed_assets(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "assets.json"
