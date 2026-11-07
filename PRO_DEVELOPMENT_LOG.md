@@ -1710,3 +1710,20 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Static source inspection only; no code or test files changed and no tests were run.
 - No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
 - This entry was recorded on `feature/quran-video-pro` only.
+
+
+## 2026-11-07 — Static review: single-token Arabic line can exceed safe width
+
+### Finding
+- Re-inspected `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and `tests/test_render_dua_video.py` (blob `685937e838567c28c480262fc807268e28bde7f8`).
+- In `create_overlay()`, when a word by itself is wider than 900 pixels, the wrapping loop assigns it to `current` without checking that single-word width. The later acceptance condition checks only line count and total line height, not the width of every completed line.
+- A long unbroken Arabic token can therefore be accepted and drawn beyond the intended safe text width, even after the font is reduced to its minimum size. Existing renderer tests cover missing/empty and overlong multiword text, but not a single token wider than the available line width.
+
+### Recommendation
+- After wrapping, measure every completed line and fail closed if any line exceeds the safe width; preserve exact Arabic wording and do not silently truncate or rewrite it.
+- Add a regression test with a single token whose measured width remains above 900 pixels at the minimum font size.
+
+### Validation status and restrictions
+- Static source/test inspection only; no code or test files changed and no tests were run.
+- No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
+- This entry was recorded on `feature/quran-video-pro` only.
