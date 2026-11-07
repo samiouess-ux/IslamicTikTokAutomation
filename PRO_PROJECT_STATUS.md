@@ -486,3 +486,13 @@ This section supersedes earlier historical statements in this file that the curr
 - Added a dedicated `Install offline test dependency` step installing `Pillow` in `.github/workflows/pro-safety-tests-manual.yml` on `feature/quran-video-pro` only.
 - Fix commit: `e5d13045afc8a2425f287aed78ae070fc38dc0b4`.
 - Workflow remains manual-only and contains no render/Telegram send action. Rerun still needed; no dispatch or production/original Quran engine changes have been made.
+
+## 2026-11-07 — Safety workflow run #3 diagnosis
+- New manual Pro safety run: [42318772835](https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/42318772835), commit `f8e0d76a151e7241901f21b9c257de1d0a7a97fb`, branch `feature/quran-video-pro`. Overall conclusion: FAILURE.
+- The Pillow installation step completed successfully, so the previous `ModuleNotFoundError: PIL` blocker is resolved.
+- Eight suites passed before the orchestrator suite: 75 tests total (6 + 10 + 13 + 10 + 8 + 5 + 7 + 16).
+- `test_pro_orchestrator.py`: 6 tests passed, 1 test errored. Failing test: `test_candidate_preview_is_separate_from_rotation_and_production`.
+- Diagnosis from traceback and source: the candidate manifest correctly has `rotation_approved=false`; `build_plan` therefore raises `FileNotFoundError` ("No eligible non-recent dua manifest; refusing to repeat or invent content."). The test currently expects `SystemExit`, so its expected exception type does not match the fail-closed rotation behavior. This is a test assertion mismatch, not evidence that candidate preview was admitted into production rotation.
+- `test_render_dua_video.py` was not reached because the shell exits on the orchestrator suite failure. Full workflow is NOT green.
+- Next safe code fix to review: update only the test expectation to the actual `FileNotFoundError` (with the no-eligible message), then rerun the manual offline safety workflow after explicit approval. Do not weaken the production rotation guard.
+- No render, Telegram request/send, TikTok publish, secrets/Cron/bot-setting change, or original Quran engine operation occurred. No changes to `main` or `feature/telegram-review-notifications`.
