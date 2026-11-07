@@ -2649,3 +2649,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated the workflow to HTML-decode/strip the Artist markup and verify the linked creator name. The empty Source field remains recorded as empty; no API Source value is fabricated or inferred. All CC0 URL, restrictions, MIME, byte count, SHA-1, host, download, ffprobe, and artifact checks remain unchanged.
 - Latest Pro offline safety run 42417666251 passed on commit e1f40c0ccd10a6c7e5e3763fbdd6480f2a87d187. The intake attempt did not download the video; ffprobe/contact-sheet/artifact steps were skipped.
 - No asset approval, rights record, render, Telegram send, or TikTok publication is claimed.
+
+## 2026-11-07 — WC-001 downloaded and probed; artifact quota blocks upload
+
+- Intake run 42417807175 completed on commit d2955c564893c2c120d7a499efb51eb32e0f8973. Exact Commons metadata gates passed and the original file was downloaded: 7,097,794 bytes; SHA-1 f731168d29e287072ba2a5dded194b072fe79d2e; SHA-256 0e789ea0eaddb5b1e8a7999968143de7beb64f07ece25a918997073fe91072a6.
+- ffprobe passed: 26.066 seconds, 1080x1920, VP9 video at 30 fps, Opus audio. Nine frames were extracted and a contact sheet was created.
+- Artifact upload failed because GitHub Actions artifact storage quota was reached; logs explicitly say usage is recalculated every 6–12 hours. This is an infrastructure quota issue, not a media validation failure.
+- Updated the workflow to emit a compact review contact sheet as base64 in the job log, so the preview can be retrieved without relying on artifact storage. Artifact upload is now non-blocking; the original video remains a candidate only and is not approved.
+- No rights record, production render, Telegram send, or TikTok publication is claimed. Full visual review remains pending.
