@@ -2375,3 +2375,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added a regression test that uses different background video URLs but repeats the same theme and confirms the batch is rejected. Existing distinct-background test continues to cover different URLs with different themes through the fixture defaults only if the theme is changed; the current fixture theme is shared, so this test also documents that distinct theme metadata is required for a multi-video batch.
 - This is intentionally fail-closed: if two supplications genuinely require the same topic, a future reviewed manifest should still provide individually differentiated visual themes/scenes rather than silently recycling one theme in the same batch.
 - Tests were authored but not executed. No media rights were granted, no render or Telegram send occurred, no TikTok publication occurred, and no production branch was modified.
+
+
+## 2026-11-07 — Repair 65: align preview sender and delivery-cycle fixtures with background review gates
+
+- Re-audit after Repair 60 found two independent test manifest factories had not been updated for the mandatory dua/dhikr background fields: `tests/test_send_pro_preview_telegram.py` and `tests/test_pro_preview_delivery_cycle.py` omitted `background_theme`, `background_meaning_rationale`, and `background_meaning_reviewed: true`.
+- Those fixtures would be rejected by the shared validator before sender/delivery-cycle assertions could reach their intended code paths. Added explicit meaning-specific test metadata to both fixtures; this does not approve a real background or grant media rights.
+- Tests remain unexecuted on current HEAD. No Telegram API call, render, real media approval, TikTok publication, secret change, or production-branch change occurred.
