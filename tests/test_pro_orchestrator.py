@@ -26,7 +26,7 @@ class ProOrchestratorTests(unittest.TestCase):
                 "verification_status": "verified", "human_reviewed": True,
             }],
             "audio": {"kind": "silent", "music_allowed": False},
-            "visual": {"template": "ornate_gold_classic", "background_candidate": {
+            "visual": {"template": "ornate_gold_classic", "background_theme": "forgiveness and seeking pardon", "background_meaning_rationale": "The natural dawn setting reflects the wording about seeking forgiveness without depicting or altering the supplication.", "background_meaning_reviewed": True, "background_candidate": {
                 "source_url": "https://example.org/source",
                 "direct_video_url": "https://example.org/background.mp4",
                 "approved": True, "user_approved": True,
