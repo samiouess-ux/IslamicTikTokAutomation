@@ -24,7 +24,7 @@ def base_record(asset_id="visual-001", media_type="visual", file_path="assets/pr
         "intended_uses": {"download": True, "editing": True, "video_synchronization": True,
             "private_review_delivery": True, "public_social_posting": True,
             "commercial_monetized_use": True},
-        "territories": ["worldwide"], "validity": {"start": "2025-01-01", "end": None},
+        "territories": ["Tunisia"], "validity": {"start": "2025-01-01", "end": None},
         "attribution": {"required": False},
         "third_party_review": {key: {"reviewed": True, "resolved": True, "notes": "Reviewed; no unresolved third-party rights identified."}
             for key in ("people", "logos_trademarks", "artwork", "property_privacy", "endorsement")},
@@ -46,6 +46,7 @@ class MediaRightsTests(unittest.TestCase):
             json.dumps(self.record), encoding="utf-8")
         self.manifest = {
             "media_assets": [{"asset_id": "visual-001", "media_type": "visual"}],
+            "review_delivery_territory": "Tunisia",
             "visual": {"background_candidate": {"asset_id": "visual-001",
                 "source_url": self.record["source_page_url"]}},
             "audio": {"kind": "silent"},
@@ -80,15 +81,30 @@ class MediaRightsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "references do not exactly match"):
             self.validate()
 
-    def test_private_review_does_not_require_public_or_commercial_permissions(self):
+    def test_private_review_accepts_explicit_territory_without_public_or_commercial_permissions(self):
         self.record["intended_uses"]["public_social_posting"] = False
         self.record["intended_uses"]["commercial_monetized_use"] = False
         self.save()
         result = self.validate()
         self.assertEqual(result["visual"], self.asset)
 
+    def test_private_review_rejects_unlicensed_delivery_territory(self):
+        self.manifest["review_delivery_territory"] = "France"
+        with self.assertRaisesRegex(ValueError, "does not cover the private review delivery territory"):
+            self.validate()
+
+    def test_private_review_requires_explicit_delivery_territory(self):
+        self.manifest.pop("review_delivery_territory")
+        with self.assertRaisesRegex(ValueError, "requires an explicit review_delivery_territory"):
+            self.validate()
+
     def test_public_posting_and_monetized_use_require_separate_permissions(self):
+        self.record["territories"] = ["Tunisia"]
         self.record["intended_uses"]["public_social_posting"] = False
+        self.save()
+        with self.assertRaisesRegex(ValueError, "worldwide public distribution"):
+            validate_manifest_media_rights(self.manifest, repo_root=self.root, planned_use="public_social")
+        self.record["territories"] = ["worldwide"]
         self.save()
         with self.assertRaisesRegex(ValueError, "public_social_posting"):
             validate_manifest_media_rights(self.manifest, repo_root=self.root, planned_use="public_social")
