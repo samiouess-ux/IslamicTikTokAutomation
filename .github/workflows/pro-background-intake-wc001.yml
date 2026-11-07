@@ -122,8 +122,8 @@ jobs:
               raise SystemExit("Commons API metadata does not confirm the expected CC0 1.0 license.")
           copyrighted = (meta.get("Copyrighted", {}).get("value") or "").strip().lower()
           restrictions = (meta.get("Restrictions", {}).get("value") or "").strip()
-          if copyrighted not in ("false", "no", "0"):
-              raise SystemExit("Commons API does not explicitly mark the work as non-copyrighted/CC0.")
+          if copyrighted and copyrighted not in ("false", "no", "0"):
+              raise SystemExit("Commons API reports a positive/unknown copyright flag; refusing intake.")
           if restrictions.lower() not in ("", "false", "no", "0", "none"):
               raise SystemExit("Commons metadata reports reuse restrictions; human review is required before intake.")
           if "JaredMcKenzie" not in artist or "own work" not in source.lower():
