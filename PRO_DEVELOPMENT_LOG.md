@@ -2552,3 +2552,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The exact media bytes could not be acquired in this session through the available runtime, so no actual playback/visual/audio inspection, file hash, or third-party review was completed. WC-001 remains a promising research lead only, not an approved asset.
 - Updated `content/pro/MEDIA_RIGHTS_POLICY.md` to permit Commons discovery through its documented MediaWiki API rather than HTML scraping, while preserving exact-page review, attribution/share-alike checks, actual-byte SHA-256, and third-party clearance gates.
 - No media file, rights record, manifest, runtime code, workflow, secret, Telegram configuration, render, or delivery was created or changed.
+
+
+## 2026-11-07 — WC-001 single-file Commons intake workflow added
+
+- Added `.github/workflows/pro-background-intake-wc001.yml` on `feature/quran-video-pro` in commit `b7862b83567a1663a072f8da7219d0224dfd5f8e`.
+- The workflow is restricted to a push changing this exact workflow file on the Pro branch; it checks out only `feature/quran-video-pro`, uses read-only repository permissions, and has no Telegram or publishing secrets/steps.
+- Acquisition uses one documented, read-only Wikimedia Commons Action API `imageinfo` request with a descriptive User-Agent, `maxlag=5`, sequential requests, bounded retry/backoff honoring `Retry-After`, and one exact original-file download from `upload.wikimedia.org`. It does not scrape HTML or search/download multiple assets.
+- Fail-closed checks pin the exact file title, CC0 1.0 license metadata, author/source metadata, MIME, expected byte count, and Commons SHA-1 from the reviewed page. It computes SHA-256 from the downloaded bytes, then runs ffprobe and creates a nine-frame contact sheet only if the duration/dimensions match the reviewed 26-second 1080x1920 candidate.
+- Output is a short-retention GitHub Actions review artifact (3 days), not a repository media commit. The workflow explicitly marks the item `candidate_only_not_approved`; it cannot create a rights record, manifest, approval, render, Telegram send, or TikTok publication.
+- The workflow file was fetched back and its blob SHA verified as `19f14f06b9ecb5002860ac68274486776cdd0940`. The connector's commit-run lookup returned no workflow-run rows for this commit, so no successful intake, actual download, hash, probe, or contact sheet is claimed yet. A separate current-HEAD safety-test result is also not established by this commit.
+- External policy basis: Wikimedia API etiquette/access guidance requires an informative User-Agent, considerate sequential request behavior, `maxlag` for non-interactive work, and compliance with rate-limit responses. This workflow is intentionally one low-volume, one-file review, not a crawler or ongoing bulk downloader.
+- No rights approval, production manifest, renderer change, Telegram configuration, or user-facing delivery was made.
