@@ -1692,3 +1692,21 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/validate_content_manifest.py` (blob `5146070fea6ab8ed65cd6d192e8a25547260ba1`), `tests/test_validate_content_manifest.py` (blob `7914f2c7f0eacc298379b87687377e935cff19d6`), and `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) from `feature/quran-video-pro`.
 - Static inspection only. No repository tests were run. No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: unvalidated Arabic title type in dua renderer
+
+### Finding
+- Re-inspected `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`).
+- The renderer passes `data.get("title_ar", ...)` directly to `create_overlay()`, which passes it to Pillow's `draw.text()`. The shared manifest validator does not require `title_ar` to be a string.
+- A malformed JSON value such as an array/object can therefore raise an uncaught `TypeError` during rendering instead of producing the orchestrator's structured blocked result. This is a fail-closed reliability/reporting gap; it does not bypass approval or publishing safeguards.
+
+### Recommendation
+- Validate `title_ar` as a non-empty string (or apply a deliberate safe default) before rendering.
+- Add regression coverage for array/object title values and confirm malformed manifests produce a structured blocked result without starting FFmpeg.
+- Keep the earlier enum-type `TypeError` finding in scope; both point to hardening manifest type checks and the orchestrator's error boundary.
+
+### Validation status and restrictions
+- Static source inspection only; no code or test files changed and no tests were run.
+- No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
+- This entry was recorded on `feature/quran-video-pro` only.
