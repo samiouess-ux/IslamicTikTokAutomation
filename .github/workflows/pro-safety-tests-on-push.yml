@@ -66,4 +66,5 @@ jobs:
           python -m unittest discover -s tests -p 'test_asset_rotation.py' -v
           python -m unittest discover -s tests -p 'test_prepare_pro_telegram_caption.py' -v
           python -m unittest discover -s tests -p 'test_pro_orchestrator.py' -v
+          python -m unittest discover -s tests -p 'test_pro_tts_space_client.py' -v
           python -m unittest discover -s tests -p 'test_render_dua_video.py' -v
