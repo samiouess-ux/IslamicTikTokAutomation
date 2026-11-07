@@ -2837,3 +2837,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Applied that documented discovery route to the target Space `sherif1313/3arab-TTS-VoiceDesign-v2`. The `agents.md` URL still returned an internal access error through the available reader, so no target-specific schema was obtained. The already-observed direct `/gradio_api/info` and OpenAPI route reads remain inaccessible through this reader.
 - This narrows the next verification step: retrieve the target's `agents.md` or `/gradio_api/info` from a supported execution environment, then compare its endpoint and typed input/output schema against the source-derived `/gradio_inference` hypothesis and 21-input/numpy-output contract. Do not submit an inference request just to discover the schema.
 - No source code, workflow, branch settings, secrets, or bot configuration changed. No model inference, ZeroGPU usage, audio/video generation, or Telegram send occurred.
+
+
+## 2026-11-07 — Alternative metadata inspection route
+
+- Rechecked the target Space's documented agent descriptor at `https://huggingface.co/spaces/sherif1313/3arab-TTS-VoiceDesign-v2/agents.md` and its live Gradio metadata endpoint at `https://sherif1313-3arab-tts-voicedesign-v2.hf.space/gradio_api/info`; both remain inaccessible through the available web reader (internal access error). No generation endpoint was called.
+- Identified the official Gradio team's `hf-gradio` CLI as another metadata-only option: `hf-gradio info <space_id_or_url>` returns endpoint names, typed parameters, defaults/required flags, and output schema. This is a possible route from a supported runner, but it has not been installed or executed in this environment. Source: https://github.com/gradio-app/hf-gradio.
+- Implementation gate remains unchanged: do not infer positional arguments from upstream source alone; first obtain the deployed schema, pin the client/tool version, and assert its exact inputs/outputs before any inference. No inference, GPU quota, secrets, workflows, Telegram, or video output were touched.
