@@ -1944,3 +1944,17 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Workflow source was fetched before editing and updated using its current blob SHA.
 - The workflow has not been dispatched; these test suites have not yet been executed. No passing CI result is claimed.
 - No production render, Telegram send, TikTok publish, secret change, or other-branch write was performed.
+
+## 2026-11-07 — Repair 8: reject malformed preview content types before set membership
+
+### Finding and fix
+- Review of the candidate-preview sender found that an untrusted manifest with a list/dict `content_type` could raise an uncaught `TypeError` during set membership rather than a controlled validation error.
+- Added explicit string-type validation in `src/send_pro_preview_telegram.py` before checking allowed values.
+- Applied the same defensive check in `src/pro_orchestrator.py` candidate-preview preflight, so malformed manifests fail closed with the intended `SystemExit` message.
+- Added regression tests covering list, object, integer and boolean content types in both modules.
+
+### Validation and safety
+- Source and test files were updated on `feature/quran-video-pro` only.
+- Changes were fetched from GitHub before editing and will be refetched for verification.
+- Tests have not been executed; no pass result is claimed.
+- No production rendering, Telegram request, TikTok publishing, secret change, or write to another branch was performed.
