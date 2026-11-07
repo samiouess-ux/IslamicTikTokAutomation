@@ -2324,3 +2324,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Confirmed the manual safety workflow includes 15 test suites and remains `workflow_dispatch`-only. No dispatch action is available through the connected GitHub tools in this session, so no current-HEAD test result is claimed. The prior 90/90 result recorded in `PRO_PROJECT_STATUS.md` predates subsequent changes and does not validate HEAD `dc743033`.
 - No code, candidate approval, rights record, media asset, workflow, secret, Telegram configuration, or production branch was changed in this audit. No render, Telegram request/send, or TikTok publication occurred.
 - Next real prerequisites: (1) human-review one exact dua/dhikr source and wording from its primary reference; (2) obtain and review a suitable spoken recording or explicitly choose a silent preview; (3) obtain one background file with exact per-asset rights evidence; (4) create one candidate-only manifest and run the full safety workflow on that exact HEAD; (5) only after a separately authorized run, render and verify a private preview. No production approval is implied.
+
+
+### Repair 59: record meaning-matched backgrounds for each dua/dhikr item
+- Added a binding Pro visual-selection rule: choose a background for the meaning and emotional context of each specific dua/dhikr item, not one generic background for all duas or merely by broad content category.
+- Added illustrative topic mappings (forgiveness/istighfar, morning adhkar, evening adhkar, provision/gratitude, and protection), with an explicit instruction not to force a mapping that misrepresents the exact wording.
+- Required avoidance of consecutive repeats, practical rotation among eligible assets, calm composition and text contrast, and fail-closed behavior when no semantically suitable, individually rights-cleared asset exists.
+- Clarified that thematic suitability does not confer media rights: each exact Pro background still needs its own file/hash/source/license evidence and required approvals. No existing Quran background candidate was promoted or reused.
+- Updated `content/pro/README.md` and this log on `feature/quran-video-pro` only. This is a documentation/policy change; no assets, manifests, code, workflows, rights approvals, Telegram settings, or production branch were changed.
+- No tests, render, workflow dispatch, Telegram request/send, or TikTok publication were performed. The known blockers from Repair 58 remain.
