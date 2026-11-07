@@ -116,6 +116,14 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
             raise SystemExit("Dua/dhikr lifecycle_status must be candidate_preview or production_approved.")
         if not data.get("items") or not isinstance(data["items"], list):
             raise SystemExit("Dua/dhikr manifest must contain sourced items.")
+        background_theme = visual.get("background_theme")
+        background_rationale = visual.get("background_meaning_rationale")
+        if not isinstance(background_theme, str) or not background_theme.strip():
+            raise SystemExit("Dua/dhikr background must declare a meaning-matched background_theme.")
+        if not isinstance(background_rationale, str) or not background_rationale.strip():
+            raise SystemExit("Dua/dhikr background needs a rationale tied to the exact item's meaning.")
+        if visual.get("background_meaning_reviewed") is not True:
+            raise SystemExit("Dua/dhikr background meaning match requires explicit human review.")
         seen_item_ids: set[str] = set()
         for item in data["items"]:
             if not isinstance(item, dict) or not isinstance(item.get("arabic"), str) or not item["arabic"].strip():
