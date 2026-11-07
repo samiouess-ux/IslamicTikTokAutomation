@@ -60,7 +60,7 @@ def choose_manifests(
     rotation_key: str = "",
 ) -> list[Path]:
     """Select a batch of distinct approved manifests or fail without a partial batch."""
-    if not isinstance(count, int) or count < 1:
+    if type(count) is not int or count < 1:
         raise ValueError("count must be a positive integer.")
     recent = set(recent_ids)
     selected: list[Path] = []
