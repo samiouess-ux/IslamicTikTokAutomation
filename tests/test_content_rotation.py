@@ -3,6 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,6 +60,40 @@ class ContentRotationTests(unittest.TestCase):
             }), encoding="utf-8")
             valid = self.write(folder, "valid.json", "valid")
             self.assertEqual(choose_manifest(folder, "quran", rotation_key="publishing-check"), valid)
+
+    def test_batch_fails_closed_if_selected_file_becomes_invalid_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            selected = self.write(folder, "candidate.json", "candidate")
+            import content_rotation
+            original = content_rotation.choose_manifest
+
+            def select_then_corrupt(*args, **kwargs):
+                path = original(*args, **kwargs)
+                path.write_text("{ invalid json", encoding="utf-8")
+                return path
+
+            with mock.patch("content_rotation.choose_manifest", side_effect=select_then_corrupt):
+                with self.assertRaisesRegex(ValueError, "changed or became unreadable"):
+                    choose_manifests(folder, "quran", count=1, rotation_key="race-json")
+
+    def test_batch_fails_closed_if_selected_manifest_loses_its_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            selected = self.write(folder, "candidate.json", "candidate")
+            import content_rotation
+            original = content_rotation.choose_manifest
+
+            def select_then_remove_id(*args, **kwargs):
+                path = original(*args, **kwargs)
+                data = json.loads(path.read_text(encoding="utf-8"))
+                del data["id"]
+                path.write_text(json.dumps(data), encoding="utf-8")
+                return path
+
+            with mock.patch("content_rotation.choose_manifest", side_effect=select_then_remove_id):
+                with self.assertRaisesRegex(ValueError, "no longer eligible"):
+                    choose_manifests(folder, "quran", count=1, rotation_key="race-id")
 
     def test_selects_three_distinct_approved_manifests(self):
         with tempfile.TemporaryDirectory() as tmp:
