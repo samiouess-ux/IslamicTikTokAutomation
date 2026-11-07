@@ -2215,3 +2215,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated both symlink regressions to assert the current generic error and added a production-ledger no-op regression verifying an unchanged ledger returns `False` without commit or push.
 - Updated files: `tests/test_persist_pro_ledger.py` and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 44: align push-failure regression with redacted Git errors
+- Review found the production ledger push-failure test still expected raw Git stderr (`remote rejected push`), while Repair 38 intentionally replaced all raw Git diagnostics with a generic, non-chained error to prevent credential-bearing remote URL leakage.
+- Updated the regression to expect the generic Git-operation failure and verify the raw stderr and exception cause are not exposed.
+- Updated files: `tests/test_persist_pro_ledger.py` and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
