@@ -2146,3 +2146,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Corrected both tests to write actual invalid UTF-8 bytes. The production and preview ledger read guards can now be meaningfully exercised by the safety suite.
 - Updated files: `tests/test_pro_delivery_ledger.py`, `tests/test_pro_preview_send_ledger.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed in this session; no passing result is claimed. No workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 36: require Telegram's success flag to be the boolean true
+- Review found both Pro Telegram senders accepted any truthy `ok` value. A malformed response such as `{"ok":"true","result":{"message_id":77}}` could therefore be misclassified as a confirmed delivery.
+- Both production and isolated-preview senders now require `result["ok"] is True` before accepting the result or message ID.
+- Added regression tests for truthy non-boolean success flags. The production sender must leave its reservation uncertain; the preview sender must reject the response rather than report a confirmed preview.
+- Updated files: `src/send_pro_telegram.py`, `src/send_pro_preview_telegram.py`, `tests/test_send_pro_telegram.py`, `tests/test_send_pro_preview_telegram.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed in this session; no passing result is claimed. No workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
