@@ -91,12 +91,17 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
     except Exception as send_error:
         try:
             transition(ledger_path, manifest_id, "uncertain")
-        except Exception as ledger_error:
+        except Exception:
+            # Never chain transport exceptions: urllib errors can contain the bot-token URL.
             raise RuntimeError(
                 "Telegram outcome is uncertain and the ledger could not be advanced; "
                 "the existing reservation must remain blocking."
-            ) from send_error
-        raise
+            ) from None
+        # Preserve the exception class for diagnostics, but not its potentially secret-bearing message.
+        raise RuntimeError(
+            f"Telegram send outcome is uncertain ({type(send_error).__name__}); "
+            "do not retry automatically."
+        ) from None
 
     # If this write fails, the earlier reservation still blocks a duplicate send.
     transition(ledger_path, manifest_id, "delivered", message_id)
