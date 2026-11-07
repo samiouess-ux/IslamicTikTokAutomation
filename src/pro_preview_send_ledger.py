@@ -139,6 +139,8 @@ def load_ledger(path: Path) -> dict[str, Any]:
 
 def save_ledger(path: Path, data: dict[str, Any]) -> None:
     validate_ledger(data)
+    if path.is_symlink():
+        raise ValueError("Pro preview ledger files must not be symlinks.")
     _reject_symlink_components(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
