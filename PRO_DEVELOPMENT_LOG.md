@@ -2665,3 +2665,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - WC-001 technical checks remain passed: 26.066s, 1080x1920, VP9/Opus, 7,097,794 bytes; SHA-256 0e789ea0eaddb5b1e8a7999968143de7beb64f07ece25a918997073fe91072a6.
 - Separate Pro safety workflow run 42417916241 completed successfully on the same commit. Intake run 42417916186 completed successfully including its artifact step.
 - Status remains candidate-only / not approved. No actual production render, Telegram send, or TikTok publication. Human preference approval and rights record are still pending.
+
+## 2026-11-07 — User explicitly requested one private test send; delivery remains blocked by required Pro gates
+
+- User asked: send one test video to Telegram, then continue finding improvements. This is explicit intent for one test send, not production delivery or TikTok publishing.
+- Rechecked Pro branch state. `content/pro/README.md` confirms there are no approved production manifests and no enabled end-to-end Pro preview workflow. `content/pro/CANDIDATE_RESEARCH_001.md` contains research-only religious candidates with human wording/context review pending and media rights/audio not reviewed. No Pro candidate manifest is present under `content/pro/`.
+- `src/send_pro_preview_telegram.py` is an isolated candidate sender, but it requires a separate Pro preview bot token and chat ID, an exact candidate manifest, an MP4 under `output/pro_preview/`, matching asset rights records, and explicit CLI confirmation. The sender is not wired into a workflow. Existing original production Telegram workflow belongs to a different branch and must not be used as a shortcut.
+- The reviewed WC-001 beach clip is a visual-only candidate, not an approved Pro rights-record asset; it cannot be used in a render/send. The Mixkit samples are also not cleared for this planned use.
+- Therefore no Telegram request was made and no test was sent. Do not bypass source verification, audio/visual rights, private destination verification, or Pro isolation. Next work: complete one exact candidate's source review and per-asset rights clearance, configure/verify separate Pro preview credentials through the intended secure repo settings (never expose secrets), implement and test the Pro-only preview workflow, render one candidate, then use the user's already stated one-time test-send authorization only if all gates pass.
+- TikTok auto-publishing remains disabled.
