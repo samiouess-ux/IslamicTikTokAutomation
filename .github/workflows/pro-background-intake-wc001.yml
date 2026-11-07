@@ -109,8 +109,19 @@ jobs:
           artist = (meta.get("Artist", {}).get("value") or "").strip()
           source = (meta.get("Source", {}).get("value") or "").strip()
           usage = (meta.get("UsageTerms", {}).get("value") or "").strip()
-          if "CC0" not in license_name or "creativecommons.org/publicdomain/zero/1.0" not in license_url:
+          license_parts = urlparse(license_url)
+          if (
+              "CC0" not in license_name
+              or license_parts.hostname != "creativecommons.org"
+              or license_parts.path.rstrip("/") != "/publicdomain/zero/1.0"
+          ):
               raise SystemExit("Commons API metadata does not confirm the expected CC0 1.0 license.")
+          copyrighted = (meta.get("Copyrighted", {}).get("value") or "").strip().lower()
+          restrictions = (meta.get("Restrictions", {}).get("value") or "").strip()
+          if copyrighted not in ("false", "no", "0"):
+              raise SystemExit("Commons API does not explicitly mark the work as non-copyrighted/CC0.")
+          if restrictions:
+              raise SystemExit("Commons metadata reports reuse restrictions; human review is required before intake.")
           if "JaredMcKenzie" not in artist or "own work" not in source.lower():
               raise SystemExit("Creator/source metadata differs from the reviewed file page.")
           if info.get("mime") != "video/webm":
@@ -155,6 +166,8 @@ jobs:
               "license_short_name": license_name,
               "license_url": license_url,
               "usage_terms": usage,
+              "copyrighted_metadata": copyrighted,
+              "restrictions_metadata": restrictions,
               "artist_metadata": artist,
               "source_metadata": source,
               "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
