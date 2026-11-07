@@ -2734,3 +2734,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - This reinforces that a self-hosted experiment requires a deliberate compute decision. The current repo's dependency set and 1+ GB acoustic checkpoint make an unverified CPU-only GitHub Actions run a poor default. No inference request was made and no audio was generated.
 - Next: inspect exact DACVAE checkpoint files/revision and the Space app/runtime hardware configuration; then decide whether a bounded, isolated one-off test is feasible without paid cloud billing. No user secrets or credentials should be introduced for this research.
 - No code/workflow/manifest/secret changes, workflow runs, downloads, audio generation, rendering, Telegram delivery, or TikTok publication occurred.
+
+
+## 2026-11-07 — Hosted Space execution constraint confirmed
+
+- Inspected the official Space's public commit history. Its inference function is decorated with `@spaces.GPU(duration=120)`, confirming that the hosted demo is designed to execute generation on a GPU and has a 120-second GPU-call duration cap in the inspected revision.
+- The Space currently reports `Running on Zero`; this indicates no presently allocated paid hardware in the public listing, not a guarantee that a free GPU slot will be immediately available. Treat it as opportunistic manual evaluation only, not a reliable unattended service.
+- The codec model card confirms the DACVAE checkpoint is a separate Apache-2.0 dependency; exact downloadable weight size/revision was not established in this pass.
+- Result: do not launch a GitHub Actions CPU job as a speculative workaround, and do not add a dependency on a hosted demo that may be sleeping or lack GPU allocation. A reliable no-upfront-cost inference route remains unproven.
+- No Space inference call, text submission, model download, audio generation, repository code change, workflow run, manifest, render, Telegram send, or publication occurred.
