@@ -1666,3 +1666,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`) and `tests/test_validate_pro_media_rights.py` (blob `36fa0acabf981e5709e333b6b72627d69df111df`) from `feature/quran-video-pro`.
 - Static URL-parser probes only; no repository tests were run. No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: malformed Telegram sendVideo response handling
+
+### Finding (ambiguous-outcome reporting gap; no code changes)
+- In `send_pro_preview_telegram.send_preview()`, the HTTP response is JSON-decoded inside the transport `try`, but the code then calls `result.get("ok")` without first confirming that the decoded top-level JSON value is a dictionary.
+- A valid JSON response whose top-level value is `null`, a list, or a string therefore raises an unhandled `AttributeError` instead of the sender's explicit `RuntimeError` stating that the send outcome may be uncertain. Since this happens after the single sendVideo request, a caller may not receive the important do-not-retry warning even though Telegram may already have accepted the upload.
+- The sender does not automatically retry, and the orchestrated delivery cycle is designed to treat send exceptions as uncertain; this finding concerns the direct sender's malformed-response reporting and consistency, not an observed duplicate-send bypass.
+- Recommended hardening: require `isinstance(result, dict)` before accessing response fields, and raise the same explicit uncertain-outcome error for any malformed top-level or nested sendVideo response. Add tests for JSON `null`, list, and string responses after the upload request; assert exactly one sendVideo call and an explicit uncertain-outcome message. No implementation made pending approval.
+
+### Verification and safety
+- Re-fetched `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`) and `tests/test_send_pro_preview_telegram.py` (blob `6844c2549223f95942552b740026010be5acc475`) from `feature/quran-video-pro`.
+- Static inspection only. No repository tests were run. No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
