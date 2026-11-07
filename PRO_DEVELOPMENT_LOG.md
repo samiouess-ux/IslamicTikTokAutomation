@@ -1866,3 +1866,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Source and test changes were committed to `feature/quran-video-pro` only.
 - Automated test execution and workflow validation are still pending; no passing result is claimed.
 - No rendering, Telegram request/send/upload, or TikTok publishing was performed. Production branch, original Quran engine/bot, secrets, and Cron remain untouched.
+
+
+## 2026-11-07 — Repair 3: reject non-finite timings and unsafe single-line text
+
+### Code changes
+- `src/render_dua_video.py`: ffprobe durations and item durations now reject NaN and positive/negative infinity, in addition to existing invalid values.
+- Arabic overlay rendering now requires a non-empty string title and checks the measured width of every wrapped line before accepting a font size. A single oversized Arabic token can no longer bypass the line-width limit.
+- `tests/test_render_dua_video.py`: added NaN/infinity item-duration cases and ffprobe non-finite duration regression cases.
+
+### Verification
+- Source and test changes were committed to `feature/quran-video-pro` only.
+- Automated tests have not yet been executed; no passing test result is claimed.
+- No render, Telegram request/send/upload, or TikTok publishing was performed. Production branch, original Quran engine/bot, secrets, and Cron remain untouched.
