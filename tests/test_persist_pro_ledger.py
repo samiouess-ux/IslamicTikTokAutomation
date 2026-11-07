@@ -108,8 +108,10 @@ class ProLedgerPersistenceTests(unittest.TestCase):
             (1, "", "remote rejected push"),
         ]
         with self.run_git(outputs) as patched:
-            with self.assertRaisesRegex(RuntimeError, "remote rejected push"):
+            with self.assertRaisesRegex(RuntimeError, "Git operation failed") as caught:
                 persist_ledger(self.repo)
+        self.assertNotIn("remote rejected push", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
         commands = [call.args[0] for call in patched.call_args_list]
         self.assertEqual(commands[-1], [
             "git", "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}"
