@@ -1,1 +1,2 @@
-# Les dépendances seront ajoutées après validation des outils choisis.
+# Hosted Pro spoken-dua Space API client; pins the metadata CLI and its gradio_client dependency range.
+hf-gradio==0.4.1
