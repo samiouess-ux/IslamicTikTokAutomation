@@ -87,6 +87,19 @@ class PreviewLedgerTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "safe"):
                     transition(self.path, bad, "delivered", 99)
 
+    def test_refuses_symlinked_lock_file(self):
+        target = self.path.with_name("outside.lock")
+        target.write_text("untouched", encoding="utf-8")
+        lock = self.path.with_name(self.path.name + ".lock")
+        try:
+            lock.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        with self.assertRaisesRegex(ValueError, "lock file must not be a symlink"):
+            self.reserve_one()
+        self.assertEqual(target.read_text(encoding="utf-8"), "untouched")
+        self.assertFalse(self.path.exists())
+
     def test_rejects_unsafe_candidate_id(self):
         with self.assertRaisesRegex(ValueError, "safe"):
             reserve(self.path, "../escape", "dua", "a"*64, "b"*64, "run")
