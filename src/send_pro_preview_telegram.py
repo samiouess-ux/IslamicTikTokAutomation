@@ -26,7 +26,8 @@ PREVIEW_PREFIX = "PREVIEW — NOT APPROVED FOR POSTING"
 def validate_preview_manifest(data: dict) -> None:
     if not isinstance(data, dict):
         raise ValueError("Preview manifest JSON must contain an object.")
-    if data.get("content_type") not in {"dua", "dhikr"}:
+    content_type = data.get("content_type")
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise ValueError("Pro preview sender accepts dua/dhikr only.")
     if data.get("lifecycle_status") != "candidate_preview" or data.get("preview_only") is not True:
         raise ValueError("Only candidate_preview manifests can be sent through this isolated preview sender.")
