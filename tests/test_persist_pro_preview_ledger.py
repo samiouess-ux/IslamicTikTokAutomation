@@ -64,6 +64,18 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
         self.assertEqual(commands[-2], ["git", "rev-parse", "HEAD"])
         self.assertEqual(commands[-1], ["git", "rev-parse", "refs/remotes/origin/feature/quran-video-pro"])
 
+    def test_unchanged_preview_ledger_is_a_clean_noop(self):
+        outputs = [
+            (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
+            (0, "", ""), (0, "", ""), (0, "", ""),
+        ]
+        with self.run_git(outputs) as patched:
+            self.assertFalse(persist_preview_ledger(self.repo))
+        self.assertEqual(patched.call_count, 7)
+        commands = [call.args[0] for call in patched.call_args_list]
+        self.assertIn(["git", "add", "--", "data/pro_preview_send_ledger.json"], commands)
+        self.assertFalse(any(command[1] in {"commit", "push"} for command in commands))
+
     def test_symlinked_data_directory_is_rejected_before_staging(self):
         data_dir = self.repo / "data"
         real_dir = self.repo / "real-data"
