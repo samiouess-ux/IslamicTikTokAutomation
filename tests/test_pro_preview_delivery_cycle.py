@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 import pro_preview_delivery_cycle
-from pro_preview_delivery_cycle import run_preview_cycle
+from pro_preview_delivery_cycle import preflight, run_preview_cycle
 
 
 def manifest_data():
@@ -186,7 +186,7 @@ class PreviewCycleTests(unittest.TestCase):
         def send(*args, **kwargs):
             calls.append("send")
             return {"message_id": 77}
-        with self.assertRaisesRegex(RuntimeError, "final ledger persistence failed"):
+        with self.assertRaisesRegex(RuntimeError, "delivered receipt could not be fully persisted"):
             self.call_cycle(persist, send)
         self.assertEqual(calls, ["persist", "send", "persist"])
         data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
