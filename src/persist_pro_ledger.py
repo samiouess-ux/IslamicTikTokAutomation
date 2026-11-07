@@ -49,13 +49,19 @@ def persist_ledger(repo: Path) -> bool:
         raise RuntimeError("Refusing persistence because unrelated staged changes already exist.")
 
     data_dir = repo / LEDGER_RELATIVE_PATH.parent
-    if data_dir.is_symlink():
-        raise RuntimeError("Pro ledger data directory must not be a symlink.")
     ledger_path = repo / LEDGER_RELATIVE_PATH
-    if ledger_path.is_symlink():
-        raise RuntimeError("Pro ledger file must not be a symlink.")
+    lock_path = ledger_path.with_name(ledger_path.name + ".lock")
+
+    # Reject links in every path component below the resolved repository root.
+    # Checking only the leaf misses a symlinked ancestor that redirects writes.
+    for path in (data_dir, ledger_path, lock_path):
+        current = path
+        while current != repo and current != current.parent:
+            if current.is_symlink():
+                raise RuntimeError("Pro ledger storage paths must not contain symlinks.")
+            current = current.parent
     if not ledger_path.is_file():
-        raise FileNotFoundError(f"Pro ledger file is missing: {ledger_path}")
+        raise FileNotFoundError("Pro ledger file is missing.")
 
     _git(repo, "add", "--", str(LEDGER_RELATIVE_PATH))
     staged = _git(repo, "diff", "--cached", "--name-only").splitlines()
