@@ -1892,3 +1892,21 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Both ledger source files and their regression tests were committed to `feature/quran-video-pro` only.
 - GitHub refetch verification and execution of the test suite remain pending; no test pass is claimed.
 - No Telegram call, media render, or publishing was performed. Production branch and original Quran system remain untouched.
+
+
+## 2026-11-07 — Repair 5: reject malformed Pro caption, manifest, and Telegram JSON
+
+### Source changes
+- `src/pro_delivery_cycle.py`: reject caption JSON roots that are not objects before reading manifest/content fields or reserving a delivery.
+- `src/send_pro_telegram.py`: validate caption data is an object; validate Telegram's decoded sendVideo response is an object before reading confirmation fields. A malformed response is treated as an unconfirmed/uncertain send, not as success.
+- `src/pro_preview_delivery_cycle.py`: reject non-object preview manifest JSON before candidate lookup or reservation.
+
+### Regression tests added
+- `tests/test_pro_delivery_cycle.py`: non-object caption JSON roots (`null`, array, string) are rejected before reservation and sender invocation.
+- `tests/test_send_pro_telegram.py`: caption builder rejects non-object inputs; a Telegram `null` response is rejected and the ledger is advanced to `uncertain`.
+- `tests/test_pro_preview_delivery_cycle.py`: non-object manifest JSON roots are rejected before private-chat verification, reservation, persistence, or send.
+
+### Verification status and safety boundary
+- Source and test updates were committed to `feature/quran-video-pro`; the files must be refetched to verify the committed content.
+- Tests have **not** been executed in this repair step; no passing test result is claimed.
+- No Telegram request, production render, TikTok publish, production workflow, or other branch was triggered.
