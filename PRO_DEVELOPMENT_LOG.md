@@ -1412,3 +1412,24 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - This entry is documentation-only. No source code, tests, workflow YAML, manifests, rights records, or media were changed.
 - No workflow dispatch/rerun, test execution, render, Telegram API request/send/upload, or TikTok publish occurred.
 - No secrets, Cron, original Telegram bot/settings, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine were touched.
+
+
+## 2026-11-07 — Malformed content-rotation manifest hardening
+
+### Change
+- Updated `src/content_rotation.py` to skip syntactically valid JSON manifests whose top-level value is not an object, and manifests whose `publishing` field is not an object.
+- This prevents malformed manifest shapes (for example a JSON list, `null`, or a list-valued `publishing`) from raising an incidental `AttributeError` during rotation.
+- Eligibility requirements remain unchanged: supported content type, explicit `rotation_approved`, `publishing.approval_required`, `auto_publish` disabled, stable non-recent ID.
+- Added two regression tests in `tests/test_content_rotation.py`: non-object top-level JSON is skipped; non-object `publishing` is skipped. Both tests include a valid eligible manifest to verify selection continues safely.
+
+### Verification status
+- Source update commit: `5e21ce4e249c71265b40080af7887405820fcfb0`; source blob: `6ace18562114e7630f02c9579535e9e4fbe99a86`.
+- Test update commit: `555afba89d3fc296b695a7317f5f306e05db602f`; test blob: `b4ec822ea6e65eacc883a56949815e4a73f46ad2`.
+- Both files were fetched again from `feature/quran-video-pro` and their updated blob SHAs confirmed.
+- Tests were NOT RUN. No claim is made that the new tests pass.
+- The manual workflow YAML was not changed and no workflow was dispatched or rerun.
+
+### Safety boundary
+- Only `src/content_rotation.py` and `tests/test_content_rotation.py` were changed in this code fix.
+- No manifests, media, rights records, ledger data, secrets, bot settings, Cron, Telegram, TikTok, render, or production workflows were touched.
+- `main`, `feature/telegram-review-notifications`, and the original Quran engine remain outside this change.
