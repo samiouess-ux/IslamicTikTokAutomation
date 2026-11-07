@@ -1995,3 +1995,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `src/pro_preview_send_ledger.py`: `transition` now validates candidate_id with the same safe 1–80 character identifier rule used by reservation before loading or looking up the ledger entry.
 - Added regression coverage for list, object, number, boolean, and empty identifiers; malformed values now fail with controlled ValueError rather than leaking TypeError or ambiguous lookup behavior.
 - Source, tests, and this log entry were committed on `feature/quran-video-pro` only. Test execution remains unconfirmed; no Telegram send or production render was performed.
+
+### Repair 14: Reject invalid recent-history containers
+- `src/content_rotation.py`: centralized recent identifier validation for single and batch selection. Non-iterable values (including null/numbers), scalar strings/bytes, and collections containing non-string identifiers now fail with a controlled ValueError.
+- Added regression coverage for both selection APIs so malformed history cannot leak a TypeError or be interpreted character-by-character.
+- Source, tests, and development log committed on `feature/quran-video-pro` only. Tests have not been executed in this environment; no production render or Telegram send was performed.
