@@ -38,7 +38,7 @@ class PreviewLedgerTests(unittest.TestCase):
             reserve(self.path, "candidate-001", "dua", "c" * 64, "b" * 64, "run-2")
 
     def test_invalid_utf8_ledger_is_reported_as_safe_validation_error(self):
-        self.path.write_bytes(b'\\xff\\xfe{')
+        self.path.write_bytes(b'\xff\xfe{')
         with self.assertRaisesRegex(ValueError, "Cannot safely read Pro preview ledger") as caught:
             load_ledger(self.path)
         self.assertIsNone(caught.exception.__cause__)
