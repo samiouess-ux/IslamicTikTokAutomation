@@ -1547,3 +1547,14 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`), `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`), and `tests/test_send_pro_preview_telegram.py` (blob `6844c2549223f95942552b740026010be5acc475`) from `feature/quran-video-pro`.
 - Read-only inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
+
+
+## 2026-11-07 — Static review: preview artifact path check/use window
+
+### Finding (defense-in-depth concern; no code changes)
+- Both `pro_preview_delivery_cycle._inside_regular_file` and `send_pro_preview_telegram._safe_pro_file` resolve and validate an artifact path, then later reopen/read it by pathname. In the direct sender CLI path, expected SHA-256 values are optional; therefore, if an untrusted local process can replace the resolved file between path validation and `read_bytes()` (or replace it with a symlink), the later read may follow a changed target outside the intended Pro directory. The orchestrated cycle additionally supplies expected hashes, which detects changed bytes before upload, but pathname validation alone is not race-free.
+- This is a local time-of-check/time-of-use race requiring concurrent filesystem modification; no evidence of exploitation or an ordinary workflow bypass was found. Recommended hardening for a future approved patch: open files with no-follow semantics where supported, validate the opened file descriptor (regular-file type and resolved location/inode), then hash and upload bytes read from that same descriptor. Add focused symlink-swap/path-race tests where portable.
+
+### Verification and safety
+- Re-fetched `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`), `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`), and `tests/test_pro_preview_delivery_cycle.py` (blob `60299ef19cd78683bc530d4c11288479bca26ae7`) from `feature/quran-video-pro`.
+- Read-only inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
