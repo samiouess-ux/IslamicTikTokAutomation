@@ -70,8 +70,10 @@ class ProDeliveryCycleTests(unittest.TestCase):
             raise TimeoutError("ambiguous timeout")
 
         persist_mock = mock.Mock(return_value=True)
-        with self.assertRaisesRegex(TimeoutError, "ambiguous timeout"):
+        with self.assertRaisesRegex(RuntimeError, "outcome is not confirmed") as caught:
             self.run_cycle(persist_fn=persist_mock, send_fn=fake_send)
+        self.assertNotIn("ambiguous timeout", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
         self.assertEqual(persist_mock.call_count, 2)
         self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "uncertain")
 
