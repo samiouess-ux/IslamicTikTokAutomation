@@ -2000,3 +2000,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `src/content_rotation.py`: centralized recent identifier validation for single and batch selection. Non-iterable values (including null/numbers), scalar strings/bytes, and collections containing non-string identifiers now fail with a controlled ValueError.
 - Added regression coverage for both selection APIs so malformed history cannot leak a TypeError or be interpreted character-by-character.
 - Source, tests, and development log committed on `feature/quran-video-pro` only. Tests have not been executed in this environment; no production render or Telegram send was performed.
+
+### Repair 15: Validate persisted production-ledger entry fields
+- `src/pro_delivery_ledger.py`: ledger loading now validates each entry's content type, run ID, timestamps, and Telegram receipt consistency in addition to its state. Delivered entries require a positive non-boolean message ID; reserved/uncertain entries cannot carry a receipt.
+- Added malformed persisted-ledger regression coverage for collection-valued enums/IDs, missing or malformed timestamps, and boolean Telegram message IDs.
+- Source, tests, and log committed on `feature/quran-video-pro` only. No test execution, production render, or Telegram send is claimed.
