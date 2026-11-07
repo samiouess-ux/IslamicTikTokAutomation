@@ -1630,3 +1630,14 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and `tests/test_render_dua_video.py` (blob `685937e838567c28c480262fc807268e28bde7f8`) from `feature/quran-video-pro`.
 - Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+## 2026-11-07 — Static review: renderer output symlink handling
+
+### Finding (local output-path hardening; no code changes)
+- `render_dua_video.main()` creates the requested output parent and passes the output pathname directly to FFmpeg with `-y`. It does not reject an output path that already exists as a symlink, nor does it inspect symlinked parent components. FFmpeg may therefore write through a pre-existing output symlink rather than creating the intended MP4 at the visible path.
+- The ordinary Pro preview orchestrator uses a predictable path under `output/pro_preview`, while the renderer CLI also accepts a caller-selected `--output`. This is a local filesystem/path-integrity concern that requires a symlink to be present; it is not evidence of a remote or approval bypass.
+- Recommended hardening: reject symlink output targets and, for the fixed Pro preview destination, verify the resolved parent remains within the intended Pro output directory before invoking FFmpeg. Add tests for a symlinked output file and symlinked output parent. Keep the general CLI's explicitly configurable destination semantics documented. No implementation made pending explicit approval.
+
+### Verification and safety
+- Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) from `feature/quran-video-pro`.
+- Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
