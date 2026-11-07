@@ -72,6 +72,29 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         ])
         self.assertEqual(len(commands), 6)
 
+    def test_refuses_symlinked_ledger_file(self):
+        ledger = self.repo / "data" / "pro_delivery_ledger.json"
+        target = self.repo / "outside.json"
+        target.write_text('{"version":1,"entries":{}}', encoding="utf-8")
+        ledger.unlink()
+        ledger.symlink_to(target)
+        with self.run_git([(0, EXPECTED_BRANCH, ""), (0, "", "")]):
+            with self.assertRaisesRegex(RuntimeError, "must not be a symlink"):
+                persist_ledger(self.repo)
+
+    def test_refuses_symlinked_data_directory(self):
+        data = self.repo / "data"
+        ledger = data / "pro_delivery_ledger.json"
+        ledger.unlink()
+        data.rmdir()
+        outside = self.repo / "outside"
+        outside.mkdir()
+        (outside / "pro_delivery_ledger.json").write_text('{"version":1,"entries":{}}', encoding="utf-8")
+        data.symlink_to(outside, target_is_directory=True)
+        with self.run_git([(0, EXPECTED_BRANCH, ""), (0, "", "")]):
+            with self.assertRaisesRegex(RuntimeError, "data directory must not be a symlink"):
+                persist_ledger(self.repo)
+
     def test_refuses_unrelated_staged_path_after_add(self):
         outputs = [
             (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "", ""),
