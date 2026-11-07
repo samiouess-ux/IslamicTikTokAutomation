@@ -17,6 +17,11 @@ from typing import Any, Iterator
 VALID_STATES = {"reserved", "delivered", "uncertain"}
 
 
+def _require_manifest_id(manifest_id: str) -> None:
+    if not isinstance(manifest_id, str) or not manifest_id.strip():
+        raise ValueError("A non-empty manifest_id is required.")
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -109,6 +114,7 @@ def reserve(path: Path, manifest_id: str, content_type: str, run_id: str) -> dic
 
 def assert_reserved_for_run(path: Path, manifest_id: str, content_type: str, run_id: str) -> dict[str, Any]:
     """Verify a reservation was persisted before this run is allowed to call Telegram."""
+    _require_manifest_id(manifest_id)
     if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise ValueError("Only dua/dhikr can be sent by Pro.")
     if not isinstance(run_id, str) or not run_id.strip():
@@ -129,6 +135,7 @@ def assert_reserved_for_run(path: Path, manifest_id: str, content_type: str, run
 
 def transition(path: Path, manifest_id: str, new_state: str,
                telegram_message_id: int | None = None) -> dict[str, Any]:
+    _require_manifest_id(manifest_id)
     if not isinstance(new_state, str) or new_state not in VALID_STATES:
         raise ValueError(f"state must be one of {sorted(VALID_STATES)}.")
     with _file_lock(path):
@@ -158,6 +165,7 @@ def transition(path: Path, manifest_id: str, new_state: str,
 
 def reconcile_not_delivered(path: Path, manifest_id: str, confirmation: str) -> None:
     """Release only after a human confirms Telegram did not accept the video."""
+    _require_manifest_id(manifest_id)
     if confirmation != "CONFIRM_NOT_DELIVERED":
         raise ValueError("Explicit CONFIRM_NOT_DELIVERED confirmation is required.")
     with _file_lock(path):
