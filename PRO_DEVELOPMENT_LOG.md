@@ -2163,3 +2163,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated the regression to inject a credential-bearing Git remote URL, assert that the secret and exception cause are absent, and verify the local confirmed message receipt remains recorded while the previously pushed reservation remains the remote duplicate-send boundary.
 - Updated files: `src/pro_delivery_cycle.py`, `tests/test_pro_delivery_cycle.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 38: redact production ledger Git command diagnostics
+- Review found `persist_pro_ledger.py` still embedded raw Git stderr/stdout and command arguments in exceptions. A failed push can include a credential-bearing remote URL, and the production helper is callable directly as well as through the delivery cycle.
+- Changed the production helper to emit only a generic Git-operation failure and numeric exit code, with no chained subprocess exception and no raw command, stdout, or stderr.
+- Added a regression that injects a credential-bearing GitHub remote URL into a simulated push rejection and asserts the secret, host, and exception cause are not exposed.
+- Updated files: `src/persist_pro_ledger.py`, `tests/test_persist_pro_ledger.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
