@@ -128,6 +128,22 @@ class ProLedgerPersistenceTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "must not be a symlink"):
                 persist_ledger(self.repo)
 
+    def test_refuses_symlinked_ledger_lock_file(self):
+        ledger = self.repo / "data" / "pro_delivery_ledger.json"
+        lock = ledger.with_name(ledger.name + ".lock")
+        target = self.repo / "outside.lock"
+        target.write_text("unchanged", encoding="utf-8")
+        try:
+            lock.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        outputs = self.aligned_prefix() + [(0, "", "")]
+        with self.run_git(outputs) as patched:
+            with self.assertRaisesRegex(RuntimeError, "storage paths must not contain symlinks"):
+                persist_ledger(self.repo)
+        self.assertEqual(patched.call_count, 5)
+        self.assertEqual(target.read_text(encoding="utf-8"), "unchanged")
+
     def test_refuses_symlinked_data_directory(self):
         data = self.repo / "data"
         ledger = data / "pro_delivery_ledger.json"
