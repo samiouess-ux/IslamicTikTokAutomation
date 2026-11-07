@@ -14,6 +14,10 @@ MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_CAPTION_CHARS = 1024
 
 
+class TelegramAcceptedLedgerError(RuntimeError):
+    """Telegram accepted the video, but local receipt finalization failed."""
+
+
 def build_caption(data: dict) -> str:
     if not isinstance(data, dict):
         raise ValueError("Caption JSON must contain an object.")
@@ -103,8 +107,15 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
             "do not retry automatically."
         ) from None
 
-    # If this write fails, the earlier reservation still blocks a duplicate send.
-    transition(ledger_path, manifest_id, "delivered", message_id)
+    # Telegram has confirmed acceptance. A local receipt-write failure must
+    # never be mistaken for an ambiguous network send by the outer cycle.
+    try:
+        transition(ledger_path, manifest_id, "delivered", message_id)
+    except Exception:
+        raise TelegramAcceptedLedgerError(
+            "Telegram accepted the Pro review video, but its local delivered receipt "
+            "could not be finalized. The reservation remains blocking; reconcile before retrying."
+        ) from None
     print(f"Telegram confirmed Dua & Adhkar Pro review delivery: message_id={message_id}.")
     return message
 
