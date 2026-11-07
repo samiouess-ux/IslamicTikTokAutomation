@@ -2426,3 +2426,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Decision: both remain candidate leads, NOT approved Pro assets. The exact download bytes have not been acquired or inspected in this session, no SHA-256 hash has been captured, no media metadata/third-party-element review has been completed, and no rights record or approval flags have been created. MK-001 is the first candidate to acquire and inspect when a repository-side download path is available; MK-002 is retained as a distinct backup theme, not a same-video substitute.
 - No user file upload was requested. No code, manifest, media file, rights record, workflow, secret, Telegram configuration, or production branch was changed. No tests, render, Telegram request/send, or TikTok publication occurred.
 - Next step: use an authorized automated download path in the Pro CI environment (not a manual user upload), pin the exact source page and license evidence, inspect the downloaded file and embedded content, compute SHA-256, then make a documented per-asset decision. Do not mark either asset approved before those steps.
+
+
+## 2026-11-07 — Document Mixkit as an additional Pro discovery source
+
+- Updated `content/pro/MEDIA_RIGHTS_POLICY.md` to add Mixkit as an additional background-video discovery source, while explicitly distinguishing the commercial-use Free License from Restricted License downloads.
+- Recorded the official Free License scope (including social-media video posts and commercial projects), no mandatory attribution, and the fact that Mixkit User Terms and all existing per-asset/third-party review gates still apply.
+- Named MK-001 and MK-002 as example research leads only; no approval status or rights booleans were set. Exact downloaded bytes, file hashes, creator/owner confirmation, and visual third-party inspection are still outstanding.
+- No runtime code, manifest, media bytes, rights record, workflow, secret, Telegram configuration, or production branch was changed. No tests, render, Telegram request/send, or TikTok publication occurred.
