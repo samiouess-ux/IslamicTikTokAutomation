@@ -2037,3 +2037,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Review found one pre-existing assertion in `tests/test_send_pro_telegram.py` still expected the raw `TimeoutError`, while Repair 18 intentionally converts transport failures to a generic redacted `RuntimeError`.
 - Updated that test to assert the new safe error contract, including that the original timeout text is not exposed and no exception cause is chained. This prevents a predictable failure in the sender test suite.
 - Test and log committed on `feature/quran-video-pro` only. Tests have not yet been executed.
+
+
+### Repair 20: regression coverage for invalid Telegram delivery receipts
+- Added sender tests for Telegram responses whose `message_id` is boolean, zero, negative, a string, or null.
+- Each malformed receipt must be rejected and the delivery ledger must remain `uncertain`, preventing the workflow from treating an unverified response as a confirmed delivery or retrying blindly.
+- Test and log committed on `feature/quran-video-pro` only. Tests have not yet been executed; this is regression coverage, not a passing test claim.
