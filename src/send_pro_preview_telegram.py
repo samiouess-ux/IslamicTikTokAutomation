@@ -165,7 +165,7 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
     except Exception:
         # The upload may have been accepted despite a lost response; redact token-bearing URL.
         raise RuntimeError("Telegram sendVideo transport outcome is uncertain; do not retry automatically.") from None
-    if not isinstance(result, dict) or not result.get("ok") or not isinstance(result.get("result"), dict):
+    if not isinstance(result, dict) or result.get("ok") is not True or not isinstance(result.get("result"), dict):
         raise RuntimeError("Telegram did not confirm the candidate preview. Outcome may be uncertain; do not retry automatically.")
     message_id = result["result"].get("message_id")
     if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
