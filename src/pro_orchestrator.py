@@ -18,7 +18,7 @@ from render_dua_video import HARD_MAX_DURATION_SECONDS
 def read_json(path: Path) -> dict:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SystemExit(f"Cannot read JSON file {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise SystemExit(f"Expected a JSON object in {path}.")
