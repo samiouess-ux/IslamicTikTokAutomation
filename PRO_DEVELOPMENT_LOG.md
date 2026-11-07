@@ -1558,3 +1558,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`), `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`), and `tests/test_pro_preview_delivery_cycle.py` (blob `60299ef19cd78683bc530d4c11288479bca26ae7`) from `feature/quran-video-pro`.
 - Read-only inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
+
+
+## 2026-11-07 — Static review: timezone normalization in rights dates
+
+### Finding (date-boundary correctness; no code changes)
+- `validate_pro_media_rights._date` accepts ISO-8601 timestamps with offsets, but returns `datetime.fromisoformat(...).date()` without converting an aware timestamp to UTC first. The caller compares that date with `datetime.now(timezone.utc).date()`.
+- For timestamps near midnight with a non-UTC offset, the recorded calendar date can differ from its UTC calendar date. This can shift the effective comparison by one day for `downloaded_at`, `reviewed_at`, and validity start/end checks. It is a narrow boundary issue, not a general rights-check bypass.
+- Recommended hardening: distinguish date-only values from timezone-aware datetimes; normalize aware datetimes to UTC before taking the date; define an explicit policy for naive datetime strings (reject them or treat them as date-only only if the schema permits). Add tests for positive and negative offsets crossing UTC midnight, including validity start/end boundaries. No change made pending approval.
+
+### Verification and safety
+- Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`) and `tests/test_validate_pro_media_rights.py` (blob `36fa0acabf981e5709e333b6b72627d69df111df`) from `feature/quran-video-pro`.
+- Read-only inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
