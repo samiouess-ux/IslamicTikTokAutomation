@@ -1926,3 +1926,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Changes were committed on `feature/quran-video-pro`; content refetch verification is still required.
 - Tests have not been executed in this repair step; no passing result is claimed.
 - No production render, Telegram send, TikTok publish, or other-branch write was performed.
+
+
+### Follow-up verification (2026-11-07)
+- Refetched the Repair 5 and Repair 6 source/test files from `feature/quran-video-pro`; confirmed the expected guards and regression-test methods are present in the committed branch files.
+- The latest visible successful Pro safety workflow run (#3, commit `f8e0d76a151e7241901f21b9c257de1d0a7a97fb`) predates these new commits, so it is historical evidence only and does **not** validate the current branch head.
+- No workflow dispatch/test-run action is available in the connected GitHub operations used here. Therefore the new tests remain unexecuted and the current head is not certified by CI.
