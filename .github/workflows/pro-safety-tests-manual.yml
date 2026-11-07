@@ -56,6 +56,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_pro_delivery_cycle.py' -v
           python -m unittest discover -s tests -p 'test_validate_content_manifest.py' -v
           python -m unittest discover -s tests -p 'test_content_rotation.py' -v
+          python -m unittest discover -s tests -p 'test_asset_rotation.py' -v
           python -m unittest discover -s tests -p 'test_prepare_pro_telegram_caption.py' -v
           python -m unittest discover -s tests -p 'test_pro_orchestrator.py' -v
           python -m unittest discover -s tests -p 'test_render_dua_video.py' -v
