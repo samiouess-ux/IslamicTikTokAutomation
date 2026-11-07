@@ -2693,3 +2693,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Decision: this source is not cleared for the planned Pro workflow, which may later publish/monetize social videos. Do not download, embed, edit, or synchronize its audio unless the relevant rights holder provides explicit written permission covering the intended uses.
 - This is a useful negative rights finding, not an audio candidate. No file was downloaded; no rights record, manifest, render, Telegram send, or TikTok publication was created.
 - Together with the OpenDua review, this confirms that freely accessible Islamic audio is not automatically reusable. Continue seeking explicit item-level permissions or a genuinely commercial-compatible recording licence.
+
+
+## 2026-11-07 — SILMA TTS v1 identified as a conditional synthetic-voice route
+
+- Researched the official SILMA TTS v1 model card: https://huggingface.co/silma-ai/silma-tts and vendor page https://silma.ai/open-source-arabic-tts-models.
+- The model card identifies a 150M-parameter Arabic/English Fusha/MSA TTS model, accepts tashkeel, and states code is MIT while model weights are Apache-2.0. The card also says the model was trained on public and proprietary data and instructs users to disclose AI-generated audio; voice cloning requires explicit documented speaker consent.
+- Important limitation: the demonstrated inference path uses a reference audio file and its transcription. No reusable rights evidence for the bundled reference voice sample was established in this review. Therefore do not assume the sample voice is cleared or clone a real reciter. The model's open licence is not a licence for any particular reference recording or a claim that synthetic output is religious recitation.
+- Conditional decision: consider SILMA only for a clearly disclosed synthetic spoken-dua narration (not Quran recitation, not impersonation of a qari), after verifying a permitted reference voice or a non-cloning inference mode, Arabic pronunciation/tashkeel with human review, and output suitability. No model was downloaded or run, no audio generated, no manifest/rights record/render/Telegram send/TikTok publication was created.
+- This is the first promising zero-upfront-cost model lead for synthetic narration, but it is not yet approved for the Pro test. Keep all production and delivery gates closed until a real audio sample has been checked.
