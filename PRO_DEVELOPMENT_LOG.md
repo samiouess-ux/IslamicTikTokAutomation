@@ -2025,3 +2025,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `tests/test_send_pro_telegram.py`: updated the transport-failure regression to inject a fake token-bearing URL and assert the token is absent from the surfaced exception and no cause is chained. The test also confirms the ledger remains uncertain.
 - Source and regression test committed on `feature/quran-video-pro` only. Files were fetched before edits; final refetch verification follows.
 - Tests have not been executed in this session. No Telegram request/send, production render, TikTok publication, or secret change was performed.
+
+
+### Repair 19: cover token redaction when ledger recovery itself fails
+- `tests/test_send_pro_telegram.py`: added a failure-path regression where both the Telegram transport exception and the attempt to mark the reservation `uncertain` contain a fake bot token. The test asserts the surfaced error contains no token and has no chained cause.
+- This closes the secondary exception path introduced by Repair 18: failure to update the ledger must still keep the reservation blocking without leaking a secret-bearing transport or filesystem error.
+- Test and log committed on `feature/quran-video-pro` only. Test execution is not available/has not been performed in this session; no Telegram request, render, TikTok publication, or secret change occurred.
