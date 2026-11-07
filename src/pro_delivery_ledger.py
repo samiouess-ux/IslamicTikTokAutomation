@@ -38,10 +38,10 @@ def _reject_symlink_components(path: Path) -> None:
 def _file_lock(path: Path) -> Iterator[None]:
     """Serialize read/modify/write operations without following lock symlinks."""
     lock_path = path.with_name(path.name + ".lock")
-    _reject_symlink_components(lock_path)
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
     if lock_path.is_symlink():
         raise ValueError("Pro ledger lock file must not be a symlink.")
+    _reject_symlink_components(lock_path)
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
     flags = os.O_CREAT | os.O_RDWR
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
