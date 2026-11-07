@@ -49,7 +49,9 @@ def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
     repo_root = repo_root.resolve(strict=True)
     manifest = _inside_regular_file(repo_root / manifest_path, repo_root / MANIFEST_ROOT, repo_root)
     video = _inside_regular_file(repo_root / video_path, repo_root / PREVIEW_ROOT, repo_root)
-    if not token.strip() or not chat_id.strip() or not chat_id.strip().isdigit() or int(chat_id) <= 0:
+    if (not isinstance(token, str) or not token.strip()
+            or not isinstance(chat_id, str) or not chat_id.strip().isdigit()
+            or int(chat_id) <= 0):
         raise ValueError("A bot token and positive numeric private-chat ID are required.")
     if video.suffix.lower() != ".mp4" or video.stat().st_size <= 0 or video.stat().st_size > MAX_VIDEO_BYTES:
         raise ValueError("Preview MP4 must be non-empty and no larger than 50 MiB.")
