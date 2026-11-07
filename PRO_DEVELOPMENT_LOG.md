@@ -1500,3 +1500,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - No source or test code was changed. No tests were run; no workflow dispatch/rerun, render, Telegram request/send/upload, or TikTok publish occurred.
 - Next safe code proposal, pending explicit approval: add finite-number checks and tests for NaN; separately agree an audio-duration policy and test short/long audio behavior before changing FFmpeg arguments.
 - No production branch, original Telegram bot/settings, secrets, Cron, `main`, `feature/telegram-review-notifications`, or original Quran engine was touched.
+
+
+## 2026-11-07 — Static review: malformed manifest field types
+
+### Findings (review only; no code changes)
+- `validate_content_manifest.py` checks membership in Python sets before verifying that several fields are strings. A JSON list/object supplied as `content_type`, `audio.kind`, `visual.template`, or a dua/dhikr item's `kind` raises an uncaught `TypeError` rather than the validator's normal controlled rejection. The orchestrator's blocked-result handlers catch `SystemExit`, `ValueError`, and `LookupError`, but not `TypeError`, so malformed manifests can produce an unstructured traceback. This still stops the path; no side effect was identified, but it weakens predictable fail-closed reporting.
+- `repeat_count` currently accepts JSON boolean `true` because Python treats bool as a subclass of int. If repeat_count is intended to be a strict positive integer, reject bool explicitly.
+- Recommended limited hardening: type-check these enum-like fields as strings before set membership, reject bool for repeat_count, and add table-driven malformed-shape tests asserting controlled validation errors and structured orchestrator blocking. No implementation was made pending explicit code-change approval.
+
+### Verification and safety
+- Re-fetched `src/validate_content_manifest.py`, `src/pro_orchestrator.py`, and `tests/test_validate_content_manifest.py` from `feature/quran-video-pro`. Blob SHAs: validator `5146070fea6ab8ed65cd6d192e8a25547260ba1`; orchestrator `a76c75e72bdc030575652f9a76f105ee91865675`; validator tests `7914f2c7f0eacc298379b87687377e935cff19d6`.
+- Read-only inspection only. No tests were run, no source/test files changed, and no workflow, render, Telegram, TikTok, production bot, or production branch was touched.
