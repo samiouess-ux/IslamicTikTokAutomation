@@ -107,10 +107,18 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         raise RuntimeError("Preview reservation was not confirmed persisted; Telegram send blocked.")
     remote_check = load_ledger(ledger_path)
     committed = remote_check["entries"].get(checked["candidate_id"])
-    if not committed or committed["state"] != "reserved" or (
-        committed["manifest_sha256"], committed["video_sha256"]
-    ) != (checked["manifest_sha256"], checked["video_sha256"]):
-        raise RuntimeError("Persisted preview reservation could not be verified; Telegram send blocked.")
+    if (
+        not committed
+        or committed.get("candidate_id") != checked["candidate_id"]
+        or committed.get("content_type") != checked["content_type"]
+        or committed.get("workflow_run_id") != workflow_run_id
+        or committed.get("state") != "reserved"
+        or (committed.get("manifest_sha256"), committed.get("video_sha256"))
+            != (checked["manifest_sha256"], checked["video_sha256"])
+    ):
+        raise RuntimeError(
+            "Persisted preview reservation identity/state/hashes could not be verified; Telegram send blocked."
+        )
 
     # Re-hash after the remote reservation is committed to close the local
     # preflight-to-send modification window. A mismatch leaves the reservation blocked.
