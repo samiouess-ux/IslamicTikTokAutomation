@@ -1433,3 +1433,18 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Only `src/content_rotation.py` and `tests/test_content_rotation.py` were changed in this code fix.
 - No manifests, media, rights records, ledger data, secrets, bot settings, Cron, Telegram, TikTok, render, or production workflows were touched.
 - `main`, `feature/telegram-review-notifications`, and the original Quran engine remain outside this change.
+
+
+## 2026-11-07 — Batch rotation revalidation after selection
+
+### Change
+- Hardened `choose_manifests()` against a manifest changing between initial selection and its subsequent read.
+- The selected file is now re-read under error handling and revalidated for JSON-object shape, requested content type, explicit rotation approval, manual-review requirement, disabled auto-publish, and a non-empty ID not already in the batch/recent set.
+- Added two regression tests simulating a selected file becoming invalid JSON and losing its ID before the batch re-read.
+- Changes are limited to `src/content_rotation.py` and `tests/test_content_rotation.py`; no workflow configuration was changed.
+
+### Verification
+- Source commit: `ad9762a1772376c5bc8ae13941569d5a3125bc96`; source blob: `2ad7ca31cf8b5c54edc362c64f845fb4412fbb6a`.
+- Test commit: `a676cee0922a9a26cd612d0c3e197ffe5c42c23c`; test blob: `67fbba0ebd8099831c02a4b37ae52c0922251b80`.
+- Tests were added but NOT RUN. No workflow dispatch or rerun occurred.
+- No rendering, Telegram request/send, TikTok publishing, production ledger/history update, secrets, Cron, original bot, original Quran engine, `main`, or `feature/telegram-review-notifications` was touched.
