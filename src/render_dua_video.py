@@ -15,8 +15,8 @@ from validate_pro_media_rights import validate_manifest_media_rights
 
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
 AUDIO_DURATION_TOLERANCE_SECONDS = 0.75
-TARGET_MAX_DURATION_SECONDS = 65.0
-HARD_MAX_DURATION_SECONDS = 65.0
+TARGET_MAX_DURATION_SECONDS = 40.0
+HARD_MAX_DURATION_SECONDS = 40.0
 
 
 def run(command: list[str]) -> None:
