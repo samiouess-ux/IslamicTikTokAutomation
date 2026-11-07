@@ -2493,3 +2493,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Proposed this as a separate calm morning/renewal visual direction for a future Sayyid al-Istighfar item, distinct from MK-001's sunrise/mountain open landscape. No visual mapping is approved until the exact file is inspected.
 - Added an isolated, exact-Pro-branch single-item intake workflow `.github/workflows/pro-background-intake-mk002.yml` and recorded the source in `content/pro/CANDIDATE_RESEARCH_001.md`. The first run `42410443005` started on the initial workflow commit; a filename correction was committed as `a60254931e40f907a04265457c7f835296c5ded0` and a corrected run was observed pending. No completion is claimed yet.
 - No file/hash/contact sheet, rights record, manifest, approval, render, Telegram send, or TikTok publication is claimed for MK-002.
+
+
+## 2026-11-07 — MK-002 morning forest intake and visual sample review
+
+- Single-item intake run `42410443005` completed successfully: page Free License check passed; exact MP4 downloaded; ffprobe and nine-frame contact sheet succeeded; contact sheet was inspected.
+- Exact file facts: 7,083,251 bytes, MP4/H.264, 1280×720, 60 fps, 23.550000 seconds, SHA-256 `6a39a371443cbed05f27a6a213e8905318186ac5086424d8e6a37f1d6ad1d462`.
+- Sampled frames show a sunlit forest with morning rays between trees; no people/logos/obvious artwork visible in the nine sampled frames. It is visually distinct from MK-001 and a possible quiet renewal/istighfar theme. The central 9:16 crop is visually busy; text legibility will need a calm/darkened overlay. Full-file inspection remains outstanding.
+- Saved durable contact sheet `content/pro/review_previews/MK-002-contact-sheet.jpg` in commit `2d03cc5103799a62f55c233545ea8c60dd0629bc`. The MP4 itself is not retained in the repository; it existed only in the ephemeral runner. No rights JSON, manifest, approval flag, render, Telegram send, or TikTok publication was created.
+- Updated `content/pro/CANDIDATE_RESEARCH_001.md` with the exact metadata, visual sample findings, and remaining rights blockers. A second corrected filename run was observed pending at the time; no claim is made about its result.
