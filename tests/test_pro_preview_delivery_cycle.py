@@ -109,8 +109,10 @@ class PreviewCycleTests(unittest.TestCase):
         def send(*args, **kwargs):
             calls.append("send")
             raise TimeoutError("ambiguous")
-        with self.assertRaises(TimeoutError):
+        with self.assertRaisesRegex(RuntimeError, "outcome is uncertain") as caught:
             self.call_cycle(persist, send)
+        self.assertNotIn("ambiguous", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
         self.assertEqual(calls, ["persist", "send", "persist"])
         data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
         self.assertEqual(data["entries"]["candidate-001"]["state"], "uncertain")
