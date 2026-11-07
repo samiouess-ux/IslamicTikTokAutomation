@@ -1570,3 +1570,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`) and `tests/test_validate_pro_media_rights.py` (blob `36fa0acabf981e5709e333b6b72627d69df111df`) from `feature/quran-video-pro`.
 - Read-only inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
+
+
+## 2026-11-07 — Static review: media-rights file verification TOCTOU
+
+### Finding (local concurrent-file race; no code changes)
+- `validate_pro_media_rights._safe_file` resolves/checks the asset or evidence path and returns a pathname. The validator subsequently reopens that pathname with `read_bytes()` to hash it, and the renderer later consumes the returned asset pathname in FFmpeg.
+- A concurrent local process able to replace a validated file/path between resolution, hashing, and renderer open could cause the bytes ultimately consumed to differ from the bytes whose digest was checked. The same pattern applies to saved license-evidence files. This is a local TOCTOU hardening concern; no ordinary-flow rights bypass was demonstrated.
+- Recommended hardening: open files with no-follow semantics where supported, validate the opened file descriptor (regular file and fixed-root identity), hash from that descriptor, and ensure the exact verified bytes/file identity are what the renderer consumes. Add controlled race/symlink replacement tests. Coordinate this with the previously logged preview-artifact TOCTOU finding rather than applying inconsistent path fixes. No implementation made pending explicit approval.
+
+### Verification and safety
+- Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`), `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`), and `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`) from `feature/quran-video-pro`.
+- Static inspection only. No source/test changes, test execution, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
