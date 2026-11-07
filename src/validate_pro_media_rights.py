@@ -127,12 +127,6 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str, planned
             _fail("saved license evidence requires a SHA-256 digest.")
         if hashlib.sha256(evidence_path.read_bytes()).hexdigest() != evidence_hash:
             _fail("saved license evidence hash mismatch.")
-    uses = record.get("intended_uses")
-    if not isinstance(uses, dict):
-        _fail("explicit intended_uses permissions are required.")
-    for field in USE_FIELDS[planned_use]:
-        if uses.get(field) is not True:
-            _fail("permission is missing for planned use: " + field + ".")
     territories = record.get("territories")
     if not isinstance(territories, list) or not territories or any(not isinstance(x, str) or not x.strip() for x in territories):
         _fail("permitted territories must be explicit.")
@@ -145,6 +139,12 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str, planned
             _fail("permission does not cover the private review delivery territory.")
     elif not global_scope:
         _fail("permission must cover worldwide public distribution for this channel.")
+    uses = record.get("intended_uses")
+    if not isinstance(uses, dict):
+        _fail("explicit intended_uses permissions are required.")
+    for field in USE_FIELDS[planned_use]:
+        if uses.get(field) is not True:
+            _fail("permission is missing for planned use: " + field + ".")
     validity = record.get("validity")
     if not isinstance(validity, dict):
         _fail("license validity scope is required.")
@@ -190,6 +190,8 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
         _fail("unsupported planned-use profile.")
     if not isinstance(data, dict):
         _fail("manifest must be an object.")
+    if planned_use == "private_review" and planned_territory is None:
+        planned_territory = data.get("review_delivery_territory")
     visual = data.get("visual")
     audio = data.get("audio")
     if not isinstance(visual, dict) or not isinstance(audio, dict):
