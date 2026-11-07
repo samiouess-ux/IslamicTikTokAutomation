@@ -33,6 +33,12 @@ class ProDeliveryLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "No persisted reservation"):
             assert_reserved_for_run(self.ledger, "missing", "dua", "run-expected")
 
+    def test_persisted_reservation_rejects_non_string_content_type(self):
+        reserve(self.ledger, "dua-type", "dua", "run-1")
+        for content_type in ([], {}, 7, True):
+            with self.subTest(content_type=content_type), self.assertRaisesRegex(ValueError, "Only dua/dhikr"):
+                assert_reserved_for_run(self.ledger, "dua-type", content_type, "run-1")
+
     def test_confirmed_delivery_requires_message_id(self):
         reserve(self.ledger, "dhikr-1", "dhikr", "run-1")
         with self.assertRaisesRegex(ValueError, "message_id"):
