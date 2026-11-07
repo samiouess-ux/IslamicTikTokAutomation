@@ -122,6 +122,12 @@ jobs:
               raise SystemExit("Commons API metadata does not confirm the expected CC0 1.0 license.")
           copyrighted = (meta.get("Copyrighted", {}).get("value") or "").strip().lower()
           restrictions = (meta.get("Restrictions", {}).get("value") or "").strip()
+          print(json.dumps({
+              "license_short_name": license_name,
+              "license_url": license_url,
+              "copyrighted_raw": meta.get("Copyrighted", {}).get("value"),
+              "restrictions_raw": meta.get("Restrictions", {}).get("value"),
+          }, ensure_ascii=False))
           if copyrighted and copyrighted not in ("false", "no", "0"):
               raise SystemExit("Commons API reports a positive/unknown copyright flag; refusing intake.")
           if restrictions.lower() not in ("", "false", "no", "0", "none"):
