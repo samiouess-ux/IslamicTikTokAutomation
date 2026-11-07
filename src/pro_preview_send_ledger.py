@@ -156,6 +156,7 @@ def reserve(path: Path, candidate_id: str, content_type: str, manifest_sha256: s
 
 
 def transition(path: Path, candidate_id: str, state: str, message_id: int | None = None, *, recovered_receipt: bool = False) -> dict[str, Any]:
+    validate_candidate_id(candidate_id)
     if not isinstance(state, str) or state not in {"delivered", "uncertain"}:
         raise ValueError("Only delivered or uncertain transitions are supported.")
     with file_lock(path):
