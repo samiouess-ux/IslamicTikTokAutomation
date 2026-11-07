@@ -2298,3 +2298,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Review found a malformed value such as `https://` or a non-string source name could pass the prior truthiness/prefix check for a dua/dhikr religious source.
 - Added a fail-closed HTTPS URL check requiring a real hostname and rejecting embedded URL credentials; source names must be non-empty strings. Added regressions for empty/malformed hosts, non-HTTPS URLs, non-string URLs, malformed IPv6, and invalid source names.
 - Updated `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 55: align Pro content guidance with the approved 45-second ceiling
+- A final documentation sweep found the Pro content README still instructed reviewers to keep videos at 40 seconds, contradicting the approved renderer/orchestrator hard ceiling of 45 seconds.
+- Updated the content intake guidance to 45 seconds. This is documentation-only; no renderer behavior changed. No tests, render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
