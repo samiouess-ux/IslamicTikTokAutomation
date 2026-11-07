@@ -140,19 +140,27 @@ class ProDeliveryCycleTests(unittest.TestCase):
         self.assertEqual(events, ["persist", "send", "persist"])
         self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "delivered")
 
-    def test_final_persistence_failure_leaves_reserved_commit_as_blocking_boundary(self):
-        persist_mock = mock.Mock(side_effect=[True, RuntimeError("final push failed")])
+    def test_final_persistence_failure_after_confirmed_send_is_safe_and_blocks_resend(self):
+        secret = "GITHUB_REMOTE_TOKEN_SECRET"
+        persist_mock = mock.Mock(side_effect=[
+            True, RuntimeError(f"final push failed for https://{secret}@github.com/owner/repo")
+        ])
 
         def fake_send(*args, **kwargs):
             transition(self.ledger, "dua-cycle-1", "delivered", 888)
             return {"message_id": 888}
 
-        with self.assertRaisesRegex(RuntimeError, "final push failed"):
+        with self.assertRaisesRegex(RuntimeError, "Telegram accepted the Pro review video") as caught:
             self.run_cycle(persist_fn=persist_mock, send_fn=fake_send)
+        self.assertNotIn(secret, str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
+        self.assertIn("do not resend", str(caught.exception))
         self.assertEqual(persist_mock.call_count, 2)
-        # The remote branch would still contain the first, already-pushed reservation.
-        # The local file reflects the confirmed Telegram response but is not pushed.
-        self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "delivered")
+        # The remote branch still has the first, already-pushed reservation.
+        # The local file has the confirmed receipt but final push failed.
+        entry = load_ledger(self.ledger)["entries"]["dua-cycle-1"]
+        self.assertEqual(entry["state"], "delivered")
+        self.assertEqual(entry["telegram_message_id"], 888)
 
 
     def test_non_object_caption_json_is_rejected_before_reservation(self):
