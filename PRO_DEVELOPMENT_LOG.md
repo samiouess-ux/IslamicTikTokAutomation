@@ -1448,3 +1448,32 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Test commit: `a676cee0922a9a26cd612d0c3e197ffe5c42c23c`; test blob: `67fbba0ebd8099831c02a4b37ae52c0922251b80`.
 - Tests were added but NOT RUN. No workflow dispatch or rerun occurred.
 - No rendering, Telegram request/send, TikTok publishing, production ledger/history update, secrets, Cron, original bot, original Quran engine, `main`, or `feature/telegram-review-notifications` was touched.
+
+
+## 2026-11-07 — Scope private-review media rights to the actual delivery territory
+
+### Change
+- Updated `src/validate_pro_media_rights.py` so `private_review` no longer requires worldwide territory coverage by default.
+- Private review now requires an explicit `review_delivery_territory` value in the manifest. The rights record must either list that territory (case-insensitive exact match) or grant worldwide/global/all coverage.
+- Public-social and monetized-social uses continue to require worldwide/global/all territory coverage, independently of their separate intended-use permissions.
+- Passed the manifest's declared review territory through the renderer, isolated Telegram preview sender, and preview delivery-cycle preflight so all three gates apply the same check.
+- Updated rights, sender, and preview-cycle test fixtures to declare Tunisia as the review delivery territory. Added tests that reject missing or unlicensed private-review territories and confirm that non-worldwide permissions remain blocked for public use.
+
+### Verification
+- Source commits:
+  - `validate_pro_media_rights.py`: `8a4ffbcc37142305f605d67bfe58a43f3f10f8cd`; blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`.
+  - `render_dua_video.py`: `f829c35af0ac557068a6c15d49d86fd2af1dbc47`; blob `533c04b71d6ec85fcdee5133407f1307ce805b62`.
+  - `send_pro_preview_telegram.py`: `cfd7217f338f05c8cb0d4f6c1fe3c5c8e28d7e3e`; blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`.
+  - `pro_preview_delivery_cycle.py`: `9fd42c615751eb185c28929d96f3ad593657f732`; blob `a09fb972d455b9ac077035074d30e43e110e4d50`.
+- Test commits:
+  - `test_validate_pro_media_rights.py`: `779dd876d7a13f464bfd9026c090d45b008350cd`; blob `36fa0acabf981e5709e333b6b72627d69df111df`.
+  - `test_pro_preview_delivery_cycle.py`: `c5de460bdc6dfb689fea14ab72c320f2d0d97fc2`; blob `60299ef19cd78683bc530d4c11288479bca26ae7`.
+  - `test_send_pro_preview_telegram.py`: `c3b16bb035afb28fa2b7e41e276e31e6f84ff150`; blob `6844c2549223f95942552b740026010be5acc475`.
+- Re-fetched all six source/test files and confirmed their current blob SHAs on `feature/quran-video-pro`; branch HEAD at that verification point was `c3b16bb035afb28fa2b7e41e276e31e6f84ff150`.
+- Tests were NOT RUN. No workflow dispatch/rerun occurred; no test-pass claim is made.
+- The territory string is an explicit manifest declaration; this code validates it against the rights record but does not independently geolocate the Telegram recipient or prove legal interpretation of the license.
+
+### Safety boundary
+- Only the Pro rights validator, Pro preview renderer/sender/delivery-cycle code, their relevant offline test fixtures, and this development log were changed.
+- No manifest, media, rights record, preview artifact, ledger, secret, bot setting, Cron, Telegram API request/send/upload, TikTok publish, or render was executed or changed.
+- The original Quran engine, `main`, and `feature/telegram-review-notifications` were not touched.
