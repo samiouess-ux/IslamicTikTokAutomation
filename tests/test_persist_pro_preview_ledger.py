@@ -54,8 +54,8 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
         outputs = [
             (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
             (0, "", ""), (0, "", ""), (0, "data/pro_preview_send_ledger.json\n", ""),
-            (1, "", ""), (0, "[commit]", ""), (0, "pushed", ""),
-            (0, "", ""), (0, "same-new", ""), (0, "same-new", ""),
+            (0, "[commit]", ""), (0, "pushed", ""), (0, "", ""),
+            (0, "same-new", ""), (0, "same-new", ""),
         ]
         with self.run_git(outputs) as patched:
             self.assertTrue(persist_preview_ledger(self.repo))
