@@ -1373,3 +1373,42 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Validation boundary: the prior 90/90 run remains valid for the ten suites and commit it tested, but does not include the later reservation-identity guard tests. Those three tests remain NOT RUN; the available GitHub connector still does not expose a fresh workflow-dispatch action, and rerunning an older workflow would not validate the latest branch state.
 - Next safe work: (1) review the complete Pro test-workflow suite list against all newly added safety tests; (2) prepare a small, explicit documentation-only cleanup proposal for the historical opening section; (3) propose focused content-rotation shape-validation tests and a fail-closed behavior before any code change. Each edit or execution still requires the relevant explicit approval.
 - This checkpoint was read-only until this log entry was appended. No source code, tests, workflow, manifest, media, rights record, render, Telegram request/send/upload, TikTok publish, secret, Cron, bot setting, original Quran engine, `main`, or `feature/telegram-review-notifications` was changed or operated.
+
+
+## 2026-11-07 — Safety workflow test-coverage inventory (read-only)
+
+### Branch and source verification
+- Repository: `samiouess-ux/IslamicTikTokAutomation`; branch: `feature/quran-video-pro`.
+- Branch head observed before this documentation update: `2406394c03d40895405ee730e24fc5aa1c792c10`.
+- Re-fetched `.github/workflows/pro-safety-tests-manual.yml` and enumerated Python test files in `tests/` from the exact Pro branch.
+- The workflow currently invokes ten suites:
+  1. `test_pro_delivery_ledger.py`
+  2. `test_send_pro_telegram.py`
+  3. `test_send_pro_preview_telegram.py`
+  4. `test_validate_pro_media_rights.py`
+  5. `test_pro_preview_delivery_cycle.py`
+  6. `test_persist_pro_ledger.py`
+  7. `test_pro_delivery_cycle.py`
+  8. `test_validate_content_manifest.py`
+  9. `test_pro_orchestrator.py`
+  10. `test_render_dua_video.py`
+
+### Pro-related test modules present but not explicitly invoked by this workflow
+- `tests/test_persist_pro_preview_ledger.py` — preview-ledger persistence, exact branch/freshness checks, staging-path restrictions, and remote-head verification.
+- `tests/test_pro_preview_send_ledger.py` — isolated preview ledger schema, candidate identity, duplicate prevention, state transitions, and receipt recovery.
+- `tests/test_prepare_pro_telegram_caption.py` — rejects a non-Pro manifest in the caption preparation path.
+- `tests/test_content_rotation.py` — deterministic selection, approval/type filtering, non-repetition, and all-or-nothing batch selection.
+- `tests/test_content_rotation_repository_safety.py` — repository catalogue must fail closed while there is no eligible approved Quran manifest.
+- The similarly named `test_persist_pro_ledger.py` currently in the workflow is not a substitute for `test_persist_pro_preview_ledger.py`; they exercise different persistence paths.
+
+### Interpretation and limitations
+- This is a static coverage inventory only. It does not establish that any omitted suite passes or fails.
+- No tests were run; the three reservation identity tests remain NOT RUN.
+- The historical 90/90 result in run `42318772835` covers the ten suites configured at that run's commit only. It does not cover the five modules listed above unless they were separately invoked, and it predates the later reservation identity guard/tests.
+- Suggested next review: inspect whether each omitted module is safe and appropriate to add to the manual offline safety workflow, paying particular attention to repository-dependent rotation assumptions and persistence tests that mock Git operations. Do not change workflow YAML without separate approval.
+- Documentation consistency remains open: the beginning of this log still contains the pre-pivot Quran-engine baseline as historical material, while the current Pro scope is Dua & Adhkar. The historical section should be explicitly labeled as superseded/historical in a later documentation-only cleanup; no such cleanup was made here.
+
+### Change and safety record
+- This entry is documentation-only. No source code, tests, workflow YAML, manifests, rights records, or media were changed.
+- No workflow dispatch/rerun, test execution, render, Telegram API request/send/upload, or TikTok publish occurred.
+- No secrets, Cron, original Telegram bot/settings, production ledger/rotation, `main`, `feature/telegram-review-notifications`, or original Quran engine were touched.
