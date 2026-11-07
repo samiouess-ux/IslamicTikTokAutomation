@@ -12,8 +12,9 @@ LEDGER_RELATIVE_PATH = Path("data/pro_preview_send_ledger.json")
 def _git(repo: Path, *args: str) -> str:
     result = subprocess.run(["git", *args], cwd=repo, text=True, capture_output=True, check=False)
     if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        raise RuntimeError(f"git {' '.join(args)} failed: {detail}")
+        # Git diagnostics can include credential-bearing remote URLs. Keep the
+        # persistence boundary useful without exposing stdout/stderr or args.
+        raise RuntimeError(f"Git operation failed (exit code {result.returncode}).") from None
     return result.stdout.strip()
 
 
