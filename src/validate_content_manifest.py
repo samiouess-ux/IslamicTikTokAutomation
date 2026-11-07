@@ -62,16 +62,15 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
             raise SystemExit("Quran recitation is not approved; only an explicit preview_only candidate may be rendered for review.")
         if preview_only and approved:
             raise SystemExit("A preview_only Quran recording cannot also be marked production-approved.")
-        reviewed = audio.get("exact_recording_user_reviewed", False) or any(
-            item.get("exact_recording_user_reviewed", False)
-            for item in audio.get("license_research_candidates", [])
-            if isinstance(item, dict)
-        )
-        if not reviewed and not preview_only:
-            raise SystemExit("Exact Quran recording has not been user-reviewed.")
         candidates = audio.get("license_research_candidates", [])
         if not isinstance(candidates, list):
             raise SystemExit("Quran license_research_candidates must be a list.")
+        reviewed = audio.get("exact_recording_user_reviewed") is True or any(
+            item.get("exact_recording_user_reviewed") is True
+            for item in candidates if isinstance(item, dict)
+        )
+        if not reviewed and not preview_only:
+            raise SystemExit("Exact Quran recording has not been user-reviewed.")
         rights_verified = audio.get("rights_verified") is True or any(
             isinstance(item.get("status"), str)
             and item["status"].startswith("approved_")
