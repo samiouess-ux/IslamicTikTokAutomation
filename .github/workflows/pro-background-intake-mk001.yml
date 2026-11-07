@@ -60,7 +60,7 @@ jobs:
           html = unescape(page.text).replace("\\/", "/")
           if "Mixkit Stock Video Free License" not in html or "commercial or personal use" not in html:
               raise SystemExit("Exact asset page no longer proves the commercial Free License; refusing download.")
-          matches = list(dict.fromkeys(re.findall(r'"contentUrl"\\s*:\\s*"([^"]+\\.mp4[^"]*)"', html)))
+          matches = list(dict.fromkeys(re.findall(r'"contentUrl"\s*:\s*"([^"]+\.mp4[^"]*)"', html)))
           if not matches:
               raise SystemExit("No direct MP4 was exposed for this exact asset page.")
           selected = matches[0]
@@ -102,9 +102,9 @@ jobs:
               "rights_record_created": False,
               "note": "One individually listed candidate only. This intake does not establish third-party clearances or approve use."
           }
-          (out_dir / "intake_metadata.json").write_text(json.dumps(metadata, indent=2) + "\\n", encoding="utf-8")
+          (out_dir / "intake_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
           (out_dir / "source_and_license_urls.txt").write_text(
-              "\\n".join([page_url, license_url, terms_url]) + "\\n", encoding="utf-8"
+              "\n".join([page_url, license_url, terms_url]) + "\n", encoding="utf-8"
           )
           print(json.dumps(metadata, indent=2))
           PY
