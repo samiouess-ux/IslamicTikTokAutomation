@@ -1354,3 +1354,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Re-fetched both files from the Pro branch and verified the guard and all three tests are present.
 - Test execution is pending: this session's GitHub connector does not expose a workflow-dispatch action. No workflow was dispatched; no test pass is claimed for this patch. The previous 90/90 offline suite was run before these additions.
 - No render, Telegram request/send, TikTok publish, secret/Cron/bot setting change, or production/original-branch change.
+
+
+## 2026-11-07 — Reservation identity test expectation correction and execution blocker
+- Corrected the candidate-ID mismatch test to expect the ledger validator's actual early `ValueError` (key/candidate_id mismatch), rather than a later `RuntimeError`. This is a test-only correction; the production reservation identity guard was not weakened or changed.
+- Correction commit: `347768732f8ac09ca355bbab0b8905b5d181bb56`. Re-fetched Pro branch head and confirmed it points to this commit.
+- Updated `PRO_PROJECT_STATUS.md` with the correction and accurate validation state. Status update commit: `27343e5d7a042b4162a9aba839d6324231fc82e8`.
+- The three new/updated identity mismatch tests are still NOT RUN. Prior 90/90 success (run `42318772835`, latest job attempt `128245228932`) predates these changes and does not validate them.
+- Checked the available GitHub Actions operations: workflow/job inspection and rerun are available, but no workflow-dispatch operation is exposed in this session. Re-running the previous successful run would use its older commit, not the current Pro head, so it was deliberately not attempted. A fresh manual dispatch of `.github/workflows/pro-safety-tests-manual.yml` against `feature/quran-video-pro` remains required.
+- No code, workflow YAML, render, Telegram API request/send/upload, TikTok publish, secrets, Cron, bot settings, production branch, or original Quran engine was changed in this checkpoint.
