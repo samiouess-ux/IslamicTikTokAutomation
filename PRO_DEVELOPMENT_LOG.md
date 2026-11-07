@@ -2279,3 +2279,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Rotation now treats invalid UTF-8 files as unreadable/ineligible; if a selected manifest becomes invalid UTF-8 during batch selection, it returns the controlled changed/unreadable error. The orchestrator also converts invalid UTF-8 into its normal controlled JSON-read failure.
 - Added regressions for initial rotation scans, mid-selection corruption, and direct Pro orchestrator reads.
 - Updated `src/content_rotation.py`, `tests/test_content_rotation.py`, `src/pro_orchestrator.py`, `tests/test_pro_orchestrator.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 52: align Pro renderer with the 40-second video limit
+- Review found the renderer still declared both its target and hard duration limits as 65 seconds, while its regression test was named as a 40-second policy test but asserted 65 seconds. This allowed longer candidate videos contrary to the intended Pro limit.
+- Changed both target and hard maximum duration to 40 seconds. Updated the regression to accept exactly 40 seconds and reject 40.01 seconds with the hard-limit error.
+- The orchestrator imports the renderer's hard limit, so its preflight inherits the same 40-second ceiling.
+- Updated `src/render_dua_video.py`, `tests/test_render_dua_video.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
