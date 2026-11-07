@@ -168,6 +168,16 @@ class ContentManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "must not be mislabeled"):
             validate_content_manifest(data)
 
+    def test_background_source_and_direct_video_urls_must_be_valid_https(self):
+        invalid_values = ("", "http://example.org/video.mp4", "https://", "https:///video.mp4", 17, None)
+        for field in ("source_url", "direct_video_url"):
+            for value in invalid_values:
+                with self.subTest(field=field, value=value):
+                    data = self.dua_manifest()
+                    data["visual"]["background_candidate"][field] = value
+                    with self.assertRaisesRegex(SystemExit, "Background .* must be a valid HTTPS URL"):
+                        validate_content_manifest(data)
+
     def test_unapproved_background_is_rejected(self):
         data = self.dua_manifest()
         data["visual"]["background_candidate"]["user_approved"] = False
