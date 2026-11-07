@@ -28,10 +28,9 @@ def _now() -> str:
 
 @contextmanager
 def _file_lock(path: Path) -> Iterator[None]:
-    """Serialize read/modify/write operations between processes on one runner."""
+    """Serialize read/modify/write operations without following lock symlinks."""
     lock_path = path.with_name(path.name + ".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    # Do not follow a pre-existing lock-file symlink into an unrelated file.
     if lock_path.is_symlink():
         raise ValueError("Pro ledger lock file must not be a symlink.")
     flags = os.O_CREAT | os.O_RDWR
@@ -39,33 +38,34 @@ def _file_lock(path: Path) -> Iterator[None]:
         flags |= os.O_NOFOLLOW
     try:
         descriptor = os.open(lock_path, flags, 0o600)
-    except OSError as exc:
+    except OSError:
         raise ValueError("Cannot safely open Pro ledger lock file.") from None
     try:
-        if not __import__("stat").S_ISREG(os.fstat(descriptor).st_mode):
+        import stat
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
             raise ValueError("Pro ledger lock path must be a regular file.")
         with os.fdopen(descriptor, "r+b") as stream:
             descriptor = -1
             if os.name == "nt":
-            import msvcrt
-            stream.seek(0)
-            if stream.tell() == 0:
-                stream.write(b"0")
-                stream.flush()
-            stream.seek(0)
-            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
-            try:
-                yield
-            finally:
+                import msvcrt
                 stream.seek(0)
-                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
-        else:
-            import fcntl
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
-            try:
-                yield
-            finally:
-                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+                if stream.tell() == 0:
+                    stream.write(b"0")
+                    stream.flush()
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+                try:
+                    yield
+                finally:
+                    stream.seek(0)
+                    msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+                try:
+                    yield
+                finally:
+                    fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
     finally:
         if descriptor >= 0:
             os.close(descriptor)
