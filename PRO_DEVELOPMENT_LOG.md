@@ -2172,3 +2172,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added a regression that injects a credential-bearing GitHub remote URL into a simulated push rejection and asserts the secret, host, and exception cause are not exposed.
 - Updated files: `src/persist_pro_ledger.py`, `tests/test_persist_pro_ledger.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 39: correct the production Git-redaction regression fixture
+- Follow-up source review caught an over-escaped newline in Repair 38's simulated staged-path output. The fixture would have supplied a literal backslash-n instead of a line terminator, so it would not model Git's actual `--name-only` output.
+- Corrected the fixture to contain a real newline escape in the Python test string. No production code changed in this follow-up.
+- Updated the test and this log on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
