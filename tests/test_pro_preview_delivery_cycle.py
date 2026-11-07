@@ -4,10 +4,12 @@ import hashlib
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+import pro_preview_delivery_cycle
 from pro_preview_delivery_cycle import run_preview_cycle
 
 
@@ -179,6 +181,22 @@ class PreviewCycleTests(unittest.TestCase):
         data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
         self.assertEqual(data["entries"]["candidate-001"]["state"], "delivered")
         # The first successful persistence happened while the remote state was reserved.
+
+    def test_confirmed_telegram_send_with_local_transition_failure_is_not_retryable(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            return True
+        def send(*args, **kwargs):
+            calls.append("send")
+            return {"message_id": 77}
+        with patch.object(pro_preview_delivery_cycle, "transition", side_effect=OSError("disk detail")):
+            with self.assertRaisesRegex(RuntimeError, "Telegram accepted the preview") as caught:
+                self.call_cycle(persist, send)
+        self.assertNotIn("disk detail", str(caught.exception))
+        self.assertIn("Do not resend", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
+        self.assertEqual(calls, ["persist", "send"])
 
     def _assert_persisted_identity_mismatch_blocks_send(
         self, field, wrong_value, *, expected_exception=RuntimeError,
