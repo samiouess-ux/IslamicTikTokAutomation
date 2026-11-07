@@ -80,10 +80,7 @@ def choose_manifests(
         raise ValueError("Unsupported content type.")
     if not isinstance(rotation_key, str):
         raise ValueError("rotation_key must be a string.")
-    recent_values = list(recent_ids)
-    if any(not isinstance(value, str) for value in recent_values):
-        raise ValueError("recent_ids must contain only strings.")
-    recent = set(recent_values)
+    recent = _validated_recent_ids(recent_ids)
     selected: list[Path] = []
     for index in range(count):
         try:
