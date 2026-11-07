@@ -118,5 +118,19 @@ class ProDeliveryLedgerTests(unittest.TestCase):
             transition(self.ledger, "dua-4", "delivered", True)
 
 
+    def test_refuses_symlinked_lock_file(self):
+        target = Path(self.tmp.name) / "outside.lock"
+        target.write_text("untouched", encoding="utf-8")
+        lock = self.ledger.with_name(self.ledger.name + ".lock")
+        try:
+            lock.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        with self.assertRaisesRegex(ValueError, "lock file must not be a symlink"):
+            reserve(self.ledger, "dua-lock", "dua", "run-1")
+        self.assertEqual(target.read_text(encoding="utf-8"), "untouched")
+        self.assertFalse(self.ledger.exists())
+
+
 if __name__ == "__main__":
     unittest.main()
