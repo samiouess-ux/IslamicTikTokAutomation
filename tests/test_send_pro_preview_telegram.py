@@ -268,6 +268,26 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
 
 
 
+    def test_truthy_non_boolean_telegram_ok_is_not_a_preview_confirmation(self):
+        class Response:
+            def __init__(self, payload):
+                self.payload = payload
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return self.payload if isinstance(self.payload, bytes) else json.dumps(self.payload).encode()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            chat = Response({"ok": True, "result": {"id": 12345, "type": "private"}})
+            malformed_send = Response({"ok": "true", "result": {"message_id": 77}})
+            with patch.object(sender.urllib.request, "urlopen", side_effect=[chat, malformed_send]):
+                with self.assertRaisesRegex(RuntimeError, "did not confirm"):
+                    sender.send_preview(video, manifest, "token", "12345",
+                        confirmed=True, repo_root=Path(tmp))
+
     def test_preview_manifest_rejects_non_string_content_type(self):
         for content_type in ([], {}, 7, True):
             with self.subTest(content_type=content_type):
