@@ -70,7 +70,7 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         with self.run_git(outputs) as patched:
             self.assertTrue(persist_ledger(self.repo))
         commands = [call.args[0] for call in patched.call_args_list]
-        self.assertEqual(commands[-5], [
+        self.assertEqual(commands[-4], [
             "git", "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}"
         ])
         self.assertIn(["git", "add", "--", "data/pro_delivery_ledger.json"], commands)
