@@ -69,6 +69,17 @@ class ProDeliveryLedgerTests(unittest.TestCase):
                     from pro_delivery_ledger import load_ledger
                     load_ledger(self.ledger)
 
+    def test_ledger_operations_reject_malformed_manifest_ids(self):
+        reserve(self.ledger, "dua-id", "dua", "run-1")
+        for manifest_id in ([], {}, 7, True, ""):
+            with self.subTest(manifest_id=manifest_id):
+                with self.assertRaisesRegex(ValueError, "manifest_id"):
+                    assert_reserved_for_run(self.ledger, manifest_id, "dua", "run-1")
+                with self.assertRaisesRegex(ValueError, "manifest_id"):
+                    transition(self.ledger, manifest_id, "uncertain")
+                with self.assertRaisesRegex(ValueError, "manifest_id"):
+                    reconcile_not_delivered(self.ledger, manifest_id, "CONFIRM_NOT_DELIVERED")
+
     def test_delivered_entry_is_terminal(self):
         reserve(self.ledger, "dua-3", "dua", "run-1")
         transition(self.ledger, "dua-3", "delivered", 456)
