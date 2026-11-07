@@ -14,8 +14,8 @@ def _git(repo: Path, *args: str) -> str:
         ["git", *args], cwd=repo, text=True, capture_output=True, check=False
     )
     if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        raise RuntimeError(f"git {' '.join(args)} failed: {detail}")
+        # Git diagnostics and arguments may contain credential-bearing remote URLs.
+        raise RuntimeError(f"Git operation failed (exit code {result.returncode}).") from None
     return result.stdout.strip()
 
 
