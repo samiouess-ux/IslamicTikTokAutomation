@@ -2124,3 +2124,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Wrapped the delivered-state transition and final persistence in a post-send reconciliation boundary. Failures now raise a generic message stating Telegram accepted the preview, the earlier reservation remains blocking, and the user must not resend until ledger reconciliation. Original exception text and cause are suppressed.
 - Added a regression test injecting a local transition failure after a confirmed send and asserting the safe message, absent cause, and exactly one send call.
 - Source, test, and this log committed on `feature/quran-video-pro` only. Tests were not executed; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 33: normalize invalid UTF-8 preview-ledger reads
+- Review found `load_ledger` converted filesystem and JSON syntax failures into a controlled validation error, but invalid UTF-8 bytes escaped as a raw `UnicodeDecodeError`.
+- Added `UnicodeDecodeError` to the guarded read failures so corrupt/non-UTF-8 ledger content fails closed with the same generic error and no chained cause.
+- Added a regression test using invalid UTF-8 bytes and asserting the safe error contract.
+- Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram request/send, TikTok publication, or secret change was performed.
