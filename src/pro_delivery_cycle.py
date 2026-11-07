@@ -77,11 +77,17 @@ def run_delivery_cycle(
             if persist_fn(repo_path) is not True:
                 raise RuntimeError("Outcome ledger was not committed and pushed.")
         except Exception as persistence_error:
+            # Git transport diagnostics may contain credential-bearing remote URLs.
             raise RuntimeError(
-                "Telegram outcome is not confirmed and outcome-ledger persistence failed; "
-                "the previously persisted reservation remains blocking. Human reconciliation required."
-            ) from persistence_error
-        raise send_error
+                "Telegram outcome is not confirmed and outcome-ledger persistence failed "
+                f"({type(persistence_error).__name__}); the previously persisted reservation "
+                "remains blocking. Human reconciliation required."
+            ) from None
+        # Do not surface arbitrary sender exception messages or chained transport details.
+        raise RuntimeError(
+            f"Telegram send outcome is not confirmed ({type(send_error).__name__}); "
+            "the ledger was marked uncertain. Do not retry automatically."
+        ) from None
 
     # A failure here leaves the already-persisted reserved entry blocking duplicates.
     if persist_fn(repo_path) is not True:
