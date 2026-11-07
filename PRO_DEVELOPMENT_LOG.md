@@ -1311,3 +1311,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated only `.github/workflows/pro-safety-tests-manual.yml` to install `Pillow` with pip after Python setup and before the offline test command. Workflow remains manual-only, exact-Pro-branch guarded, read-only permissions, and has no render or Telegram send steps.
 - Workflow fix commit: `e5d13045afc8a2425f287aed78ae070fc38dc0b4`.
 - The failed run is not a passing result. A rerun is still required to verify whether Pillow resolves the import and whether later suites pass. No workflow dispatch, render, Telegram send, TikTok publish, secret/Cron/bot-setting change, or production/original Quran engine change was made in this fix.
+
+### 2026-11-07 — Safety workflow run #3: Pillow fixed; orchestrator test assertion mismatch
+- Run `42318772835` on `feature/quran-video-pro`, commit `f8e0d76a151e7241901f21b9c257de1d0a7a97fb`, failed overall.
+- `Install offline test dependency` (Pillow) succeeded. The earlier missing-`PIL` import failure is resolved.
+- First eight suites passed: 75 tests total (6, 10, 13, 10, 8, 5, 7, 16).
+- In `test_pro_orchestrator.py`, 6/7 tests passed. The one error is `test_candidate_preview_is_separate_from_rotation_and_production`: the fixture deliberately sets `rotation_approved=false`; `build_plan` correctly finds no eligible approved Dua manifest and raises `FileNotFoundError`. The test incorrectly expects `SystemExit`. Keep the production fail-closed rotation logic; fix the test's expected exception type/message only.
+- `test_render_dua_video.py` was not reached due to `set -e`; its result remains unverified.
+- No render or Telegram/TikTok action occurred. No secrets, Cron, bot settings, original Quran engine, `main`, or `feature/telegram-review-notifications` were touched.
+- Next: after explicit approval, adjust the single test assertion and run the manual offline safety workflow again; do not claim green until all suites, including renderer tests, complete successfully.
