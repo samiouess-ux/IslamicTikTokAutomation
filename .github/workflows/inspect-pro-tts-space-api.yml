@@ -22,7 +22,7 @@ jobs:
           python-version: "3.11"
       - name: Install pinned metadata-only CLI
         run: python -m pip install --disable-pip-version-check "hf-gradio==0.4.1"
-      - name: Read live Space API schema (no inference)
+      - name: Read and validate live Space API schema (no inference)
         shell: bash
         run: |
           set -euo pipefail
@@ -33,16 +33,23 @@ jobs:
           data = json.loads(Path("pro_tts_space_api_schema.json").read_text(encoding="utf-8"))
           if not isinstance(data, dict) or not data:
               raise SystemExit("Space API schema is empty or not an object")
+          endpoint = data.get("/gradio_inference")
+          if not endpoint:
+              raise SystemExit("Expected /gradio_inference endpoint is missing")
+          params = endpoint.get("parameters", [])
+          returns = endpoint.get("returns", [])
+          if len(params) != 21 or len(returns) != 33:
+              raise SystemExit(f"Unexpected deployed contract: {len(params)} inputs, {len(returns)} outputs")
+          if params[0].get("name") != "text" or params[0].get("required") is not True:
+              raise SystemExit("First required input is not text")
+          if any(p.get("type", {}).get("type") != "filepath" for p in returns[:32]):
+              raise SystemExit("Expected first 32 outputs to be audio file paths")
+          if returns[32].get("type", {}).get("type") != "string":
+              raise SystemExit("Expected final output to be a text log")
           print("Discovered endpoints:", ", ".join(sorted(data)))
-          for endpoint, spec in data.items():
-              params = spec.get("parameters", [])
-              returns = spec.get("returns", [])
-              print(f"{endpoint}: {len(params)} inputs, {len(returns)} outputs")
+          print(f"/gradio_inference: {len(params)} inputs, {len(returns)} outputs (validated)")
+          with open("$GITHUB_STEP_SUMMARY", "a", encoding="utf-8") as summary:
+              summary.write("## Live Pro TTS Space API schema\n\n")
+              summary.write(f"- Endpoint: `/gradio_inference`\n- Inputs: {len(params)} (first required: `text`)\n- Outputs: {len(returns)} (32 file paths + final text log)\n\n")
+              summary.write("```json\n" + json.dumps(endpoint, ensure_ascii=False, indent=2) + "\n```\n")
           PY
-      - name: Upload schema for review
-        uses: actions/upload-artifact@v4
-        with:
-          name: pro-tts-space-api-schema
-          path: pro_tts_space_api_schema.json
-          if-no-files-found: error
-          retention-days: 7
