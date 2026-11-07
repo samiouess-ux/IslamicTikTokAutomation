@@ -1653,3 +1653,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`), `tests/test_render_dua_video.py` (blob `685937e838567c28c480262fc807268e28bde7f8`), and this log from `feature/quran-video-pro`.
 - Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: HTTPS evidence URL syntax validation
+
+### Finding (metadata-validation gap; no code changes)
+- `validate_pro_media_rights._https()` checks that `urlparse()` reports the HTTPS scheme, a non-empty netloc, a non-root path, and no parsed username/password. It does not validate the parsed hostname or port, nor reject whitespace/backslashes in the authority.
+- Static probes confirmed malformed values such as `https://stock.example bad/path`, `https://stock.example\\evil/path`, `https://stock.example:abc/path`, and `https://stock.example:99999/path` pass the current predicate. Accessing `.port` would raise `ValueError` for the invalid-port cases, but the validator never accesses it.
+- These values can be stored as source-page or license-evidence references despite not being well-formed HTTPS URLs. This is a record-quality/validation gap, not an SSRF finding: the inspected validator does not fetch these URLs, and no permission bypass was demonstrated.
+- Recommended hardening: reject control/whitespace and backslash characters, require a non-empty parsed hostname, force validation of the parsed port (catching `ValueError`), and add malformed-authority/invalid-port regression tests. Do not add an arbitrary domain allowlist unless the product's evidence policy explicitly requires one. No implementation made pending approval.
+
+### Verification and safety
+- Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`) and `tests/test_validate_pro_media_rights.py` (blob `36fa0acabf981e5709e333b6b72627d69df111df`) from `feature/quran-video-pro`.
+- Static URL-parser probes only; no repository tests were run. No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
