@@ -2657,3 +2657,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Artifact upload failed because GitHub Actions artifact storage quota was reached; logs explicitly say usage is recalculated every 6–12 hours. This is an infrastructure quota issue, not a media validation failure.
 - Updated the workflow to emit a compact review contact sheet as base64 in the job log, so the preview can be retrieved without relying on artifact storage. Artifact upload is now non-blocking; the original video remains a candidate only and is not approved.
 - No rights record, production render, Telegram send, or TikTok publication is claimed. Full visual review remains pending.
+
+## 2026-11-07 — WC-001 visual contact sheet inspected; intake and safety runs pass
+
+- Follow-up intake run 42417916186 completed successfully on commit b3eb8dd02acebaa3e0ce713142c4f831596806e6. The revised workflow emitted a compact contact sheet into its job log and the artifact-upload step no longer blocks the job.
+- Retrieved and visually inspected the 9-frame contact sheet directly from the job log. The clip shows a calm beach shoreline at sunrise/sunset with pastel pink-blue sky, surf, wet sand and distant dark headland; scene is consistent across the sampled frames. It is a scenic beach, not a Quranic/architectural setting. Treat it as one possible calm background, not as a universal background for every dua.
+- WC-001 technical checks remain passed: 26.066s, 1080x1920, VP9/Opus, 7,097,794 bytes; SHA-256 0e789ea0eaddb5b1e8a7999968143de7beb64f07ece25a918997073fe91072a6.
+- Separate Pro safety workflow run 42417916241 completed successfully on the same commit. Intake run 42417916186 completed successfully including its artifact step.
+- Status remains candidate-only / not approved. No actual production render, Telegram send, or TikTok publication. Human preference approval and rights record are still pending.
