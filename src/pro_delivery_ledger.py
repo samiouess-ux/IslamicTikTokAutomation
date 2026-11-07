@@ -31,8 +31,22 @@ def _file_lock(path: Path) -> Iterator[None]:
     """Serialize read/modify/write operations between processes on one runner."""
     lock_path = path.with_name(path.name + ".lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    with lock_path.open("a+b") as stream:
-        if os.name == "nt":
+    # Do not follow a pre-existing lock-file symlink into an unrelated file.
+    if lock_path.is_symlink():
+        raise ValueError("Pro ledger lock file must not be a symlink.")
+    flags = os.O_CREAT | os.O_RDWR
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    try:
+        descriptor = os.open(lock_path, flags, 0o600)
+    except OSError as exc:
+        raise ValueError("Cannot safely open Pro ledger lock file.") from None
+    try:
+        if not __import__("stat").S_ISREG(os.fstat(descriptor).st_mode):
+            raise ValueError("Pro ledger lock path must be a regular file.")
+        with os.fdopen(descriptor, "r+b") as stream:
+            descriptor = -1
+            if os.name == "nt":
             import msvcrt
             stream.seek(0)
             if stream.tell() == 0:
@@ -52,6 +66,9 @@ def _file_lock(path: Path) -> Iterator[None]:
                 yield
             finally:
                 fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
 
 
 def load_ledger(path: Path) -> dict[str, Any]:
