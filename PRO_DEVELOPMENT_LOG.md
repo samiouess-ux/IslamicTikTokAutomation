@@ -2485,3 +2485,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - A subsequent push-triggered run `42410311973` completed with conclusion `success` on workflow commit `ebe3d7453b8f6501c1d79e51f77af893eb9618f6`, after the conditional ffmpeg-install optimization. It independently downloaded the same exact single candidate, probed the video, generated the contact sheet, and emitted it into job logs without relying on GitHub artifact storage.
 - The run independently reproduced the exact byte count (16,515,983) and SHA-256 (`9bbf623aa42493925e612659cf90a6e5a15762e22f0ba1f92c179265173fe27d`). The workflow is therefore reproducible for this one allowlisted item. The successful run did not persist the MP4 to the repository; only the reviewed contact sheet is stored at `content/pro/review_previews/MK-001-contact-sheet.jpg`.
 - Workflow currently remains review-only and single-item; no production manifest, media rights record, approval flag, render, Telegram send, or TikTok publication is enabled.
+
+
+## 2026-11-07 — MK-002 distinct morning-forest background candidate
+
+- Checked the exact Mixkit page for `forest-during-the-morning-3012`. It explicitly displays the Stock Video Free License and commercial/personal-use wording; page metadata lists 24 seconds, 60 fps, 6.76 MB, with 1080×720 and 1920×1080 options.
+- Proposed this as a separate calm morning/renewal visual direction for a future Sayyid al-Istighfar item, distinct from MK-001's sunrise/mountain open landscape. No visual mapping is approved until the exact file is inspected.
+- Added an isolated, exact-Pro-branch single-item intake workflow `.github/workflows/pro-background-intake-mk002.yml` and recorded the source in `content/pro/CANDIDATE_RESEARCH_001.md`. The first run `42410443005` started on the initial workflow commit; a filename correction was committed as `a60254931e40f907a04265457c7f835296c5ded0` and a corrected run was observed pending. No completion is claimed yet.
+- No file/hash/contact sheet, rights record, manifest, approval, render, Telegram send, or TikTok publication is claimed for MK-002.
