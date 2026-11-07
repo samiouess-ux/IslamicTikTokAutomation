@@ -52,8 +52,15 @@ def _safe_file(repo_root: Path, relative: str, allowed_root: Path) -> Path:
 def _https(value: object, field: str) -> str:
     if not isinstance(value, str):
         _fail(field + " must be an exact HTTPS URL.")
-    parsed = urlparse(value)
-    if parsed.scheme != "https" or not parsed.netloc or parsed.path in {"", "/"} or parsed.username or parsed.password:
+    try:
+        parsed = urlparse(value)
+        hostname = parsed.hostname
+        # Accessing .port also validates malformed/non-numeric port syntax.
+        parsed.port
+    except ValueError:
+        _fail(field + " must be an exact HTTPS URL.")
+    if (parsed.scheme != "https" or not parsed.netloc or not hostname
+            or parsed.path in {"", "/"} or parsed.username or parsed.password):
         _fail(field + " must be an exact HTTPS URL.")
     return value
 
