@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import subprocess
 import sys
@@ -33,6 +34,16 @@ def load_history(path: Path) -> dict:
     return history
 
 
+
+def _valid_positive_duration(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value) and value > 0
+    except OverflowError:
+        return False
+
+
 def build_plan(content_dir: Path, history: dict, content_type: str,
                day_key: str, video_count: int = 1) -> list[dict]:
     """Preflight a complete distinct batch; never invent or partially select items."""
@@ -49,7 +60,7 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
             raise SystemExit(f"Manifest is not approved for rotation: {manifest_path}")
         validate_content_manifest(manifest)
         durations = [item.get("duration_seconds") for item in manifest["items"]]
-        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0 for value in durations):
+        if any(not _valid_positive_duration(value) for value in durations):
             raise SystemExit(f"Every Pro item needs an explicit positive duration_seconds: {manifest_path}")
         total_duration = sum(float(value) for value in durations)
         if total_duration > HARD_MAX_DURATION_SECONDS:
@@ -81,7 +92,7 @@ def build_preview_plan(manifest_path: Path) -> dict:
         raise SystemExit("A candidate preview must never be rotation-approved.")
     validate_content_manifest(manifest, allow_candidate_preview=True)
     durations = [item.get("duration_seconds") for item in manifest["items"]]
-    if any(isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0 for value in durations):
+    if any(not _valid_positive_duration(value) for value in durations):
         raise SystemExit("Every preview item needs an explicit positive duration_seconds.")
     total = sum(float(value) for value in durations)
     if total > HARD_MAX_DURATION_SECONDS:
