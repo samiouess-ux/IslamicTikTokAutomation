@@ -2050,3 +2050,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - If persisting the uncertain outcome fails, the cycle reports only the persistence exception class and does not chain the underlying Git/transport error, which could contain credential-bearing remote URLs. The already-persisted reservation remains the duplicate-send barrier.
 - Updated cycle regressions to check sender-error redaction and a fake credential-bearing remote URL in persistence failure.
 - Changes are committed on `feature/quran-video-pro` only. Tests have not yet been executed.
+
+
+### Repair 22: refuse symlinked delivery-ledger lock files
+- Hardened `src/pro_delivery_ledger.py` so the inter-process lock is opened without following symlinks where the platform supports `O_NOFOLLOW`, and the opened descriptor must be a regular file.
+- Added a regression test proving a symlinked lock path is rejected before the ledger is created and the external target remains untouched.
+- Kept the existing cross-platform Windows/POSIX locking behavior.
+- Committed on `feature/quran-video-pro` only. Tests have not been executed; syntax and runtime remain unverified until the Pro safety suite can run on the current HEAD.
