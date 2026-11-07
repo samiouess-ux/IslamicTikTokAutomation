@@ -1606,3 +1606,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `.github/workflows/pro-safety-tests-manual.yml` (blob `eecd19bbd74199d7b0657a64128768ecba268b39`), `tests/test_pro_preview_send_ledger.py` (blob `2762f1b366f6ec75674a011c26f1b3c5cfc3ada1`), `tests/test_persist_pro_preview_ledger.py` (blob `63effcc8037e28795e0e285769c2bb065e2e3fce`), `tests/test_content_rotation.py` (blob `67fbba0ebd8099831c02a4b37ae52c0922251b80`), `tests/test_content_rotation_repository_safety.py` (blob `82113f72300dd5b62c506406544536e70c63ee66`), and `tests/test_prepare_pro_telegram_caption.py` (blob `e483679cb22a64e091e9b8199de0a19032fed353`) from `feature/quran-video-pro`.
 - Read-only inspection only. No workflow edit or dispatch/rerun, no tests, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: production Pro output filename component validation
+
+### Finding (output-path containment; no code changes)
+- In `pro_orchestrator.build_plan()`, the manifest `id` is checked only as a non-empty string. The shared manifest validator does not impose a safe filename-component format on the top-level manifest ID.
+- `render_plan()` interpolates that ID directly into `output_dir / f"{content_type}-{content_id}.mp4"`. A crafted ID containing path separators or traversal segments can therefore resolve outside the intended output directory and cause FFmpeg's `-y` option to overwrite a different path. This is a path-construction risk if untrusted or malformed manifest content reaches the normal render path; the normal repository content may be trusted, but the guard is not enforced at this boundary.
+- The candidate-preview path already applies a restrictive ASCII filename-component regex to its manifest ID, so the normal render path is inconsistent. Recommended hardening: apply the same or a shared strict filename-component validator to production manifest IDs before planning/output construction, and add tests for slash, backslash, dot-segment, absolute-path-like, and valid boundary IDs. Optionally resolve the final output and assert it remains inside the fixed output directory before invoking FFmpeg. No implementation made pending explicit approval.
+
+### Verification and safety
+- Re-fetched `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) and `src/validate_content_manifest.py` (blob `5146070fea6ab8ed65cd6d192e8a25547260ba1`) from `feature/quran-video-pro`.
+- Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
