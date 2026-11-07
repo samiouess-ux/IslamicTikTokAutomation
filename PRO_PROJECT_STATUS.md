@@ -506,3 +506,9 @@ This section supersedes earlier historical statements in this file that the curr
 - Verified 90 tests passed across 10 suites: 6 + 10 + 13 + 10 + 8 + 5 + 7 + 16 + 7 + 8. This includes media-rights validation, preview delivery-cycle guards, orchestrator, and renderer tests. Renderer tests include the 40-second cap and audio-duration checks.
 - This is an OFFLINE test result only. No video was rendered, no Telegram API send/upload occurred, no TikTok publishing occurred, and no production delivery workflow was run.
 - Original Quran engine, original Telegram bot, secrets, Cron, `main`, and `feature/telegram-review-notifications` remain untouched.
+
+### Current code-review finding — reservation identity recheck
+- Read-only review of `src/pro_preview_delivery_cycle.py`, `src/pro_preview_send_ledger.py`, `src/persist_pro_preview_ledger.py`, the preview sender, and focused tests found one hardening gap before any delivery workflow is designed.
+- After reservation persistence, `run_preview_cycle` currently rechecks the ledger state and manifest/video hashes, but does not explicitly assert that the persisted entry's `workflow_run_id`, `candidate_id`, and `content_type` match the current invocation and selected candidate. The design document requires the reservation to belong to the current workflow run.
+- The current reserve implementation writes the expected values itself, and fixed workflow concurrency is intended to serialize runs; this is not evidence of an observed duplicate-send incident. Still, the explicit post-persistence identity check should be added with a focused mismatch test before enabling any sender workflow.
+- No code change or new test was made in this review. Preview delivery remains disabled.
