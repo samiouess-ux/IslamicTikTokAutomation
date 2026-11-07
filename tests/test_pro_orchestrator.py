@@ -110,5 +110,33 @@ class ProOrchestratorTests(unittest.TestCase):
             self.assertEqual(plan[0]["item_ids"], ["item-1", "item-2"])
 
 
+    def test_rotation_plan_rejects_non_finite_item_durations(self):
+        for duration in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(duration=duration), tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)
+                path = self.write_manifest(folder, "dua.json", "dua-manifest", "item-1")
+                data = json.loads(path.read_text(encoding="utf-8"))
+                data["items"][0]["duration_seconds"] = duration
+                path.write_text(json.dumps(data), encoding="utf-8")
+                with self.assertRaisesRegex(SystemExit, "positive duration_seconds"):
+                    build_plan(folder, {"content": []}, "dua", "2026-11-07", 1)
+
+    def test_candidate_preview_rejects_non_finite_item_durations(self):
+        for duration in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(duration=duration), tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)
+                path = self.write_manifest(folder, "candidate.json", "candidate-1", "item-1")
+                data = json.loads(path.read_text(encoding="utf-8"))
+                data["lifecycle_status"] = "candidate_preview"
+                data["preview_only"] = True
+                data["rotation_approved"] = False
+                data["items"][0]["human_reviewed"] = False
+                data["items"][0]["duration_seconds"] = duration
+                path.write_text(json.dumps(data), encoding="utf-8")
+                with self.assertRaisesRegex(SystemExit, "positive duration_seconds"):
+                    build_preview_plan(path)
+
+
+
 if __name__ == "__main__":
     unittest.main()
