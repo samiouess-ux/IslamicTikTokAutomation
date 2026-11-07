@@ -139,7 +139,7 @@ def build_slideshow(items: list[dict], title: str, work: Path) -> float:
     if total > HARD_MAX_DURATION_SECONDS:
         raise SystemExit(
             f"Video duration {total:.2f}s exceeds the hard limit "
-            f"of {HARD_MAX_DURATION_SECONDS:.0f}s."
+            f"of {HARD_MAX_DURATION_SECONDS:.0f} seconds."
         )
     if total > TARGET_MAX_DURATION_SECONDS:
         print(
