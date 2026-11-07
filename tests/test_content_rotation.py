@@ -42,6 +42,24 @@ class ContentRotationTests(unittest.TestCase):
             self.assertEqual(choose_manifest(folder, "dua", rotation_key="day-1"), dua)
 
 
+    def test_skips_valid_json_that_is_not_an_object(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / "a-list.json").write_text('["not", "an", "object"]', encoding="utf-8")
+            (folder / "b-null.json").write_text('null', encoding="utf-8")
+            valid = self.write(folder, "valid.json", "valid")
+            self.assertEqual(choose_manifest(folder, "quran", rotation_key="shape-check"), valid)
+
+    def test_skips_manifest_with_non_object_publishing_field(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / "bad.json").write_text(json.dumps({
+                "id": "bad", "content_type": "quran", "rotation_approved": True,
+                "publishing": ["approval_required", True],
+            }), encoding="utf-8")
+            valid = self.write(folder, "valid.json", "valid")
+            self.assertEqual(choose_manifest(folder, "quran", rotation_key="publishing-check"), valid)
+
     def test_selects_three_distinct_approved_manifests(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
