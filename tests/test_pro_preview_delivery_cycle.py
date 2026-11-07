@@ -227,5 +227,24 @@ class PreviewCycleTests(unittest.TestCase):
         self.assertEqual(data["entries"]["candidate-001"]["state"], "reserved")
 
 
+    def test_non_object_manifest_json_is_rejected_before_reservation_or_send(self):
+        for raw in ("null", "[]", '"manifest"'):
+            with self.subTest(raw=raw):
+                self.manifest.write_text(raw, encoding="utf-8")
+                calls = []
+                with self.assertRaisesRegex(ValueError, "Preview manifest JSON must contain an object"):
+                    run_preview_cycle(
+                        Path("content/pro/candidate.json"),
+                        Path("output/pro_preview/PREVIEW-ONLY-dua-candidate-001.mp4"),
+                        repo_root=self.root, workflow_run_id="run-1", token="fake-token",
+                        chat_id="12345", branch="feature/quran-video-pro",
+                        persist_fn=lambda root: calls.append("persist") or True,
+                        send_fn=lambda *args, **kwargs: calls.append("send") or {"message_id": 77},
+                        verify_chat_fn=lambda *args: calls.append("verify"),
+                    )
+                self.assertEqual(calls, [])
+
+
+
 if __name__ == "__main__":
     unittest.main()
