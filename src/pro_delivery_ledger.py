@@ -26,10 +26,19 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _reject_symlink_components(path: Path) -> None:
+    """Reject symlinks in the ledger path, including existing ancestors."""
+    absolute = path.absolute()
+    for component in (absolute, *absolute.parents):
+        if component.is_symlink():
+            raise ValueError("Pro ledger paths must not contain symlinks.")
+
+
 @contextmanager
 def _file_lock(path: Path) -> Iterator[None]:
     """Serialize read/modify/write operations without following lock symlinks."""
     lock_path = path.with_name(path.name + ".lock")
+    _reject_symlink_components(lock_path)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     if lock_path.is_symlink():
         raise ValueError("Pro ledger lock file must not be a symlink.")
@@ -72,12 +81,22 @@ def _file_lock(path: Path) -> Iterator[None]:
 
 
 def load_ledger(path: Path) -> dict[str, Any]:
+    _reject_symlink_components(path)
     if not path.exists():
         return {"version": 1, "entries": {}}
+    flags = os.O_RDONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Cannot read Pro reservation ledger: {exc}") from exc
+        descriptor = os.open(path, flags)
+        import stat
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            os.close(descriptor)
+            raise ValueError("Pro reservation ledger must be a regular file.")
+        with os.fdopen(descriptor, "r", encoding="utf-8") as stream:
+            data = json.load(stream)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        raise ValueError("Cannot safely read Pro reservation ledger.") from None
     if not isinstance(data, dict) or type(data.get("version")) is not int or data.get("version") != 1 or not isinstance(data.get("entries"), dict):
         raise ValueError("Invalid Pro reservation ledger structure.")
     for key, entry in data["entries"].items():
@@ -106,6 +125,7 @@ def load_ledger(path: Path) -> dict[str, Any]:
 
 
 def save_ledger(path: Path, data: dict[str, Any]) -> None:
+    _reject_symlink_components(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
     try:
