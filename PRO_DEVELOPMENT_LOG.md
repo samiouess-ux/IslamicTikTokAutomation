@@ -1320,3 +1320,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `test_render_dua_video.py` was not reached due to `set -e`; its result remains unverified.
 - No render or Telegram/TikTok action occurred. No secrets, Cron, bot settings, original Quran engine, `main`, or `feature/telegram-review-notifications` were touched.
 - Next: after explicit approval, adjust the single test assertion and run the manual offline safety workflow again; do not claim green until all suites, including renderer tests, complete successfully.
+
+### 2026-11-07 — Pro offline safety workflow PASS after assertion-only fix
+- Updated only `tests/test_pro_orchestrator.py` so `test_candidate_preview_is_separate_from_rotation_and_production` expects `FileNotFoundError` containing `No eligible non-recent dua manifest`. This matches the existing fail-closed rotation behavior when the only manifest is an unapproved candidate preview. No production logic was relaxed.
+- Test-fix commit: `17b537e78a8052c374afcc40368ba9164bf32430`; verified test file blob SHA: `b86fb7dec3ec16f47b6eed51ab6d520fec5b36da`.
+- Re-ran the failed job in workflow run `42318772835`; latest attempt job ID `128245228932` completed SUCCESS. Workflow explicitly checked out `feature/quran-video-pro`, installed Pillow, and executed all ten configured suites.
+- All 90 tests passed: ledger (6), Telegram sender (10), preview Telegram sender (13), media rights (10), preview delivery cycle (8), ledger persistence (5), delivery cycle (7), content manifest (16), orchestrator (7), renderer (8).
+- Renderer suite passed, including duration cap <=40 seconds, audio duration mismatch fail-closed, candidate preview gate, no silent audio padding, and overlay/source validation.
+- Test-only/offline scope: no rendering, no Telegram API request/send/upload, no TikTok publishing, no production workflow. Original Quran engine/bot, secrets, Cron, `main`, and `feature/telegram-review-notifications` untouched.
+- Overall Pro offline safety workflow is now GREEN for the configured ten suites. This does not establish real-world media license validity or authorize production preview delivery.
