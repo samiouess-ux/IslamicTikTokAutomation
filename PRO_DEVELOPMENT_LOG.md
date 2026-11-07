@@ -1763,3 +1763,21 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Static source/test inspection only; no code or test files changed and no tests were run.
 - No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
 - This entry was recorded on `feature/quran-video-pro` only.
+
+## 2026-11-07 — Static review: renderer output can collide with an input file
+
+### Finding (destructive output-path collision; no code changes)
+- Re-fetched `src/render_dua_video.py` from `feature/quran-video-pro` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and re-inspected the CLI/render path.
+- The renderer accepts a caller-controlled `--output` path, creates its parent directory, then passes that path to FFmpeg with `-y`, which permits overwriting an existing file.
+- Before invoking FFmpeg, the renderer does not compare the resolved output path with the manifest path or the validated background/audio input paths. If a caller accidentally or deliberately supplies one of those input paths as `--output`, FFmpeg may overwrite an input asset (or the manifest) while using it as an input.
+- This is a local CLI path-integrity/destructive-overwrite risk. It is not evidence of remote exploitation or an approval/publishing bypass.
+
+### Recommendation
+- Resolve the manifest, output, background, and optional audio paths before rendering; reject the operation if the output resolves to any input path.
+- Consider also rejecting symlink output targets and validating the resolved output location against the intended Pro output directory when invoked through the orchestrator.
+- Add regression tests proving collisions with the manifest, background, and audio are rejected before FFmpeg is invoked. No implementation made pending explicit approval.
+
+### Verification and safety
+- Re-fetched `src/render_dua_video.py` from `feature/quran-video-pro` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) immediately before recording this finding.
+- Static source inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred.
+- No production branch, original Quran engine/bot, secrets, or Cron was touched.
