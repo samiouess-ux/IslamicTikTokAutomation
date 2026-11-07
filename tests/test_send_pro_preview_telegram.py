@@ -240,5 +240,33 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
             self.assertNotIn("secret-token", str(caught.exception))
             self.assertNotIn("token-bearing fake URL", str(caught.exception))
 
+    def test_preview_caption_rejects_non_object_manifest(self):
+        for value in (None, [], "manifest"):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "Preview manifest JSON must contain an object"):
+                    sender.build_preview_caption(value)
+
+    def test_non_object_telegram_send_response_is_rejected(self):
+        class Response:
+            def __init__(self, payload):
+                self.payload = payload
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return self.payload if isinstance(self.payload, bytes) else json.dumps(self.payload).encode()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            chat = Response({"ok": True, "result": {"id": 12345, "type": "private"}})
+            malformed_send = Response(b"null")
+            with patch.object(sender.urllib.request, "urlopen", side_effect=[chat, malformed_send]):
+                with self.assertRaisesRegex(RuntimeError, "did not confirm"):
+                    sender.send_preview(video, manifest, "token", "12345",
+                        confirmed=True, repo_root=Path(tmp))
+
+
+
 if __name__ == "__main__":
     unittest.main()
