@@ -127,6 +127,8 @@ jobs:
               "license_url": license_url,
               "copyrighted_raw": meta.get("Copyrighted", {}).get("value"),
               "restrictions_raw": meta.get("Restrictions", {}).get("value"),
+              "artist_raw": artist,
+              "source_raw": source,
           }, ensure_ascii=False))
           # CommonsMetadata Copyrighted=True can coexist with CC0: the work may be
           # copyrighted and then dedicated to the public domain by its rights holder.
