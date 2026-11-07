@@ -1990,3 +1990,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated files: `src/pro_delivery_ledger.py`, `tests/test_pro_delivery_ledger.py`.
 - Tests added but not executed in this session; no passing result claimed.
 - Pro branch only; no render, Telegram send, TikTok publication, or secret changes.
+
+### Repair 13: Validate preview-ledger transition identifiers
+- `src/pro_preview_send_ledger.py`: `transition` now validates candidate_id with the same safe 1–80 character identifier rule used by reservation before loading or looking up the ledger entry.
+- Added regression coverage for list, object, number, boolean, and empty identifiers; malformed values now fail with controlled ValueError rather than leaking TypeError or ambiguous lookup behavior.
+- Source, tests, and this log entry were committed on `feature/quran-video-pro` only. Test execution remains unconfirmed; no Telegram send or production render was performed.
