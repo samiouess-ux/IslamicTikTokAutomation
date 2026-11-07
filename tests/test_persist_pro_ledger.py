@@ -102,6 +102,21 @@ class ProLedgerPersistenceTests(unittest.TestCase):
             "git", "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}"
         ])
 
+    def test_git_failure_redacts_credential_bearing_remote_diagnostics(self):
+        secret = "GITHUB_REMOTE_TOKEN_SECRET"
+        outputs = self.aligned_prefix() + [
+            (0, "", ""), (0, "", ""),
+            (0, "data/pro_delivery_ledger.json\\n", ""),
+            (0, "[commit] saved", ""),
+            (1, "", f"remote rejected https://{secret}@github.com/owner/repo"),
+        ]
+        with self.run_git(outputs):
+            with self.assertRaisesRegex(RuntimeError, "Git operation failed") as caught:
+                persist_ledger(self.repo)
+        self.assertNotIn(secret, str(caught.exception))
+        self.assertNotIn("github.com", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
+
     def test_refuses_symlinked_ledger_file(self):
         ledger = self.repo / "data" / "pro_delivery_ledger.json"
         target = self.repo / "outside.json"
