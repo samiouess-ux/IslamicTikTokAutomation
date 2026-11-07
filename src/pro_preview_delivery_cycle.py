@@ -61,7 +61,8 @@ def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
     if content_type not in {"dua", "dhikr"} or video.name != expected_name:
         raise ValueError("Preview MP4 filename must exactly match candidate ID and content type.")
     caption = build_preview_caption(data)
-    validate_manifest_media_rights(data, repo_root=repo_root, planned_use="private_review")
+    validate_manifest_media_rights(data, repo_root=repo_root, planned_use="private_review",
+                                   planned_territory=data.get("review_delivery_territory"))
     return {
         "manifest": manifest, "video": video, "data": data,
         "candidate_id": candidate_id, "content_type": content_type,
