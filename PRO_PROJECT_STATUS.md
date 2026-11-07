@@ -520,3 +520,11 @@ This section supersedes earlier historical statements in this file that the curr
 - Both changed files were fetched again from `feature/quran-video-pro` and the exact guard and all three test cases were verified present.
 - The newly added tests have NOT yet been executed. The connected GitHub toolset in this session exposes workflow/job inspection and rerun actions, but no workflow-dispatch action; no dispatch or external Telegram action was attempted. The previous 90/90 result predates this patch and must not be represented as validating these new tests.
 - No renderer, media, rights records, manifests, workflow YAML, secrets, Cron, Telegram bot settings, or production branch changed. No render, Telegram request/send/upload, or TikTok publish occurred.
+
+
+## 2026-11-07 — Reservation identity test expectation corrected
+- The candidate-ID mismatch test initially expected `RuntimeError`, but the strict ledger schema validator rejects a mismatched ledger key/candidate ID earlier with `ValueError`. Updated the test helper to assert the correct exception type and message; production guard code was not changed by this test-only correction.
+- Test correction commit: `347768732f8ac09ca355bbab0b8905b5d181bb56`. The Pro branch head was re-fetched and confirmed at this exact commit.
+- The three post-persistence mismatch tests (workflow run ID, candidate ID, content type) remain NOT RUN. The earlier 90/90 result on run `42318772835` predates the identity guard and these tests.
+- Current GitHub connector exposes workflow/job inspection and rerun actions but no workflow-dispatch action. Rerunning the older successful run would test its older commit, not `3477687`; therefore no misleading rerun was started. A fresh manual safety-workflow dispatch on the current Pro head is still required.
+- No workflow YAML, renderer, media, rights record, manifest, secrets, Cron, Telegram bot settings, production branch, or original Quran engine changed. No render, Telegram request/send/upload, or TikTok publish occurred.
