@@ -41,11 +41,13 @@ def run_delivery_cycle(
         )
 
     caption_data = json.loads(caption_path.read_text(encoding="utf-8"))
+    if not isinstance(caption_data, dict):
+        raise ValueError("Caption JSON must contain an object.")
     manifest_id = caption_data.get("manifest_id")
     content_type = caption_data.get("content_type")
     if not isinstance(manifest_id, str) or not manifest_id.strip():
         raise ValueError("Caption must include a stable manifest_id.")
-    if content_type not in {"dua", "dhikr"}:
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise ValueError("Pro delivery cycle accepts dua/dhikr only.")
     if not isinstance(run_id, str) or not run_id.strip():
         raise ValueError("A non-empty workflow run_id is required.")
