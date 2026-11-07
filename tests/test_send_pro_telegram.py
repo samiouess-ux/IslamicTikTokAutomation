@@ -153,6 +153,24 @@ class ProTelegramSenderTests(unittest.TestCase):
             entry = load_ledger(ledger)["entries"]["dua-manifest-1"]
             self.assertEqual(entry["state"], "delivered")
 
+    def test_token_is_redacted_when_uncertain_ledger_transition_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            secret = "BOT_TOKEN_MUST_NOT_LEAK"
+            with mock.patch("send_pro_telegram.urllib.request.urlopen",
+                            side_effect=RuntimeError(f"https://api.telegram.org/bot{secret}/sendVideo")):
+                with mock.patch("send_pro_telegram.transition",
+                                side_effect=OSError(f"ledger failed while handling {secret}")):
+                    with self.assertRaisesRegex(RuntimeError, "ledger could not be advanced") as caught:
+                        send_video(video, caption, secret, "chat", "run-1", ledger)
+            self.assertNotIn(secret, str(caught.exception))
+            self.assertIsNone(caught.exception.__cause__)
+
     def test_uncertain_send_blocks_a_second_attempt(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
