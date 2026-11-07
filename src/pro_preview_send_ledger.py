@@ -107,17 +107,30 @@ def validate_ledger(data: Any) -> dict[str, Any]:
 
 
 def load_ledger(path: Path) -> dict[str, Any]:
+    if path.is_symlink():
+        raise ValueError("Pro preview ledger file must not be a symlink.")
     if not path.exists():
         return {"version": VERSION, "entries": {}}
+    flags = os.O_RDONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Cannot read Pro preview ledger: {exc}") from exc
+        descriptor = os.open(path, flags)
+        import stat
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            os.close(descriptor)
+            raise ValueError("Pro preview ledger must be a regular file.")
+        with os.fdopen(descriptor, "r", encoding="utf-8") as stream:
+            data = json.load(stream)
+    except (OSError, json.JSONDecodeError):
+        raise ValueError("Cannot safely read Pro preview ledger.") from None
     return validate_ledger(data)
 
 
 def save_ledger(path: Path, data: dict[str, Any]) -> None:
     validate_ledger(data)
+    if path.parent.is_symlink() or path.is_symlink():
+        raise ValueError("Pro preview ledger path components must not be symlinks.")
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
     try:
