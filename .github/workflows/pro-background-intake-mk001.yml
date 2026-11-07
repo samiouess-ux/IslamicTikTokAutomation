@@ -125,10 +125,10 @@ jobs:
           duration = float(info["format"]["duration"])
           if duration <= 0:
               raise SystemExit("Invalid video duration.")
-          times = [round(duration * x / 8, 2) for x in range(9)]
+          times = [round(min(duration * x / 8, max(0.0, duration - 1.0)), 2) for x in range(9)]
           frames = []
           for index, stamp in enumerate(times):
-              target = root / f"frame_{index+1:02d}.jpg"
+              target = root / f"frame_{index+1:02d}.png"
               subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
                               "-ss", str(stamp), "-i", str(video), "-frames:v", "1",
                               "-vf", "scale=480:-1", str(target)], check=True)
