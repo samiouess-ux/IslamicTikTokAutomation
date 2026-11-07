@@ -2110,3 +2110,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Hardened `load_ledger` to reject symlink paths, open with `O_NOFOLLOW` where supported, and verify the opened descriptor is a regular file. Hardened `save_ledger` to reject symlinked parent/file paths before replacing the ledger.
 - Added a regression proving both read and write reject a symlinked ledger and leave its external target unchanged.
 - Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 31: reject symlinked parent directories in preview-ledger primitives
+- Follow-up review found the earlier symlink checks covered the ledger and its immediate parent, but a symlink higher in the path (or the lock file's parent path) could still redirect filesystem operations when the ledger primitive was called directly.
+- Added one path-component guard and applied it before creating/opening the lock, reading the ledger, or writing/replacing it. The guard walks the absolute path and all existing ancestors.
+- Added a regression that points the ledger's parent directory through a symlink and verifies reservation fails before creating any file in the external target.
+- Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
