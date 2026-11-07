@@ -1,0 +1,68 @@
+name: Pro safety tests (push)
+
+on:
+  push:
+    branches:
+      - feature/quran-video-pro
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "content/pro/**"
+      - "requirements.txt"
+      - ".github/workflows/pro-safety-tests-on-push.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quran-video-pro-safety-push
+  cancel-in-progress: false
+
+jobs:
+  pro-safety-tests:
+    name: Pro-only offline safety tests
+    if: github.ref == 'refs/heads/feature/quran-video-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Enforce exact Pro branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/feature/quran-video-pro"
+
+      - name: Check out exact Pro branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/quran-video-pro
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install offline test dependency
+        run: python -m pip install --disable-pip-version-check Pillow
+
+      - name: Run all Pro offline safety tests
+        shell: bash
+        env:
+          PYTHONPATH: src
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_pro_preview_send_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_pro_delivery_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_send_pro_telegram.py' -v
+          python -m unittest discover -s tests -p 'test_send_pro_preview_telegram.py' -v
+          python -m unittest discover -s tests -p 'test_validate_pro_media_rights.py' -v
+          python -m unittest discover -s tests -p 'test_pro_preview_delivery_cycle.py' -v
+          python -m unittest discover -s tests -p 'test_persist_pro_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_persist_pro_preview_ledger.py' -v
+          python -m unittest discover -s tests -p 'test_pro_delivery_cycle.py' -v
+          python -m unittest discover -s tests -p 'test_validate_content_manifest.py' -v
+          python -m unittest discover -s tests -p 'test_content_rotation.py' -v
+          python -m unittest discover -s tests -p 'test_asset_rotation.py' -v
+          python -m unittest discover -s tests -p 'test_prepare_pro_telegram_caption.py' -v
+          python -m unittest discover -s tests -p 'test_pro_orchestrator.py' -v
+          python -m unittest discover -s tests -p 'test_render_dua_video.py' -v
