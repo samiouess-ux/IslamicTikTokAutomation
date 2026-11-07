@@ -13,9 +13,17 @@ import render_dua_video
 class DuaRendererTests(unittest.TestCase):
     def test_each_item_requires_explicit_positive_duration(self):
         self.assertEqual(render_dua_video.item_duration({"duration_seconds": 4}), 4.0)
-        for value in (None, 0, -1, True, "4"):
+        for value in (None, 0, -1, True, "4", float("nan"), float("inf"), float("-inf")):
             with self.subTest(value=value), self.assertRaises(SystemExit):
                 render_dua_video.item_duration({"duration_seconds": value})
+
+    def test_ffprobe_rejects_non_finite_media_duration(self):
+        for raw in ("nan", "inf", "-inf"):
+            with self.subTest(raw=raw):
+                result = type("Result", (), {"stdout": raw})()
+                with patch.object(render_dua_video.subprocess, "run", return_value=result):
+                    with self.assertRaisesRegex(SystemExit, "invalid duration"):
+                        render_dua_video.probe_duration(Path("sample.mp4"))
 
     def test_slideshow_creates_one_overlay_per_item(self):
         items = [
