@@ -2468,3 +2468,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - That run failed during contact-sheet generation on the final frame (seeking too close to EOF and JPEG encoder range handling). Because artifact upload is after that step, no review artifact was created and the ephemeral runner workspace was not retained. The hash and metadata are evidence in the workflow logs only; do not treat this as a repository-local asset.
 - Repaired the workflow on commit `787821cb77000eaafa1080bde39d9e476dc74ade`: frame extracts now use PNG and sample timestamps are clamped to at least one second before EOF. Push run `42410211663` was observed starting; at the time of this entry it had not completed. No success is claimed for this repair yet.
 - Asset remains `candidate_only_not_approved`; no rights JSON, manifest, Pro media file, or approval flag exists. Visual inspection has not occurred. No render, Telegram request/send, or TikTok publication occurred.
+
+
+## 2026-11-07 — MK-001 visual sample review completed
+
+- Push-triggered intake run `42410280656` completed successfully on commit `a381ae31b10dcb233cb9831d7ac79ac2fd44f982`: exact page license check passed; one file downloaded; ffprobe and nine-frame contact sheet succeeded; contact sheet payload was emitted in job logs for visual inspection.
+- Exact file metadata from the successful run: 16,515,983 bytes, MP4/H.264, 1280×720, 24000/1001 fps, 54.804750 seconds, SHA-256 `9bbf623aa42493925e612659cf90a6e5a15762e22f0ba1f92c179265173fe27d`.
+- Visually inspected all nine sampled frames: calm sunrise, mountain silhouettes and open landscape; no people/logos/obvious artwork visible in those sampled frames. Central crop area retains the sun/mountain line; source is horizontal 16:9 and has a relatively dark foreground. Full-frame inspection is still required. Added a durable contact sheet at `content/pro/review_previews/MK-001-contact-sheet.jpg` (commit `f9eeeda123f758877756caa05dbaee6771083a77`).
+- GitHub artifact upload was attempted in the prior run but failed because repository Actions artifact storage quota was exhausted. The workflow was changed to emit the small contact sheet into job logs instead; the successful run proves the new route works. No media file was persisted in the repo; the MP4 existed only in the ephemeral runner. Its hash and metadata are preserved in this log and candidate research note.
+- Updated `content/pro/CANDIDATE_RESEARCH_001.md` with the sample review. Candidate remains unapproved: no full-file review, creator/rights-owner evidence, per-asset rights JSON, or user rights approval. No manifest or renderer input created.
+- No current-HEAD safety test, video render, Telegram request/send, or TikTok publication occurred.
