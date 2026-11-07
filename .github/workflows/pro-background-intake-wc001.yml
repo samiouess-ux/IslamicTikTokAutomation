@@ -128,8 +128,12 @@ jobs:
               "copyrighted_raw": meta.get("Copyrighted", {}).get("value"),
               "restrictions_raw": meta.get("Restrictions", {}).get("value"),
           }, ensure_ascii=False))
-          if copyrighted and copyrighted not in ("false", "no", "0"):
-              raise SystemExit("Commons API reports a positive/unknown copyright flag; refusing intake.")
+          # CommonsMetadata Copyrighted=True can coexist with CC0: the work may be
+          # copyrighted and then dedicated to the public domain by its rights holder.
+          # The exact CC0 license gate above is authoritative here; this field is
+          # retained for audit, while unknown non-boolean values still fail closed.
+          if copyrighted and copyrighted not in ("true", "false", "yes", "no", "1", "0"):
+              raise SystemExit("Commons API returned an unrecognized copyright flag; refusing intake.")
           if restrictions.lower() not in ("", "false", "no", "0", "none"):
               raise SystemExit("Commons metadata reports reuse restrictions; human review is required before intake.")
           if "JaredMcKenzie" not in artist or "own work" not in source.lower():
