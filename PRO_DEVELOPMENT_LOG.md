@@ -2031,3 +2031,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `tests/test_send_pro_telegram.py`: added a failure-path regression where both the Telegram transport exception and the attempt to mark the reservation `uncertain` contain a fake bot token. The test asserts the surfaced error contains no token and has no chained cause.
 - This closes the secondary exception path introduced by Repair 18: failure to update the ledger must still keep the reservation blocking without leaking a secret-bearing transport or filesystem error.
 - Test and log committed on `feature/quran-video-pro` only. Test execution is not available/has not been performed in this session; no Telegram request, render, TikTok publication, or secret change occurred.
+
+
+### Test-suite consistency correction after Repair 18
+- Review found one pre-existing assertion in `tests/test_send_pro_telegram.py` still expected the raw `TimeoutError`, while Repair 18 intentionally converts transport failures to a generic redacted `RuntimeError`.
+- Updated that test to assert the new safe error contract, including that the original timeout text is not exposed and no exception cause is chained. This prevents a predictable failure in the sender test suite.
+- Test and log committed on `feature/quran-video-pro` only. Tests have not yet been executed.
