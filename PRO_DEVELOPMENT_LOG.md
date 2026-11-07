@@ -1966,3 +1966,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated files: `src/validate_pro_media_rights.py`, `tests/test_validate_pro_media_rights.py`.
 - Tests: added but not executed in this session; no passing result claimed.
 - Safety: Pro branch only; no production render, Telegram request, TikTok publication, or secret changes.
+
+
+## Repair 10 — guard public Pro content-type inputs
+- Added explicit string-type validation at the Pro rotation planner and persisted-reservation sender boundary. List/object/number/boolean inputs now produce the intended controlled ValueError instead of a set-membership TypeError.
+- Added regression coverage for malformed values in both entry points.
+- Updated files: `src/pro_orchestrator.py`, `src/pro_delivery_ledger.py`, `tests/test_pro_orchestrator.py`, `tests/test_pro_delivery_ledger.py`.
+- Tests added but not executed in this session; no passing result claimed.
+- Pro branch only; no render, Telegram send, TikTok publication, or secret changes.
