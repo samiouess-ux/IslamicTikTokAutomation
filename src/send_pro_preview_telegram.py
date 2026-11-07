@@ -79,7 +79,9 @@ def verify_private_chat(token: str, chat_id: str, *, urlopen_fn=None) -> None:
     """Fail closed unless Telegram confirms this exact destination is a private chat."""
     if urlopen_fn is None:
         urlopen_fn = urllib.request.urlopen
-    if not token.strip() or not chat_id.strip().isdigit() or int(chat_id) <= 0:
+    if (not isinstance(token, str) or not token.strip()
+            or not isinstance(chat_id, str) or not chat_id.strip().isdigit()
+            or int(chat_id) <= 0):
         raise ValueError("A bot token and positive numeric destination are required.")
     request = urllib.request.Request(
         f"https://api.telegram.org/bot{token.strip()}/getChat?chat_id={chat_id.strip()}",
@@ -110,7 +112,8 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
                  repo_root: Path | None = None, urlopen_fn=None) -> dict:
     if not confirmed:
         raise PermissionError("Explicit --confirm-preview-send is required before any Telegram request.")
-    if not token.strip() or not chat_id.strip():
+    if (not isinstance(token, str) or not token.strip()
+            or not isinstance(chat_id, str) or not chat_id.strip()):
         raise ValueError("Separate PRO_PREVIEW_TG_BOT_TOKEN and PRO_PREVIEW_TELEGRAM_CHAT_ID are required.")
     if not chat_id.strip().isdigit() or int(chat_id) <= 0:
         raise ValueError("Preview destination must be a positive numeric private-chat ID.")
