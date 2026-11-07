@@ -1512,3 +1512,14 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/validate_content_manifest.py`, `src/pro_orchestrator.py`, and `tests/test_validate_content_manifest.py` from `feature/quran-video-pro`. Blob SHAs: validator `5146070fea6ab8ed65cd6d192e8a25547260ba1`; orchestrator `a76c75e72bdc030575652f9a76f105ee91865675`; validator tests `7914f2c7f0eacc298379b87687377e935cff19d6`.
 - Read-only inspection only. No tests were run, no source/test files changed, and no workflow, render, Telegram, TikTok, production bot, or production branch was touched.
+
+
+## 2026-11-07 — Static review: media-rights record type robustness
+
+### Finding (review only; no code changes)
+- The per-asset rights validator correctly checks many fields and verifies media/evidence hashes, fixed-root paths, permissions, and territory. However, two enum-like fields are tested for set membership without first confirming they are strings: `asset_ref.media_type` and `license_evidence.kind`. A malformed JSON list/object in either field can raise `TypeError` instead of the validator's intended `ValueError` rejection. The current top-level callers may therefore report an unstructured failure for malformed rights metadata. This is a robustness/reporting gap; it does not bypass the approval checks or establish that an unapproved asset would be accepted.
+- Recommended narrow hardening: require `media_type` and evidence `kind` to be strings before enum membership, and add malformed-list/object regression tests. No implementation was made pending explicit approval.
+
+### Verification and safety
+- Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`), `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`), and `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`) from `feature/quran-video-pro`.
+- Read-only review. No tests or workflows were run; no rendering, Telegram request/send/upload, TikTok publish, or production-path operation occurred.
