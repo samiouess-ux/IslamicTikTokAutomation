@@ -2097,3 +2097,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - After Repair 27, review found one older preview-cycle test still expected the raw `TimeoutError`, even though the cycle now deliberately converts ambiguous sender failures into a generic, non-chained `RuntimeError` after persisting `uncertain`.
 - Updated the older regression to assert the safe uncertainty message, absence of the original timeout detail, and absence of an exception cause. This removes a known stale expectation and makes the test suite's intended error contract consistent.
 - Test and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 29: redact preview-ledger Git diagnostics
+- Review found the isolated preview-ledger persistence helper embedded raw Git stderr/stdout and command arguments in raised exceptions. Git diagnostics can contain credential-bearing remote URLs, and initial reservation persistence errors occur outside the sender's uncertainty-redaction boundary.
+- Changed the helper to raise a generic Git-operation failure with the exit code only and no chained cause. Added a regression using a fake credential-bearing GitHub remote URL and asserted that neither the token nor host/URL detail escapes.
+- Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
