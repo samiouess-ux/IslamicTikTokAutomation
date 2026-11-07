@@ -133,7 +133,7 @@ class ProDeliveryLedgerTests(unittest.TestCase):
 
     def test_invalid_utf8_ledger_is_rejected_without_decoder_details(self):
         from pro_delivery_ledger import load_ledger
-        self.ledger.write_bytes(b"\\xff\\xfe{")
+        self.ledger.write_bytes(b"\xff\xfe{")
         with self.assertRaisesRegex(ValueError, "Cannot safely read Pro reservation ledger") as caught:
             load_ledger(self.ledger)
         self.assertIsNone(caught.exception.__cause__)
