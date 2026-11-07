@@ -2333,3 +2333,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Clarified that thematic suitability does not confer media rights: each exact Pro background still needs its own file/hash/source/license evidence and required approvals. No existing Quran background candidate was promoted or reused.
 - Updated `content/pro/README.md` and this log on `feature/quran-video-pro` only. This is a documentation/policy change; no assets, manifests, code, workflows, rights approvals, Telegram settings, or production branch were changed.
 - No tests, render, workflow dispatch, Telegram request/send, or TikTok publication were performed. The known blockers from Repair 58 remain.
+
+
+### Repair 60: enforce reviewed meaning-matched backgrounds in dua/dhikr manifests
+- Code review found the renderer consumes one manifest-level background for each video, but the content validator did not require any metadata proving that this background was selected for the meaning of the exact dua/dhikr item. The new policy was therefore documented but not yet enforced at manifest intake.
+- Updated `src/validate_content_manifest.py` so every dua/dhikr manifest must include a non-empty `visual.background_theme`, a non-empty `visual.background_meaning_rationale` tied to the exact item's meaning, and literal `visual.background_meaning_reviewed: true`. Quran manifest validation is unchanged.
+- Updated the dua test fixture and added regressions for missing theme, missing rationale, missing human review, and a valid topic-specific reviewed background.
+- Updated `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log on `feature/quran-video-pro` only.
+- Tests have not been executed because no local checkout or current-HEAD workflow dispatch is available in this session. The changes are source-committed but unvalidated. No render, Telegram request/send, TikTok publication, media approval, or production-branch change occurred.
