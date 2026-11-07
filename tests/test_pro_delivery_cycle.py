@@ -120,5 +120,17 @@ class ProDeliveryCycleTests(unittest.TestCase):
         self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "delivered")
 
 
+    def test_non_object_caption_json_is_rejected_before_reservation(self):
+        for raw in ("null", "[]", '"caption"'):
+            with self.subTest(raw=raw):
+                self.caption.write_text(raw, encoding="utf-8")
+                with mock.patch("pro_delivery_cycle.send_video") as send_mock:
+                    with self.assertRaisesRegex(ValueError, "Caption JSON must contain an object"):
+                        self.run_cycle(send_fn=send_mock)
+                send_mock.assert_not_called()
+                self.assertFalse(self.ledger.exists())
+
+
+
 if __name__ == "__main__":
     unittest.main()
