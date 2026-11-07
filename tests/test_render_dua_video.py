@@ -55,20 +55,20 @@ class DuaRendererTests(unittest.TestCase):
         self.assertIn('validate_audio_duration(audio_file, duration)', source)
         self.assertNotIn('apad', source)
 
-    def test_duration_policy_enforces_the_40_second_cap(self):
-        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 40.0)
-        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 40.0)
+    def test_duration_policy_enforces_the_45_second_cap(self):
+        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 45.0)
+        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 45.0)
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(render_dua_video, "create_overlay"):
                 accepted = render_dua_video.build_slideshow(
-                    [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 40}],
+                    [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 45}],
                     "ذكر", Path(tmp),
                 )
-                self.assertEqual(accepted, 40.0)
+                self.assertEqual(accepted, 45.0)
             with patch.object(render_dua_video, "create_overlay"):
-                with self.assertRaisesRegex(SystemExit, "hard limit of 40 seconds"):
+                with self.assertRaisesRegex(SystemExit, "hard limit of 45 seconds"):
                     render_dua_video.build_slideshow(
-                        [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 40.01}],
+                        [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 45.01}],
                         "ذكر", Path(tmp),
                     )
 
