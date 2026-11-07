@@ -128,7 +128,7 @@ def load_ledger(path: Path) -> dict[str, Any]:
             raise ValueError("Pro preview ledger must be a regular file.")
         with os.fdopen(descriptor, "r", encoding="utf-8") as stream:
             data = json.load(stream)
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         raise ValueError("Cannot safely read Pro preview ledger.") from None
     return validate_ledger(data)
 
