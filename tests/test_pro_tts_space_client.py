@@ -13,6 +13,7 @@ from pro_tts_space_client import (
     ProTtsSchemaError,
     build_payload,
     extract_single_audio_result,
+    generate_spoken_dua_once,
     validate_live_schema,
 )
 
@@ -106,6 +107,129 @@ class ProTtsSpaceClientTests(unittest.TestCase):
     def test_rejects_wrong_result_shape(self):
         with self.assertRaisesRegex(ProTtsSchemaError, "33 ordered outputs"):
             extract_single_audio_result(["/tmp/a.wav", "done"])
+
+
+
+    def test_generate_submits_once_and_accepts_valid_local_wav(self):
+        import wave
+        from tempfile import TemporaryDirectory
+
+        class Job:
+            def __init__(self, result):
+                self._result = result
+                self.timeout = None
+            def result(self, timeout=None):
+                self.timeout = timeout
+                return self._result
+            def cancel(self):
+                return True
+
+        with TemporaryDirectory() as tmp:
+            output_dir = Path(tmp) / "isolated"
+            output_dir.mkdir()
+            audio = output_dir / "spoken_dua.wav"
+            with wave.open(str(audio), "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(48000)
+                wav.writeframes(b"\\x00\\x00" * 480)
+
+            outputs = [None] * EXPECTED_OUTPUTS
+            outputs[0] = str(audio)
+            outputs[-1] = "done"
+            job = Job(outputs)
+
+            class FakeClient:
+                submit_count = 0
+                def __init__(self, **kwargs):
+                    self.kwargs = kwargs
+                def view_api(self, **kwargs):
+                    return fake_api_info()
+                def submit(self, **kwargs):
+                    self.submit_count += 1
+                    self.payload = kwargs
+                    return job
+
+            holder = {}
+            def factory(**kwargs):
+                holder["client"] = FakeClient(**kwargs)
+                return holder["client"]
+
+            path, log = generate_spoken_dua_once(
+                text="اللَّهُمَّ اغْفِرْ لِي",
+                caption="Neutral spoken dua narration; not Quran recitation; no imitation.",
+                output_dir=output_dir,
+                timeout_seconds=90,
+                client_factory=factory,
+            )
+            self.assertEqual(path, audio.resolve())
+            self.assertEqual(log, "done")
+            self.assertEqual(holder["client"].submit_count, 1)
+            self.assertEqual(job.timeout, 90)
+            self.assertEqual(holder["client"].kwargs["max_workers"], 1)
+            self.assertEqual(holder["client"].payload["num_candidates"], 1)
+
+    def test_generate_timeout_is_not_retried(self):
+        from tempfile import TemporaryDirectory
+
+        class Job:
+            cancel_called = False
+            def result(self, timeout=None):
+                raise TimeoutError("late")
+            def cancel(self):
+                self.cancel_called = True
+
+        job = Job()
+        class FakeClient:
+            submit_count = 0
+            def __init__(self, **kwargs):
+                pass
+            def view_api(self, **kwargs):
+                return fake_api_info()
+            def submit(self, **kwargs):
+                self.submit_count += 1
+                return job
+
+        with TemporaryDirectory() as tmp:
+            holder = {}
+            def factory(**kwargs):
+                holder["client"] = FakeClient(**kwargs)
+                return holder["client"]
+            with self.assertRaisesRegex(TimeoutError, "Do not retry automatically"):
+                generate_spoken_dua_once(
+                    text="دعاء",
+                    caption="Neutral spoken dua narration.",
+                    output_dir=Path(tmp),
+                    client_factory=factory,
+                )
+        self.assertEqual(holder["client"].submit_count, 1)
+        self.assertTrue(job.cancel_called)
+
+    def test_generate_rejects_audio_path_outside_isolated_directory(self):
+        from tempfile import TemporaryDirectory
+        class Job:
+            def result(self, timeout=None):
+                outputs = [None] * EXPECTED_OUTPUTS
+                outputs[0] = "/tmp/untrusted.wav"
+                outputs[-1] = "done"
+                return outputs
+            def cancel(self):
+                return True
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+            def view_api(self, **kwargs):
+                return fake_api_info()
+            def submit(self, **kwargs):
+                return Job()
+        with TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ProTtsSchemaError, "outside"):
+                generate_spoken_dua_once(
+                    text="دعاء",
+                    caption="Neutral spoken dua narration.",
+                    output_dir=Path(tmp),
+                    client_factory=FakeClient,
+                )
 
 
 if __name__ == "__main__":
