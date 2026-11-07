@@ -2180,3 +2180,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Corrected the fixture to contain a real newline escape in the Python test string. No production code changed in this follow-up.
 - Updated the test and this log on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 40: reject symlinked production ledger lock paths
+- Review found the production Git persistence helper checked the ledger file and immediate data directory but did not independently reject a symlinked lock file. A lock-path link can redirect lock operations performed by the ledger primitives, and persistence should enforce the same storage boundary.
+- Added a component walk for the production ledger, data directory, and sibling lock path beneath the resolved repository root. Any symlink component now blocks persistence before Git staging.
+- Added a regression that creates a symlinked production lock file and verifies persistence stops before staging and leaves the external target unchanged.
+- Updated files: `src/persist_pro_ledger.py`, `tests/test_persist_pro_ledger.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
