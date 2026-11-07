@@ -56,7 +56,7 @@ Use one record per candidate item. This is a review worksheet, **not** a product
 ## Production readiness
 - Proposed stable manifest item ID:
 - Reviewed duration:
-- Final video duration ceiling respected (40 seconds): yes / no
+- Final video duration ceiling respected (45 seconds): yes / no
 - All source, text, grading, human-review, and media gates complete: yes / no
 - Final readiness: blocked / ready for separate manifest creation
 
