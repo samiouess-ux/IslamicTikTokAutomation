@@ -8,7 +8,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from send_pro_telegram import build_caption, send_video, MAX_CAPTION_CHARS
+from send_pro_telegram import build_caption, send_video, MAX_CAPTION_CHARS, TelegramAcceptedLedgerError
 from pro_delivery_ledger import load_ledger
 
 
@@ -76,6 +76,30 @@ class ProTelegramSenderTests(unittest.TestCase):
             entry = load_ledger(ledger)["entries"]["dua-manifest-1"]
             self.assertEqual(entry["state"], "delivered")
             self.assertEqual(entry["telegram_message_id"], 321)
+
+    def test_confirmed_telegram_acceptance_with_receipt_failure_is_distinct(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return json.dumps({"ok": True, "result": {"message_id": 987}}).encode()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            with mock.patch("send_pro_telegram.urllib.request.urlopen", return_value=FakeResponse()):
+                with mock.patch("send_pro_telegram.transition", side_effect=OSError("disk detail")):
+                    with self.assertRaises(TelegramAcceptedLedgerError) as caught:
+                        send_video(video, caption, "token", "chat", "run-1", ledger)
+            self.assertIn("Telegram accepted", str(caught.exception))
+            self.assertNotIn("disk detail", str(caught.exception))
+            self.assertIsNone(caught.exception.__cause__)
 
     def test_pre_persisted_mode_refuses_wrong_run_before_telegram(self):
         with tempfile.TemporaryDirectory() as tmp:
