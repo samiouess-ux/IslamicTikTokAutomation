@@ -1304,3 +1304,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - No workflow was changed. Adding these two test commands to the manual read-only safety workflow is a separate workflow edit and remains pending approval. Creating a delivery workflow is also not authorized by the gate-code approval.
 - Corrected current verified sender-test blob SHA: `2a1606744f83d1721d1fbd5c1c24f9cacbae7a1f` (older intermediate SHA in the previous checkpoint is superseded).
 - All focused tests remain NOT RUN; the eight-suite workflow remains NOT RUN. No dispatch, render, Telegram, TikTok, secrets, Cron, bot settings, production branch, or original Quran engine operation occurred.
+
+
+### 2026-11-07 — Offline safety workflow dependency fix
+- Inspected failed GitHub Actions run `42314108213` on `feature/quran-video-pro` (commit `336bbcd3f304add7a186491a3e6c28d6b5065d08`). The earlier eight suites passed through `test_validate_content_manifest.py`; `test_pro_orchestrator.py` then failed during import because `PIL` was unavailable (`ModuleNotFoundError: No module named 'PIL'`).
+- Updated only `.github/workflows/pro-safety-tests-manual.yml` to install `Pillow` with pip after Python setup and before the offline test command. Workflow remains manual-only, exact-Pro-branch guarded, read-only permissions, and has no render or Telegram send steps.
+- Workflow fix commit: `e5d13045afc8a2425f287aed78ae070fc38dc0b4`.
+- The failed run is not a passing result. A rerun is still required to verify whether Pillow resolves the import and whether later suites pass. No workflow dispatch, render, Telegram send, TikTok publish, secret/Cron/bot-setting change, or production/original Quran engine change was made in this fix.
