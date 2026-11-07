@@ -106,7 +106,7 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         secret = "GITHUB_REMOTE_TOKEN_SECRET"
         outputs = self.aligned_prefix() + [
             (0, "", ""), (0, "", ""),
-            (0, "data/pro_delivery_ledger.json\\n", ""),
+            (0, "data/pro_delivery_ledger.json\n", ""),
             (0, "[commit] saved", ""),
             (1, "", f"remote rejected https://{secret}@github.com/owner/repo"),
         ]
