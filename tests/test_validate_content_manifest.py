@@ -60,6 +60,9 @@ class ContentManifestTests(unittest.TestCase):
             },
             "visual": {
                 "template": "ornate_gold_classic",
+                "background_theme": "quiet_dawn_renewal",
+                "background_meaning_rationale": "A calm dawn scene supports the reviewed theme of seeking forgiveness.",
+                "background_meaning_reviewed": True,
                 "background_candidate": {
                     "source_url": "https://example.org/background",
                     "direct_video_url": "https://example.org/background.mp4",
@@ -68,6 +71,25 @@ class ContentManifestTests(unittest.TestCase):
             },
             "publishing": {"approval_required": True, "auto_publish": False}
         }
+
+    def test_dua_requires_item_specific_background_theme_and_review(self):
+        for field, value, message in (
+            ("background_theme", "", "meaning-matched background_theme"),
+            ("background_meaning_rationale", "", "rationale tied to the exact item's meaning"),
+            ("background_meaning_reviewed", False, "meaning match requires explicit human review"),
+        ):
+            with self.subTest(field=field):
+                data = self.dua_manifest()
+                data["visual"][field] = value
+                with self.assertRaisesRegex(SystemExit, message):
+                    validate_content_manifest(data)
+
+    def test_dua_accepts_a_reviewed_topic_specific_background(self):
+        data = self.dua_manifest()
+        data["visual"]["background_theme"] = "forgiveness_dawn"
+        data["visual"]["background_meaning_rationale"] = "The soft dawn imagery reflects renewal and seeking forgiveness in this exact supplication."
+        data["visual"]["background_meaning_reviewed"] = True
+        validate_content_manifest(data)
 
     def test_sourced_dua_with_approved_ambient_audio_passes(self):
         validate_content_manifest(self.dua_manifest())
