@@ -2043,3 +2043,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added sender tests for Telegram responses whose `message_id` is boolean, zero, negative, a string, or null.
 - Each malformed receipt must be rejected and the delivery ledger must remain `uncertain`, preventing the workflow from treating an unverified response as a confirmed delivery or retrying blindly.
 - Test and log committed on `feature/quran-video-pro` only. Tests have not yet been executed; this is regression coverage, not a passing test claim.
+
+
+### Repair 21: redact delivery-cycle exception messages and causes
+- `src/pro_delivery_cycle.py` no longer propagates arbitrary sender exception messages through the orchestration boundary. It reports only the exception class and a safe generic outcome; it does not chain the original error.
+- If persisting the uncertain outcome fails, the cycle reports only the persistence exception class and does not chain the underlying Git/transport error, which could contain credential-bearing remote URLs. The already-persisted reservation remains the duplicate-send barrier.
+- Updated cycle regressions to check sender-error redaction and a fake credential-bearing remote URL in persistence failure.
+- Changes are committed on `feature/quran-video-pro` only. Tests have not yet been executed.
