@@ -18,6 +18,10 @@ class TelegramAcceptedLedgerError(RuntimeError):
     """Telegram accepted the video, but local receipt finalization failed."""
 
 
+class TelegramResponseValidationError(RuntimeError):
+    """A parsed Telegram response explicitly failed delivery confirmation."""
+
+
 def build_caption(data: dict) -> str:
     if not isinstance(data, dict):
         raise ValueError("Caption JSON must contain an object.")
@@ -87,11 +91,11 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
         with urllib.request.urlopen(request, timeout=180) as response:
             result = json.loads(response.read().decode("utf-8"))
         if not isinstance(result, dict) or result.get("ok") is not True or not isinstance(result.get("result"), dict):
-            raise RuntimeError("Telegram API did not confirm Pro review delivery.")
+            raise TelegramResponseValidationError("Telegram API did not confirm Pro review delivery.")
         message = result["result"]
         message_id = message.get("message_id")
         if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
-            raise RuntimeError("Telegram response lacks a valid message_id; reconcile before retrying.")
+            raise TelegramResponseValidationError("Telegram response lacks a valid message_id; reconcile before retrying.")
     except Exception as send_error:
         try:
             transition(ledger_path, manifest_id, "uncertain")
@@ -101,7 +105,10 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
                 "Telegram outcome is uncertain and the ledger could not be advanced; "
                 "the existing reservation must remain blocking."
             ) from None
-        # Preserve the exception class for diagnostics, but not its potentially secret-bearing message.
+        # Preserve only our own fixed, sanitized response-validation messages.
+        # Transport/decoder exceptions may contain the bot-token URL and stay redacted.
+        if isinstance(send_error, TelegramResponseValidationError):
+            raise RuntimeError(str(send_error)) from None
         raise RuntimeError(
             f"Telegram send outcome is uncertain ({type(send_error).__name__}); "
             "do not retry automatically."
