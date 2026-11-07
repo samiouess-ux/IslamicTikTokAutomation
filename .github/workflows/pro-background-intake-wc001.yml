@@ -1,0 +1,221 @@
+name: Pro single-asset background intake (WC-001)
+
+on:
+  push:
+    branches:
+      - feature/quran-video-pro
+    paths:
+      - ".github/workflows/pro-background-intake-wc001.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-background-intake-wc001
+  cancel-in-progress: false
+
+jobs:
+  inspect-one-listed-asset:
+    if: github.ref == 'refs/heads/feature/quran-video-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Enforce isolated Pro branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/feature/quran-video-pro"
+
+      - name: Check out exact Pro branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/quran-video-pro
+          persist-credentials: false
+
+      - name: Install inspection tools
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v ffprobe >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+          python -m pip install --disable-pip-version-check requests pillow
+
+      - name: Retrieve exact Commons file metadata and download one candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, time
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlparse
+          import requests
+
+          title = "File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm"
+          page_url = "https://commons.wikimedia.org/wiki/" + title.replace(" ", "_").replace(":", ":")
+          api_url = "https://commons.wikimedia.org/w/api.php"
+          headers = {
+              "User-Agent": "IslamicTikTokAutomation-Pro/1.0 (https://github.com/samiouess-ux/IslamicTikTokAutomation)",
+              "Accept": "application/json",
+              "Accept-Encoding": "gzip",
+          }
+          session = requests.Session()
+          session.headers.update(headers)
+
+          def get_with_backoff(url, **kwargs):
+              for attempt in range(4):
+                  response = session.get(url, timeout=(20, 90), **kwargs)
+                  if response.status_code in (429, 503):
+                      delay = response.headers.get("Retry-After")
+                      try:
+                          wait = min(60, max(5, int(delay))) if delay else min(60, 5 * (2 ** attempt))
+                      except ValueError:
+                          wait = min(60, 5 * (2 ** attempt))
+                      response.close()
+                      if attempt == 3:
+                          raise SystemExit("Commons requested throttling; stopped after bounded retries.")
+                      time.sleep(wait)
+                      continue
+                  response.raise_for_status()
+                  return response
+              raise SystemExit("Commons request did not complete.")
+
+          params = {
+              "action": "query",
+              "format": "json",
+              "formatversion": "2",
+              "maxlag": "5",
+              "titles": title,
+              "prop": "imageinfo",
+              "iiprop": "url|size|mime|sha1|extmetadata",
+          }
+          api_response = get_with_backoff(api_url, params=params)
+          payload = api_response.json()
+          if payload.get("error"):
+              raise SystemExit("Commons API returned an error; refusing intake.")
+          pages = payload.get("query", {}).get("pages", [])
+          if len(pages) != 1 or pages[0].get("missing") is not None:
+              raise SystemExit("Exact Commons file title did not resolve uniquely.")
+          page = pages[0]
+          infos = page.get("imageinfo", [])
+          if len(infos) != 1:
+              raise SystemExit("Exact Commons file did not return one imageinfo record.")
+          info = infos[0]
+          meta = info.get("extmetadata", {})
+          license_name = (meta.get("LicenseShortName", {}).get("value") or "").strip()
+          license_url = (meta.get("LicenseUrl", {}).get("value") or "").strip()
+          artist = (meta.get("Artist", {}).get("value") or "").strip()
+          source = (meta.get("Source", {}).get("value") or "").strip()
+          usage = (meta.get("UsageTerms", {}).get("value") or "").strip()
+          if "CC0" not in license_name or "creativecommons.org/publicdomain/zero/1.0" not in license_url:
+              raise SystemExit("Commons API metadata does not confirm the expected CC0 1.0 license.")
+          if "JaredMcKenzie" not in artist or "own work" not in source.lower():
+              raise SystemExit("Creator/source metadata differs from the reviewed file page.")
+          if info.get("mime") != "video/webm":
+              raise SystemExit("Unexpected media MIME type.")
+          if int(info.get("size", 0)) != 7097794:
+              raise SystemExit("File size changed from the reviewed Commons page; stop for re-review.")
+          if info.get("sha1") != "f731168d29e287072ba2a5dded194b072fe79d2e":
+              raise SystemExit("Commons source checksum changed; stop for re-review.")
+          download_url = info.get("url", "")
+          parsed = urlparse(download_url)
+          if parsed.scheme != "https" or parsed.hostname != "upload.wikimedia.org":
+              raise SystemExit("Unexpected original-file host; refusing download.")
+
+          out_dir = Path("pro_background_intake")
+          out_dir.mkdir(exist_ok=True)
+          target = out_dir / "WC-001-vertical-sunrise.webm"
+          response = get_with_backoff(download_url, stream=True)
+          if not response.headers.get("content-type", "").lower().startswith("video/"):
+              raise SystemExit("Downloaded response is not reported as video content.")
+          digest = hashlib.sha256()
+          total = 0
+          with target.open("wb") as handle:
+              for chunk in response.iter_content(1024 * 1024):
+                  if chunk:
+                      total += len(chunk)
+                      if total > 20 * 1024 * 1024:
+                          raise SystemExit("Unexpectedly large file; refusing to retain it.")
+                      digest.update(chunk)
+                      handle.write(chunk)
+          if total != 7097794:
+              raise SystemExit(f"Downloaded byte count differs from reviewed page: {total}.")
+          downloaded_sha1 = hashlib.sha1(target.read_bytes()).hexdigest()
+          if downloaded_sha1 != info["sha1"]:
+              raise SystemExit("Downloaded bytes do not match Commons SHA-1 metadata.")
+
+          record = {
+              "asset_id": "WC-001",
+              "status": "candidate_only_not_approved",
+              "source_page_url": page_url,
+              "api_url": api_url,
+              "original_file_url": download_url,
+              "license_short_name": license_name,
+              "license_url": license_url,
+              "usage_terms": usage,
+              "artist_metadata": artist,
+              "source_metadata": source,
+              "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+              "mime": info["mime"],
+              "bytes": total,
+              "commons_sha1": downloaded_sha1,
+              "sha256": digest.hexdigest(),
+              "approval": False,
+              "rights_record_created": False,
+              "note": "Single explicitly identified Commons file retrieved through the documented read-only Action API. API metadata is not a legal approval; exact-page and full-file human review remain required."
+          }
+          (out_dir / "intake_metadata.json").write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+          (out_dir / "source_and_license_urls.txt").write_text("\n".join([page_url, api_url, license_url]) + "\n", encoding="utf-8")
+          print(json.dumps(record, indent=2, ensure_ascii=False))
+          PY
+
+      - name: Probe exact downloaded video and create visual contact sheet
+        shell: bash
+        run: |
+          set -euo pipefail
+          video="pro_background_intake/WC-001-vertical-sunrise.webm"
+          ffprobe -v error -show_entries format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate -of json "$video" | tee pro_background_intake/ffprobe.json
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          root = Path("pro_background_intake")
+          video = root / "WC-001-vertical-sunrise.webm"
+          info = json.loads((root / "ffprobe.json").read_text())
+          streams = info.get("streams", [])
+          videos = [s for s in streams if s.get("codec_type") == "video"]
+          if len(videos) != 1:
+              raise SystemExit("Expected exactly one video stream.")
+          duration = float(info["format"]["duration"])
+          stream = videos[0]
+          if not (25.0 <= duration <= 27.0 and stream.get("width") == 1080 and stream.get("height") == 1920):
+              raise SystemExit("Video duration or dimensions differ from reviewed page; stop for re-review.")
+          times = [round(min(duration * x / 8, max(0.0, duration - 0.5)), 2) for x in range(9)]
+          frames = []
+          for index, stamp in enumerate(times):
+              target = root / f"frame_{index+1:02d}.png"
+              subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                              "-ss", str(stamp), "-i", str(video), "-frames:v", "1",
+                              "-vf", "scale=360:-1", str(target)], check=True)
+              frames.append((stamp, Image.open(target).convert("RGB").copy()))
+          width = 360
+          height = max(im.height for _, im in frames) + 32
+          sheet = Image.new("RGB", (width * 3, height * 3), "white")
+          draw = ImageDraw.Draw(sheet)
+          for i, (stamp, frame) in enumerate(frames):
+              x, y = (i % 3) * width, (i // 3) * height
+              sheet.paste(frame, (x, y + 26))
+              draw.text((x + 10, y + 6), f"{stamp:.2f}s", fill="black")
+          sheet.save(root / "contact_sheet.jpg", quality=90)
+          print(f"Created 9-frame contact sheet; duration={duration:.3f}s; {stream['width']}x{stream['height']}")
+          PY
+
+      - name: Upload one-candidate review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-wc001-intake-review
+          path: pro_background_intake/
+          if-no-files-found: error
+          retention-days: 3
