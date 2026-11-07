@@ -2239,3 +2239,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Wrapped URL parsing and authority/port validation, require a hostname, and added a malformed-IPv6 source URL regression.
 - Updated files: `src/validate_pro_media_rights.py`, `tests/test_validate_pro_media_rights.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 47: constrain production manifest IDs before constructing MP4 paths
+- Review found production `build_plan` only checked that a manifest ID was a non-empty string, then `render_plan` interpolated it into an output filename. A slash/traversal-bearing ID could influence the output path outside the intended filename shape.
+- Applied the same strict 1-80 ASCII filename-component allowlist already used by candidate preview IDs, and added a regression rejecting a traversal-style production manifest ID before rendering.
+- Updated files: `src/pro_orchestrator.py`, `tests/test_pro_orchestrator.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
