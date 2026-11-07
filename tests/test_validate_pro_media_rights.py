@@ -80,16 +80,23 @@ class MediaRightsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "references do not exactly match"):
             self.validate()
 
-    def test_missing_public_posting_or_commercial_scope_fails_closed(self):
+    def test_private_review_does_not_require_public_or_commercial_permissions(self):
+        self.record["intended_uses"]["public_social_posting"] = False
+        self.record["intended_uses"]["commercial_monetized_use"] = False
+        self.save()
+        result = self.validate()
+        self.assertEqual(result["visual"], self.asset)
+
+    def test_public_posting_and_monetized_use_require_separate_permissions(self):
         self.record["intended_uses"]["public_social_posting"] = False
         self.save()
         with self.assertRaisesRegex(ValueError, "public_social_posting"):
-            self.validate()
+            validate_manifest_media_rights(self.manifest, repo_root=self.root, planned_use="public_social")
         self.record["intended_uses"]["public_social_posting"] = True
         self.record["intended_uses"]["commercial_monetized_use"] = False
         self.save()
         with self.assertRaisesRegex(ValueError, "commercial_monetized_use"):
-            self.validate()
+            validate_manifest_media_rights(self.manifest, repo_root=self.root, planned_use="monetized_social")
 
     def test_expired_permission_fails_closed(self):
         self.record["validity"]["end"] = "2020-01-01"
