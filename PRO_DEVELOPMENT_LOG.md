@@ -2272,3 +2272,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Candidate-list shape is now validated before iteration, and exact-recording review is accepted only when the top-level or candidate flag is literally `true`.
 - Added regressions for string-valued `"false"` review flags at both locations and a null candidate collection.
 - Updated `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 51: handle invalid UTF-8 manifest files consistently
+- Review found content rotation skipped malformed JSON but did not handle invalid UTF-8, and its batch re-read path could leak a raw decoder exception. The Pro orchestrator had the same gap when loading manifests/history.
+- Rotation now treats invalid UTF-8 files as unreadable/ineligible; if a selected manifest becomes invalid UTF-8 during batch selection, it returns the controlled changed/unreadable error. The orchestrator also converts invalid UTF-8 into its normal controlled JSON-read failure.
+- Added regressions for initial rotation scans, mid-selection corruption, and direct Pro orchestrator reads.
+- Updated `src/content_rotation.py`, `tests/test_content_rotation.py`, `src/pro_orchestrator.py`, `tests/test_pro_orchestrator.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
