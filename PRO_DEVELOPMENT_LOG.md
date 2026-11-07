@@ -1840,3 +1840,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - These are input-validation and error-reporting robustness findings; no approval bypass, automatic retry, or TikTok publishing path was demonstrated.
 - Static review only. No source/test files changed, no tests or workflows were run, no render or ledger persistence was performed, and no Telegram request/send/upload or TikTok publishing occurred.
 - Only `feature/quran-video-pro` was updated. The production branch, original Quran engine/bot, secrets, and Cron were not touched.
+
+
+## 2026-11-07 — Repair 1: reject boolean content-rotation batch counts
+
+### Code changes
+- `src/content_rotation.py`: changed the `count` guard to require `type(count) is int`, so Python booleans (`True`/`False`) no longer pass as integer batch sizes.
+- `tests/test_content_rotation.py`: added regression coverage proving both boolean values raise the documented `ValueError`.
+
+### Verification
+- Source, test, and log updates were committed to `feature/quran-video-pro` only.
+- GitHub refetch verification and test execution are pending; no passing test result is claimed here.
+- No workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing was run.
+- Production branch, original Quran engine/bot, secrets, and Cron remain untouched.
