@@ -100,12 +100,17 @@ def run_delivery_cycle(
             "the ledger was marked uncertain. Do not retry automatically."
         ) from None
 
-    # A failure here leaves the already-persisted reserved entry blocking duplicates.
-    if persist_fn(repo_path) is not True:
+    # Telegram has confirmed acceptance. If receipt finalization cannot be
+    # persisted, never expose raw Git/filesystem diagnostics or invite a resend.
+    try:
+        if persist_fn(repo_path) is not True:
+            raise RuntimeError("Delivery outcome persistence was not confirmed.")
+    except Exception:
         raise RuntimeError(
-            "Delivery outcome ledger was not committed and pushed; "
-            "the prior reservation remains blocking."
-        )
+            "Telegram accepted the Pro review video, but the delivered receipt "
+            "could not be fully persisted. The earlier reservation remains blocking; "
+            "do not resend until the ledger is reconciled."
+        ) from None
     return result
 
 
