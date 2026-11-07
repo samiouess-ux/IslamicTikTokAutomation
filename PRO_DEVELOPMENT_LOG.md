@@ -2451,3 +2451,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - This is one individually listed candidate intake, not library scraping or bulk download. It is designed to avoid the Mixkit User Terms prohibition on bots/scripts used for mass downloading. If the asset page no longer proves the Free License, the workflow fails closed.
 - Both candidate status and rights approval remain false. Even after artifact creation, exact visual inspection and review of third-party elements, rights owner/creator details, and applicable terms are required. No Pro rights record, manifest, renderer input, or delivery approval was created.
 - No current-HEAD safety test, video render, Telegram request/send, or TikTok publication occurred. No original Quran production branch was changed.
+
+
+## 2026-11-07 — QD-001 source corroboration
+
+- Cross-checked Al-Baqarah 2:201 against Quran.com and the Quranic Arabic Corpus. Both identify the exact verse reference and show the intended Sahih/Saheeh International English translation; the Corpus also exposes word-by-word morphology and parallel translations.
+- Added a source corroboration addendum to `content/pro/CANDIDATE_RESEARCH_001.md`. Status deliberately remains `source_checked_candidate`: human letter-by-letter Arabic review, context review, and all media rights remain pending. No manifest or approval flags were created.
+- Sources: https://quran.com/al-baqarah/201?translations=131 ; https://corpus.quran.com/translation.jsp?chapter=2&verse=201 ; https://legacy.quran.com/2/201 .
+- No render, Telegram request/send, or TikTok publication occurred.
