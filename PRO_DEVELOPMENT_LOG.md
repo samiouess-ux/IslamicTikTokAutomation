@@ -2641,3 +2641,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated the diagnostic output to include the exact raw `Artist` and `Source` API metadata values. The acceptance checks are unchanged; this is evidence collection only. The next push-triggered run must reveal the precise mismatch before any gate is changed.
 - The Pro offline safety run `42417577272` completed successfully on the correction commit. This does not validate or approve the media candidate.
 - No video download, SHA-256, ffprobe, contact sheet, artifact, rights record, media approval, render, Telegram send, or TikTok publication is claimed.
+
+## 2026-11-07 — Resolve WC-001 Commons API source-field mismatch
+
+- Inspected completed intake run 42417666249, job 128539149646, on commit e1f40c0ccd10a6c7e5e3763fbdd6480f2a87d187.
+- Exact raw metadata: Artist is an HTML anchor linking to User:JaredMcKenzie; Source is an empty string. The earlier check incorrectly required the phrase “own work” in the API Source field, although the exact Commons file page had separately been reviewed and identifies it as own work.
+- Updated the workflow to HTML-decode/strip the Artist markup and verify the linked creator name. The empty Source field remains recorded as empty; no API Source value is fabricated or inferred. All CC0 URL, restrictions, MIME, byte count, SHA-1, host, download, ffprobe, and artifact checks remain unchanged.
+- Latest Pro offline safety run 42417666251 passed on commit e1f40c0ccd10a6c7e5e3763fbdd6480f2a87d187. The intake attempt did not download the video; ffprobe/contact-sheet/artifact steps were skipped.
+- No asset approval, rights record, render, Telegram send, or TikTok publication is claimed.
