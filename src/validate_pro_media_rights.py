@@ -76,7 +76,7 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str, planned
     if not isinstance(asset_id, str) or not ASSET_ID.fullmatch(asset_id):
         _fail("manifest asset_id is unsafe or missing.")
     media_type = asset_ref.get("media_type")
-    if media_type not in {"visual", "audio"}:
+    if not isinstance(media_type, str) or media_type not in {"visual", "audio"}:
         _fail("manifest media_type must be visual or audio.")
     record_path = _safe_file(repo_root, (RIGHTS_ROOT / (asset_id + ".json")).as_posix(), RIGHTS_ROOT)
     try:
@@ -107,7 +107,9 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str, planned
     if actual != digest:
         _fail("asset bytes do not match the approved SHA-256.")
     evidence = record.get("license_evidence")
-    if not isinstance(evidence, dict) or evidence.get("kind") not in {"url", "file"}:
+    if (not isinstance(evidence, dict)
+            or not isinstance(evidence.get("kind"), str)
+            or evidence.get("kind") not in {"url", "file"}):
         _fail("exact license/permission evidence is required.")
     if evidence["kind"] == "url":
         _https(evidence.get("value"), "license_evidence.value")
@@ -177,7 +179,7 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
                                    planned_use: str = "private_review",
                                    planned_territory: str | None = None) -> dict[str, Path]:
     """Validate every referenced media asset and return exact approved local paths."""
-    if planned_use not in USE_FIELDS:
+    if not isinstance(planned_use, str) or planned_use not in USE_FIELDS:
         _fail("unsupported planned-use profile.")
     if not isinstance(data, dict):
         _fail("manifest must be an object.")
@@ -190,6 +192,8 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
         _fail("manifest background candidate is required.")
     refs = [{"asset_id": background.get("asset_id"), "media_type": "visual"}]
     kind = audio.get("kind")
+    if not isinstance(kind, str):
+        _fail("audio.kind must be an explicit string before rights validation.")
     if kind in {"spoken_dua", "ambient_nature"}:
         refs.append({"asset_id": audio.get("asset_id"), "media_type": "audio"})
     elif kind == "silent":
@@ -208,7 +212,8 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
         if not isinstance(item, dict):
             _fail("each media_assets entry must be an object.")
         aid, media_type = item.get("asset_id"), item.get("media_type")
-        if not isinstance(aid, str) or not ASSET_ID.fullmatch(aid) or media_type not in {"visual", "audio"}:
+        if (not isinstance(aid, str) or not ASSET_ID.fullmatch(aid)
+                or not isinstance(media_type, str) or media_type not in {"visual", "audio"}):
             _fail("each media_assets entry needs a safe asset_id and valid media_type.")
         normalized.append({"asset_id": aid, "media_type": media_type})
     if sorted((x["asset_id"], x["media_type"]) for x in normalized) != sorted((x["asset_id"], x["media_type"]) for x in refs):
