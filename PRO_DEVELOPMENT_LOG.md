@@ -1879,3 +1879,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Source and test changes were committed to `feature/quran-video-pro` only.
 - Automated tests have not yet been executed; no passing test result is claimed.
 - No render, Telegram request/send/upload, or TikTok publishing was performed. Production branch, original Quran engine/bot, secrets, and Cron remain untouched.
+
+
+## 2026-11-07 — Repair 4: harden both Pro delivery ledgers against malformed JSON types
+
+### Code changes
+- `src/pro_delivery_ledger.py`: schema version must be an exact integer (JSON `true` no longer aliases version 1); entry states and transition names must be strings before membership checks; content type is also type-checked.
+- `src/pro_preview_send_ledger.py`: content type/state are checked as strings before enum membership, and transition/content-type inputs are type-checked.
+- Added regression tests for boolean schema version, list/object states, and list/object enum fields.
+
+### Verification
+- Both ledger source files and their regression tests were committed to `feature/quran-video-pro` only.
+- GitHub refetch verification and execution of the test suite remain pending; no test pass is claimed.
+- No Telegram call, media render, or publishing was performed. Production branch and original Quran system remain untouched.
