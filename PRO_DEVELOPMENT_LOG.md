@@ -2502,3 +2502,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Sampled frames show a sunlit forest with morning rays between trees; no people/logos/obvious artwork visible in the nine sampled frames. It is visually distinct from MK-001 and a possible quiet renewal/istighfar theme. The central 9:16 crop is visually busy; text legibility will need a calm/darkened overlay. Full-file inspection remains outstanding.
 - Saved durable contact sheet `content/pro/review_previews/MK-002-contact-sheet.jpg` in commit `2d03cc5103799a62f55c233545ea8c60dd0629bc`. The MP4 itself is not retained in the repository; it existed only in the ephemeral runner. No rights JSON, manifest, approval flag, render, Telegram send, or TikTok publication was created.
 - Updated `content/pro/CANDIDATE_RESEARCH_001.md` with the exact metadata, visual sample findings, and remaining rights blockers. A second corrected filename run was observed pending at the time; no claim is made about its result.
+
+
+## 2026-11-07 — MK-002 corrected intake workflow verified
+
+- Corrected run `42410451486` completed successfully on workflow commit `a60254931e40f907a04265457c7f835296c5ded0`, confirming the same single forest item can be fetched and inspected using the corrected `MK-002-forest-during-the-morning.mp4` working filename. It reproduced the expected metadata/hash and contact-sheet output.
+- Both the initial and corrected MK-002 intake runs succeeded; the earlier candidate note's pending status is superseded. No rights approval or persistent MP4 was created.
