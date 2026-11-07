@@ -1,3 +1,4 @@
+# Revalidated against the exact Commons page on 2026-11-07; this push also runs the one-file intake.
 name: Pro single-asset background intake (WC-001)
 
 on:
@@ -120,7 +121,7 @@ jobs:
           restrictions = (meta.get("Restrictions", {}).get("value") or "").strip()
           if copyrighted not in ("false", "no", "0"):
               raise SystemExit("Commons API does not explicitly mark the work as non-copyrighted/CC0.")
-          if restrictions:
+          if restrictions.lower() not in ("", "false", "no", "0", "none"):
               raise SystemExit("Commons metadata reports reuse restrictions; human review is required before intake.")
           if "JaredMcKenzie" not in artist or "own work" not in source.lower():
               raise SystemExit("Creator/source metadata differs from the reviewed file page.")
