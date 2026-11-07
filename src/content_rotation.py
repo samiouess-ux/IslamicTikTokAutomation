@@ -75,7 +75,27 @@ def choose_manifests(
                 f"Cannot build a complete batch of {count} distinct {content_type} manifests; "
                 f"selected {len(selected)}. {exc}"
             ) from exc
-        data = json.loads(candidate.read_text(encoding="utf-8"))
-        recent.add(data["id"])
+        try:
+            data = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(
+                f"Selected manifest changed or became unreadable during batch selection: {candidate}"
+            ) from exc
+        if not isinstance(data, dict):
+            raise ValueError(f"Selected manifest is no longer a JSON object: {candidate}")
+        publishing = data.get("publishing", {})
+        item_id = data.get("id")
+        if (
+            data.get("content_type", "quran") != content_type
+            or data.get("rotation_approved") is not True
+            or not isinstance(publishing, dict)
+            or publishing.get("approval_required") is not True
+            or publishing.get("auto_publish", False)
+            or not isinstance(item_id, str)
+            or not item_id
+            or item_id in recent
+        ):
+            raise ValueError(f"Selected manifest is no longer eligible for rotation: {candidate}")
+        recent.add(item_id)
         selected.append(candidate)
     return selected
