@@ -2117,3 +2117,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added one path-component guard and applied it before creating/opening the lock, reading the ledger, or writing/replacing it. The guard walks the absolute path and all existing ancestors.
 - Added a regression that points the ledger's parent directory through a symlink and verifies reservation fails before creating any file in the external target.
 - Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 32: safely report post-send receipt-finalization failures
+- Review found that after Telegram returned a confirmed positive `message_id`, a local `transition(..., delivered)` exception could escape with a raw filesystem diagnostic. The remote send had already succeeded, so the error needed to clearly prevent a resend.
+- Wrapped the delivered-state transition and final persistence in a post-send reconciliation boundary. Failures now raise a generic message stating Telegram accepted the preview, the earlier reservation remains blocking, and the user must not resend until ledger reconciliation. Original exception text and cause are suppressed.
+- Added a regression test injecting a local transition failure after a confirmed send and asserting the safe message, absent cause, and exactly one send call.
+- Source, test, and this log committed on `feature/quran-video-pro` only. Tests were not executed; no workflow, render, Telegram send, or TikTok publication was run.
