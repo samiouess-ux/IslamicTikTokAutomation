@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 from pathlib import Path
 
@@ -33,7 +34,7 @@ def probe_duration(path: Path) -> float:
         duration = float(result.stdout.strip())
     except ValueError as exc:
         raise SystemExit(f"Unable to read media duration: {path}") from exc
-    if duration <= 0:
+    if not math.isfinite(duration) or duration <= 0:
         raise SystemExit(f"Media has an invalid duration: {path}")
     return duration
 
@@ -53,7 +54,7 @@ def validate_audio_duration(path: Path, expected: float,
 
 def item_duration(item: dict) -> float:
     value = item.get("duration_seconds")
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
         raise SystemExit("Every item needs a positive duration_seconds; timings are never guessed.")
     return float(value)
 
@@ -72,6 +73,8 @@ def create_overlay(title: str, item: dict, destination: Path) -> None:
         raise SystemExit("Required Arabic font is missing.")
     text = item.get("arabic")
     source = item.get("source_name")
+    if not isinstance(title, str) or not title.strip():
+        raise SystemExit("Each screen needs a non-empty Arabic title.")
     if not isinstance(text, str) or not text.strip() or not source:
         raise SystemExit("Each screen needs exact Arabic text and its named source.")
 
@@ -107,7 +110,13 @@ def create_overlay(title: str, item: dict, destination: Path) -> None:
         if current:
             lines.append(current)
         line_height = int(font_size * 1.65)
-        if len(lines) <= 8 and len(lines) * line_height <= 760:
+        line_widths = [
+            draw.textbbox((0, 0), line, font=font,
+                          direction="rtl", language="ar")[2]
+            for line in lines
+        ]
+        if (len(lines) <= 8 and len(lines) * line_height <= 760
+                and all(width <= 900 for width in line_widths)):
             break
         font_size -= 4
     else:
