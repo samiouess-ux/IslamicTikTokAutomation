@@ -131,6 +131,26 @@ class ProDeliveryLedgerTests(unittest.TestCase):
         self.assertEqual(target.read_text(encoding="utf-8"), "untouched")
         self.assertFalse(self.ledger.exists())
 
+    def test_invalid_utf8_ledger_is_rejected_without_decoder_details(self):
+        from pro_delivery_ledger import load_ledger
+        self.ledger.write_bytes(b"\\xff\\xfe{")
+        with self.assertRaisesRegex(ValueError, "Cannot safely read Pro reservation ledger") as caught:
+            load_ledger(self.ledger)
+        self.assertIsNone(caught.exception.__cause__)
+
+    def test_refuses_symlinked_parent_before_creating_lock_or_ledger(self):
+        outside = Path(self.tmp.name) / "outside-dir"
+        outside.mkdir()
+        linked_parent = Path(self.tmp.name) / "linked-data"
+        try:
+            linked_parent.symlink_to(outside, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        linked_ledger = linked_parent / "ledger.json"
+        with self.assertRaisesRegex(ValueError, "must not contain symlinks"):
+            reserve(linked_ledger, "dua-link", "dua", "run-1")
+        self.assertEqual(list(outside.iterdir()), [])
+
 
 if __name__ == "__main__":
     unittest.main()
