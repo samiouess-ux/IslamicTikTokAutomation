@@ -56,13 +56,21 @@ class DuaRendererTests(unittest.TestCase):
         self.assertNotIn('apad', source)
 
     def test_duration_policy_enforces_the_40_second_cap(self):
-        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 65.0)
-        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 65.0)
-        items = [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 66}]
+        self.assertEqual(render_dua_video.TARGET_MAX_DURATION_SECONDS, 40.0)
+        self.assertEqual(render_dua_video.HARD_MAX_DURATION_SECONDS, 40.0)
         with tempfile.TemporaryDirectory() as tmp:
             with patch.object(render_dua_video, "create_overlay"):
-                with self.assertRaises(SystemExit):
-                    render_dua_video.build_slideshow(items, "ذكر", Path(tmp))
+                accepted = render_dua_video.build_slideshow(
+                    [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 40}],
+                    "ذكر", Path(tmp),
+                )
+                self.assertEqual(accepted, 40.0)
+            with patch.object(render_dua_video, "create_overlay"):
+                with self.assertRaisesRegex(SystemExit, "hard limit of 40 seconds"):
+                    render_dua_video.build_slideshow(
+                        [{"arabic": "ذكر", "source_name": "مصدر", "duration_seconds": 40.01}],
+                        "ذكر", Path(tmp),
+                    )
 
     def test_renderer_keeps_validation_and_separate_content_type_gate(self):
         source = (ROOT / "src" / "render_dua_video.py").read_text(encoding="utf-8")
