@@ -41,3 +41,14 @@ These are metadata and workflow gates, not proof that the religious text, interp
 ## Approval record
 
 For each manifest, retain the source URL and exact reference alongside the review status. Any unresolved wording, source, grading, rights, or timing question means the item stays a candidate and must not be selected for production.
+
+
+## Meaning-matched background selection (required)
+
+Every dua/dhikr item must select a background theme that fits the **meaning and emotional context of that specific item**. Do not assign one generic background to every dua, and do not choose imagery solely from the broad content type (for example, treating all duas as one visual category).
+
+- Map each item's reviewed meaning/topic to a suitable visual theme before selecting an asset. Examples: forgiveness/istighfar may use a quiet dawn or renewal scene; morning adhkar may use sunrise and fresh natural light; evening adhkar may use a calm sunset; provision/gratitude may use an open, bright landscape; protection may use a peaceful, reassuring scene.
+- These are illustrative themes, not fixed asset approvals. The chosen scene must genuinely fit the exact item; do not force an example mapping where it would misrepresent the wording.
+- Avoid repeating the same background in consecutive videos and rotate among eligible, rights-cleared assets where possible. Different duas in the same broad category should still receive topic-appropriate visual choices rather than automatically sharing one background.
+- Preserve Arabic and translation legibility: keep the focal area calm, maintain sufficient contrast, and never let scenery compete with the text.
+- A thematic match does not grant usage rights. Every exact background file still needs its own Pro-local asset record, exact-file hash, source/license evidence, and required approvals before rendering or delivery. If no eligible matching asset exists, fail closed rather than silently reusing an uncleared asset.
