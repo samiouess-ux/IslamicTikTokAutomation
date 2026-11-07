@@ -94,6 +94,11 @@ class ProOrchestratorTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "safe filename component"):
                 build_preview_plan(path)
 
+    def test_rejects_non_string_rotation_content_type(self):
+        for content_type in ([], {}, 7, True):
+            with self.subTest(content_type=content_type), self.assertRaisesRegex(ValueError, "dua or dhikr"):
+                build_plan(Path("."), {"content": []}, content_type, "2026-11-07", 1)
+
     def test_rejects_wrong_pro_content_type(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "dua or dhikr"):
