@@ -2367,3 +2367,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added regression coverage for empty, HTTP, hostless HTTPS, numeric, and null values for both URL fields in `tests/test_validate_content_manifest.py`.
 - This is metadata validation only; it does not establish ownership, licensing, rights, or media approval. Those remain separate required gates.
 - Tests were authored but not executed. No render, Telegram delivery, TikTok publication, secret change, media approval, or production-branch change was performed.
+
+
+## 2026-11-07 — Repair 64: prevent duplicate background themes within a Pro batch
+
+- Extended the batch-level background uniqueness guard beyond exact media URL reuse: two videos in the same Pro batch may not declare the same meaning-matched `visual.background_theme` (case-insensitive after trimming), even if their direct video URLs differ.
+- Added a regression test that uses different background video URLs but repeats the same theme and confirms the batch is rejected. Existing distinct-background test continues to cover different URLs with different themes through the fixture defaults only if the theme is changed; the current fixture theme is shared, so this test also documents that distinct theme metadata is required for a multi-video batch.
+- This is intentionally fail-closed: if two supplications genuinely require the same topic, a future reviewed manifest should still provide individually differentiated visual themes/scenes rather than silently recycling one theme in the same batch.
+- Tests were authored but not executed. No media rights were granted, no render or Telegram send occurred, no TikTok publication occurred, and no production branch was modified.
