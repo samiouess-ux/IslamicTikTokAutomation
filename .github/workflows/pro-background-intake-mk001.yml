@@ -145,10 +145,15 @@ jobs:
           print(f"Created 9-frame contact sheet; duration={duration:.3f}s")
           PY
 
-      - name: Upload review-only candidate artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pro-background-intake-MK-001
-          path: pro_background_intake/
-          if-no-files-found: error
-          retention-days: 7
+      - name: Emit contact sheet for visual review in job logs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import base64
+          from pathlib import Path
+          payload = base64.b64encode(Path("pro_background_intake/contact_sheet.jpg").read_bytes()).decode("ascii")
+          print("BEGIN_CONTACT_SHEET_BASE64")
+          print(payload)
+          print("END_CONTACT_SHEET_BASE64")
+          PY
