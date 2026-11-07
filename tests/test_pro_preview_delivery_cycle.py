@@ -147,7 +147,10 @@ class PreviewCycleTests(unittest.TestCase):
         self.assertEqual(data["entries"]["candidate-001"]["state"], "delivered")
         # The first successful persistence happened while the remote state was reserved.
 
-    def _assert_persisted_identity_mismatch_blocks_send(self, field, wrong_value):
+    def _assert_persisted_identity_mismatch_blocks_send(
+        self, field, wrong_value, *, expected_exception=RuntimeError,
+        expected_message="reservation identity/state/hashes",
+    ):
         calls = []
 
         def persist(root):
@@ -162,7 +165,7 @@ class PreviewCycleTests(unittest.TestCase):
             calls.append("send")
             return {"message_id": 77}
 
-        with self.assertRaisesRegex(RuntimeError, "reservation identity/state/hashes"):
+        with self.assertRaisesRegex(expected_exception, expected_message):
             self.call_cycle(persist, send)
         self.assertEqual(calls, ["persist"])
 
@@ -170,7 +173,12 @@ class PreviewCycleTests(unittest.TestCase):
         self._assert_persisted_identity_mismatch_blocks_send("workflow_run_id", "different-run")
 
     def test_persisted_reservation_must_match_candidate_id(self):
-        self._assert_persisted_identity_mismatch_blocks_send("candidate_id", "different-candidate")
+        # The ledger schema rejects a key/entry candidate_id mismatch before the
+        # coordinator's post-persistence identity guard can inspect the entry.
+        self._assert_persisted_identity_mismatch_blocks_send(
+            "candidate_id", "different-candidate", expected_exception=ValueError,
+            expected_message="key/candidate_id mismatch",
+        )
 
     def test_persisted_reservation_must_match_content_type(self):
         self._assert_persisted_identity_mismatch_blocks_send("content_type", "dhikr")
