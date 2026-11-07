@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from pro_preview_send_ledger import load_ledger, reserve, transition, validate_ledger
+from pro_preview_send_ledger import load_ledger, reserve, save_ledger, transition, validate_ledger
 
 
 class PreviewLedgerTests(unittest.TestCase):
@@ -86,6 +86,19 @@ class PreviewLedgerTests(unittest.TestCase):
             with self.subTest(candidate_id=bad):
                 with self.assertRaisesRegex(ValueError, "safe"):
                     transition(self.path, bad, "delivered", 99)
+
+    def test_refuses_symlinked_ledger_file_for_read_and_write(self):
+        target = self.path.with_name("outside-ledger.json")
+        target.write_text('{"version":1,"entries":{}}', encoding="utf-8")
+        try:
+            self.path.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        with self.assertRaisesRegex(ValueError, "must not be a symlink"):
+            load_ledger(self.path)
+        with self.assertRaisesRegex(ValueError, "must not be symlinks"):
+            save_ledger(self.path, {"version": 1, "entries": {}})
+        self.assertEqual(target.read_text(encoding="utf-8"), '{"version":1,"entries":{}}')
 
     def test_refuses_symlinked_lock_file(self):
         target = self.path.with_name("outside.lock")
