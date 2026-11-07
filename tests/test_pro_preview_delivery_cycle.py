@@ -24,7 +24,8 @@ def manifest_data():
         "visual":{"template":"ornate_gold_classic","background_candidate":{"asset_id":"bg-001",
             "source_url":"https://example.org/source","direct_video_url":"https://example.org/bg.mp4",
             "approved":True,"user_approved":True}},
-        "publishing":{"approval_required":True,"auto_publish":False}
+        "publishing":{"approval_required":True,"auto_publish":False},
+        "review_delivery_territory":"Tunisia"
     }
 
 
@@ -54,7 +55,7 @@ class PreviewCycleTests(unittest.TestCase):
             "intended_uses": {"download": True, "editing": True, "video_synchronization": True,
                 "private_review_delivery": True, "public_social_posting": True,
                 "commercial_monetized_use": True},
-            "territories": ["worldwide"], "validity": {"start": "2025-01-01", "end": None},
+            "territories": ["Tunisia"], "validity": {"start": "2025-01-01", "end": None},
             "attribution": {"required": False},
             "third_party_review": {key: {"reviewed": True, "resolved": True, "notes": "Reviewed; no unresolved third-party rights identified."}
                 for key in ("people", "logos_trademarks", "artwork", "property_privacy", "endorsement")},
