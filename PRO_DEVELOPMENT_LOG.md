@@ -2912,3 +2912,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Decision: retain as an unapproved candidate only. The web page alone is not sufficient to verify actual imagery, audio track, duration, source file hash, or absence of third-party rights. No automated scraping/bulk downloading; no download or frame extraction was performed. Before use, obtain the file through the site's normal download flow, inspect it, record exact hash/metadata and retain a copy of the listing/license evidence. Do not use until this evidence exists.
 - Latest previously verified Pro offline safety run remains `42419888630` on code commit `f1d49d3b93fd02fbc88c4d144941f2a257195ab5`, conclusion SUCCESS. This run predates the current documentation-only append and does not certify any background or audio/video output.
 - No TTS inference, GPU quota, audio/video render, Telegram send, secret changes, or production workflow interaction occurred.
+
+
+## 2026-11-08 — Pro pre-inference safety audit: Arabic review gate remains incomplete
+
+- Re-fetched the Pro branch ref: current HEAD is `2d0b5e8abde5500def0c29d9ef3da38ed4bc87b0`; no other branch was changed.
+- Re-read `src/pro_orchestrator.py`, `src/validate_content_manifest.py`, `src/pro_tts_space_client.py`, `src/render_dua_video.py`, and the review/media-rights policies.
+- Confirmed the candidate-preview validator intentionally permits `human_reviewed: false` for a candidate preview, while the TTS adapter's public `generate_spoken_dua_once` function accepts only raw text and a voice caption. Its docstring says "reviewed" but the function does not independently require a review record or bind an approval to the exact text. This is a real fail-closed gap before inference, even though the current hadith item has not been added as a manifest and no inference has been run.
+- Decision: do not call the hosted TTS Space or render/send any preview. Before first inference, add an enforceable review-record contract bound to the exact Arabic text (for example, SHA-256 + source/reference + reviewer decision/date), test rejection of missing/mismatched/unapproved records, and require the approved record at the TTS call boundary. A manifest flag alone or this log entry is not a reviewer sign-off.
+- The current hadith 5074 candidate still has no independent human Arabic pronunciation/diacritic sign-off; the exact recording/background rights and user-approved background are also not ready. Telegram preview credentials are still not configured.
+- No GPU inference, audio/video generation, media download, Telegram request, production workflow, secret change, or production ledger/history change occurred.
