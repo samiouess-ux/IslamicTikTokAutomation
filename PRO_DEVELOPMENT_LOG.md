@@ -2256,3 +2256,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added regressions for malformed catalog roots/entries and invalid rotation arguments.
 - Updated files: `src/asset_rotation.py`, `tests/test_asset_rotation.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 49: require literal boolean approval for audio rights gates
+- Review found dua/dhikr audio approval, rights, exact-recording review, and ambient user-approval checks accepted arbitrary truthy values (for example the string `"false"`). Quran rights-candidate parsing also assumed a list and string status values.
+- Changed approval gates to require literal `true`; Quran license research candidates must be a list and only string statuses can establish an approved status.
+- Added regressions for string-valued false flags, malformed candidate collection shape, and non-string candidate status; corrected the fixture so the malformed candidate path is actually exercised.
+- Updated files: `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
