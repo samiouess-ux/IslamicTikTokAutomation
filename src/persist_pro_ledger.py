@@ -19,14 +19,29 @@ def _git(repo: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def _require_remote_head_match(repo: Path, phase: str) -> None:
+    _git(
+        repo, "fetch", "origin",
+        f"refs/heads/{EXPECTED_BRANCH}:refs/remotes/origin/{EXPECTED_BRANCH}",
+    )
+    local_head = _git(repo, "rev-parse", "HEAD")
+    remote_head = _git(repo, "rev-parse", f"refs/remotes/origin/{EXPECTED_BRANCH}")
+    if local_head != remote_head:
+        raise RuntimeError(
+            f"Local Pro branch is not aligned with origin {phase}; refusing ledger persistence."
+        )
+
+
 def persist_ledger(repo: Path) -> bool:
-    """Commit/push the ledger only. Return False when there is nothing to commit."""
+    """Commit/push the ledger only, refusing stale branches and unverified pushes."""
     repo = repo.resolve()
     branch = _git(repo, "branch", "--show-current")
     if branch != EXPECTED_BRANCH:
         raise RuntimeError(
             f"Refusing ledger persistence on branch {branch!r}; expected {EXPECTED_BRANCH!r}."
         )
+
+    _require_remote_head_match(repo, "before write")
 
     # Do not accidentally absorb unrelated staged work into the ledger commit.
     staged_before = _git(repo, "diff", "--cached", "--name-only")
@@ -51,6 +66,7 @@ def persist_ledger(repo: Path) -> bool:
 
     _git(repo, "commit", "-m", "chore(pro): persist delivery ledger")
     _git(repo, "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}")
+    _require_remote_head_match(repo, "after push")
     return True
 
 
@@ -59,7 +75,7 @@ def main() -> int:
     parser.add_argument("--repo", type=Path, default=Path("."))
     args = parser.parse_args()
     changed = persist_ledger(args.repo)
-    print("Pro ledger committed and pushed." if changed else "Pro ledger unchanged; no commit needed.")
+    print("Pro ledger committed and verified." if changed else "Pro ledger unchanged; no commit needed.")
     return 0
 
 
