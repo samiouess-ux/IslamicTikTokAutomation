@@ -155,9 +155,18 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
             "Telegram preview outcome is uncertain; the ledger was marked uncertain; do not retry automatically."
         ) from None
 
-    transition(ledger_path, checked["candidate_id"], "delivered", message_id)
-    if persist_fn(root) is not True:
-        raise RuntimeError("Telegram accepted the preview but final ledger persistence failed; remote reservation remains blocking.")
+    # Telegram has confirmed delivery. Any local ledger/push failure from this point
+    # must be reported as a post-send reconciliation issue, never as a send failure
+    # that might encourage an unsafe retry.
+    try:
+        transition(ledger_path, checked["candidate_id"], "delivered", message_id)
+        if persist_fn(root) is not True:
+            raise RuntimeError("final ledger persistence was not confirmed")
+    except Exception:
+        raise RuntimeError(
+            "Telegram accepted the preview, but the delivered receipt could not be fully persisted; "
+            "the previously persisted reservation remains blocking. Do not resend; reconcile the ledger."
+        ) from None
     return {"candidate_id": checked["candidate_id"], "state": "delivered",
             "telegram_message_id": message_id, "preview_only": True,
             "production_ledger_touched": False, "rotation_history_touched": False,
