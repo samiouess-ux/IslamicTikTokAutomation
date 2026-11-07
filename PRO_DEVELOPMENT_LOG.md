@@ -1910,3 +1910,19 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Source and test updates were committed to `feature/quran-video-pro`; the files must be refetched to verify the committed content.
 - Tests have **not** been executed in this repair step; no passing test result is claimed.
 - No Telegram request, production render, TikTok publish, production workflow, or other branch was triggered.
+
+
+## 2026-11-07 — Repair 6: finite duration validation and preview-sender JSON guards
+
+### Source changes
+- `src/pro_orchestrator.py`: centralize positive-duration validation and reject NaN, positive/negative infinity, booleans, non-numeric values, and integer-to-float overflow for both rotation plans and candidate-preview plans. This closes the NaN comparison gap where `value <= 0` and a total-duration cap comparison can both be false.
+- `src/send_pro_preview_telegram.py`: require preview manifest input to be a JSON object before field access; require Telegram sendVideo response to be an object before reading its confirmation status.
+
+### Regression tests added
+- `tests/test_pro_orchestrator.py`: rotation and preview planning reject NaN and both infinities.
+- `tests/test_send_pro_preview_telegram.py`: preview caption validation rejects non-object manifests; a Telegram `null` send response is treated as unconfirmed, not success.
+
+### Verification and safety
+- Changes were committed on `feature/quran-video-pro`; content refetch verification is still required.
+- Tests have not been executed in this repair step; no passing result is claimed.
+- No production render, Telegram send, TikTok publish, or other-branch write was performed.
