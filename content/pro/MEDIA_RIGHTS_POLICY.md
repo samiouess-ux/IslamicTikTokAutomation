@@ -116,3 +116,20 @@ Mixkit may be used as an additional discovery source for Pro background video. T
 ### Mixkit User Terms caveats (checked 2026-11-07)
 
 The Mixkit User Terms (last revised 2025-10-02) state that downloading an Item grants a non-exclusive license, not ownership; prohibit scripts/bots used for mass downloads or scraping the library; and warn that some Item components (for example, trademarks or brands) may be third-party material not cleared for the user's use. Therefore Pro must not scrape or bulk-download Mixkit. Any acquisition must use the provider's ordinary permitted individual download flow, and the exact downloaded file still needs human inspection and per-asset rights review. Source: https://mixkit.co/terms/.
+
+
+## 8. Wikimedia Commons discovery (reviewed 2026-11-07)
+
+Wikimedia Commons may be used as a discovery source for individual media files. Prefer its documented MediaWiki Action API (`imageinfo`, including `extmetadata` where appropriate) over scraping HTML to retrieve the exact file URL and available metadata. Official documentation:
+
+- https://www.mediawiki.org/wiki/API:Imageinfo
+- https://commons.wikimedia.org/wiki/Commons:Machine-readable_data
+
+Important limitations:
+
+- Commons states that author/license metadata is not universally machine-readable; some file-page information remains free text. API metadata is discovery/evidence assistance, not an automatic rights decision.
+- Open and inspect the exact file description page and its stated license, author, source, and any restrictions. Never infer CC0 from a filename, category, search snippet, or API field alone.
+- Preserve attribution whenever required by the exact file license. CC BY-SA and other share-alike licenses require separate review of the downstream video obligations and are not default-approved.
+- The actual downloaded bytes still require visual/audio inspection, SHA-256, and the full per-asset rights record and third-party review gates. Commons file hosting and a license label do not guarantee that every depicted person, trademark, property, or other third-party element is cleared.
+
+Research lead WC-001 (not approved): https://commons.wikimedia.org/wiki/File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm. Its current file page identifies the uploader as the author, states own work, and displays a CC0 1.0 dedication; it is a 26-second vertical 1080x1920 WebM. Exact bytes and embedded content have not yet been independently inspected or SHA-256 hashed. Do not create an approved rights record from this research entry alone.
