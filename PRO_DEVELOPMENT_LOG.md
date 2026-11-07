@@ -1982,3 +1982,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated files: `src/content_rotation.py`, `tests/test_content_rotation.py`.
 - Tests added but not executed in this session; no passing result claimed.
 - Pro branch only; no rendering, Telegram delivery, TikTok publication, or secret changes.
+
+
+## Repair 12 — validate delivery-ledger identifiers
+- Added a shared manifest-ID guard before ledger lookup/mutation in reservation verification, state transitions, and human reconciliation. Empty, non-string, list, object, numeric, and boolean identifiers now fail with a clear ValueError rather than causing unhashable-key failures or ambiguous lookups.
+- Added regression coverage for all three ledger operations.
+- Updated files: `src/pro_delivery_ledger.py`, `tests/test_pro_delivery_ledger.py`.
+- Tests added but not executed in this session; no passing result claimed.
+- Pro branch only; no render, Telegram send, TikTok publication, or secret changes.
