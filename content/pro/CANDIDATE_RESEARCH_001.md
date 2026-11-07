@@ -116,3 +116,12 @@ Status remains `source_checked_candidate`; no manifest, approval flag, render, o
 - Proposed semantic fit: a separate renewal/quiet-morning visual direction for a future Sayyid al-Istighfar candidate, rather than reusing MK-001's open sunrise/mountain landscape. This is only a proposed mapping; the exact visual and framing must be inspected after download.
 - Intake workflow `.github/workflows/pro-background-intake-mk002.yml` was added, exact-branch restricted, and triggered. At the time of this note, the initial run and corrected run were still in progress/queued; no downloaded file, hash, contact sheet, or visual review is claimed yet.
 - Status: `source_page_checked_candidate_only`. No media file, rights JSON, manifest, approval flag, render, or delivery has been created.
+
+
+### MK-002 visual sample review — 2026-11-07
+
+- Exact Mixkit item page: https://mixkit.co/free-stock-video/forest-during-the-morning-3012/; page displayed the Mixkit Stock Video Free License and commercial/personal-use wording.
+- Single-item CI intake run `42410443005` succeeded. Exact download: 7,083,251 bytes; MIME `video/mp4`; H.264; 1280×720; 60 fps; duration 23.550000 seconds; SHA-256 `6a39a371443cbed05f27a6a213e8905318186ac5086424d8e6a37f1d6ad1d462`.
+- Nine sampled frames were visually inspected. They show a sunlit woodland with strong shafts of morning light between trees; no people, logos, or obvious artwork are visible in those sampled frames. This provides a clearly distinct visual direction from MK-001 and may fit a quiet renewal/istighfar theme. The source is horizontal 16:9; a central 9:16 crop focuses on trunks and sun rays and may be visually busy, so the text overlay needs a calm/darkened legibility treatment. Full-file inspection remains outstanding.
+- Durable sample contact sheet: `content/pro/review_previews/MK-002-contact-sheet.jpg`.
+- Status: `visual_sample_reviewed_candidate_only`. The MP4 existed only in the ephemeral CI runner and is not stored in the repository. No creator/rights-owner record, full-file third-party review, worldwide rights decision, approved rights JSON, or user approval exists. Do not use in a render yet.
