@@ -69,6 +69,30 @@ class ProDeliveryLedgerTests(unittest.TestCase):
                     from pro_delivery_ledger import load_ledger
                     load_ledger(self.ledger)
 
+    def test_load_rejects_malformed_entry_identity_and_delivery_receipt(self):
+        import json
+        from pro_delivery_ledger import load_ledger
+        base = {
+            "content_type": "dua", "state": "reserved", "run_id": "run-1",
+            "created_at": "now", "updated_at": "now", "telegram_message_id": None,
+        }
+        malformed = []
+        for field, value in (
+            ("content_type", []), ("content_type", {}),
+            ("run_id", []), ("run_id", ""),
+            ("created_at", {}), ("updated_at", None),
+        ):
+            entry = dict(base)
+            entry[field] = value
+            malformed.append({"version": 1, "entries": {"dua-x": entry}})
+        delivered = dict(base, state="delivered", telegram_message_id=True)
+        malformed.append({"version": 1, "entries": {"dua-x": delivered}})
+        for payload in malformed:
+            with self.subTest(payload=payload):
+                self.ledger.write_text(json.dumps(payload), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "Invalid Pro reservation ledger entry"):
+                    load_ledger(self.ledger)
+
     def test_ledger_operations_reject_malformed_manifest_ids(self):
         reserve(self.ledger, "dua-id", "dua", "run-1")
         for manifest_id in ([], {}, 7, True, ""):
