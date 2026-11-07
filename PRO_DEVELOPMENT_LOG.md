@@ -2508,3 +2508,18 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 
 - Corrected run `42410451486` completed successfully on workflow commit `a60254931e40f907a04265457c7f835296c5ded0`, confirming the same single forest item can be fetched and inspected using the corrected `MK-002-forest-during-the-morning.mp4` working filename. It reproduced the expected metadata/hash and contact-sheet output.
 - Both the initial and corrected MK-002 intake runs succeeded; the earlier candidate note's pending status is superseded. No rights approval or persistent MP4 was created.
+
+
+## 2026-11-07 — Pro push CI enabled; 192 offline safety tests pass
+
+- Added `.github/workflows/pro-safety-tests-on-push.yml`, restricted to `feature/quran-video-pro`, read-only repository permissions, and offline suites only. It runs on changes to Pro source/tests/content and the workflow itself. The existing manual-only workflow was left intact.
+- The first push-triggered CI runs exposed several pre-existing test/API mismatches. Repairs made on this branch:
+  - `src/pro_preview_send_ledger.py`: precise symlink rejection messages for ledger file and lock file while retaining parent-component checks.
+  - `src/pro_delivery_ledger.py`: check a symlinked lock file before generic ancestor scanning, preserving the lock-specific rejection.
+  - `src/send_pro_telegram.py`: typed, fixed-message Telegram response validation errors are preserved after marking the ledger uncertain; arbitrary transport/decoder errors remain redacted.
+  - `src/validate_pro_media_rights.py`: read the private-review delivery territory from the manifest when not passed separately, and validate territory scope before individual use flags so fail-closed errors identify the correct blocker.
+  - `src/content_rotation.py`: reject mappings as invalid recent-ID inputs rather than silently iterating their keys.
+  - `src/render_dua_video.py`: clarify the 45-second hard-cap error text.
+  - Test fixtures/imports aligned with the current contracts in `test_pro_preview_delivery_cycle.py`, `test_persist_pro_preview_ledger.py`, and `test_validate_content_manifest.py`.
+- Final CI run `42411028231` completed successfully on exact Pro branch commit `c5baa3937fa2f4e6255bf18b158a07f84ff28d7b`. All 14 offline test suites passed: 192 tests total, no failures or errors.
+- This verifies the code/test state at that exact SHA. Subsequent log-only commits do not change runtime code. No renderer execution, actual candidate video render, Telegram request/send, or TikTok publication occurred. Both stock MP4 candidates remain research/visual-sample candidates only; the MP4 bytes are not stored in the repository and no rights records are approved.
