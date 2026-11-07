@@ -107,3 +107,12 @@ Status remains `source_checked_candidate`; no manifest, approval flag, render, o
 - Nine sampled frames were visually inspected from the exact downloaded file. They show a calm sunrise over distant mountain silhouettes and a broad open landscape; no people, logos, or obvious artwork are visible in the sampled frames. The scene appears visually plausible for QD-001's broad request for good in this world and the Hereafter. The sun and mountain line remain within the central crop area, but the source is horizontal 16:9 and will require a 9:16 crop; the foreground is comparatively dark. Full-frame review is still required before any final use.
 - Durable sample contact sheet: `content/pro/review_previews/MK-001-contact-sheet.jpg` (nine frames, timestamp labels). This is a visual review aid, not the licensed video file or a rights record.
 - Status: `visual_sample_reviewed_candidate_only`. No actual MP4 is retained in the repository; it was downloaded in the ephemeral CI runner only. No creator/rights-owner identity has been established in the per-asset record; full-file third-party review, worldwide use/monetization scope, and human rights decision remain pending. Do not create an approved rights record or use this candidate in a render yet.
+
+
+## Background candidate MK-002 — Morning forest (intake pending)
+
+- Exact Mixkit item page: https://mixkit.co/free-stock-video/forest-during-the-morning-3012/
+- The page currently describes morning sunlight through a forest and explicitly labels the download for commercial or personal use under the Mixkit Stock Video Free License. Page-listed metadata: 24 seconds, 60 fps, 6.76 MB; available listed resolutions are 1080×720 and 1920×1080.
+- Proposed semantic fit: a separate renewal/quiet-morning visual direction for a future Sayyid al-Istighfar candidate, rather than reusing MK-001's open sunrise/mountain landscape. This is only a proposed mapping; the exact visual and framing must be inspected after download.
+- Intake workflow `.github/workflows/pro-background-intake-mk002.yml` was added, exact-branch restricted, and triggered. At the time of this note, the initial run and corrected run were still in progress/queued; no downloaded file, hash, contact sheet, or visual review is claimed yet.
+- Status: `source_page_checked_candidate_only`. No media file, rights JSON, manifest, approval flag, render, or delivery has been created.
