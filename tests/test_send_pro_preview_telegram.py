@@ -41,6 +41,7 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
                 "approved": True, "user_approved": True,
             }},
             "publishing": {"approval_required": True, "auto_publish": False},
+            "review_delivery_territory": "Tunisia",
         }
 
     def files(self, folder):
