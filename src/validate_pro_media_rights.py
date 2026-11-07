@@ -14,7 +14,7 @@ MEDIA_ROOT = Path("assets/pro/media")
 RIGHTS_ROOT = Path("content/pro/rights")
 EVIDENCE_ROOT = RIGHTS_ROOT / "evidence"
 USE_FIELDS = {
-    "private_review": ("download", "editing", "video_synchronization", "private_review_delivery", "public_social_posting", "commercial_monetized_use"),
+    "private_review": ("download", "editing", "video_synchronization", "private_review_delivery"),
     "public_social": ("download", "editing", "video_synchronization", "public_social_posting"),
     "monetized_social": ("download", "editing", "video_synchronization", "public_social_posting", "commercial_monetized_use"),
 }
