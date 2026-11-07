@@ -2231,3 +2231,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added explicit string-type checks for the preview sender and private-chat verifier; added a regression covering null and numeric token/chat values and asserting that no Telegram request is made.
 - Updated files: `src/send_pro_preview_telegram.py`, `tests/test_send_pro_preview_telegram.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 46: normalize malformed HTTPS URLs in media-rights validation
+- Review found `urllib.parse.urlparse` / parsed-authority access can raise `ValueError` for malformed URL authorities (for example an unterminated IPv6 literal). The rights gate failed closed, but leaked a raw parser exception instead of its controlled validation error.
+- Wrapped URL parsing and authority/port validation, require a hostname, and added a malformed-IPv6 source URL regression.
+- Updated files: `src/validate_pro_media_rights.py`, `tests/test_validate_pro_media_rights.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
