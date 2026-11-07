@@ -2154,3 +2154,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added regression tests for truthy non-boolean success flags. The production sender must leave its reservation uncertain; the preview sender must reject the response rather than report a confirmed preview.
 - Updated files: `src/send_pro_telegram.py`, `src/send_pro_preview_telegram.py`, `tests/test_send_pro_telegram.py`, `tests/test_send_pro_preview_telegram.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed in this session; no passing result is claimed. No workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 37: redact production post-send receipt persistence failures
+- Review found the production delivery cycle handled Telegram send ambiguity safely, but a failure while pushing the final `delivered` receipt could still expose raw persistence diagnostics. Telegram may already have accepted the MP4 at that point, so the error must not imply that another send is safe.
+- Wrapped final outcome persistence in a non-chained generic error. It now states that Telegram accepted the review video, the earlier reservation remains blocking, and the ledger must be reconciled before any resend.
+- Updated the regression to inject a credential-bearing Git remote URL, assert that the secret and exception cause are absent, and verify the local confirmed message receipt remains recorded while the previously pushed reservation remains the remote duplicate-send boundary.
+- Updated files: `src/pro_delivery_cycle.py`, `tests/test_pro_delivery_cycle.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
