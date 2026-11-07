@@ -56,10 +56,10 @@ def load_ledger(path: Path) -> dict[str, Any]:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise ValueError(f"Cannot read Pro reservation ledger: {exc}") from exc
-    if not isinstance(data, dict) or data.get("version") != 1 or not isinstance(data.get("entries"), dict):
+    if not isinstance(data, dict) or type(data.get("version")) is not int or data.get("version") != 1 or not isinstance(data.get("entries"), dict):
         raise ValueError("Invalid Pro reservation ledger structure.")
     for key, entry in data["entries"].items():
-        if not isinstance(key, str) or not isinstance(entry, dict) or entry.get("state") not in VALID_STATES:
+        if not isinstance(key, str) or not isinstance(entry, dict) or not isinstance(entry.get("state"), str) or entry.get("state") not in VALID_STATES:
             raise ValueError("Invalid Pro reservation ledger entry.")
     return data
 
@@ -80,7 +80,7 @@ def save_ledger(path: Path, data: dict[str, Any]) -> None:
 
 
 def reserve(path: Path, manifest_id: str, content_type: str, run_id: str) -> dict[str, Any]:
-    if content_type not in {"dua", "dhikr"}:
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise ValueError("Only dua/dhikr can be reserved by Pro.")
     if not isinstance(manifest_id, str) or not manifest_id.strip() or not isinstance(run_id, str) or not run_id.strip():
         raise ValueError("manifest_id and run_id are required.")
@@ -129,7 +129,7 @@ def assert_reserved_for_run(path: Path, manifest_id: str, content_type: str, run
 
 def transition(path: Path, manifest_id: str, new_state: str,
                telegram_message_id: int | None = None) -> dict[str, Any]:
-    if new_state not in VALID_STATES:
+    if not isinstance(new_state, str) or new_state not in VALID_STATES:
         raise ValueError(f"state must be one of {sorted(VALID_STATES)}.")
     with _file_lock(path):
         data = load_ledger(path)
