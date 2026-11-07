@@ -97,3 +97,13 @@ Sources checked:
 - Legacy Quran.com source rendering: https://legacy.quran.com/2/201
 
 Status remains `source_checked_candidate`; no manifest, approval flag, render, or delivery is authorized by this addendum.
+
+
+## Background candidate MK-001 — Sunrise landscape (visual sample reviewed)
+
+- Exact Mixkit item page: https://mixkit.co/free-stock-video/beautiful-sunrise-landscape-1944/
+- Asset page explicitly displayed the Mixkit Stock Video Free License and commercial/personal-use wording at intake time; applicable terms: https://mixkit.co/license/modal/videoFree/ and https://mixkit.co/terms/.
+- Automated single-item intake completed on 2026-11-07 at 20:17:10 UTC. Exact download: 16,515,983 bytes; MIME `video/mp4`; H.264; 1280×720; 24000/1001 fps; 54.804750 seconds; SHA-256 `9bbf623aa42493925e612659cf90a6e5a15762e22f0ba1f92c179265173fe27d`.
+- Nine sampled frames were visually inspected from the exact downloaded file. They show a calm sunrise over distant mountain silhouettes and a broad open landscape; no people, logos, or obvious artwork are visible in the sampled frames. The scene appears visually plausible for QD-001's broad request for good in this world and the Hereafter. The sun and mountain line remain within the central crop area, but the source is horizontal 16:9 and will require a 9:16 crop; the foreground is comparatively dark. Full-frame review is still required before any final use.
+- Durable sample contact sheet: `content/pro/review_previews/MK-001-contact-sheet.jpg` (nine frames, timestamp labels). This is a visual review aid, not the licensed video file or a rights record.
+- Status: `visual_sample_reviewed_candidate_only`. No actual MP4 is retained in the repository; it was downloaded in the ephemeral CI runner only. No creator/rights-owner identity has been established in the per-asset record; full-file third-party review, worldwide use/monetization scope, and human rights decision remain pending. Do not create an approved rights record or use this candidate in a render yet.
