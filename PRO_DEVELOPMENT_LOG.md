@@ -2564,3 +2564,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The workflow file was fetched back and its blob SHA verified as `19f14f06b9ecb5002860ac68274486776cdd0940`. The connector's commit-run lookup returned no workflow-run rows for this commit, so no successful intake, actual download, hash, probe, or contact sheet is claimed yet. A separate current-HEAD safety-test result is also not established by this commit.
 - External policy basis: Wikimedia API etiquette/access guidance requires an informative User-Agent, considerate sequential request behavior, `maxlag` for non-interactive work, and compliance with rate-limit responses. This workflow is intentionally one low-volume, one-file review, not a crawler or ongoing bulk downloader.
 - No rights approval, production manifest, renderer change, Telegram configuration, or user-facing delivery was made.
+
+
+## 2026-11-07 — Harden WC-001 Commons metadata gates
+
+- Updated the one-file intake workflow in commit `455e239bd2e02d90e600d887316bcf2ef5ea60d6` after checking the exact Commons page and official CommonsMetadata documentation.
+- License URL validation now checks the canonical Creative Commons hostname and exact CC0 1.0 path independent of HTTP/HTTPS scheme, while still requiring the CC0 short name. It also requires the API's `Copyrighted` metadata to explicitly indicate false and fails closed if the API reports any reuse restrictions.
+- Records the returned copyright/restrictions metadata in the candidate-only intake metadata. This is a technical preflight only; it does not replace exact-page or full-file human review and does not approve the asset.
+- Verified exact page facts: 26.066 seconds, 1080x1920, 7,097,794 bytes, video/webm, Commons SHA-1 `f731168d29e287072ba2a5dded194b072fe79d2e`, uploader/author JaredMcKenzie, source Own work, and CC0 1.0 dedication. The page explicitly allows commercial reuse under CC0; see https://commons.wikimedia.org/wiki/File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm.
+- Official CommonsMetadata documentation explains that extmetadata includes LicenseShortName, LicenseUrl, Copyrighted, Restrictions, and Artist, while warning that some metadata may be unreliable (notably multi-licensed files) and that Artist can contain complex HTML. This is why the workflow pins one exact file and retains manual review gates.
+- The updated workflow and this log entry were fetched back and verified. No successful intake run, downloaded file, SHA-256, playback inspection, rights approval, render, Telegram send, or TikTok publication is claimed.
