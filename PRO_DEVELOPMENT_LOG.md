@@ -2103,3 +2103,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Review found the isolated preview-ledger persistence helper embedded raw Git stderr/stdout and command arguments in raised exceptions. Git diagnostics can contain credential-bearing remote URLs, and initial reservation persistence errors occur outside the sender's uncertainty-redaction boundary.
 - Changed the helper to raise a generic Git-operation failure with the exit code only and no chained cause. Added a regression using a fake credential-bearing GitHub remote URL and asserted that neither the token nor host/URL detail escapes.
 - Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 30: refuse symlinked preview-ledger reads and writes
+- Review found the preview ledger cycle checked for a symlink before loading the ledger, but the ledger primitive itself still followed a symlink when called independently (or if the path changed between the cycle check and open). This could make a local read consume an external file.
+- Hardened `load_ledger` to reject symlink paths, open with `O_NOFOLLOW` where supported, and verify the opened descriptor is a regular file. Hardened `save_ledger` to reject symlinked parent/file paths before replacing the ledger.
+- Added a regression proving both read and write reject a symlinked ledger and leave its external target unchanged.
+- Source, test, and log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
