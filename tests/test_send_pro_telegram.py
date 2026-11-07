@@ -117,11 +117,14 @@ class ProTelegramSenderTests(unittest.TestCase):
             ledger = folder / "ledger.json"
             from pro_delivery_ledger import reserve
             reserve(ledger, "dua-manifest-1", "dua", "run-1")
+            secret_url = "https://api.telegram.org/botTEST_SECRET_TOKEN/sendVideo"
             with mock.patch("send_pro_telegram.urllib.request.urlopen",
-                            side_effect=TimeoutError("ambiguous Telegram timeout")):
-                with self.assertRaisesRegex(TimeoutError, "ambiguous Telegram timeout"):
-                    send_video(video, caption, "token", "chat", "run-1", ledger,
+                            side_effect=RuntimeError(f"transport failed for {secret_url}")):
+                with self.assertRaisesRegex(RuntimeError, "outcome is uncertain") as caught:
+                    send_video(video, caption, "TEST_SECRET_TOKEN", "chat", "run-1", ledger,
                                reservation_persisted=True)
+                self.assertNotIn("TEST_SECRET_TOKEN", str(caught.exception))
+                self.assertIsNone(caught.exception.__cause__)
             entry = load_ledger(ledger)["entries"]["dua-manifest-1"]
             self.assertEqual(entry["state"], "uncertain")
 
