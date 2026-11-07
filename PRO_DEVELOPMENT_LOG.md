@@ -1641,3 +1641,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) from `feature/quran-video-pro`.
 - Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+## 2026-11-07 — Static review: audio tolerance versus final mux duration
+
+### Finding (audio synchronization policy; no code changes)
+- The renderer accepts an audio duration within ±0.75 seconds of the requested video duration. However, the final FFmpeg command always applies `-t <video duration>` to the mux.
+- If accepted audio is longer than the video by up to the tolerance, FFmpeg truncates the audio at the video endpoint. If accepted audio is shorter, the output can end with a silent tail because no audio padding is applied. This behavior conflicts with the validator/docstring and error text implying that accepted audio will not be silently padded or truncated.
+- The existing unit test explicitly accepts audio of 9.0 seconds for a 9.5-second video, demonstrating that shorter audio within tolerance passes; it does not test the resulting mux behavior or the positive tolerance boundary.
+- This is a product-policy decision as well as a technical gap: choose whether audio must match exactly (within a much smaller codec/probe tolerance), whether short audio may leave silence, or whether controlled padding/trimming is acceptable. Then align validation, user-facing error text, FFmpeg behavior, and boundary tests. No change made pending that decision.
+
+### Verification and safety
+- Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`), `tests/test_render_dua_video.py` (blob `685937e838567c28c480262fc807268e28bde7f8`), and this log from `feature/quran-video-pro`.
+- Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
