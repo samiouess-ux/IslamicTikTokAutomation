@@ -2139,3 +2139,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Invalid UTF-8 and malformed JSON now fail closed with a generic read error without exposing decoder/parser details or chaining the original exception.
 - Added regressions for invalid UTF-8 and a symlinked parent directory, asserting no ledger/lock is created in the external target.
 - Source, tests, and log committed on feature/quran-video-pro only. Tests have not been executed; no workflow, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 35: make invalid-UTF-8 ledger regressions exercise real invalid bytes
+- Review found the invalid-UTF-8 regression tests added for the preview and production ledgers used a double-escaped byte literal. They wrote the printable ASCII characters `\\xff\\xfe{` rather than the invalid byte sequence `0xff 0xfe 0x7b`, so the tests did not reach the intended `UnicodeDecodeError` path.
+- Corrected both tests to write actual invalid UTF-8 bytes. The production and preview ledger read guards can now be meaningfully exercised by the safety suite.
+- Updated files: `tests/test_pro_delivery_ledger.py`, `tests/test_pro_preview_send_ledger.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed in this session; no passing result is claimed. No workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
