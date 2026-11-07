@@ -159,6 +159,12 @@ class MediaRightsTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         self.validate()
 
+    def test_malformed_https_authority_fails_with_rights_gate_error(self):
+        self.record["source_page_url"] = "https://[::1"
+        self.save()
+        with self.assertRaisesRegex(ValueError, "source_page_url must be an exact HTTPS URL"):
+            self.validate()
+
     def test_generic_root_source_page_is_not_asset_specific(self):
         self.record["source_page_url"] = "https://stock.example/"
         self.manifest["visual"]["background_candidate"]["source_url"] = "https://stock.example/"
