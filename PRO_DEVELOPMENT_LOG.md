@@ -2350,3 +2350,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added regression tests in `tests/test_pro_orchestrator.py` proving duplicate background URLs are rejected and distinct URLs remain accepted.
 - Scope is deliberately limited to the same batch. Cross-day background history/rotation is not claimed as implemented; the current history contract stores content IDs and there is no verified background-history persistence path yet.
 - Tests were authored but not executed: no local checkout is available in this session and no GitHub Actions workflow-dispatch action is exposed. No preview render, Telegram delivery, TikTok publication, media approval, secret change, or production-branch change was performed.
+
+
+## 2026-11-07 — Repair 62: align Pro orchestrator fixtures with semantic-background validation
+
+- Follow-up review after Repairs 60–61 found the shared `tests/test_pro_orchestrator.py` manifest factory had not been updated for the newly mandatory dua/dhikr fields `visual.background_theme`, `visual.background_meaning_rationale`, and `visual.background_meaning_reviewed: true`.
+- This would cause existing orchestrator tests (including the new duplicate-background regression tests) to fail at manifest validation before exercising their intended assertions.
+- Updated the shared test fixture with explicit meaning-matched background metadata so tests reach the orchestrator behavior they are intended to cover. This is test-fixture alignment only; it does not approve any real media asset or manifest.
+- Tests remain authored but unexecuted because this session has no local checkout and no GitHub Actions dispatch capability. No render, Telegram delivery, TikTok publication, media approval, secrets, or production branch were changed.
