@@ -27,41 +27,72 @@ class ProLedgerPersistenceTests(unittest.TestCase):
             return mock.Mock(returncode=result[0], stdout=result[1], stderr=result[2])
         return mock.patch("persist_pro_ledger.subprocess.run", side_effect=fake_run)
 
-    def test_refuses_wrong_branch_before_staging(self):
-        with self.run_git([(0, "main\n", ""),]):
+    def aligned_prefix(self):
+        return [
+            (0, EXPECTED_BRANCH, ""),  # branch
+            (0, "", ""),               # fetch origin
+            (0, "same-head", ""),      # local HEAD
+            (0, "same-head", ""),      # origin tracking HEAD
+        ]
+
+    def test_refuses_wrong_branch_before_fetch_or_staging(self):
+        with self.run_git([(0, "main\n", "")]):
             with self.assertRaisesRegex(RuntimeError, "expected"):
                 persist_ledger(self.repo)
 
+    def test_refuses_stale_local_branch_before_staging(self):
+        outputs = [
+            (0, EXPECTED_BRANCH, ""), (0, "", ""),
+            (0, "local-old", ""), (0, "remote-new", ""),
+        ]
+        with self.run_git(outputs) as patched:
+            with self.assertRaisesRegex(RuntimeError, "not aligned"):
+                persist_ledger(self.repo)
+        self.assertEqual(len(patched.call_args_list), 4)
+
     def test_refuses_preexisting_staged_changes(self):
-        with self.run_git([(0, EXPECTED_BRANCH, ""), (0, "README.md\n", "")]):
+        outputs = self.aligned_prefix() + [(0, "README.md\n", "")]
+        with self.run_git(outputs):
             with self.assertRaisesRegex(RuntimeError, "staged changes"):
                 persist_ledger(self.repo)
 
-    def test_commits_only_ledger_then_pushes_exact_branch(self):
-        outputs = [
-            (0, EXPECTED_BRANCH, ""),  # branch
-            (0, "", ""),               # pre-existing staged paths
-            (0, "", ""),               # git add
+    def test_commits_only_ledger_and_verifies_exact_remote_head(self):
+        outputs = self.aligned_prefix() + [
+            (0, "", ""),  # pre-existing staged paths
+            (0, "", ""),  # git add
             (0, "data/pro_delivery_ledger.json\n", ""),  # staged paths
-            (0, "[commit] saved", ""), # commit
-            (0, "pushed", ""),         # push
+            (0, "[commit] saved", ""),  # commit
+            (0, "pushed", ""),  # push
+            (0, "", ""),  # post-push fetch
+            (0, "new-head", ""),  # local HEAD
+            (0, "new-head", ""),  # origin tracking HEAD
         ]
         with self.run_git(outputs) as patched:
             self.assertTrue(persist_ledger(self.repo))
         commands = [call.args[0] for call in patched.call_args_list]
-        self.assertEqual(commands[-1], [
+        self.assertEqual(commands[-5], [
             "git", "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}"
         ])
         self.assertIn(["git", "add", "--", "data/pro_delivery_ledger.json"], commands)
+        self.assertEqual(len(commands), 12)
+
+    def test_post_push_remote_mismatch_is_not_reported_as_success(self):
+        outputs = self.aligned_prefix() + [
+            (0, "", ""), (0, "", ""),
+            (0, "data/pro_delivery_ledger.json\n", ""),
+            (0, "[commit] saved", ""), (0, "pushed", ""),
+            (0, "", ""), (0, "local-new", ""), (0, "remote-other", ""),
+        ]
+        with self.run_git(outputs):
+            with self.assertRaisesRegex(RuntimeError, "not aligned with origin after push"):
+                persist_ledger(self.repo)
 
     def test_push_failure_raises_and_never_reports_persistence_success(self):
-        outputs = [
-            (0, EXPECTED_BRANCH, ""),  # branch
-            (0, "", ""),               # pre-existing staged paths
-            (0, "", ""),               # git add
-            (0, "data/pro_delivery_ledger.json\n", ""),  # staged paths
-            (0, "[commit] saved", ""), # local commit
-            (1, "", "remote rejected push"),  # remote persistence failure
+        outputs = self.aligned_prefix() + [
+            (0, "", ""), (0, "", ""),
+            (0, "data/pro_delivery_ledger.json\n", ""),
+            (0, "[commit] saved", ""),
+            (1, "", "remote rejected push"),
         ]
         with self.run_git(outputs) as patched:
             with self.assertRaisesRegex(RuntimeError, "remote rejected push"):
@@ -70,7 +101,6 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         self.assertEqual(commands[-1], [
             "git", "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}"
         ])
-        self.assertEqual(len(commands), 6)
 
     def test_refuses_symlinked_ledger_file(self):
         ledger = self.repo / "data" / "pro_delivery_ledger.json"
@@ -78,7 +108,8 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         target.write_text('{"version":1,"entries":{}}', encoding="utf-8")
         ledger.unlink()
         ledger.symlink_to(target)
-        with self.run_git([(0, EXPECTED_BRANCH, ""), (0, "", "")]):
+        outputs = self.aligned_prefix() + [(0, "", "")]
+        with self.run_git(outputs):
             with self.assertRaisesRegex(RuntimeError, "must not be a symlink"):
                 persist_ledger(self.repo)
 
@@ -89,15 +120,18 @@ class ProLedgerPersistenceTests(unittest.TestCase):
         data.rmdir()
         outside = self.repo / "outside"
         outside.mkdir()
-        (outside / "pro_delivery_ledger.json").write_text('{"version":1,"entries":{}}', encoding="utf-8")
+        (outside / "pro_delivery_ledger.json").write_text(
+            '{"version":1,"entries":{}}', encoding="utf-8"
+        )
         data.symlink_to(outside, target_is_directory=True)
-        with self.run_git([(0, EXPECTED_BRANCH, ""), (0, "", "")]):
+        outputs = self.aligned_prefix() + [(0, "", "")]
+        with self.run_git(outputs):
             with self.assertRaisesRegex(RuntimeError, "data directory must not be a symlink"):
                 persist_ledger(self.repo)
 
     def test_refuses_unrelated_staged_path_after_add(self):
-        outputs = [
-            (0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "", ""),
+        outputs = self.aligned_prefix() + [
+            (0, "", ""), (0, "", ""),
             (0, "data/pro_delivery_ledger.json\nREADME.md\n", ""),
         ]
         with self.run_git(outputs):
