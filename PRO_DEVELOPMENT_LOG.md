@@ -1932,3 +1932,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Refetched the Repair 5 and Repair 6 source/test files from `feature/quran-video-pro`; confirmed the expected guards and regression-test methods are present in the committed branch files.
 - The latest visible successful Pro safety workflow run (#3, commit `f8e0d76a151e7241901f21b9c257de1d0a7a97fb`) predates these new commits, so it is historical evidence only and does **not** validate the current branch head.
 - No workflow dispatch/test-run action is available in the connected GitHub operations used here. Therefore the new tests remain unexecuted and the current head is not certified by CI.
+
+## 2026-11-07 — Repair 7: close gaps in the Pro offline safety workflow
+
+### Changes
+- Updated `.github/workflows/pro-safety-tests-manual.yml` to include the existing Pro-specific suites that were previously omitted: `test_pro_preview_send_ledger.py`, `test_persist_pro_preview_ledger.py`, `test_content_rotation.py`, and `test_prepare_pro_telegram_caption.py`.
+- Kept the workflow manual-only, restricted to the exact `feature/quran-video-pro` branch, with read-only repository permissions and no Telegram or TikTok actions.
+- Deliberately excluded `test_content_rotation_repository_safety.py`, which is tied to the Quran production repository path rather than this Pro dua/dhikr workflow.
+
+### Validation
+- Workflow source was fetched before editing and updated using its current blob SHA.
+- The workflow has not been dispatched; these test suites have not yet been executed. No passing CI result is claimed.
+- No production render, Telegram send, TikTok publish, secret change, or other-branch write was performed.
