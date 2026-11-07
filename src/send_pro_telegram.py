@@ -15,7 +15,9 @@ MAX_CAPTION_CHARS = 1024
 
 
 def build_caption(data: dict) -> str:
-    if data.get("content_type") not in {"dua", "dhikr"}:
+    if not isinstance(data, dict):
+        raise ValueError("Caption JSON must contain an object.")
+    if not isinstance(data.get("content_type"), str) or data.get("content_type") not in {"dua", "dhikr"}:
         raise ValueError("Pro Telegram sender accepts dua/dhikr only.")
     if data.get("review_only") is not True or data.get("auto_publish") is not False:
         raise ValueError("Telegram delivery requires review_only=true and auto_publish=false.")
@@ -50,7 +52,7 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
     content_type = data.get("content_type")
     if not isinstance(manifest_id, str) or not manifest_id.strip():
         raise ValueError("Caption data must include the stable manifest_id.")
-    if content_type not in {"dua", "dhikr"}:
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise ValueError("Pro Telegram sender accepts dua/dhikr only.")
 
     # In cross-run mode, the reservation must already be committed to the Pro branch.
@@ -80,7 +82,7 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
     try:
         with urllib.request.urlopen(request, timeout=180) as response:
             result = json.loads(response.read().decode("utf-8"))
-        if not result.get("ok") or not isinstance(result.get("result"), dict):
+        if not isinstance(result, dict) or not result.get("ok") or not isinstance(result.get("result"), dict):
             raise RuntimeError("Telegram API did not confirm Pro review delivery.")
         message = result["result"]
         message_id = message.get("message_id")
