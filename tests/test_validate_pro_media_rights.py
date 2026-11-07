@@ -126,6 +126,39 @@ class MediaRightsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unresolved"):
             self.validate()
 
+
+    def test_untrusted_enum_fields_with_list_or_object_fail_closed(self):
+        cases = [
+            ("manifest_audio_kind", ["silent"]),
+            ("manifest_audio_kind", {"kind": "silent"}),
+            ("manifest_asset_media_type", ["visual"]),
+            ("rights_media_type", {"type": "visual"}),
+            ("license_evidence_kind", ["url"]),
+            ("license_evidence_kind", {"kind": "url"}),
+        ]
+        for field, value in cases:
+            with self.subTest(field=field, value=value):
+                self.record = base_record(digest=hashlib.sha256(self.asset.read_bytes()).hexdigest())
+                self.manifest["audio"] = {"kind": "silent"}
+                self.manifest["media_assets"] = [{"asset_id": "visual-001", "media_type": "visual"}]
+                if field == "manifest_audio_kind":
+                    self.manifest["audio"]["kind"] = value
+                elif field == "manifest_asset_media_type":
+                    self.manifest["media_assets"][0]["media_type"] = value
+                elif field == "rights_media_type":
+                    self.record["media_type"] = value
+                    self.save()
+                else:
+                    self.record["license_evidence"]["kind"] = value
+                    self.save()
+                if field in {"manifest_audio_kind", "manifest_asset_media_type"}:
+                    with self.assertRaises(ValueError):
+                        self.validate()
+                else:
+                    self.save()
+                    with self.assertRaises(ValueError):
+                        self.validate()
+
     def test_generic_root_source_page_is_not_asset_specific(self):
         self.record["source_page_url"] = "https://stock.example/"
         self.manifest["visual"]["background_candidate"]["source_url"] = "https://stock.example/"
