@@ -72,6 +72,22 @@ class ContentManifestTests(unittest.TestCase):
     def test_sourced_dua_with_approved_ambient_audio_passes(self):
         validate_content_manifest(self.dua_manifest())
 
+    def test_dua_source_requires_a_real_https_host_and_string_name(self):
+        invalid_urls = ("https://", "https:///path", "http://example.org",
+                        "https://[invalid-ipv6", 17, None)
+        for value in invalid_urls:
+            with self.subTest(source_url=value):
+                data = self.dua_manifest()
+                data["items"][0]["source_url"] = value
+                with self.assertRaisesRegex(SystemExit, "valid host"):
+                    validate_content_manifest(data)
+        for value in (None, 17, ["Trusted source"], ""):
+            with self.subTest(source_name=value):
+                data = self.dua_manifest()
+                data["items"][0]["source_name"] = value
+                with self.assertRaisesRegex(SystemExit, "named HTTPS religious source"):
+                    validate_content_manifest(data)
+
     def test_dua_without_source_is_rejected(self):
         data = self.dua_manifest()
         data["items"][0]["source_url"] = ""
