@@ -2070,3 +2070,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The cycle now checks the expected and supplied ledger file/parent for symlinks before resolving and comparing paths. It fails before reserving, persisting, or calling Telegram.
 - Added regression coverage for both a symlinked ledger file and a symlinked `data/` directory; tests assert persistence and sender callbacks are not invoked and the external file is unchanged.
 - Source, tests, and this log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 25: refuse symlinked preview-ledger lock files
+- Review found the isolated candidate-preview ledger still opened its lock path with `Path.open("a+b")`, which follows a pre-existing symlink. This left the preview ledger less protected than the production delivery ledger.
+- Updated `src/pro_preview_send_ledger.py` to reject a symlinked lock path, use `O_NOFOLLOW` where available, and verify the opened descriptor is a regular file. Also corrected Windows empty-lock initialization to check file length at end-of-file before writing its initial byte.
+- Added a regression test proving a symlinked lock is rejected without changing its external target or creating the ledger.
+- Source, test, and log committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
