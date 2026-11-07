@@ -69,10 +69,13 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
         )
         if not reviewed and not preview_only:
             raise SystemExit("Exact Quran recording has not been user-reviewed.")
-        rights_verified = audio.get("rights_verified") or any(
-            item.get("status", "").startswith("approved_")
-            for item in audio.get("license_research_candidates", [])
-            if isinstance(item, dict)
+        candidates = audio.get("license_research_candidates", [])
+        if not isinstance(candidates, list):
+            raise SystemExit("Quran license_research_candidates must be a list.")
+        rights_verified = audio.get("rights_verified") is True or any(
+            isinstance(item.get("status"), str)
+            and item["status"].startswith("approved_")
+            for item in candidates if isinstance(item, dict)
         )
         if not rights_verified:
             raise SystemExit("Reuse permission for the exact Quran recording is not documented.")
@@ -132,11 +135,11 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
         if kind == "quran_recitation":
             raise SystemExit("Dua/dhikr audio must not be mislabeled as Quran recitation.")
         if kind in {"spoken_dua", "ambient_nature"}:
-            if not audio.get("approved") or not audio.get("rights_verified"):
-                raise SystemExit("Dua/dhikr audio needs approval and documented reuse permission.")
-            if kind == "spoken_dua" and not audio.get("exact_recording_user_reviewed"):
+            if audio.get("approved") is not True or audio.get("rights_verified") is not True:
+                raise SystemExit("Dua/dhikr audio needs explicit approval and documented reuse permission.")
+            if kind == "spoken_dua" and audio.get("exact_recording_user_reviewed") is not True:
                 raise SystemExit("Exact spoken-dua recording must be user-reviewed.")
-            if kind == "ambient_nature" and not audio.get("user_approved"):
+            if kind == "ambient_nature" and audio.get("user_approved") is not True:
                 raise SystemExit("Ambient audio must be explicitly user-approved.")
         if kind == "silent" and audio.get("file"):
             raise SystemExit("Silent content must not declare an audio file.")
