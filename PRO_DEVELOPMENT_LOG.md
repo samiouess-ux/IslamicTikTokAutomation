@@ -1745,3 +1745,21 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Static source/test inspection only; no code or test files changed and no tests were run.
 - No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
 - This entry was recorded on `feature/quran-video-pro` only.
+
+
+## 2026-11-07 — Static review: dua source URLs are checked only by HTTPS prefix
+
+### Finding
+- Re-inspected `src/validate_content_manifest.py` (blob `5146070fea6ab8ed65cd6d192e8a25547260ba1`) and `tests/test_validate_content_manifest.py` (blob `7914f2c7f0eacc298379b87687377e935cff19d6`).
+- For each dua/dhikr item, source validation currently uses `str(item.get("source_url", "")).startswith("https://")` rather than parsing and validating the URL.
+- Values such as `https://` or `https:///path` satisfy this prefix check despite lacking a valid hostname. The current test covers an empty URL but not malformed HTTPS URLs.
+- This can allow a malformed religious-source reference through manifest validation. It does not establish source authenticity; the validator already documents that it does not authenticate religious wording.
+
+### Recommendation
+- Require a string and parse it with `urlparse`; require scheme `https`, a valid non-empty hostname, and a non-empty asset/article path where appropriate. Consider consistent URL rules with the media-rights validator while keeping source-specific requirements explicit.
+- Add regression tests for `https://`, `https:///path`, whitespace/invalid authority, and a valid HTTPS source.
+
+### Validation status and restrictions
+- Static source/test inspection only; no code or test files changed and no tests were run.
+- No render, workflow, ledger persistence, Telegram send, TikTok publish, bot/secret/Cron change, or production-branch change was performed.
+- This entry was recorded on `feature/quran-video-pro` only.
