@@ -69,8 +69,8 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
         if publishing.get("approval_required") is not True or publishing.get("auto_publish", False):
             raise SystemExit(f"Manual review must be required and auto-publish disabled: {manifest_path}")
         manifest_id = manifest.get("id")
-        if not isinstance(manifest_id, str) or not manifest_id.strip():
-            raise SystemExit(f"Manifest has no stable id: {manifest_path}")
+        if not isinstance(manifest_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", manifest_id):
+            raise SystemExit(f"Manifest id must be a safe filename component (1-80 ASCII letters, digits, dot, underscore or hyphen): {manifest_path}")
         plan.append({
             "content_type": content_type,
             "manifest": str(manifest_path),
