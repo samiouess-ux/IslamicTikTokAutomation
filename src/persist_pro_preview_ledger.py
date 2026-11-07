@@ -30,7 +30,13 @@ def persist_preview_ledger(repo: Path) -> bool:
     staged = _git(repo, "diff", "--cached", "--name-only")
     if staged:
         raise RuntimeError(f"Refusing preview ledger persistence with pre-existing staged changes: {staged}")
+    data_dir = repo / LEDGER_RELATIVE_PATH.parent
+    if data_dir.is_symlink():
+        raise RuntimeError("Pro preview ledger data directory must not be a symlink.")
     ledger = repo / LEDGER_RELATIVE_PATH
+    lock_file = ledger.with_name(ledger.name + ".lock")
+    if lock_file.is_symlink():
+        raise RuntimeError("Pro preview ledger lock file must not be a symlink.")
     if not ledger.is_file() or ledger.is_symlink():
         raise RuntimeError("Pro preview ledger must exist as a regular, non-symlink file.")
     _git(repo, "add", "--", LEDGER_RELATIVE_PATH.as_posix())
