@@ -2389,3 +2389,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated `content/pro/README.md` to distinguish implemented code from an enabled end-to-end workflow: isolated preview sender and two-phase delivery-cycle code exist, but no connected/enabled Pro preview workflow or real candidate render/send has been verified.
 - Reworded the delivery restriction so it accurately requires the workflow, passing current-HEAD tests, a reviewed real candidate/media-rights package, and explicit authorization for the individual send.
 - No workflow, manifest, media asset, rights record, secret, Telegram setting, render, or send was created or changed.
+
+
+## 2026-11-07 — Repair 67: reject malformed preview Telegram configuration at preflight
+
+- Hardened `src/pro_preview_delivery_cycle.py::preflight` to type-check bot token and chat ID before calling string methods. Previously non-string values could escape as an uncontrolled `AttributeError` instead of a deliberate fail-closed `ValueError`.
+- Added a focused preflight regression test for null and numeric token/chat values, confirming rejection occurs before private-chat verification.
+- This is a validation-only change; no secrets were read or changed and no Telegram network request, render, or publication occurred. Test authored but not executed on current HEAD.
