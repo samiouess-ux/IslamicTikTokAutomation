@@ -58,7 +58,8 @@ def _validate_entry(key: str, entry: Any) -> None:
     validate_candidate_id(key)
     if not isinstance(entry, dict) or entry.get("candidate_id") != key:
         raise ValueError("Preview ledger entry key/candidate_id mismatch.")
-    if entry.get("content_type") not in VALID_TYPES or entry.get("state") not in VALID_STATES:
+    if (not isinstance(entry.get("content_type"), str) or entry.get("content_type") not in VALID_TYPES
+            or not isinstance(entry.get("state"), str) or entry.get("state") not in VALID_STATES):
         raise ValueError("Preview ledger entry has an unsupported content_type or state.")
     for field in ("manifest_sha256", "video_sha256"):
         value = entry.get(field)
@@ -125,7 +126,7 @@ def save_ledger(path: Path, data: dict[str, Any]) -> None:
 def reserve(path: Path, candidate_id: str, content_type: str, manifest_sha256: str,
             video_sha256: str, workflow_run_id: str) -> dict[str, Any]:
     validate_candidate_id(candidate_id)
-    if content_type not in VALID_TYPES:
+    if not isinstance(content_type, str) or content_type not in VALID_TYPES:
         raise ValueError("Only dua/dhikr candidates can be preview-sent.")
     if not isinstance(workflow_run_id, str) or not workflow_run_id.strip():
         raise ValueError("workflow_run_id is required.")
@@ -155,7 +156,7 @@ def reserve(path: Path, candidate_id: str, content_type: str, manifest_sha256: s
 
 
 def transition(path: Path, candidate_id: str, state: str, message_id: int | None = None, *, recovered_receipt: bool = False) -> dict[str, Any]:
-    if state not in {"delivered", "uncertain"}:
+    if not isinstance(state, str) or state not in {"delivered", "uncertain"}:
         raise ValueError("Only delivered or uncertain transitions are supported.")
     with file_lock(path):
         data = load_ledger(path)
