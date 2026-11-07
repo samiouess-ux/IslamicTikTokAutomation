@@ -76,6 +76,18 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
         (folder / "content/pro/rights/bg-001.json").write_text(json.dumps(record), encoding="utf-8")
         return video, manifest
 
+    def test_non_string_telegram_configuration_is_rejected_before_network(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            video, manifest = self.files(Path(tmp))
+            for token, chat_id in ((None, "12345"), ("token", None),
+                                   (123, "12345"), ("token", 123)):
+                with self.subTest(token=token, chat_id=chat_id):
+                    with patch.object(sender.urllib.request, "urlopen") as call:
+                        with self.assertRaises(ValueError):
+                            sender.send_preview(video, manifest, token, chat_id,
+                                confirmed=True, repo_root=Path(tmp))
+                        call.assert_not_called()
+
     def test_explicit_confirmation_is_required_before_network(self):
         with tempfile.TemporaryDirectory() as tmp:
             video, manifest = self.files(Path(tmp))
