@@ -197,6 +197,34 @@ class ProTelegramSenderTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Caption JSON must contain an object"):
                     build_caption(value)
 
+    def test_invalid_telegram_message_ids_are_marked_uncertain(self):
+        class FakeResponse:
+            def __init__(self, message_id):
+                self.message_id = message_id
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return json.dumps({"ok": True, "result": {"message_id": self.message_id}}).encode()
+
+        for invalid_id in (True, 0, -1, "321", None):
+            with self.subTest(message_id=invalid_id), tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)
+                video = folder / "review.mp4"
+                video.write_bytes(b"fake-mp4")
+                caption = folder / "caption.json"
+                caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+                ledger = folder / "ledger.json"
+                with mock.patch("send_pro_telegram.urllib.request.urlopen",
+                                return_value=FakeResponse(invalid_id)):
+                    with self.assertRaisesRegex(RuntimeError, "valid message_id"):
+                        send_video(video, caption, "token", "chat", "run-1", ledger)
+                self.assertEqual(
+                    load_ledger(ledger)["entries"]["dua-manifest-1"]["state"],
+                    "uncertain",
+                )
+
     def test_non_object_telegram_response_is_marked_uncertain(self):
         class FakeResponse:
             def __enter__(self):
