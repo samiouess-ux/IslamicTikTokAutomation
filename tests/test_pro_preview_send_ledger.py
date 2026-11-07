@@ -100,6 +100,19 @@ class PreviewLedgerTests(unittest.TestCase):
             save_ledger(self.path, {"version": 1, "entries": {}})
         self.assertEqual(target.read_text(encoding="utf-8"), '{"version":1,"entries":{}}')
 
+    def test_refuses_symlinked_parent_directory_before_creating_lock(self):
+        outside = Path(self.tmp.name) / "outside-dir"
+        outside.mkdir()
+        linked_parent = Path(self.tmp.name) / "linked-data"
+        try:
+            linked_parent.symlink_to(outside, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        linked_ledger = linked_parent / "preview.json"
+        with self.assertRaisesRegex(ValueError, "must not contain symlinks"):
+            reserve(linked_ledger, "candidate-001", "dua", "a" * 64, "b" * 64, "run-1")
+        self.assertEqual(list(outside.iterdir()), [])
+
     def test_refuses_symlinked_lock_file(self):
         target = self.path.with_name("outside.lock")
         target.write_text("untouched", encoding="utf-8")
