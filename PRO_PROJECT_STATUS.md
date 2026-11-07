@@ -512,3 +512,11 @@ This section supersedes earlier historical statements in this file that the curr
 - After reservation persistence, `run_preview_cycle` currently rechecks the ledger state and manifest/video hashes, but does not explicitly assert that the persisted entry's `workflow_run_id`, `candidate_id`, and `content_type` match the current invocation and selected candidate. The design document requires the reservation to belong to the current workflow run.
 - The current reserve implementation writes the expected values itself, and fixed workflow concurrency is intended to serialize runs; this is not evidence of an observed duplicate-send incident. Still, the explicit post-persistence identity check should be added with a focused mismatch test before enabling any sender workflow.
 - No code change or new test was made in this review. Preview delivery remains disabled.
+
+### 2026-11-07 — Persisted reservation identity guard added
+- Updated `src/pro_preview_delivery_cycle.py` to fail closed unless the persisted reservation's candidate ID, content type, workflow run ID, state, manifest hash, and video hash all match the current selected candidate and invocation.
+- Added three focused offline tests that deliberately alter the persisted `workflow_run_id`, `candidate_id`, or `content_type` after the persistence callback; each asserts the sender is never called.
+- Code commit: `c205935e485563ba3b10abb242cb2f9590dbc793`. Test commit: `6eac3e6b5672c0338d595633ea27e98699edd446`.
+- Both changed files were fetched again from `feature/quran-video-pro` and the exact guard and all three test cases were verified present.
+- The newly added tests have NOT yet been executed. The connected GitHub toolset in this session exposes workflow/job inspection and rerun actions, but no workflow-dispatch action; no dispatch or external Telegram action was attempted. The previous 90/90 result predates this patch and must not be represented as validating these new tests.
+- No renderer, media, rights records, manifests, workflow YAML, secrets, Cron, Telegram bot settings, or production branch changed. No render, Telegram request/send/upload, or TikTok publish occurred.
