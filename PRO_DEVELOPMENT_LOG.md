@@ -2005,3 +2005,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `src/pro_delivery_ledger.py`: ledger loading now validates each entry's content type, run ID, timestamps, and Telegram receipt consistency in addition to its state. Delivered entries require a positive non-boolean message ID; reserved/uncertain entries cannot carry a receipt.
 - Added malformed persisted-ledger regression coverage for collection-valued enums/IDs, missing or malformed timestamps, and boolean Telegram message IDs.
 - Source, tests, and log committed on `feature/quran-video-pro` only. No test execution, production render, or Telegram send is claimed.
+
+### Repair 16: Reject symlinked production-ledger persistence paths
+- `src/persist_pro_ledger.py`: production ledger persistence now rejects a symlinked `data/` directory or symlinked ledger file before staging, matching the stricter preview-ledger persistence boundary.
+- Added offline regression tests for both symlink cases. This prevents a ledger-only Git operation from following an unexpected filesystem target.
+- Source, tests, and log committed on `feature/quran-video-pro` only. Tests were not executed here; no production render or Telegram send was performed.
