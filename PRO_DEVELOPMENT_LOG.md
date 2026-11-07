@@ -2063,3 +2063,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Corrected the Windows lock-file initialization check in `src/pro_delivery_ledger.py`: inspect the file length by seeking to end before writing the initial lock byte. The previous seek-to-zero followed by `tell()` always returned zero and rewrote byte zero on every lock acquisition.
 - The change preserves the existing cross-platform locking mechanism and avoids modifying an already initialized lock file unnecessarily.
 - Source committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 24: reject symlinked delivery-ledger paths before resolution
+- Review found that `run_delivery_cycle` called `Path.resolve()` before checking whether the supplied ledger file or its `data/` directory was a symlink. Resolving first can hide the symlink and make an external target appear to be the expected path.
+- The cycle now checks the expected and supplied ledger file/parent for symlinks before resolving and comparing paths. It fails before reserving, persisting, or calling Telegram.
+- Added regression coverage for both a symlinked ledger file and a symlinked `data/` directory; tests assert persistence and sender callbacks are not invoked and the external file is unchanged.
+- Source, tests, and this log committed on `feature/quran-video-pro` only. Tests have not been executed; no workflow, render, Telegram send, or TikTok publication was run.
