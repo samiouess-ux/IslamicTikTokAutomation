@@ -38,7 +38,7 @@ def choose_manifest(
     for path in sorted(content_dir.glob("*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
             continue
         # Valid JSON may still contain a list, scalar, or malformed nested
         # publishing value. Treat those manifests as ineligible, not fatal.
@@ -95,7 +95,7 @@ def choose_manifests(
             ) from exc
         try:
             data = json.loads(candidate.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise ValueError(
                 f"Selected manifest changed or became unreadable during batch selection: {candidate}"
             ) from exc
