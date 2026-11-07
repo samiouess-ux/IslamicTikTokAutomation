@@ -268,5 +268,14 @@ class ProPreviewTelegramSenderTests(unittest.TestCase):
 
 
 
+    def test_preview_manifest_rejects_non_string_content_type(self):
+        for content_type in ([], {}, 7, True):
+            with self.subTest(content_type=content_type):
+                data = self.manifest()
+                data["content_type"] = content_type
+                with self.assertRaisesRegex(ValueError, "accepts dua/dhikr only"):
+                    sender.build_preview_caption(data)
+
+
 if __name__ == "__main__":
     unittest.main()
