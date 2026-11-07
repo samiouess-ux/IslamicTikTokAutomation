@@ -1,0 +1,48 @@
+name: Inspect Pro TTS Space API schema
+
+on:
+  push:
+    branches: [feature/quran-video-pro]
+    paths:
+      - ".github/workflows/inspect-pro-tts-space-api.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-space-api:
+    if: github.ref == 'refs/heads/feature/quran-video-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned metadata-only CLI
+        run: python -m pip install --disable-pip-version-check "hf-gradio==0.4.1"
+      - name: Read live Space API schema (no inference)
+        shell: bash
+        run: |
+          set -euo pipefail
+          hf-gradio info sherif1313/3arab-TTS-VoiceDesign-v2 | tee pro_tts_space_api_schema.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("pro_tts_space_api_schema.json").read_text(encoding="utf-8"))
+          if not isinstance(data, dict) or not data:
+              raise SystemExit("Space API schema is empty or not an object")
+          print("Discovered endpoints:", ", ".join(sorted(data)))
+          for endpoint, spec in data.items():
+              params = spec.get("parameters", [])
+              returns = spec.get("returns", [])
+              print(f"{endpoint}: {len(params)} inputs, {len(returns)} outputs")
+          PY
+      - name: Upload schema for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-tts-space-api-schema
+          path: pro_tts_space_api_schema.json
+          if-no-files-found: error
+          retention-days: 7
