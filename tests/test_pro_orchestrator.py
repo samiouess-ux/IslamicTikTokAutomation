@@ -81,6 +81,13 @@ class ProOrchestratorTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "never be rotation-approved"):
                 build_preview_plan(path)
 
+    def test_production_plan_rejects_unsafe_output_id(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write_manifest(folder, "dua.json", "../escape", "item-1")
+            with self.assertRaisesRegex(SystemExit, "safe filename component"):
+                build_plan(folder, {"content": []}, "dua", "2026-11-07", 1)
+
     def test_candidate_preview_rejects_unsafe_output_id(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
