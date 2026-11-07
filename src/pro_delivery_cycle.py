@@ -9,7 +9,7 @@ from typing import Callable
 
 from persist_pro_ledger import LEDGER_RELATIVE_PATH, persist_ledger
 from pro_delivery_ledger import reserve
-from send_pro_telegram import send_video
+from send_pro_telegram import send_video, TelegramAcceptedLedgerError
 
 
 def run_delivery_cycle(
@@ -81,6 +81,15 @@ def run_delivery_cycle(
             ledger_path,
             reservation_persisted=True,
         )
+    except TelegramAcceptedLedgerError:
+        # The sender received a positive Telegram acceptance before local
+        # receipt finalization failed. Keep the pushed reservation blocking;
+        # never relabel this as a transport-uncertain send or retry it.
+        raise RuntimeError(
+            "Telegram accepted the Pro review video, but local delivery-receipt "
+            "finalization failed. The persisted reservation remains blocking; "
+            "do not resend until the ledger is reconciled."
+        ) from None
     except Exception as send_error:
         try:
             # Sender records an ambiguous outcome as uncertain. Persist it.
