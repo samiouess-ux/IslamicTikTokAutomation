@@ -1679,3 +1679,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`) and `tests/test_send_pro_preview_telegram.py` (blob `6844c2549223f95942552b740026010be5acc475`) from `feature/quran-video-pro`.
 - Static inspection only. No repository tests were run. No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: shared manifest enum types and repeat_count booleans
+
+### Finding (malformed-manifest handling; no code changes)
+- `validate_content_manifest()` performs set-membership checks on several JSON-controlled values before checking that they are strings: top-level `content_type`, `visual.template`, `audio.kind`, and dua/dhikr item `kind`. If any of these fields is a JSON array or object, Python raises `TypeError` ("unhashable type") rather than the validator's intended controlled `SystemExit`.
+- The Pro orchestrator catches `FileNotFoundError`, `ValueError`, `LookupError`, and `SystemExit`, but not `TypeError`. Consequently, such malformed candidate/production metadata can escape the normal structured `blocked` result and produce a traceback. It still stops before rendering; no approval bypass was identified.
+- A separate strict-type issue exists for `repeat_count`: the validator uses `isinstance(repeat_count, int)`, which accepts JSON booleans because Python's `bool` subclasses `int`. Thus `true` is accepted as repeat count 1, although the schema says a positive integer. This is a data-contract correctness issue, not a render/approval bypass.
+- Recommended hardening: require strings before enum/set membership; reject booleans explicitly for integer-only `repeat_count`; add regression tests with list/object enum values and `repeat_count: true/false`. Keep the orchestrator's fail-closed behavior and return a structured blocked result for malformed input. No implementation made pending approval.
+
+### Verification and safety
+- Re-fetched `src/validate_content_manifest.py` (blob `5146070fea6ab8ed65cd6d192e8a25547260ba1`), `tests/test_validate_content_manifest.py` (blob `7914f2c7f0eacc298379b87687377e935cff19d6`), and `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) from `feature/quran-video-pro`.
+- Static inspection only. No repository tests were run. No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
