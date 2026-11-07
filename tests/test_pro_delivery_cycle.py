@@ -64,6 +64,36 @@ class ProDeliveryCycleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ledger path must match"):
             self.run_cycle(ledger_path=other_ledger)
 
+    def test_rejects_symlinked_ledger_file_and_data_directory_before_reservation(self):
+        outside = self.root / "outside-ledger.json"
+        outside.write_text('{"outside": true}', encoding="utf-8")
+        data_dir = self.root / "data"
+        data_dir.mkdir()
+        ledger_link = data_dir / "pro_delivery_ledger.json"
+        try:
+            ledger_link.symlink_to(outside)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+
+        persist_mock = mock.Mock(return_value=True)
+        send_mock = mock.Mock()
+        with self.assertRaisesRegex(ValueError, "must not use symlinks"):
+            self.run_cycle(persist_fn=persist_mock, send_fn=send_mock)
+        persist_mock.assert_not_called()
+        send_mock.assert_not_called()
+        self.assertEqual(outside.read_text(encoding="utf-8"), '{"outside": true}')
+
+        ledger_link.unlink()
+        data_dir.rmdir()
+        outside_dir = self.root / "outside-data"
+        outside_dir.mkdir()
+        (outside_dir / "pro_delivery_ledger.json").write_text("{}", encoding="utf-8")
+        data_dir.symlink_to(outside_dir, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, "must not use symlinks"):
+            self.run_cycle(persist_fn=persist_mock, send_fn=send_mock)
+        persist_mock.assert_not_called()
+        send_mock.assert_not_called()
+
     def test_ambiguous_sender_failure_persists_uncertain_state(self):
         def fake_send(*args, **kwargs):
             transition(self.ledger, "dua-cycle-1", "uncertain")
