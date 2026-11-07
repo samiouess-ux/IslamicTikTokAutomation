@@ -1523,3 +1523,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/validate_pro_media_rights.py` (blob `9f6e8f5d1fd1ef0aa2ca9fca66f6a0f0371ce014`), `src/pro_preview_delivery_cycle.py` (blob `a09fb972d455b9ac077035074d30e43e110e4d50`), and `src/send_pro_preview_telegram.py` (blob `072cd2d4facbae696c40ec94d0d499a6aeb339fd`) from `feature/quran-video-pro`.
 - Read-only review. No tests or workflows were run; no rendering, Telegram request/send/upload, TikTok publish, or production-path operation occurred.
+
+
+## 2026-11-07 — Static review: preview-ledger malformed enum values
+
+### Finding (review only; no code changes)
+- The isolated preview ledger validates its structure, hashes, identity, timestamps, and delivered message IDs. However, enum membership checks in `_validate_entry` and `reserve` do not first require `content_type` and `state` to be strings. A corrupted JSON list/object in either field, or a non-string argument passed to `reserve`/`transition`, can raise `TypeError` instead of the intended controlled `ValueError`. The malformed ledger still blocks the flow, but the failure can escape the orchestrator's normal blocked-result handling.
+- Recommended narrow hardening: type-check content type/state before set membership in entry validation and public ledger operations; add tests for list/object values in persisted entries and non-string API arguments. No code change made pending approval.
+- Persistence helper review: branch/ref checks, clean staging precondition, exact ledger-only staging check, and post-push remote-head verification are present. No commit/push helper was executed.
+
+### Verification and safety
+- Re-fetched `src/pro_preview_send_ledger.py` (blob `4165e0b9fcf12d5666a867511392bf2f361583ad`), `src/persist_pro_preview_ledger.py` (blob `97cea2e30230aa2ab03f1aba2cefa620543a540d`), `src/pro_delivery_ledger.py` (blob `6466ba9faee6c8c76dec47a216aac9818f4f5314`), `tests/test_pro_preview_send_ledger.py` (blob `2762f1b366f6ec75674a011c26f1b3c5cfc3ada1`), and `tests/test_persist_pro_preview_ledger.py` (blob `63effcc8037e28795e0e285769c2bb065e2e3fce`) from `feature/quran-video-pro`.
+- Read-only inspection only. No tests/workflows, ledger persistence execution, render, Telegram request/send/upload, or TikTok publishing occurred. No production branch or original engine/bot was touched.
