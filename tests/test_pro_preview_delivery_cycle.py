@@ -116,6 +116,36 @@ class PreviewCycleTests(unittest.TestCase):
         self.assertEqual(data["entries"]["candidate-001"]["state"], "uncertain")
 
 
+    def test_ambiguous_sender_failure_is_redacted_after_uncertain_state_persists(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            return True
+        def send(*args, **kwargs):
+            calls.append("send")
+            raise TimeoutError("https://api.telegram.org/botSECRET-TOKEN/sendVideo")
+        with self.assertRaisesRegex(RuntimeError, "outcome is uncertain") as caught:
+            self.call_cycle(persist, send)
+        self.assertNotIn("SECRET-TOKEN", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
+        self.assertEqual(calls, ["persist", "send", "persist"])
+        data = json.loads((self.root / "data/pro_preview_send_ledger.json").read_text())
+        self.assertEqual(data["entries"]["candidate-001"]["state"], "uncertain")
+
+    def test_failed_uncertain_persistence_returns_safe_error_without_original_cause(self):
+        calls = []
+        def persist(root):
+            calls.append("persist")
+            return len(calls) == 1
+        def send(*args, **kwargs):
+            calls.append("send")
+            raise TimeoutError("sensitive transport detail")
+        with self.assertRaisesRegex(RuntimeError, "could not be confirmed persisted") as caught:
+            self.call_cycle(persist, send)
+        self.assertNotIn("sensitive transport detail", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
+        self.assertEqual(calls, ["persist", "send", "persist"])
+
     def test_input_changed_after_reservation_is_not_sent(self):
         calls = []
         def persist(root):
