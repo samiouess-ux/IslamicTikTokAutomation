@@ -1974,3 +1974,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated files: `src/pro_orchestrator.py`, `src/pro_delivery_ledger.py`, `tests/test_pro_orchestrator.py`, `tests/test_pro_delivery_ledger.py`.
 - Tests added but not executed in this session; no passing result claimed.
 - Pro branch only; no render, Telegram send, TikTok publication, or secret changes.
+
+
+## Repair 11 — validate content-rotation inputs
+- Hardened `content_rotation.py` against non-string content types, malformed recent-history identifiers (including unhashable list/object entries), and non-string rotation keys. Invalid values now fail with explicit ValueError rather than uncaught TypeError/AttributeError.
+- Added regression tests for list/object/number/boolean content types, malformed recent IDs, and invalid rotation keys.
+- Updated files: `src/content_rotation.py`, `tests/test_content_rotation.py`.
+- Tests added but not executed in this session; no passing result claimed.
+- Pro branch only; no rendering, Telegram delivery, TikTok publication, or secret changes.
