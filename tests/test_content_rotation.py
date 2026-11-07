@@ -110,6 +110,18 @@ class ContentRotationTests(unittest.TestCase):
             self.assertEqual(len({p.name for p in selected}), 3)
             self.assertEqual(set(selected), expected)
 
+    def test_batch_count_rejects_booleans(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write(folder, "a.json", "one")
+            for invalid_count in (True, False):
+                with self.subTest(count=invalid_count):
+                    with self.assertRaisesRegex(ValueError, "positive integer"):
+                        choose_manifests(
+                            folder, "quran", count=invalid_count,
+                            rotation_key="boolean-count",
+                        )
+
     def test_batch_fails_closed_when_three_distinct_items_are_unavailable(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
