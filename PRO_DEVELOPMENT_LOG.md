@@ -2523,3 +2523,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
   - Test fixtures/imports aligned with the current contracts in `test_pro_preview_delivery_cycle.py`, `test_persist_pro_preview_ledger.py`, and `test_validate_content_manifest.py`.
 - Final CI run `42411028231` completed successfully on exact Pro branch commit `c5baa3937fa2f4e6255bf18b158a07f84ff28d7b`. All 14 offline test suites passed: 192 tests total, no failures or errors.
 - This verifies the code/test state at that exact SHA. Subsequent log-only commits do not change runtime code. No renderer execution, actual candidate video render, Telegram request/send, or TikTok publication occurred. Both stock MP4 candidates remain research/visual-sample candidates only; the MP4 bytes are not stored in the repository and no rights records are approved.
+
+
+## 2026-11-07 — Withdraw automated Mixkit intake prototype after terms review
+
+- A temporary one-asset GitHub Actions intake prototype for MK-001 was added and its parser was corrected, but it was not observed executing and produced no artifact, download, metadata hash, or visual inspection.
+- Re-evaluating Mixkit User Terms against the proposed page-parsing/direct-MP4 automation showed that this approach risks conflicting with the provider's restrictions on scripts/bots and scraping/bulk downloading. To avoid placing the project or account at risk, the prototype workflow `.github/workflows/pro-background-intake-mk001.yml` was removed before any asset download was performed.
+- The Mixkit policy and two candidate leads remain documented as research-only; neither is approved. The next acquisition route must be explicitly allowed by the source provider (for example, a documented API or an expressly permitted individual download path), not a page scraper.
+- The latest observed Pro push safety run during this work was run `42411028231`, success on commit `c5baa3937fa2f4e6255bf18b158a07f84ff28d7b`. This is an earlier SHA than the current branch head and is not evidence that the later intake-workflow changes were tested. No current-HEAD test or render is claimed.
+- No Telegram delivery, TikTok publication, production manifest approval, or rights record was created.
