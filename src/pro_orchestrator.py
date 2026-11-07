@@ -53,6 +53,7 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
     paths = choose_manifests(content_dir, content_type, video_count, recent, day_key)
     plan: list[dict] = []
     batch_background_urls: set[str] = set()
+    batch_background_themes: set[str] = set()
     for manifest_path in paths:
         manifest = read_json(manifest_path)
         if manifest.get("content_type") != content_type:
@@ -62,12 +63,19 @@ def build_plan(content_dir: Path, history: dict, content_type: str,
         validate_content_manifest(manifest)
         background = manifest["visual"]["background_candidate"]
         background_url = background["direct_video_url"].strip()
+        background_theme = manifest["visual"]["background_theme"].strip().casefold()
         if background_url in batch_background_urls:
             raise SystemExit(
                 "A Pro batch cannot reuse the same exact background video across multiple outputs: "
                 f"{manifest_path}"
             )
+        if background_theme in batch_background_themes:
+            raise SystemExit(
+                "A Pro batch cannot reuse the same meaning-matched background theme across multiple outputs: "
+                f"{manifest_path}"
+            )
         batch_background_urls.add(background_url)
+        batch_background_themes.add(background_theme)
         durations = [item.get("duration_seconds") for item in manifest["items"]]
         if any(not _valid_positive_duration(value) for value in durations):
             raise SystemExit(f"Every Pro item needs an explicit positive duration_seconds: {manifest_path}")
