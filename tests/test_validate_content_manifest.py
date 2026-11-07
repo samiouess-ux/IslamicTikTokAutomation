@@ -182,6 +182,7 @@ class ContentManifestTests(unittest.TestCase):
 
     def test_quran_license_candidates_must_be_a_list(self):
         data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
+        data["audio"]["rights_verified"] = False
         data["audio"]["license_research_candidates"] = {"status": "approved_test"}
         with self.assertRaisesRegex(SystemExit, "must be a list"):
             validate_content_manifest(data)
