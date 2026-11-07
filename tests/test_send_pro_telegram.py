@@ -168,5 +168,34 @@ class ProTelegramSenderTests(unittest.TestCase):
                 send_mock.assert_not_called()
 
 
+    def test_build_caption_rejects_non_object_json_roots(self):
+        for value in (None, [], "caption", 7):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "Caption JSON must contain an object"):
+                    build_caption(value)
+
+    def test_non_object_telegram_response_is_marked_uncertain(self):
+        class FakeResponse:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                return False
+            def read(self):
+                return b"null"
+
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            video = folder / "review.mp4"
+            video.write_bytes(b"fake-mp4")
+            caption = folder / "caption.json"
+            caption.write_text(json.dumps(self.valid()), encoding="utf-8")
+            ledger = folder / "ledger.json"
+            with mock.patch("send_pro_telegram.urllib.request.urlopen", return_value=FakeResponse()):
+                with self.assertRaisesRegex(RuntimeError, "did not confirm"):
+                    send_video(video, caption, "token", "chat", "run-1", ledger)
+            self.assertEqual(load_ledger(ledger)["entries"]["dua-manifest-1"]["state"], "uncertain")
+
+
+
 if __name__ == "__main__":
     unittest.main()
