@@ -1346,3 +1346,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Hardening gap: after reservation persistence, the coordinator verifies `state == reserved` and both artifact hashes, but does not explicitly compare the persisted entry's `workflow_run_id`, `candidate_id`, and `content_type` to the current invocation/selected manifest. The design requires the reservation to belong to the current workflow run. Add those identity assertions and a focused mismatch test before any delivery workflow is considered.
 - This is a static-review finding, not a confirmed exploit or observed duplicate send. No code or test was changed in this checkpoint; no render or Telegram request occurred.
 - Status finding recorded in `PRO_PROJECT_STATUS.md`, commit `03bb67e0f8f17cd3c1d10e2f35cc7d2ee5ad2f63`.
+
+### 2026-11-07 — Reservation identity guard implementation
+- Added explicit post-persistence identity checks in `src/pro_preview_delivery_cycle.py`: persisted entry must match the selected candidate ID, manifest content type, current workflow run ID, `reserved` state, and both artifact SHA-256 values before sender invocation.
+- Added three negative tests in `tests/test_pro_preview_delivery_cycle.py` for mismatched workflow run ID, candidate ID, and content type. Each mutates the ledger after the persistence callback and verifies no send callback occurs.
+- Commits: implementation `c205935e485563ba3b10abb242cb2f9590dbc793`; tests `6eac3e6b5672c0338d595633ea27e98699edd446`.
+- Re-fetched both files from the Pro branch and verified the guard and all three tests are present.
+- Test execution is pending: this session's GitHub connector does not expose a workflow-dispatch action. No workflow was dispatched; no test pass is claimed for this patch. The previous 90/90 offline suite was run before these additions.
+- No render, Telegram request/send, TikTok publish, secret/Cron/bot setting change, or production/original-branch change.
