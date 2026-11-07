@@ -2459,3 +2459,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added a source corroboration addendum to `content/pro/CANDIDATE_RESEARCH_001.md`. Status deliberately remains `source_checked_candidate`: human letter-by-letter Arabic review, context review, and all media rights remain pending. No manifest or approval flags were created.
 - Sources: https://quran.com/al-baqarah/201?translations=131 ; https://corpus.quran.com/translation.jsp?chapter=2&verse=201 ; https://legacy.quran.com/2/201 .
 - No render, Telegram request/send, or TikTok publication occurred.
+
+
+## 2026-11-07 — MK-001 intake run results and contact-sheet repair
+
+- First push run `42410110757` failed at direct-MP4 discovery because the regex was over-escaped. The workflow was corrected; this first failure did not download or retain media.
+- Corrected run `42410120180` successfully resolved the individual asset page's Free License text and downloaded MK-001 inside the ephemeral GitHub runner. Logged facts: 16,515,983 bytes; MIME `video/mp4`; download host `assets.mixkit.co`; SHA-256 `9bbf623aa42493925e612659cf90a6e5a15762e22f0ba1f92c179265173fe27d`; ffprobe: H.264, 1280×720, 24000/1001 fps, duration 54.804750 seconds.
+- That run failed during contact-sheet generation on the final frame (seeking too close to EOF and JPEG encoder range handling). Because artifact upload is after that step, no review artifact was created and the ephemeral runner workspace was not retained. The hash and metadata are evidence in the workflow logs only; do not treat this as a repository-local asset.
+- Repaired the workflow on commit `787821cb77000eaafa1080bde39d9e476dc74ade`: frame extracts now use PNG and sample timestamps are clamped to at least one second before EOF. Push run `42410211663` was observed starting; at the time of this entry it had not completed. No success is claimed for this repair yet.
+- Asset remains `candidate_only_not_approved`; no rights JSON, manifest, Pro media file, or approval flag exists. Visual inspection has not occurred. No render, Telegram request/send, or TikTok publication occurred.
