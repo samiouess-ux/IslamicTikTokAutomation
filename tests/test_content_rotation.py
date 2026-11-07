@@ -123,6 +123,17 @@ class ContentRotationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "rotation_key"):
                 choose_manifest(folder, "quran", rotation_key=[])
 
+    def test_recent_ids_reject_non_iterables_and_scalar_strings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write(folder, "a.json", "one")
+            for invalid_recent in (None, 7, {}, "single-id", b"bytes"):
+                with self.subTest(recent_ids=invalid_recent):
+                    with self.assertRaisesRegex(ValueError, "recent_ids"):
+                        choose_manifest(folder, "quran", recent_ids=invalid_recent)
+                    with self.assertRaisesRegex(ValueError, "recent_ids"):
+                        choose_manifests(folder, "quran", count=1, recent_ids=invalid_recent)
+
     def test_batch_count_rejects_booleans(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
