@@ -71,7 +71,7 @@ def _date(value: object, field: str) -> date:
     raise AssertionError("unreachable")
 
 
-def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tuple[str, Path]:
+def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str, planned_territory: str | None = None) -> tuple[str, Path]:
     asset_id = asset_ref.get("asset_id")
     if not isinstance(asset_id, str) or not ASSET_ID.fullmatch(asset_id):
         _fail("manifest asset_id is unsafe or missing.")
@@ -127,7 +127,14 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
     territories = record.get("territories")
     if not isinstance(territories, list) or not territories or any(not isinstance(x, str) or not x.strip() for x in territories):
         _fail("permitted territories must be explicit.")
-    if not any(x.strip().lower() in {"worldwide", "global", "all"} for x in territories):
+    global_scope = any(x.strip().lower() in {"worldwide", "global", "all"} for x in territories)
+    if planned_use == "private_review":
+        if not isinstance(planned_territory, str) or not planned_territory.strip():
+            _fail("private review requires an explicit review_delivery_territory.")
+        allowed = {x.strip().casefold() for x in territories}
+        if not global_scope and planned_territory.strip().casefold() not in allowed:
+            _fail("permission does not cover the private review delivery territory.")
+    elif not global_scope:
         _fail("permission must cover worldwide public distribution for this channel.")
     validity = record.get("validity")
     if not isinstance(validity, dict):
@@ -167,7 +174,8 @@ def _validate_record(repo_root: Path, asset_ref: dict, planned_use: str) -> tupl
 
 
 def validate_manifest_media_rights(data: dict, *, repo_root: Path,
-                                   planned_use: str = "private_review") -> dict[str, Path]:
+                                   planned_use: str = "private_review",
+                                   planned_territory: str | None = None) -> dict[str, Path]:
     """Validate every referenced media asset and return exact approved local paths."""
     if planned_use not in USE_FIELDS:
         _fail("unsupported planned-use profile.")
@@ -208,7 +216,7 @@ def validate_manifest_media_rights(data: dict, *, repo_root: Path,
     root = repo_root.resolve(strict=True)
     result = {}
     for ref in refs:
-        source_url, path = _validate_record(root, ref, planned_use)
+        source_url, path = _validate_record(root, ref, planned_use, planned_territory)
         if ref["media_type"] == "visual":
             expected = background.get("source_url")
             if expected and expected != source_url:
