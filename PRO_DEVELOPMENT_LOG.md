@@ -2602,3 +2602,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Corrected the gate in `.github/workflows/pro-background-intake-wc001.yml` in commit `ec1e03af716947b9ae576ee6bf55715912f5fa01` to accept either the canonical base path or the official `/deed.en` variant, while still requiring HTTPS-independent hostname validation and the exact CC0 path.
 - This push should trigger the exact single-file intake workflow again. At the time of this log update, no run for commit `ec1e03af716947b9ae576ee6bf55715912f5fa01` was yet visible in the Actions run list.
 - No video bytes were downloaded in the failed run; no SHA-256, ffprobe, contact sheet, artifact, rights record, approval, render, or Telegram send exists yet.
+
+
+## 2026-11-07 — Diagnose WC-001 Copyrighted metadata omission
+
+- Inspected completed GitHub Actions run `42416954567` on commit `ec1e03af716947b9ae576ee6bf55715912f5fa01`. Pro branch isolation, exact-branch checkout, and inspection-tool installation passed.
+- The metadata/download step stopped before downloading any media. Exact log error: `Commons API does not explicitly mark the work as non-copyrighted/CC0.` The API response provided an empty/missing `Copyrighted` extmetadata value, rather than a positive copyright flag. ffprobe, contact-sheet generation, and artifact upload were skipped; the run produced no artifacts.
+- Updated `.github/workflows/pro-background-intake-wc001.yml` in commit `7af4eedf1f3dc754c4396c4246ed90a033c25fd7`: a present `Copyrighted` value must still be explicitly false-like; a positive or unexpected non-empty value fails closed. An absent value is no longer treated as affirmative evidence of copyright, because the exact CC0 license metadata, canonical license URL, and empty restrictions gate remain mandatory. This is a metadata compatibility correction, not legal approval.
+- The workflow remains pinned to the exact WC-001 file, creator/source, MIME, byte count, and Commons SHA-1. No broad download or scraper was introduced.
+- This push should trigger the one-file intake again. Await the new run and inspect its actual logs/artifact before claiming download, SHA-256, ffprobe, contact sheet, or visual review.
+- No rights record, manifest, media approval, production render, Telegram send, or TikTok publication was created.
