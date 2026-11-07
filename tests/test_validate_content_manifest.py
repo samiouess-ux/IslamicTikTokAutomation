@@ -165,6 +165,34 @@ class ContentManifestTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "repeat_count must be a positive integer"):
                     validate_content_manifest(data)
 
+    def test_audio_approval_flags_require_literal_true(self):
+        for field in ("approved", "rights_verified", "user_approved"):
+            with self.subTest(field=field):
+                data = self.dua_manifest()
+                data["audio"][field] = "false"
+                with self.assertRaisesRegex(SystemExit, "explicit approval"):
+                    validate_content_manifest(data)
+
+    def test_spoken_dua_review_flag_requires_literal_true(self):
+        data = self.dua_manifest()
+        data["audio"]["kind"] = "spoken_dua"
+        data["audio"]["exact_recording_user_reviewed"] = "false"
+        with self.assertRaisesRegex(SystemExit, "must be user-reviewed"):
+            validate_content_manifest(data)
+
+    def test_quran_license_candidates_must_be_a_list(self):
+        data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
+        data["audio"]["license_research_candidates"] = {"status": "approved_test"}
+        with self.assertRaisesRegex(SystemExit, "must be a list"):
+            validate_content_manifest(data)
+
+    def test_quran_license_candidate_status_must_be_a_string(self):
+        data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
+        data["audio"]["rights_verified"] = False
+        data["audio"]["license_research_candidates"] = [{"status": ["approved_test"]}]
+        with self.assertRaisesRegex(SystemExit, "Reuse permission"):
+            validate_content_manifest(data)
+
     def test_auto_publish_is_always_rejected(self):
         data = self.dua_manifest()
         data["publishing"]["auto_publish"] = True
