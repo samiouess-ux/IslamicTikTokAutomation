@@ -2247,3 +2247,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Applied the same strict 1-80 ASCII filename-component allowlist already used by candidate preview IDs, and added a regression rejecting a traversal-style production manifest ID before rendering.
 - Updated files: `src/pro_orchestrator.py`, `tests/test_pro_orchestrator.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 48: validate asset-rotation catalog and argument shapes
+- Review found asset rotation assumed the JSON catalog root and per-kind entries were dictionaries/lists, and attempted set construction on unvalidated recent IDs. Malformed inputs could leak incidental exceptions instead of controlled fail-closed errors.
+- Added explicit validation for asset kind, rotation key, recent-ID iterable/string members, UTF-8 JSON, catalog object shape, and per-kind list shape. Asset URL fields must be strings before HTTPS-prefix checks.
+- Added regressions for malformed catalog roots/entries and invalid rotation arguments.
+- Updated files: `src/asset_rotation.py`, `tests/test_asset_rotation.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
