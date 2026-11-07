@@ -1958,3 +1958,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Changes were fetched from GitHub before editing and will be refetched for verification.
 - Tests have not been executed; no pass result is claimed.
 - No production rendering, Telegram request, TikTok publishing, secret change, or write to another branch was performed.
+
+
+## Repair 9 — reject malformed media-rights enum values
+- Hardened `validate_pro_media_rights.py` against untrusted JSON values that are lists/objects where enum strings are required: manifest audio kind, manifest asset media type, rights-record media type, and license-evidence kind. These now fail closed with the validator's controlled `ValueError` instead of leaking an uncaught `TypeError` from set membership.
+- Added defensive validation for the planned-use selector and a regression test matrix covering list/object values across those fields.
+- Updated files: `src/validate_pro_media_rights.py`, `tests/test_validate_pro_media_rights.py`.
+- Tests: added but not executed in this session; no passing result claimed.
+- Safety: Pro branch only; no production render, Telegram request, TikTok publication, or secret changes.
