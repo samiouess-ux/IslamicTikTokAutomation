@@ -194,6 +194,25 @@ class ContentManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Reuse permission"):
             validate_content_manifest(data)
 
+    def test_quran_recording_review_flags_require_literal_true(self):
+        for placement in ("audio", "candidate"):
+            with self.subTest(placement=placement):
+                data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
+                candidate = data["audio"]["license_research_candidates"][0]
+                candidate["exact_recording_user_reviewed"] = False
+                if placement == "audio":
+                    data["audio"]["exact_recording_user_reviewed"] = "false"
+                else:
+                    candidate["exact_recording_user_reviewed"] = "false"
+                with self.assertRaisesRegex(SystemExit, "has not been user-reviewed"):
+                    validate_content_manifest(data)
+
+    def test_quran_license_candidates_shape_is_checked_before_review_scan(self):
+        data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
+        data["audio"]["license_research_candidates"] = None
+        with self.assertRaisesRegex(SystemExit, "must be a list"):
+            validate_content_manifest(data)
+
     def test_auto_publish_is_always_rejected(self):
         data = self.dua_manifest()
         data["publishing"]["auto_publish"] = True
