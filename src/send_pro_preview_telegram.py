@@ -131,7 +131,8 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
         raise ValueError("Preview manifest bytes do not match the reserved SHA-256 identity.")
     data = json.loads(manifest_bytes.decode("utf-8"))
     caption = build_preview_caption(data)
-    validate_manifest_media_rights(data, repo_root=repo_root or Path.cwd(), planned_use="private_review")
+    validate_manifest_media_rights(data, repo_root=repo_root or Path.cwd(), planned_use="private_review",
+                                   planned_territory=data.get("review_delivery_territory"))
     manifest_id = data.get("id")
     expected_name = "PREVIEW-ONLY-{}-{}.mp4".format(data["content_type"], manifest_id)
     if not isinstance(manifest_id, str) or video_path.name != expected_name:
