@@ -2582,3 +2582,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - This keeps the Pro test suite running on the latest branch state whenever this candidate-intake workflow is changed. It does not claim to test GitHub Actions workflow semantics or execute the intake itself; it runs the existing Python offline safety suites.
 - The push should trigger the suite because the changed path is now included. The run/result has not yet been observed through the available GitHub status interface; do not claim tests passed until a matching run and SHA are confirmed.
 - No Telegram, publishing, secrets, media approval, manifest, or render behavior was enabled.
+
+
+## 2026-11-07 — Correct Commons false-restrictions handling and trigger intake
+
+- Updated `.github/workflows/pro-background-intake-wc001.yml` in commit `0b53d3711ad48043ad5d5e87b81d708983d69da0`.
+- Exact Commons page metadata visibly reports CC0 and the two boolean-style values `false false` for copyright/restrictions. The intake gate now accepts an explicit false-like value (`false`, `no`, `0`) for Restrictions rather than incorrectly treating the literal string `false` as a restriction; unexpected non-false values still fail closed.
+- Added a dated review comment to the workflow so the path-filtered one-file intake workflow is triggered by this push. The existing Pro offline safety workflow also includes this exact path in its push filter.
+- Queried the connector for workflow runs immediately after the push; it returned no run rows. Therefore the workflow has not been verified as started or completed. Do not claim a successful download, hash, ffprobe, contact sheet, test pass, or media approval.
+- Exact page evidence is available at https://commons.wikimedia.org/wiki/File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm and shows CC0 1.0, author JaredMcKenzie, own work, video/webm, 26.066 seconds, 1080x1920, 7,097,794 bytes.
+- No rights record, manifest, production render, Telegram send, or TikTok publication was created.
