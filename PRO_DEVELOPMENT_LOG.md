@@ -1853,3 +1853,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - GitHub refetch verification and test execution are pending; no passing test result is claimed here.
 - No workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing was run.
 - Production branch, original Quran engine/bot, secrets, and Cron remain untouched.
+
+
+## 2026-11-07 — Repair 2: fail-closed Pro manifest enum and repeat-count validation
+
+### Code changes
+- `src/validate_content_manifest.py`: validate JSON-controlled `content_type`, visual `template`, audio `kind`, and item `kind` as strings before set membership. This converts malformed list/object enum values into the validator's controlled `SystemExit` path instead of leaking `TypeError`.
+- The same validator now requires `repeat_count` to be an exact integer, rejecting JSON booleans.
+- `tests/test_validate_content_manifest.py`: added malformed enum and `true/false` repeat-count regression cases.
+
+### Verification
+- Source and test changes were committed to `feature/quran-video-pro` only.
+- Automated test execution and workflow validation are still pending; no passing result is claimed.
+- No rendering, Telegram request/send/upload, or TikTok publishing was performed. Production branch, original Quran engine/bot, secrets, and Cron remain untouched.
