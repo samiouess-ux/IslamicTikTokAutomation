@@ -2592,3 +2592,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Queried the connector for workflow runs immediately after the push; it returned no run rows. Therefore the workflow has not been verified as started or completed. Do not claim a successful download, hash, ffprobe, contact sheet, test pass, or media approval.
 - Exact page evidence is available at https://commons.wikimedia.org/wiki/File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm and shows CC0 1.0, author JaredMcKenzie, own work, video/webm, 26.066 seconds, 1080x1920, 7,097,794 bytes.
 - No rights record, manifest, production render, Telegram send, or TikTok publication was created.
+
+
+## 2026-11-07 — Diagnose first WC-001 intake run and correct CC0 deed URL gate
+
+- Inspected GitHub Actions run `42416596552` on commit `0b53d3711ad48043ad5d5e87b81d708983d69da0`. Branch isolation, checkout, and tool installation passed. The metadata/download step failed before any binary download; ffprobe/contact sheet and artifact upload were skipped.
+- Exact failure from the job log: `Commons API metadata does not confirm the expected CC0 1.0 license.`
+- Rechecked the exact Commons file page. It displays the CC0 deed URL as `http://creativecommons.org/publicdomain/zero/1.0/deed.en`, not only the base `/publicdomain/zero/1.0` path. The previous URL-path gate was too strict.
+- Corrected the gate in `.github/workflows/pro-background-intake-wc001.yml` in commit `ec1e03af716947b9ae576ee6bf55715912f5fa01` to accept either the canonical base path or the official `/deed.en` variant, while still requiring HTTPS-independent hostname validation and the exact CC0 path.
+- This push should trigger the exact single-file intake workflow again. At the time of this log update, no run for commit `ec1e03af716947b9ae576ee6bf55715912f5fa01` was yet visible in the Actions run list.
+- No video bytes were downloaded in the failed run; no SHA-256, ffprobe, contact sheet, artifact, rights record, approval, render, or Telegram send exists yet.
