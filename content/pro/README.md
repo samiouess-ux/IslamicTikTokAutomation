@@ -17,7 +17,7 @@ Before promoting an item into a production-approved manifest, a human reviewer m
 5. **Human review**: set `human_reviewed: true` only after the user has checked the private Telegram preview (or another explicitly agreed review surface) and confirmed the exact Arabic text and source reference. A preview candidate is not production-approved.
 6. **Prophetic duas**: include the exact hadith grading/authenticity reference and verify it from a reliable hadith source. Do not infer a grading.
 7. **Media**: separately verify and record rights and approval for any spoken audio or background asset. The text source does not grant media reuse rights.
-8. **Duration**: provide reviewed item timing that allows the final video to remain at or below 40 seconds.
+8. **Duration**: provide reviewed item timing that allows the final video to remain at or below 45 seconds.
 
 ## Manifest gates
 
