@@ -54,11 +54,13 @@ def preflight(manifest_path: Path, video_path: Path, *, repo_root: Path,
     if video.suffix.lower() != ".mp4" or video.stat().st_size <= 0 or video.stat().st_size > MAX_VIDEO_BYTES:
         raise ValueError("Preview MP4 must be non-empty and no larger than 50 MiB.")
     data = json.loads(manifest.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Preview manifest JSON must contain an object.")
     candidate_id = data.get("id")
     validate_candidate_id(candidate_id)
     content_type = data.get("content_type")
     expected_name = f"PREVIEW-ONLY-{content_type}-{candidate_id}.mp4"
-    if content_type not in {"dua", "dhikr"} or video.name != expected_name:
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"} or video.name != expected_name:
         raise ValueError("Preview MP4 filename must exactly match candidate ID and content type.")
     caption = build_preview_caption(data)
     validate_manifest_media_rights(data, repo_root=repo_root, planned_use="private_review",
