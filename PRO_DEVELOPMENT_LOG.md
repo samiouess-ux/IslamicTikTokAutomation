@@ -1477,3 +1477,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Only the Pro rights validator, Pro preview renderer/sender/delivery-cycle code, their relevant offline test fixtures, and this development log were changed.
 - No manifest, media, rights record, preview artifact, ledger, secret, bot setting, Cron, Telegram API request/send/upload, TikTok publish, or render was executed or changed.
 - The original Quran engine, `main`, and `feature/telegram-review-notifications` were not touched.
+
+
+## 2026-11-07 — Pro video duration cap raised to 65 seconds
+- Per the user's instruction, changed the dedicated Pro dua/dhikr renderer target and hard maximum from 40.0 to 65.0 seconds in `src/render_dua_video.py`. The orchestrator imports the renderer's hard cap, so its preflight inherits the 65-second ceiling without a separate hard-coded limit.
+- Updated `tests/test_render_dua_video.py` to assert the 65-second constants and reject a 66-second slideshow.
+- Renderer commit: `89ed5d5cc0b03d11325da604d95b23135b510e60`; renderer blob: `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`.
+- Test commit: `ddb994ba2218466e3c217d6d200a089e02199a1d`; test blob: `685937e838567c28c480262fc807268e28bde7f8`.
+- Tests have NOT been run; the updated assertions are not a passing result. No workflow dispatch/rerun, render, Telegram request/send/upload, or TikTok publish occurred.
+- No changes to the original Quran engine, original Telegram bot/workflow, `main`, `feature/telegram-review-notifications`, secrets, Cron, or publishing settings.
