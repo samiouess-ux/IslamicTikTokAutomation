@@ -11,6 +11,18 @@ from pathlib import Path
 from typing import Iterable
 
 
+def _validated_recent_ids(recent_ids: Iterable[str]) -> set[str]:
+    if isinstance(recent_ids, (str, bytes)):
+        raise ValueError("recent_ids must be an iterable of strings, not a single string.")
+    try:
+        recent_values = list(recent_ids)
+    except TypeError as exc:
+        raise ValueError("recent_ids must be an iterable of strings.") from exc
+    if any(not isinstance(value, str) for value in recent_values):
+        raise ValueError("recent_ids must contain only strings.")
+    return set(recent_values)
+
+
 def choose_manifest(
     content_dir: Path,
     content_type: str,
@@ -21,10 +33,7 @@ def choose_manifest(
         raise ValueError("Unsupported content type.")
     if not isinstance(rotation_key, str):
         raise ValueError("rotation_key must be a string.")
-    recent_values = list(recent_ids)
-    if any(not isinstance(value, str) for value in recent_values):
-        raise ValueError("recent_ids must contain only strings.")
-    recent = set(recent_values)
+    recent = _validated_recent_ids(recent_ids)
     eligible: list[tuple[str, Path]] = []
     for path in sorted(content_dir.glob("*.json")):
         try:
