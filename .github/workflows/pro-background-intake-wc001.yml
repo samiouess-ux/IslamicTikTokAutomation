@@ -211,7 +211,7 @@ jobs:
           video="pro_background_intake/WC-001-vertical-sunrise.webm"
           ffprobe -v error -show_entries format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate -of json "$video" | tee pro_background_intake/ffprobe.json
           python - <<'PY'
-          import json, subprocess
+          import base64, json, subprocess
           from pathlib import Path
           from PIL import Image, ImageDraw
           root = Path("pro_background_intake")
@@ -242,10 +242,18 @@ jobs:
               sheet.paste(frame, (x, y + 26))
               draw.text((x + 10, y + 6), f"{stamp:.2f}s", fill="black")
           sheet.save(root / "contact_sheet.jpg", quality=90)
+          review = sheet.copy()
+          review.thumbnail((360, 672))
+          review_path = root / "contact_sheet_review.jpg"
+          review.save(review_path, format="JPEG", quality=42, optimize=True)
           print(f"Created 9-frame contact sheet; duration={duration:.3f}s; {stream['width']}x{stream['height']}")
+          print("CONTACT_SHEET_REVIEW_BASE64_BEGIN")
+          print(base64.b64encode(review_path.read_bytes()).decode("ascii"))
+          print("CONTACT_SHEET_REVIEW_BASE64_END")
           PY
 
       - name: Upload one-candidate review artifact
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: pro-wc001-intake-review
