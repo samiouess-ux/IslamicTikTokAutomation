@@ -33,11 +33,22 @@ def run_delivery_cycle(
     the already-pushed reserved state remains a duplicate-send block.
     """
     repo_path = repo_path.resolve()
-    ledger_path = ledger_path.resolve()
-    expected_ledger = (repo_path / LEDGER_RELATIVE_PATH).resolve()
-    if ledger_path != expected_ledger:
+    supplied_ledger = Path(ledger_path)
+    if not supplied_ledger.is_absolute():
+        supplied_ledger = repo_path / supplied_ledger
+    expected_ledger = repo_path / LEDGER_RELATIVE_PATH
+
+    # Check symlinks before resolve(), because resolve() would erase evidence
+    # that the caller supplied a link to an external ledger target.
+    if (expected_ledger.parent.is_symlink() or expected_ledger.is_symlink()
+            or supplied_ledger.parent.is_symlink() or supplied_ledger.is_symlink()):
+        raise ValueError("Pro delivery ledger path must not use symlinks.")
+
+    ledger_path = supplied_ledger.resolve()
+    expected_ledger_resolved = expected_ledger.resolve()
+    if ledger_path != expected_ledger_resolved:
         raise ValueError(
-            f"Ledger path must match the persisted Pro branch file: {expected_ledger}"
+            f"Ledger path must match the persisted Pro branch file: {expected_ledger_resolved}"
         )
 
     caption_data = json.loads(caption_path.read_text(encoding="utf-8"))
