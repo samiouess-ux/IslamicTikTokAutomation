@@ -82,6 +82,13 @@ class PreviewCycleTests(unittest.TestCase):
             chat_id="12345", branch="feature/quran-video-pro",
             persist_fn=persist, send_fn=send, verify_chat_fn=lambda token, chat_id: None)
 
+    def test_non_string_telegram_configuration_is_rejected_before_chat_verification(self):
+        for token, chat_id in ((None, "12345"), ("token", None), (123, "12345"), ("token", 123)):
+            with self.subTest(token=token, chat_id=chat_id):
+                with self.assertRaisesRegex(ValueError, "bot token and positive numeric private-chat ID"):
+                    preflight(self.manifest.relative_to(self.root), self.video.relative_to(self.root),
+                        repo_root=self.root, token=token, chat_id=chat_id)
+
     def test_success_persists_reservation_before_one_send_and_final_state(self):
         calls = []
         def persist(root):
