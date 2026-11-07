@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Iterable
 
 
 def _validated_recent_ids(recent_ids: Iterable[str]) -> set[str]:
-    if isinstance(recent_ids, (str, bytes)):
-        raise ValueError("recent_ids must be an iterable of strings, not a single string.")
+    if isinstance(recent_ids, (str, bytes, Mapping)):
+        raise ValueError("recent_ids must be a non-mapping iterable of strings, not a scalar or mapping.")
     try:
         recent_values = list(recent_ids)
     except TypeError as exc:
