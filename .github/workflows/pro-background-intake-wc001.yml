@@ -114,7 +114,10 @@ jobs:
           if (
               "CC0" not in license_name
               or license_parts.hostname != "creativecommons.org"
-              or license_parts.path.rstrip("/") != "/publicdomain/zero/1.0"
+              or license_parts.path.rstrip("/") not in (
+                  "/publicdomain/zero/1.0",
+                  "/publicdomain/zero/1.0/deed.en",
+              )
           ):
               raise SystemExit("Commons API metadata does not confirm the expected CC0 1.0 license.")
           copyrighted = (meta.get("Copyrighted", {}).get("value") or "").strip().lower()
