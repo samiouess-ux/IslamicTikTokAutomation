@@ -148,6 +148,8 @@ class ProOrchestratorTests(unittest.TestCase):
             second = self.write_manifest(folder, "b.json", "dua-b", "item-b")
             data = json.loads(second.read_text(encoding="utf-8"))
             data["visual"]["background_candidate"]["direct_video_url"] = "https://example.org/other-background.mp4"
+            data["visual"]["background_theme"] = "gratitude and provision"
+            data["visual"]["background_meaning_rationale"] = "A distinct reviewed visual theme supports this separate supplication."
             second.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
             plan = build_plan(folder, {"content": []}, "dua", "2026-11-07", 2)
             self.assertEqual(len(plan), 2)
