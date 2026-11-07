@@ -2612,3 +2612,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The workflow remains pinned to the exact WC-001 file, creator/source, MIME, byte count, and Commons SHA-1. No broad download or scraper was introduced.
 - This push should trigger the one-file intake again. Await the new run and inspect its actual logs/artifact before claiming download, SHA-256, ffprobe, contact sheet, or visual review.
 - No rights record, manifest, media approval, production render, Telegram send, or TikTok publication was created.
+
+
+## 2026-11-07 — Confirm latest WC-001 intake failure and add metadata diagnostics
+
+- Retrieved the actual GitHub Actions run list for commit `7af4eedf1f3dc754c4396c4246ed90a033c25fd7`. The Pro-only offline safety run `42417082147` completed successfully; the WC-001 intake run `42417082133` completed with failure.
+- Inspected intake job `128537405126`: Pro branch isolation, checkout of the exact commit, and inspection-tool installation passed. The metadata/download step failed with `Commons API reports a positive/unknown copyright flag; refusing intake.`; ffprobe, contact sheet, and artifact upload were skipped. No video was downloaded.
+- This differs from the previous run where the API's `Copyrighted` field was absent: this run returned a non-empty value that the strict gate did not accept. The job log did not print the raw value, so its exact content is not yet established.
+- Added a diagnostic print of the exact public Commons license name/URL and raw `Copyrighted`/`Restrictions` metadata immediately before the existing fail-closed gates, in commit `1c296be5b2cd10a77342dfa45398bb2640409b5b`. No acceptance condition was weakened and no media download can occur until the existing gates pass.
+- The diagnostic commit should trigger another one-file intake run and the Pro offline safety suite. Await and inspect the actual run logs before deciding whether any metadata interpretation change is justified.
+- No SHA-256, ffprobe result, contact sheet, artifact, rights record, approval, render, Telegram send, or TikTok publication is claimed.
