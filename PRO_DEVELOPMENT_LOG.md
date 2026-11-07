@@ -2084,3 +2084,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated `src/persist_pro_preview_ledger.py` to reject a symlinked `data/` directory and a symlinked preview lock file before adding the ledger to Git.
 - Added regression tests for both storage-path cases; they assert the helper stops before staging and the external lock target remains unchanged.
 - Source, tests, and log committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 27: redact ambiguous preview-delivery exceptions
+- Review found that `run_preview_cycle` marked unexpected sender failures uncertain but then re-raised the original exception, potentially exposing arbitrary transport details or token-bearing URLs. It also ignored a false return from the uncertainty persistence callback.
+- The cycle now returns a generic, non-chained uncertainty error after successfully persisting the uncertain state. If transition or persistence cannot be confirmed, it returns a separate generic non-chained error and never leaks the underlying exception.
+- Added regression tests for token-bearing sender exception redaction and failed uncertainty persistence.
+- Source, tests, and log committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
