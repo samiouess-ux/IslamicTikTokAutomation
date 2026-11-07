@@ -51,6 +51,18 @@ class ProDeliveryLedgerTests(unittest.TestCase):
         reconcile_not_delivered(self.ledger, "dua-2", "CONFIRM_NOT_DELIVERED")
         reserve(self.ledger, "dua-2", "dua", "run-3")
 
+    def test_load_rejects_boolean_version_and_non_string_state(self):
+        for payload in (
+            {"version": True, "entries": {}},
+            {"version": 1, "entries": {"dua-x": {"state": []}}},
+            {"version": 1, "entries": {"dua-x": {"state": {}}}},
+        ):
+            with self.subTest(payload=payload):
+                self.ledger.write_text(__import__("json").dumps(payload), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "Invalid Pro reservation ledger"):
+                    from pro_delivery_ledger import load_ledger
+                    load_ledger(self.ledger)
+
     def test_delivered_entry_is_terminal(self):
         reserve(self.ledger, "dua-3", "dua", "run-1")
         transition(self.ledger, "dua-3", "delivered", 456)
