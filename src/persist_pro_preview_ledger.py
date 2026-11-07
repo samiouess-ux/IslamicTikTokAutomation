@@ -42,15 +42,12 @@ def persist_preview_ledger(repo: Path) -> bool:
         raise RuntimeError("Pro preview ledger must exist as a regular, non-symlink file.")
     _git(repo, "add", "--", LEDGER_RELATIVE_PATH.as_posix())
     staged_after = _git(repo, "diff", "--cached", "--name-only")
-    if staged_after.splitlines() != [LEDGER_RELATIVE_PATH.as_posix()]:
-        raise RuntimeError(f"Refusing preview ledger commit; unexpected staged paths: {staged_after}")
-    changed = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=repo,
-                             text=True, capture_output=True, check=False)
-    if changed.returncode == 0:
-        _git(repo, "reset", "--", LEDGER_RELATIVE_PATH.as_posix())
+    staged_paths = staged_after.splitlines()
+    if not staged_paths:
+        # An unchanged ledger creates no index entry; this is a normal no-op.
         return False
-    if changed.returncode != 1:
-        raise RuntimeError("Could not determine whether the preview ledger changed.")
+    if staged_paths != [LEDGER_RELATIVE_PATH.as_posix()]:
+        raise RuntimeError(f"Refusing preview ledger commit; unexpected staged paths: {staged_after}")
     _git(repo, "commit", "-m", "chore(pro): persist preview-send ledger")
     _git(repo, "push", "origin", f"HEAD:refs/heads/{EXPECTED_BRANCH}")
     _git(repo, "fetch", "origin", f"refs/heads/{EXPECTED_BRANCH}:refs/remotes/origin/{EXPECTED_BRANCH}")
