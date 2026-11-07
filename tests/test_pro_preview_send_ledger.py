@@ -80,6 +80,13 @@ class PreviewLedgerTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "unsupported"):
                     validate_ledger({"version": 1, "entries": {"candidate-001": entry}})
 
+    def test_transition_rejects_malformed_candidate_ids(self):
+        self.reserve_one()
+        for bad in ([], {}, 12, True, ""):
+            with self.subTest(candidate_id=bad):
+                with self.assertRaisesRegex(ValueError, "safe"):
+                    transition(self.path, bad, "delivered", 99)
+
     def test_rejects_unsafe_candidate_id(self):
         with self.assertRaisesRegex(ValueError, "safe"):
             reserve(self.path, "../escape", "dua", "a"*64, "b"*64, "run")
