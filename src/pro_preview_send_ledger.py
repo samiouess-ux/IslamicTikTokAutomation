@@ -33,6 +33,8 @@ def _reject_symlink_components(path: Path) -> None:
 def file_lock(path: Path) -> Iterator[None]:
     """Serialize local read/modify/write operations; CI concurrency handles runners."""
     lock_path = path.with_name(path.name + ".lock")
+    if lock_path.is_symlink():
+        raise ValueError("Pro preview ledger lock file must not be a symlink.")
     _reject_symlink_components(lock_path)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     flags = os.O_CREAT | os.O_RDWR
@@ -114,6 +116,8 @@ def validate_ledger(data: Any) -> dict[str, Any]:
 
 
 def load_ledger(path: Path) -> dict[str, Any]:
+    if path.is_symlink():
+        raise ValueError("Pro preview ledger file must not be a symlink.")
     _reject_symlink_components(path)
     if not path.exists():
         return {"version": VERSION, "entries": {}}
