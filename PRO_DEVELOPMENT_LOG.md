@@ -2820,3 +2820,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The deployed source contract remains 21 inputs and outputs `[*out_audios, out_log]`, where each visible audio output is `gr.Audio(type="numpy")`; generation returns a list of `(sample_rate, waveform)` tuples plus a log. The adapter must support this representation and reject unexpected shapes.
 - Evidence: deployed source https://huggingface.co/spaces/sherif1313/3arab-TTS-VoiceDesign-v2/blob/main/app.py (revision 73b8cb9; lines 572–655); Gradio event API docs/source https://github.com/gradio-app/gradio/blob/main/gradio/events.py and https://github.com/gradio-app/gradio/blob/main/gradio/component_meta.py.
 - No inference was submitted, no ZeroGPU quota used, no audio/video generated or listened to, no Telegram send, no secrets or workflows changed. Next safe step remains a metadata-only runtime schema check from a supported environment; only after that should a pinned client adapter be implemented and covered by mocked serialization tests.
+
+
+## 2026-11-07 — Recheck hosted Space metadata routes and official API contract
+
+- Rechecked the official Hugging Face Spaces API documentation. It confirms that each Gradio Space exposes `/gradio_api/openapi.json`, and recommends `gradio_client.Client(...).view_api()` to inspect the actual deployed endpoints and parameter schema. Public Spaces may be called without a token; auth can improve rate limits. Source: https://huggingface.co/docs/hub/en/spaces-api-endpoints.
+- Rechecked the target Space source listing and pinned deployed app revision `73b8cb9`. The source-derived endpoint hypothesis remains `/gradio_inference`, but the exact runtime schema still has not been retrieved.
+- Tried metadata-only reads of the target Space's `/agents.md` and `/gradio_api/info` routes through the available web reader; both returned an internal access error. No inference POST was made and no GPU quota was consumed.
+- Decision: do not implement a production caller from inferred function name/positional arguments alone. The adapter must first validate the live API description (or an exact schema emitted by `Client.view_api()`) and then assert expected input/output counts and types before any generation call.
+- No code/workflow/secrets changed; no audio/video generated or listened to; no Telegram send. This is a research-only update.
