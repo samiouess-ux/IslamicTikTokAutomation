@@ -2265,3 +2265,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added regressions for string-valued false flags, malformed candidate collection shape, and non-string candidate status; corrected the fixture so the malformed candidate path is actually exercised.
 - Updated files: `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 50: require literal boolean review for exact Quran recordings
+- Follow-up review of Repair 49 found the Quran exact-recording review check still accepted truthy non-boolean values in the top-level audio field or per-candidate records. It also iterated the candidate field before validating that it was a list, so a malformed null value could leak a raw type error.
+- Candidate-list shape is now validated before iteration, and exact-recording review is accepted only when the top-level or candidate flag is literally `true`.
+- Added regressions for string-valued `"false"` review flags at both locations and a null candidate collection.
+- Updated `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
