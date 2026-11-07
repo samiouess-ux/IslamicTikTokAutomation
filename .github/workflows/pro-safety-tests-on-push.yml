@@ -10,6 +10,7 @@ on:
       - "content/pro/**"
       - "requirements.txt"
       - ".github/workflows/pro-safety-tests-on-push.yml"
+      - ".github/workflows/pro-background-intake-wc001.yml"
 
 permissions:
   contents: read
