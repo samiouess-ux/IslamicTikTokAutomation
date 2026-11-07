@@ -138,5 +138,21 @@ class ProOrchestratorTests(unittest.TestCase):
 
 
 
+    def test_candidate_preview_rejects_non_string_content_type(self):
+        for content_type in ([], {}, 7, True):
+            with self.subTest(content_type=content_type), tempfile.TemporaryDirectory() as tmp:
+                folder = Path(tmp)
+                path = self.write_manifest(folder, "candidate.json", "candidate-1", "item-1")
+                data = json.loads(path.read_text(encoding="utf-8"))
+                data["content_type"] = content_type
+                data["lifecycle_status"] = "candidate_preview"
+                data["preview_only"] = True
+                data["rotation_approved"] = False
+                data["items"][0]["human_reviewed"] = False
+                path.write_text(json.dumps(data), encoding="utf-8")
+                with self.assertRaisesRegex(SystemExit, "must be dua or dhikr"):
+                    build_preview_plan(path)
+
+
 if __name__ == "__main__":
     unittest.main()
