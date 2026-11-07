@@ -21,13 +21,20 @@ def now_utc() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _reject_symlink_components(path: Path) -> None:
+    """Reject any existing symlink in the path, including parent directories."""
+    absolute = path.absolute()
+    for component in (absolute, *absolute.parents):
+        if component.is_symlink():
+            raise ValueError("Pro preview ledger paths must not contain symlinks.")
+
+
 @contextmanager
 def file_lock(path: Path) -> Iterator[None]:
     """Serialize local read/modify/write operations; CI concurrency handles runners."""
     lock_path = path.with_name(path.name + ".lock")
+    _reject_symlink_components(lock_path)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
-    if lock_path.is_symlink():
-        raise ValueError("Pro preview ledger lock file must not be a symlink.")
     flags = os.O_CREAT | os.O_RDWR
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
@@ -107,8 +114,7 @@ def validate_ledger(data: Any) -> dict[str, Any]:
 
 
 def load_ledger(path: Path) -> dict[str, Any]:
-    if path.is_symlink():
-        raise ValueError("Pro preview ledger file must not be a symlink.")
+    _reject_symlink_components(path)
     if not path.exists():
         return {"version": VERSION, "entries": {}}
     flags = os.O_RDONLY
@@ -129,8 +135,7 @@ def load_ledger(path: Path) -> dict[str, Any]:
 
 def save_ledger(path: Path, data: dict[str, Any]) -> None:
     validate_ledger(data)
-    if path.parent.is_symlink() or path.is_symlink():
-        raise ValueError("Pro preview ledger path components must not be symlinks.")
+    _reject_symlink_components(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
     try:
