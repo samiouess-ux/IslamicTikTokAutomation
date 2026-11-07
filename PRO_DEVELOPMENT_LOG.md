@@ -2829,3 +2829,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Tried metadata-only reads of the target Space's `/agents.md` and `/gradio_api/info` routes through the available web reader; both returned an internal access error. No inference POST was made and no GPU quota was consumed.
 - Decision: do not implement a production caller from inferred function name/positional arguments alone. The adapter must first validate the live API description (or an exact schema emitted by `Client.view_api()`) and then assert expected input/output counts and types before any generation call.
 - No code/workflow/secrets changed; no audio/video generated or listened to; no Telegram send. This is a research-only update.
+
+
+## 2026-11-07 — Check Hugging Face's new Space agent-discovery route
+
+- Found the official Hugging Face “Spaces as Agent Tools” documentation. It describes a plain-text `https://huggingface.co/spaces/<owner>/<space>/agents.md` endpoint intended to provide the exact API schema URL, call/poll templates, file-upload instructions, and authentication hint for a Space. It also identifies `/gradio_api/info` as the schema endpoint. Source: https://huggingface.co/docs/hub/en/spaces-agents.
+- Applied that documented discovery route to the target Space `sherif1313/3arab-TTS-VoiceDesign-v2`. The `agents.md` URL still returned an internal access error through the available reader, so no target-specific schema was obtained. The already-observed direct `/gradio_api/info` and OpenAPI route reads remain inaccessible through this reader.
+- This narrows the next verification step: retrieve the target's `agents.md` or `/gradio_api/info` from a supported execution environment, then compare its endpoint and typed input/output schema against the source-derived `/gradio_inference` hypothesis and 21-input/numpy-output contract. Do not submit an inference request just to discover the schema.
+- No source code, workflow, branch settings, secrets, or bot configuration changed. No model inference, ZeroGPU usage, audio/video generation, or Telegram send occurred.
