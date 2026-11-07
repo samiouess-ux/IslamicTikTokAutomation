@@ -2382,3 +2382,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Re-audit after Repair 60 found two independent test manifest factories had not been updated for the mandatory dua/dhikr background fields: `tests/test_send_pro_preview_telegram.py` and `tests/test_pro_preview_delivery_cycle.py` omitted `background_theme`, `background_meaning_rationale`, and `background_meaning_reviewed: true`.
 - Those fixtures would be rejected by the shared validator before sender/delivery-cycle assertions could reach their intended code paths. Added explicit meaning-specific test metadata to both fixtures; this does not approve a real background or grant media rights.
 - Tests remain unexecuted on current HEAD. No Telegram API call, render, real media approval, TikTok publication, secret change, or production-branch change occurred.
+
+
+## 2026-11-07 — Repair 66: correct Pro preview delivery documentation
+
+- Updated `content/pro/README.md` to distinguish implemented code from an enabled end-to-end workflow: isolated preview sender and two-phase delivery-cycle code exist, but no connected/enabled Pro preview workflow or real candidate render/send has been verified.
+- Reworded the delivery restriction so it accurately requires the workflow, passing current-HEAD tests, a reviewed real candidate/media-rights package, and explicit authorization for the individual send.
+- No workflow, manifest, media asset, rights record, secret, Telegram setting, render, or send was created or changed.
