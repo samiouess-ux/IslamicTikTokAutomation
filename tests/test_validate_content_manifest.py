@@ -136,6 +136,35 @@ class ContentManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Background must be approved"):
             validate_content_manifest(data)
 
+    def test_enum_fields_reject_unhashable_json_values(self):
+        cases = [
+            ("content_type", ["dua"]),
+            ("visual", ["template"], ["ornate_gold_classic"]),
+            ("audio", ["kind"], ["ambient_nature"]),
+            ("item", ["kind"], ["quranic_dua"]),
+        ]
+        for case in cases:
+            with self.subTest(case=case[0]):
+                data = self.dua_manifest()
+                if case[0] == "content_type":
+                    data["content_type"] = case[1]
+                elif case[0] == "visual":
+                    data["visual"]["template"] = case[2]
+                elif case[0] == "audio":
+                    data["audio"]["kind"] = case[2]
+                else:
+                    data["items"][0]["kind"] = case[2]
+                with self.assertRaises(SystemExit):
+                    validate_content_manifest(data)
+
+    def test_repeat_count_rejects_boolean_values(self):
+        for invalid in (True, False):
+            with self.subTest(repeat_count=invalid):
+                data = self.dua_manifest()
+                data["items"][0]["repeat_count"] = invalid
+                with self.assertRaisesRegex(SystemExit, "repeat_count must be a positive integer"):
+                    validate_content_manifest(data)
+
     def test_auto_publish_is_always_rejected(self):
         data = self.dua_manifest()
         data["publishing"]["auto_publish"] = True
