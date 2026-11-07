@@ -2308,3 +2308,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Repair 56: include asset-rotation regressions in the Pro safety workflow
 - Workflow audit found `tests/test_asset_rotation.py` was not invoked by the manual Pro safety workflow, despite the asset selector having fail-closed approval and repeat-protection logic.
 - Added the missing explicit unittest-discovery step on the exact Pro branch. The workflow remains manual-only with read-only repository permissions and no Telegram/TikTok actions. This change has not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 57: align human review template with the 45-second ceiling
+- Follow-up documentation audit found `content/pro/REVIEW_TEMPLATE.md` still stated a 40-second ceiling, conflicting with the renderer's current 45-second hard limit and the README corrected in Repair 55.
+- Updated the review checklist to 45 seconds. Documentation-only; no tests, render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
