@@ -2292,3 +2292,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - User clarified that dua/dhikr may need a little more time, so the 40-second hard cap was too restrictive.
 - Raised both the target and hard maximum to 45 seconds. The renderer accepts exactly 45 seconds and rejects durations above 45 seconds; the orchestrator inherits the same shared hard limit.
 - Updated `src/render_dua_video.py`, `tests/test_render_dua_video.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 54: validate dua/dhikr source URL hosts and source names
+- Review found a malformed value such as `https://` or a non-string source name could pass the prior truthiness/prefix check for a dua/dhikr religious source.
+- Added a fail-closed HTTPS URL check requiring a real hostname and rejecting embedded URL credentials; source names must be non-empty strings. Added regressions for empty/malformed hosts, non-HTTPS URLs, non-string URLs, malformed IPv6, and invalid source names.
+- Updated `src/validate_content_manifest.py`, `tests/test_validate_content_manifest.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
