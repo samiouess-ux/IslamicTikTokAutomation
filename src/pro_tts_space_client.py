@@ -115,3 +115,65 @@ def extract_single_audio_result(result: Any) -> tuple[str, str]:
     if len(paths) != 1:
         raise ProTtsSchemaError("Expected exactly one non-empty audio file among 32 output slots.")
     return str(paths[0]), log
+
+def generate_spoken_dua_once(
+    *,
+    text: str,
+    caption: str,
+    output_dir: Path,
+    timeout_seconds: float = 150.0,
+    client_factory: Any = None,
+) -> tuple[Path, str]:
+    """Submit one reviewed spoken-dua job; never retry or call Quran-recitation text."""
+    if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or timeout_seconds <= 0:
+        raise ValueError("A finite positive inference timeout is required.")
+    if timeout_seconds > 180:
+        raise ValueError("Inference timeout cannot exceed 180 seconds.")
+    if client_factory is None:
+        try:
+            from gradio_client import Client
+        except ImportError as exc:
+            raise RuntimeError("Install the pinned hf-gradio dependency before TTS use.") from exc
+        client_factory = Client
+
+    destination = output_dir.resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    client = client_factory(
+        src=SPACE_ID,
+        max_workers=1,
+        verbose=False,
+        download_files=str(destination),
+        analytics_enabled=False,
+    )
+    api_info = client.view_api(return_format="dict", print_info=False)
+    payload = build_payload(api_info, text=text, caption=caption)
+
+    # Exactly one submission. No automatic retry, including after an ambiguous timeout.
+    job = client.submit(**payload, api_name=API_NAME)
+    try:
+        result = job.result(timeout=float(timeout_seconds))
+    except TimeoutError:
+        try:
+            job.cancel()
+        except Exception:
+            pass
+        raise TimeoutError(
+            "TTS job exceeded its one-attempt timeout; outcome may be uncertain. Do not retry automatically."
+        )
+
+    audio_path_text, generation_log = extract_single_audio_result(result)
+    audio_path = Path(audio_path_text).resolve()
+    try:
+        audio_path.relative_to(destination)
+    except ValueError as exc:
+        raise ProTtsSchemaError("Returned audio file is outside the isolated output directory.") from exc
+    if not audio_path.is_file() or audio_path.stat().st_size < 44:
+        raise ProTtsSchemaError("Returned audio file is missing or too small to be a WAV file.")
+    try:
+        import wave
+        with wave.open(str(audio_path), "rb") as wav:
+            if wav.getnchannels() not in (1, 2) or wav.getframerate() <= 0 or wav.getnframes() <= 0:
+                raise ProTtsSchemaError("Returned WAV has invalid channels, sample rate, or frame count.")
+    except (wave.Error, EOFError) as exc:
+        raise ProTtsSchemaError("Returned audio is not a valid readable WAV file.") from exc
+    return audio_path, generation_log
