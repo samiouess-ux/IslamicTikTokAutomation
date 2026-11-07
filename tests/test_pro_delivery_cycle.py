@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from pro_delivery_cycle import run_delivery_cycle
+from send_pro_telegram import TelegramAcceptedLedgerError
 from pro_delivery_ledger import load_ledger, transition
 
 
@@ -93,6 +94,20 @@ class ProDeliveryCycleTests(unittest.TestCase):
             self.run_cycle(persist_fn=persist_mock, send_fn=send_mock)
         persist_mock.assert_not_called()
         send_mock.assert_not_called()
+
+    def test_confirmed_telegram_acceptance_is_not_reclassified_as_uncertain(self):
+        persist_mock = mock.Mock(return_value=True)
+        def accepted_but_receipt_failed(*args, **kwargs):
+            raise TelegramAcceptedLedgerError("safe sender-level accepted-send signal")
+
+        with self.assertRaisesRegex(RuntimeError, "Telegram accepted the Pro review video") as caught:
+            self.run_cycle(persist_fn=persist_mock, send_fn=accepted_but_receipt_failed)
+        self.assertIn("do not resend", str(caught.exception))
+        self.assertNotIn("uncertain", str(caught.exception).lower())
+        self.assertIsNone(caught.exception.__cause__)
+        # Only the initial reservation is pushed; no false uncertain transition is attempted.
+        self.assertEqual(persist_mock.call_count, 1)
+        self.assertEqual(load_ledger(self.ledger)["entries"]["dua-cycle-1"]["state"], "reserved")
 
     def test_ambiguous_sender_failure_persists_uncertain_state(self):
         def fake_send(*args, **kwargs):
