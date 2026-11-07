@@ -24,6 +24,8 @@ PREVIEW_PREFIX = "PREVIEW — NOT APPROVED FOR POSTING"
 
 
 def validate_preview_manifest(data: dict) -> None:
+    if not isinstance(data, dict):
+        raise ValueError("Preview manifest JSON must contain an object.")
     if data.get("content_type") not in {"dua", "dhikr"}:
         raise ValueError("Pro preview sender accepts dua/dhikr only.")
     if data.get("lifecycle_status") != "candidate_preview" or data.get("preview_only") is not True:
@@ -162,7 +164,7 @@ def send_preview(video_path: Path, manifest_path: Path, token: str, chat_id: str
     except Exception:
         # The upload may have been accepted despite a lost response; redact token-bearing URL.
         raise RuntimeError("Telegram sendVideo transport outcome is uncertain; do not retry automatically.") from None
-    if not result.get("ok") or not isinstance(result.get("result"), dict):
+    if not isinstance(result, dict) or not result.get("ok") or not isinstance(result.get("result"), dict):
         raise RuntimeError("Telegram did not confirm the candidate preview. Outcome may be uncertain; do not retry automatically.")
     message_id = result["result"].get("message_id")
     if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
