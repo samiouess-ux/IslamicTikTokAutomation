@@ -18,7 +18,7 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
         raise SystemExit("Manifest must be a JSON object.")
 
     content_type = data.get("content_type", "quran")
-    if content_type not in CONTENT_TYPES:
+    if not isinstance(content_type, str) or content_type not in CONTENT_TYPES:
         raise SystemExit("content_type must be quran, dua, or dhikr.")
 
     source = data.get("source")
@@ -35,7 +35,7 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
 
     template = visual.get("template", "ornate_gold_classic")
     supported_templates = {"ornate_gold_classic", "nature_clean", "minimal_mushaf", "cinematic_landscape"}
-    if template not in supported_templates:
+    if not isinstance(template, str) or template not in supported_templates:
         raise SystemExit(f"Unsupported visual template: {template}.")
     if template != "ornate_gold_classic" and visual.get("template_approved") is not True:
         raise SystemExit("A new visual template must be explicitly approved before production rendering.")
@@ -48,7 +48,7 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
         raise SystemExit("Background must be approved and user-reviewed.")
 
     kind = audio.get("kind", "quran_recitation" if content_type == "quran" else None)
-    if kind not in AUDIO_KINDS:
+    if not isinstance(kind, str) or kind not in AUDIO_KINDS:
         raise SystemExit("audio.kind must explicitly identify the audio type.")
     if audio.get("music_allowed", False):
         raise SystemExit("Music is not allowed.")
@@ -120,13 +120,14 @@ def validate_content_manifest(data: dict[str, Any], *, allow_candidate_preview: 
             if item.get("human_reviewed") is not True:
                 if not (preview_candidate and item.get("human_reviewed") is False):
                     raise SystemExit("Dua/dhikr item requires explicit human review before production.")
-            if item.get("kind") not in {"quranic_dua", "prophetic_dua", "dhikr", "general_supplication"}:
+            item_kind = item.get("kind")
+            if not isinstance(item_kind, str) or item_kind not in {"quranic_dua", "prophetic_dua", "dhikr", "general_supplication"}:
                 raise SystemExit("Dua/dhikr item kind must be explicitly classified.")
             repeat_count = item.get("repeat_count")
-            if repeat_count is not None and (not isinstance(repeat_count, int) or repeat_count < 1):
+            if repeat_count is not None and (type(repeat_count) is not int or repeat_count < 1):
                 raise SystemExit("repeat_count must be a positive integer when provided.")
             grading = item.get("hadith_grading")
-            if item["kind"] == "prophetic_dua" and (not isinstance(grading, str) or not grading.strip()):
+            if item_kind == "prophetic_dua" and (not isinstance(grading, str) or not grading.strip()):
                 raise SystemExit("Prophetic dua requires its hadith grading/authenticity reference.")
         if kind == "quran_recitation":
             raise SystemExit("Dua/dhikr audio must not be mislabeled as Quran recitation.")
