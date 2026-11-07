@@ -1781,3 +1781,20 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Re-fetched `src/render_dua_video.py` from `feature/quran-video-pro` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) immediately before recording this finding.
 - Static source inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred.
 - No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+## 2026-11-07 — Static review: caption output can overwrite its source manifest
+
+### Finding (destructive CLI output-path collision; no code changes)
+- Re-fetched `src/prepare_pro_telegram_caption.py` (blob `9551f47852d1460b962b266870952a44bf920e4a`) and `tests/test_prepare_pro_telegram_caption.py` (blob `e483679cb22a64e091e9b8199de0a19032fed353`) from `feature/quran-video-pro`.
+- The caption CLI accepts independent `--manifest` and `--output` paths, reads the manifest, then writes the generated caption JSON directly to the output path. It does not reject the case where both arguments resolve to the same file.
+- If the same path is supplied for both arguments, the command replaces the original validated content manifest with the caption payload. The current test covers rejection of a non-Pro manifest but does not cover output/manifest path collision.
+- This is a local operator-error/destructive-overwrite risk; it is not a Telegram send or publishing bypass.
+
+### Recommendation
+- Resolve both paths and reject equality (including equivalent relative paths and symlink-resolved aliases) before writing.
+- Consider refusing an existing symlink output target, and add tests asserting a collision fails without changing the manifest bytes. No implementation made pending explicit approval.
+
+### Verification and safety
+- Static source/test inspection only; no tests or caption-generation command were run.
+- No source/test changes, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred.
+- No production branch, original Quran engine/bot, secrets, or Cron was touched.
