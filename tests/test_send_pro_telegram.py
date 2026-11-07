@@ -180,8 +180,10 @@ class ProTelegramSenderTests(unittest.TestCase):
             caption.write_text(json.dumps(self.valid()), encoding="utf-8")
             ledger = folder / "ledger.json"
             with mock.patch("send_pro_telegram.urllib.request.urlopen", side_effect=TimeoutError("timeout")):
-                with self.assertRaises(TimeoutError):
+                with self.assertRaisesRegex(RuntimeError, "outcome is uncertain") as caught:
                     send_video(video, caption, "token", "chat", "run-1", ledger)
+                self.assertNotIn("timeout", str(caught.exception))
+                self.assertIsNone(caught.exception.__cause__)
             self.assertEqual(load_ledger(ledger)["entries"]["dua-manifest-1"]["state"], "uncertain")
             with mock.patch("send_pro_telegram.urllib.request.urlopen") as send_mock:
                 with self.assertRaisesRegex(ValueError, "refusing duplicate"):
