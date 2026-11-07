@@ -2077,3 +2077,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated `src/pro_preview_send_ledger.py` to reject a symlinked lock path, use `O_NOFOLLOW` where available, and verify the opened descriptor is a regular file. Also corrected Windows empty-lock initialization to check file length at end-of-file before writing its initial byte.
 - Added a regression test proving a symlinked lock is rejected without changing its external target or creating the ledger.
 - Source, test, and log committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
+
+
+### Repair 26: harden preview-ledger persistence path checks
+- The preview cycle already rejected a symlinked `data/` directory and the preview lock primitive rejected a symlinked lock file, but the standalone Git persistence helper did not independently enforce those checks before staging.
+- Updated `src/persist_pro_preview_ledger.py` to reject a symlinked `data/` directory and a symlinked preview lock file before adding the ledger to Git.
+- Added regression tests for both storage-path cases; they assert the helper stops before staging and the external lock target remains unchanged.
+- Source, tests, and log committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
