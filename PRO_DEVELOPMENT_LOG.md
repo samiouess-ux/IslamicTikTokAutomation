@@ -1618,3 +1618,15 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Verification and safety
 - Re-fetched `src/pro_orchestrator.py` (blob `a76c75e72bdc030575652f9a76f105ee91865675`) and `src/validate_content_manifest.py` (blob `5146070fea6ab8ed65cd6d192e8a25547260ba1`) from `feature/quran-video-pro`.
 - Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
+
+
+## 2026-11-07 — Static review: non-finite ffprobe audio duration
+
+### Finding (media-duration validation gap; no code changes)
+- `probe_duration()` converts ffprobe output with `float()` and rejects only values `<= 0`. Python accepts the strings `nan` and `inf` as floats; the comparison with NaN is false, so a reported `nan` duration is returned as if valid.
+- `validate_audio_duration()` then computes `abs(actual - expected)`; if `actual` is NaN, the difference is NaN and `difference > tolerance` is also false. Thus a non-finite ffprobe duration can pass the audio-duration gate. This is separate from the previously logged NaN gap in manifest item durations: this issue is at the ffprobe parsing boundary.
+- Recommended hardening: require `math.isfinite(duration)` in `probe_duration()` before accepting it, and add tests for ffprobe outputs `nan`, `inf`, `-inf`, malformed text, zero, and a valid positive duration. Also test that non-finite mocked probe results cannot pass `validate_audio_duration()`. No implementation made pending explicit approval.
+
+### Verification and safety
+- Re-fetched `src/render_dua_video.py` (blob `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`) and `tests/test_render_dua_video.py` (blob `685937e838567c28c480262fc807268e28bde7f8`) from `feature/quran-video-pro`.
+- Static inspection only. No source/test changes, tests, workflow, render, ledger persistence, Telegram request/send/upload, or TikTok publishing occurred. No production branch, original Quran engine/bot, secrets, or Cron was touched.
