@@ -64,7 +64,26 @@ def load_ledger(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict) or type(data.get("version")) is not int or data.get("version") != 1 or not isinstance(data.get("entries"), dict):
         raise ValueError("Invalid Pro reservation ledger structure.")
     for key, entry in data["entries"].items():
-        if not isinstance(key, str) or not isinstance(entry, dict) or not isinstance(entry.get("state"), str) or entry.get("state") not in VALID_STATES:
+        if (
+            not isinstance(key, str) or not key.strip()
+            or not isinstance(entry, dict)
+            or not isinstance(entry.get("content_type"), str)
+            or entry.get("content_type") not in {"dua", "dhikr"}
+            or not isinstance(entry.get("state"), str)
+            or entry.get("state") not in VALID_STATES
+            or not isinstance(entry.get("run_id"), str)
+            or not entry.get("run_id", "").strip()
+            or not isinstance(entry.get("created_at"), str)
+            or not entry.get("created_at", "").strip()
+            or not isinstance(entry.get("updated_at"), str)
+            or not entry.get("updated_at", "").strip()
+        ):
+            raise ValueError("Invalid Pro reservation ledger entry.")
+        message_id = entry.get("telegram_message_id")
+        if entry["state"] == "delivered":
+            if isinstance(message_id, bool) or not isinstance(message_id, int) or message_id <= 0:
+                raise ValueError("Invalid Pro reservation ledger entry.")
+        elif message_id is not None:
             raise ValueError("Invalid Pro reservation ledger entry.")
     return data
 
