@@ -110,6 +110,19 @@ class ContentRotationTests(unittest.TestCase):
             self.assertEqual(len({p.name for p in selected}), 3)
             self.assertEqual(set(selected), expected)
 
+    def test_rejects_malformed_rotation_inputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write(folder, "a.json", "one")
+            for invalid_type in ([], {}, 7, True):
+                with self.subTest(content_type=invalid_type), self.assertRaisesRegex(ValueError, "Unsupported content type"):
+                    choose_manifest(folder, invalid_type)
+            for recent in ([["nested"]], [{"id": "one"}], [None]):
+                with self.subTest(recent=recent), self.assertRaisesRegex(ValueError, "recent_ids"):
+                    choose_manifest(folder, "quran", recent)
+            with self.assertRaisesRegex(ValueError, "rotation_key"):
+                choose_manifest(folder, "quran", rotation_key=[])
+
     def test_batch_count_rejects_booleans(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
