@@ -2198,3 +2198,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added sender-level and delivery-cycle regressions verifying the positive-acceptance path is kept distinct, diagnostics are redacted, and no second persistence/uncertain transition is attempted.
 - Updated files: `src/send_pro_telegram.py`, `src/pro_delivery_cycle.py`, `tests/test_send_pro_telegram.py`, `tests/test_pro_delivery_cycle.py`, and this log, on `feature/quran-video-pro` only.
 - Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+
+### Repair 42: treat unchanged preview ledger as a successful no-op
+- Review found the preview-ledger persistence helper staged the ledger and then required the staged-path list to contain exactly that file before checking whether anything had changed. When the ledger was unchanged, Git correctly returned an empty staged-path list, but the helper raised an error; its later no-change branch was unreachable.
+- Changed the helper to return `False` when staging produces no changed paths, while retaining the pre-existing staged-change guard and the exact-path restriction for actual commits.
+- Added a regression verifying an unchanged ledger returns a clean no-op and does not commit or push.
+- Updated files: `src/persist_pro_preview_ledger.py`, `tests/test_persist_pro_preview_ledger.py`, and this log, on `feature/quran-video-pro` only.
+- Tests have not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
