@@ -99,3 +99,15 @@ Official API reference: https://core.telegram.org/bots/api#getchat (Chat objects
 - Required attribution is currently blocked even when wording is supplied, because the renderer/caption does not yet inject attribution. Such an asset cannot pass until that capability is implemented and tested.
 - The Pro renderer now consumes the exact local rights-cleared background/audio files; it no longer downloads a background URL during rendering. Candidate preview delivery independently rechecks the same rights records.
 - These checks validate the recorded evidence and exact file identity; they do not independently adjudicate the legal meaning or authenticity of a license. Human review remains mandatory.
+
+
+## 7. Additional discovery source: Mixkit (reviewed 2026-11-07)
+
+Mixkit may be used as an additional discovery source for Pro background video. The official Stock Video Free License states that items specifically marked with the **Free License** may be used in commercial and non-commercial projects, including social-media video posts, and may be downloaded, copied, modified, distributed, publicly performed, and broadcast without required attribution. The license also points to Mixkit User Terms for limitations.
+
+- Official Free License: https://mixkit.co/license/modal/videoFree/
+- User Terms: https://mixkit.co/terms/
+- Example candidate page checked: https://mixkit.co/free-stock-video/beautiful-sunrise-landscape-1944/ (the page explicitly labels the free download as commercial/personal use under the Mixkit Stock Video Free License).
+- Example second candidate page checked: https://mixkit.co/free-stock-video/forest-during-the-morning-3012/ (same explicit Free License indication).
+
+**Important:** Mixkit also lists Restricted License items. A free download is not by itself enough: the exact asset page must explicitly identify the applicable Free License, not Restricted License. This provider-level license review does not establish that an exact downloaded file has no third-party rights issues. The existing per-asset file/hash, source/creator/owner, territory/validity, intended-use, attribution, and third-party review gates remain mandatory. These example candidates are research leads only and are not approved media.
