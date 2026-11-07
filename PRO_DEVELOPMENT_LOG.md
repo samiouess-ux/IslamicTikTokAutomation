@@ -2057,3 +2057,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added a regression test proving a symlinked lock path is rejected before the ledger is created and the external target remains untouched.
 - Kept the existing cross-platform Windows/POSIX locking behavior.
 - Committed on `feature/quran-video-pro` only. Tests have not been executed; syntax and runtime remain unverified until the Pro safety suite can run on the current HEAD.
+
+
+### Repair 23: avoid rewriting an existing Windows lock byte
+- Corrected the Windows lock-file initialization check in `src/pro_delivery_ledger.py`: inspect the file length by seeking to end before writing the initial lock byte. The previous seek-to-zero followed by `tell()` always returned zero and rewrote byte zero on every lock acquisition.
+- The change preserves the existing cross-platform locking mechanism and avoids modifying an already initialized lock file unnecessarily.
+- Source committed on `feature/quran-video-pro` only. Tests remain unexecuted; no workflow, render, Telegram send, or TikTok publication was run.
