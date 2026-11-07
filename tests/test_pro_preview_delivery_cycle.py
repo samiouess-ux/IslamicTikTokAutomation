@@ -147,6 +147,34 @@ class PreviewCycleTests(unittest.TestCase):
         self.assertEqual(data["entries"]["candidate-001"]["state"], "delivered")
         # The first successful persistence happened while the remote state was reserved.
 
+    def _assert_persisted_identity_mismatch_blocks_send(self, field, wrong_value):
+        calls = []
+
+        def persist(root):
+            calls.append("persist")
+            ledger_path = root / "data/pro_preview_send_ledger.json"
+            data = json.loads(ledger_path.read_text(encoding="utf-8"))
+            data["entries"]["candidate-001"][field] = wrong_value
+            ledger_path.write_text(json.dumps(data), encoding="utf-8")
+            return True
+
+        def send(*args, **kwargs):
+            calls.append("send")
+            return {"message_id": 77}
+
+        with self.assertRaisesRegex(RuntimeError, "reservation identity/state/hashes"):
+            self.call_cycle(persist, send)
+        self.assertEqual(calls, ["persist"])
+
+    def test_persisted_reservation_must_match_current_workflow_run(self):
+        self._assert_persisted_identity_mismatch_blocks_send("workflow_run_id", "different-run")
+
+    def test_persisted_reservation_must_match_candidate_id(self):
+        self._assert_persisted_identity_mismatch_blocks_send("candidate_id", "different-candidate")
+
+    def test_persisted_reservation_must_match_content_type(self):
+        self._assert_persisted_identity_mismatch_blocks_send("content_type", "dhikr")
+
     def test_wrong_branch_prevents_preflight_and_send(self):
         with self.assertRaisesRegex(RuntimeError, "restricted"):
             run_preview_cycle(Path("missing.json"), Path("missing.mp4"), repo_root=self.root,
