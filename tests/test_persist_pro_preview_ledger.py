@@ -7,7 +7,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from persist_pro_preview_ledger import persist_preview_ledger, EXPECTED_BRANCH
+from persist_pro_preview_ledger import persist_preview_ledger, EXPECTED_BRANCH, _git
 
 
 class PreviewLedgerPersistenceTests(unittest.TestCase):
@@ -26,6 +26,16 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
             result = outputs.pop(0)
             return mock.Mock(returncode=result[0], stdout=result[1], stderr=result[2])
         return mock.patch("persist_pro_preview_ledger.subprocess.run", side_effect=fake_run)
+
+    def test_git_failure_diagnostics_do_not_leak_remote_credentials(self):
+        failure = mock.Mock(returncode=128, stdout="",
+            stderr="fatal: https://user:SECRET-TOKEN@github.com/owner/repo.git denied")
+        with mock.patch("persist_pro_preview_ledger.subprocess.run", return_value=failure):
+            with self.assertRaisesRegex(RuntimeError, "Git operation failed") as caught:
+                _git(self.repo, "fetch", "origin", "refs/heads/feature/quran-video-pro")
+        self.assertNotIn("SECRET-TOKEN", str(caught.exception))
+        self.assertNotIn("github.com", str(caught.exception))
+        self.assertIsNone(caught.exception.__cause__)
 
     def test_wrong_branch_stops_before_fetch_or_add(self):
         with self.run_git([(0, "main\n", "")]) as patched:
