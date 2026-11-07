@@ -2358,3 +2358,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - This would cause existing orchestrator tests (including the new duplicate-background regression tests) to fail at manifest validation before exercising their intended assertions.
 - Updated the shared test fixture with explicit meaning-matched background metadata so tests reach the orchestrator behavior they are intended to cover. This is test-fixture alignment only; it does not approve any real media asset or manifest.
 - Tests remain authored but unexecuted because this session has no local checkout and no GitHub Actions dispatch capability. No render, Telegram delivery, TikTok publication, media approval, secrets, or production branch were changed.
+
+
+## 2026-11-07 — Repair 63: validate background URLs before orchestration
+
+- Code review found the shared manifest validator only checked that background `source_url` and `direct_video_url` were truthy. The Pro orchestrator subsequently calls `.strip()` on `direct_video_url`, so malformed non-string values could escape the intended controlled fail-closed validation path; non-HTTPS or hostless links were also not rejected at this boundary.
+- Updated `src/validate_content_manifest.py` to require both background URLs to be valid HTTPS URLs with a host, using the existing strict URL helper.
+- Added regression coverage for empty, HTTP, hostless HTTPS, numeric, and null values for both URL fields in `tests/test_validate_content_manifest.py`.
+- This is metadata validation only; it does not establish ownership, licensing, rights, or media approval. Those remain separate required gates.
+- Tests were authored but not executed. No render, Telegram delivery, TikTok publication, secret change, media approval, or production-branch change was performed.
