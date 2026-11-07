@@ -51,6 +51,29 @@ class ContentRotationTests(unittest.TestCase):
             valid = self.write(folder, "valid.json", "valid")
             self.assertEqual(choose_manifest(folder, "quran", rotation_key="shape-check"), valid)
 
+    def test_skips_manifests_with_invalid_utf8(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            (folder / "invalid-utf8.json").write_bytes(b'{"id":"bad","content_type":"quran",\xff}')
+            valid = self.write(folder, "valid.json", "valid")
+            self.assertEqual(choose_manifest(folder, "quran", rotation_key="utf8-check"), valid)
+
+    def test_batch_fails_closed_if_selected_file_becomes_invalid_utf8(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self.write(folder, "candidate.json", "candidate")
+            import content_rotation
+            original = content_rotation.choose_manifest
+
+            def select_then_corrupt(*args, **kwargs):
+                path = original(*args, **kwargs)
+                path.write_bytes(b'{"id":"candidate",\xff}')
+                return path
+
+            with mock.patch("content_rotation.choose_manifest", side_effect=select_then_corrupt):
+                with self.assertRaisesRegex(ValueError, "changed or became unreadable"):
+                    choose_manifests(folder, "quran", count=1, rotation_key="race-utf8")
+
     def test_skips_manifest_with_non_object_publishing_field(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
