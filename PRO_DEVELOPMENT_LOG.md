@@ -2018,3 +2018,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `tests/test_persist_pro_ledger.py`: added regression coverage for stale local HEAD rejection and post-push remote mismatch; updated the expected Git command sequence and retained the exact-path, symlink, and push-failure checks.
 - Verification: source and tests were committed to `feature/quran-video-pro` and are being refetched for content verification. Tests have not been executed; no passing result is claimed.
 - Safety: no workflow was dispatched, no render or Telegram request/send occurred, and no production branch, original Quran engine/bot, secrets, Cron, or TikTok publishing setting was touched.
+
+
+### Repair 18: redact Telegram bot tokens from production-sender errors
+- `src/send_pro_telegram.py`: transport/response exceptions are no longer re-raised with their original messages or chained causes. urllib exceptions can include the token-bearing Telegram API URL; the sender now reports only the exception class and a generic uncertain-outcome message, while preserving the ledger's blocking `uncertain` state and no-retry behavior.
+- `tests/test_send_pro_telegram.py`: updated the transport-failure regression to inject a fake token-bearing URL and assert the token is absent from the surfaced exception and no cause is chained. The test also confirms the ledger remains uncertain.
+- Source and regression test committed on `feature/quran-video-pro` only. Files were fetched before edits; final refetch verification follows.
+- Tests have not been executed in this session. No Telegram request/send, production render, TikTok publication, or secret change was performed.
