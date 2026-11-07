@@ -66,7 +66,7 @@ class ProOrchestratorTests(unittest.TestCase):
             self.assertTrue(plan["preview_only"])
             self.assertEqual(plan["lifecycle_status"], "candidate_preview")
             self.assertEqual(plan["content_id"], "candidate-1")
-            with self.assertRaisesRegex(SystemExit, "not approved for rotation|No eligible"):
+            with self.assertRaisesRegex(FileNotFoundError, "No eligible non-recent dua manifest"):
                 build_plan(folder, {"content": []}, "dua", "2026-11-06", 1)
 
     def test_candidate_preview_rejects_rotation_approval(self):
