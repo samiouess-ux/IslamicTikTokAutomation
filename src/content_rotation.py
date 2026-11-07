@@ -26,13 +26,20 @@ def choose_manifest(
             data = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
+        # Valid JSON may still contain a list, scalar, or malformed nested
+        # publishing value. Treat those manifests as ineligible, not fatal.
+        if not isinstance(data, dict):
+            continue
+        publishing = data.get("publishing", {})
+        if not isinstance(publishing, dict):
+            continue
         if data.get("content_type", "quran") != content_type:
             continue
         if data.get("rotation_approved") is not True:
             continue
-        if data.get("publishing", {}).get("approval_required") is not True:
+        if publishing.get("approval_required") is not True:
             continue
-        if data.get("publishing", {}).get("auto_publish", False):
+        if publishing.get("auto_publish", False):
             continue
         item_id = data.get("id")
         if isinstance(item_id, str) and item_id and item_id not in recent:
