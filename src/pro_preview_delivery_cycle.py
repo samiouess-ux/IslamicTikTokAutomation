@@ -140,12 +140,20 @@ def run_preview_cycle(manifest_path: Path, video_path: Path, *, repo_root: Path,
         # Keep the reservation blocking duplicates, but do not mislabel it as an ambiguous upload.
         raise
     except Exception:
-        transition(ledger_path, checked["candidate_id"], "uncertain")
+        # Once send_fn has been entered, an unexpected failure is conservatively
+        # treated as an ambiguous remote outcome. Never expose arbitrary exception
+        # text or its chain: transports may embed token-bearing request URLs.
         try:
-            persist_fn(root)
+            transition(ledger_path, checked["candidate_id"], "uncertain")
+            if persist_fn(root) is not True:
+                raise RuntimeError("uncertain preview state was not confirmed persisted")
         except Exception:
-            pass
-        raise
+            raise RuntimeError(
+                "Telegram preview outcome is uncertain and the ledger state could not be confirmed persisted; do not retry automatically."
+            ) from None
+        raise RuntimeError(
+            "Telegram preview outcome is uncertain; the ledger was marked uncertain; do not retry automatically."
+        ) from None
 
     transition(ledger_path, checked["candidate_id"], "delivered", message_id)
     if persist_fn(root) is not True:
