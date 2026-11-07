@@ -2303,3 +2303,8 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 ### Repair 55: align Pro content guidance with the approved 45-second ceiling
 - A final documentation sweep found the Pro content README still instructed reviewers to keep videos at 40 seconds, contradicting the approved renderer/orchestrator hard ceiling of 45 seconds.
 - Updated the content intake guidance to 45 seconds. This is documentation-only; no renderer behavior changed. No tests, render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 56: include asset-rotation regressions in the Pro safety workflow
+- Workflow audit found `tests/test_asset_rotation.py` was not invoked by the manual Pro safety workflow, despite the asset selector having fail-closed approval and repeat-protection logic.
+- Added the missing explicit unittest-discovery step on the exact Pro branch. The workflow remains manual-only with read-only repository permissions and no Telegram/TikTok actions. This change has not been executed; no workflow dispatch, render, Telegram request/send, TikTok publication, or secret change was performed.
