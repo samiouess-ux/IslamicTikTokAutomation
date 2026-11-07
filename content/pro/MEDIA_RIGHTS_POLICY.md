@@ -111,3 +111,8 @@ Mixkit may be used as an additional discovery source for Pro background video. T
 - Example second candidate page checked: https://mixkit.co/free-stock-video/forest-during-the-morning-3012/ (same explicit Free License indication).
 
 **Important:** Mixkit also lists Restricted License items. A free download is not by itself enough: the exact asset page must explicitly identify the applicable Free License, not Restricted License. This provider-level license review does not establish that an exact downloaded file has no third-party rights issues. The existing per-asset file/hash, source/creator/owner, territory/validity, intended-use, attribution, and third-party review gates remain mandatory. These example candidates are research leads only and are not approved media.
+
+
+### Mixkit User Terms caveats (checked 2026-11-07)
+
+The Mixkit User Terms (last revised 2025-10-02) state that downloading an Item grants a non-exclusive license, not ownership; prohibit scripts/bots used for mass downloads or scraping the library; and warn that some Item components (for example, trademarks or brands) may be third-party material not cleared for the user's use. Therefore Pro must not scrape or bulk-download Mixkit. Any acquisition must use the provider's ordinary permitted individual download flow, and the exact downloaded file still needs human inspection and per-asset rights review. Source: https://mixkit.co/terms/.
