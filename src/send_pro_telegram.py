@@ -82,7 +82,7 @@ def send_video(video_path: Path, caption_path: Path, token: str, chat_id: str,
     try:
         with urllib.request.urlopen(request, timeout=180) as response:
             result = json.loads(response.read().decode("utf-8"))
-        if not isinstance(result, dict) or not result.get("ok") or not isinstance(result.get("result"), dict):
+        if not isinstance(result, dict) or result.get("ok") is not True or not isinstance(result.get("result"), dict):
             raise RuntimeError("Telegram API did not confirm Pro review delivery.")
         message = result["result"]
         message_id = message.get("message_id")
