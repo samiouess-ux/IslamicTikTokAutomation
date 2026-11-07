@@ -479,3 +479,10 @@ This section supersedes earlier historical statements in this file that the curr
 - No workflow changes were made. Adding those two test commands to the existing read-only safety workflow needs separate approval; creating a preview delivery workflow needs separate approval.
 - Latest verified sender-test blob SHA is `2a1606744f83d1721d1fbd5c1c24f9cacbae7a1f`.
 - Focused tests and eight-suite workflow remain NOT RUN. No dispatch, render, Telegram/TikTok, secrets/Cron/bot-setting change. Original Telegram and Quran production routes remain untouched.
+
+
+## 2026-11-07 — Safety workflow dependency fix
+- Latest safety run `42314108213` failed at `test_pro_orchestrator.py` import because `Pillow` (`PIL`) was not installed. The preceding eight test modules completed successfully; do not label the full workflow green.
+- Added a dedicated `Install offline test dependency` step installing `Pillow` in `.github/workflows/pro-safety-tests-manual.yml` on `feature/quran-video-pro` only.
+- Fix commit: `e5d13045afc8a2425f287aed78ae070fc38dc0b4`.
+- Workflow remains manual-only and contains no render/Telegram send action. Rerun still needed; no dispatch or production/original Quran engine changes have been made.
