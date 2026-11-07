@@ -47,7 +47,7 @@ def _valid_positive_duration(value: object) -> bool:
 def build_plan(content_dir: Path, history: dict, content_type: str,
                day_key: str, video_count: int = 1) -> list[dict]:
     """Preflight a complete distinct batch; never invent or partially select items."""
-    if content_type not in {"dua", "dhikr"}:
+    if not isinstance(content_type, str) or content_type not in {"dua", "dhikr"}:
         raise ValueError("Pro content_type must be dua or dhikr.")
     recent = list(history.get("content", []))
     paths = choose_manifests(content_dir, content_type, video_count, recent, day_key)
