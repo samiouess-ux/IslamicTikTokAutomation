@@ -54,6 +54,39 @@ class PreviewLedgerPersistenceTests(unittest.TestCase):
         self.assertEqual(commands[-2], ["git", "rev-parse", "HEAD"])
         self.assertEqual(commands[-1], ["git", "rev-parse", "refs/remotes/origin/feature/quran-video-pro"])
 
+    def test_symlinked_data_directory_is_rejected_before_staging(self):
+        data_dir = self.repo / "data"
+        real_dir = self.repo / "real-data"
+        data_dir.rename(real_dir)
+        try:
+            data_dir.symlink_to(real_dir, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            real_dir.rename(data_dir)
+            self.skipTest("Symlinks are unavailable on this platform.")
+        outputs = [(0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""),
+                   (0, "same", ""), (0, "", "")]
+        with self.run_git(outputs) as patched:
+            with self.assertRaisesRegex(RuntimeError, "data directory must not be a symlink"):
+                persist_preview_ledger(self.repo)
+        self.assertEqual(patched.call_count, 5)
+
+    def test_symlinked_lock_file_is_rejected_before_staging(self):
+        ledger = self.repo / "data" / "pro_preview_send_ledger.json"
+        lock = ledger.with_name(ledger.name + ".lock")
+        target = self.repo / "outside.lock"
+        target.write_text("unchanged", encoding="utf-8")
+        try:
+            lock.symlink_to(target)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlinks are unavailable on this platform.")
+        outputs = [(0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""),
+                   (0, "same", ""), (0, "", "")]
+        with self.run_git(outputs) as patched:
+            with self.assertRaisesRegex(RuntimeError, "lock file must not be a symlink"):
+                persist_preview_ledger(self.repo)
+        self.assertEqual(patched.call_count, 5)
+        self.assertEqual(target.read_text(encoding="utf-8"), "unchanged")
+
     def test_unrelated_staged_path_is_rejected(self):
         outputs = [(0, EXPECTED_BRANCH, ""), (0, "", ""), (0, "same", ""), (0, "same", ""),
                    (0, "", ""), (0, "", ""), (0, "data/pro_preview_send_ledger.json\nREADME.md\n", "")]
