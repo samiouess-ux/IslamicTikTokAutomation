@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from pro_orchestrator import build_plan, build_preview_plan
+from pro_orchestrator import build_plan, build_preview_plan, read_json
 
 
 class ProOrchestratorTests(unittest.TestCase):
@@ -36,6 +36,13 @@ class ProOrchestratorTests(unittest.TestCase):
         path = folder / name
         path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
         return path
+
+    def test_read_json_reports_invalid_utf8_as_controlled_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "invalid.json"
+            path.write_bytes(b'{"broken":\xff}')
+            with self.assertRaisesRegex(SystemExit, "Cannot read JSON file"):
+                read_json(path)
 
     def test_builds_dua_plan_and_preserves_item_id(self):
         with tempfile.TemporaryDirectory() as tmp:
