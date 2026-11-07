@@ -64,6 +64,22 @@ class PreviewLedgerTests(unittest.TestCase):
             transition(self.path, "candidate-001", "delivered", 88)
         self.assertEqual(transition(self.path, "candidate-001", "delivered", 88, recovered_receipt=True)["telegram_message_id"], 88)
 
+    def test_ledger_rejects_unhashable_enum_values(self):
+        base = {
+            "candidate_id": "candidate-001", "content_type": "dua",
+            "manifest_sha256": "a" * 64, "video_sha256": "b" * 64,
+            "workflow_run_id": "run-1", "state": "reserved",
+            "created_at": "now", "updated_at": "now",
+            "telegram_message_id": None,
+        }
+        for field, invalid in (("content_type", []), ("content_type", {}),
+                               ("state", []), ("state", {})):
+            with self.subTest(field=field, invalid=invalid):
+                entry = dict(base)
+                entry[field] = invalid
+                with self.assertRaisesRegex(ValueError, "unsupported"):
+                    validate_ledger({"version": 1, "entries": {"candidate-001": entry}})
+
     def test_rejects_unsafe_candidate_id(self):
         with self.assertRaisesRegex(ValueError, "safe"):
             reserve(self.path, "../escape", "dua", "a"*64, "b"*64, "run")
