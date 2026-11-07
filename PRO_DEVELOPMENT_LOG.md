@@ -2684,3 +2684,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Decision: do not download, embed, or use OpenDua audio for Pro until written permission covering editing, video synchronization, private review delivery, public social posting, commercial/monetized use, and territories is obtained and recorded. The CC BY 4.0 dataset licence must not be misapplied to the recording.
 - This is a useful lead for locating exact dua wording and contextual metadata, but it does not remove the pending human exact-text/context review or the audio-rights gate. No manifest, rights record, render, Telegram send, or TikTok publication was created.
 - Next: continue seeking an exact recording with explicit reusable permission or obtain direct written permission; keep candidate-only and fail closed meanwhile.
+
+
+## 2026-11-07 — Reject IslamHouse audio for planned commercial/social reuse without permission
+
+- Checked the published disclaimer for the Hisnul Muslim audio site at https://audio.islamihouse.com/p/disclaimer.html.
+- The disclaimer says the site's content may be downloaded and used for personal use only, prohibits commercial use because some files have restrictions from publishers/reciters/production companies, and says RSS feeds require written permission for third-party app use.
+- Decision: this source is not cleared for the planned Pro workflow, which may later publish/monetize social videos. Do not download, embed, edit, or synchronize its audio unless the relevant rights holder provides explicit written permission covering the intended uses.
+- This is a useful negative rights finding, not an audio candidate. No file was downloaded; no rights record, manifest, render, Telegram send, or TikTok publication was created.
+- Together with the OpenDua review, this confirms that freely accessible Islamic audio is not automatically reusable. Continue seeking explicit item-level permissions or a genuinely commercial-compatible recording licence.
