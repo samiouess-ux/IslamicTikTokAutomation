@@ -2674,3 +2674,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - The reviewed WC-001 beach clip is a visual-only candidate, not an approved Pro rights-record asset; it cannot be used in a render/send. The Mixkit samples are also not cleared for this planned use.
 - Therefore no Telegram request was made and no test was sent. Do not bypass source verification, audio/visual rights, private destination verification, or Pro isolation. Next work: complete one exact candidate's source review and per-asset rights clearance, configure/verify separate Pro preview credentials through the intended secure repo settings (never expose secrets), implement and test the Pro-only preview workflow, render one candidate, then use the user's already stated one-time test-send authorization only if all gates pass.
 - TikTok auto-publishing remains disabled.
+
+
+## 2026-11-07 — Review OpenDua as a possible Pro audio/text source
+
+- Researched OpenDua / Ihsan Labs at the Human Development Fund as a possible source for a topic-specific dua preview.
+- OpenDua's official developer/licensing page states that its independently authored English, transliteration, editorial metadata and dataset structure are CC BY 4.0, but its recitation recordings are covered by a separate written agreement and are **not** offered under the dataset licence. The page's attribution string names Muhammad Jumah, but attribution alone is not a reuse licence.
+- Official sources checked: https://opendua.org/developers/ and https://opendua.org/; a representative entry also credits the collection Hisn al-Muslim and the reciter Muhammad Jumah: https://hdfund.org/resources/duas/visiting-the-sick-1/.
+- Decision: do not download, embed, or use OpenDua audio for Pro until written permission covering editing, video synchronization, private review delivery, public social posting, commercial/monetized use, and territories is obtained and recorded. The CC BY 4.0 dataset licence must not be misapplied to the recording.
+- This is a useful lead for locating exact dua wording and contextual metadata, but it does not remove the pending human exact-text/context review or the audio-rights gate. No manifest, rights record, render, Telegram send, or TikTok publication was created.
+- Next: continue seeking an exact recording with explicit reusable permission or obtain direct written permission; keep candidate-only and fail closed meanwhile.
