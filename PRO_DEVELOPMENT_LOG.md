@@ -2478,3 +2478,10 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - GitHub artifact upload was attempted in the prior run but failed because repository Actions artifact storage quota was exhausted. The workflow was changed to emit the small contact sheet into job logs instead; the successful run proves the new route works. No media file was persisted in the repo; the MP4 existed only in the ephemeral runner. Its hash and metadata are preserved in this log and candidate research note.
 - Updated `content/pro/CANDIDATE_RESEARCH_001.md` with the sample review. Candidate remains unapproved: no full-file review, creator/rights-owner evidence, per-asset rights JSON, or user rights approval. No manifest or renderer input created.
 - No current-HEAD safety test, video render, Telegram request/send, or TikTok publication occurred.
+
+
+## 2026-11-07 — Final MK-001 intake workflow verification
+
+- A subsequent push-triggered run `42410311973` completed with conclusion `success` on workflow commit `ebe3d7453b8f6501c1d79e51f77af893eb9618f6`, after the conditional ffmpeg-install optimization. It independently downloaded the same exact single candidate, probed the video, generated the contact sheet, and emitted it into job logs without relying on GitHub artifact storage.
+- The run independently reproduced the exact byte count (16,515,983) and SHA-256 (`9bbf623aa42493925e612659cf90a6e5a15762e22f0ba1f92c179265173fe27d`). The workflow is therefore reproducible for this one allowlisted item. The successful run did not persist the MP4 to the repository; only the reviewed contact sheet is stored at `content/pro/review_previews/MK-001-contact-sheet.jpg`.
+- Workflow currently remains review-only and single-item; no production manifest, media rights record, approval flag, render, Telegram send, or TikTok publication is enabled.
