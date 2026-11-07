@@ -2542,3 +2542,13 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Research lead WC-002: https://commons.wikimedia.org/wiki/File:Spring_Morning_looking_up_from_the_base_of_Dilworth_Mountain.webm. Search result reports 42 seconds, 1280x720, and CC0 dedication by the copyright holder; page description notes birdsong and traffic, so it may not be suitable for a clean silent background without audio removal and inspection. Not approved.
 - Other inspected sunrise videos on Commons were CC BY-SA 4.0 or CC BY 2.0, which introduce attribution/share-alike obligations and were not selected as first candidates. The exact file `Sunrise from mountains.webm` is only 478x850 and CC BY-SA 4.0; `Beauty of Sunrise.webm` is 1920x1080, 8 seconds, CC BY-SA 4.0, and its page identifies a Pexels source, so neither is preferred for the initial Pro test.
 - No media was downloaded, no visual inspection of the actual video bytes occurred, and no hash or rights record was created. This is source research only.
+
+
+## 2026-11-07 — Exact review of Wikimedia CC0 vertical sunrise candidate
+
+- Opened the exact Commons file page for WC-001: https://commons.wikimedia.org/wiki/File:Sunrise_Glow_Over_Surf_Beach_with_Pink_Horizon_and_Vibrant_Sand_Tones.webm.
+- The page identifies JaredMcKenzie as author, source as own work, date 29 March 2026, and explicitly states CC0 1.0 Universal Public Domain Dedication. It reports 26 seconds, 1080x1920 vertical, WebM VP9/Opus, 6.77 MB. This is a stronger candidate than the earlier Mixkit leads for Pro vertical output and commercial use.
+- The Commons page provides a direct original-file URL and structured metadata including duration, dimensions, file size, and a SHA-1 checksum. That SHA-1 is source metadata only; it is not a substitute for computing SHA-256 from the exact acquired bytes.
+- The exact media bytes could not be acquired in this session through the available runtime, so no actual playback/visual/audio inspection, file hash, or third-party review was completed. WC-001 remains a promising research lead only, not an approved asset.
+- Updated `content/pro/MEDIA_RIGHTS_POLICY.md` to permit Commons discovery through its documented MediaWiki API rather than HTML scraping, while preserving exact-page review, attribution/share-alike checks, actual-byte SHA-256, and third-party clearance gates.
+- No media file, rights record, manifest, runtime code, workflow, secret, Telegram configuration, render, or delivery was created or changed.
