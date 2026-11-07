@@ -2286,3 +2286,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Changed both target and hard maximum duration to 40 seconds. Updated the regression to accept exactly 40 seconds and reject 40.01 seconds with the hard-limit error.
 - The orchestrator imports the renderer's hard limit, so its preflight inherits the same 40-second ceiling.
 - Updated `src/render_dua_video.py`, `tests/test_render_dua_video.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
+
+
+### Repair 53: raise the Pro dua/dhikr duration ceiling to 45 seconds
+- User clarified that dua/dhikr may need a little more time, so the 40-second hard cap was too restrictive.
+- Raised both the target and hard maximum to 45 seconds. The renderer accepts exactly 45 seconds and rejects durations above 45 seconds; the orchestrator inherits the same shared hard limit.
+- Updated `src/render_dua_video.py`, `tests/test_render_dua_video.py`, and this log on `feature/quran-video-pro` only. Tests have not been executed; no render, workflow dispatch, Telegram request/send, TikTok publication, or secret change was performed.
