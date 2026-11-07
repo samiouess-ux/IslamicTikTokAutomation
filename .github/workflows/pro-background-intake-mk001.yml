@@ -1,0 +1,154 @@
+name: Pro single-asset background intake (MK-001)
+
+on:
+  push:
+    branches:
+      - feature/quran-video-pro
+    paths:
+      - ".github/workflows/pro-background-intake-mk001.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-background-intake-mk001
+  cancel-in-progress: false
+
+jobs:
+  inspect-one-listed-asset:
+    if: github.ref == 'refs/heads/feature/quran-video-pro'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Enforce isolated Pro branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/feature/quran-video-pro"
+
+      - name: Check out exact Pro branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/quran-video-pro
+          persist-credentials: false
+
+      - name: Install inspection tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check requests pillow
+
+      - name: Download exactly one explicitly listed candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, re
+          from pathlib import Path
+          from html import unescape
+          from urllib.parse import urlparse
+          import requests
+
+          page_url = "https://mixkit.co/free-stock-video/beautiful-sunrise-landscape-1944/"
+          license_url = "https://mixkit.co/license/modal/videoFree/"
+          terms_url = "https://mixkit.co/terms/"
+          headers = {"User-Agent": "Mozilla/5.0 (compatible; ProSingleAssetReview/1.0)"}
+
+          page = requests.get(page_url, headers=headers, timeout=45)
+          page.raise_for_status()
+          html = unescape(page.text).replace("\\/", "/")
+          if "Mixkit Stock Video Free License" not in html or "commercial or personal use" not in html:
+              raise SystemExit("Exact asset page no longer proves the commercial Free License; refusing download.")
+          matches = list(dict.fromkeys(re.findall(r'"contentUrl"\\s*:\\s*"([^"]+\\.mp4[^"]*)"', html)))
+          if not matches:
+              raise SystemExit("No direct MP4 was exposed for this exact asset page.")
+          selected = matches[0]
+          parsed = urlparse(selected)
+          if parsed.scheme != "https" or not parsed.hostname:
+              raise SystemExit("Candidate MP4 URL is not HTTPS.")
+          response = requests.get(selected, headers=headers, stream=True, timeout=(30, 120))
+          response.raise_for_status()
+          if not response.headers.get("content-type", "").lower().startswith("video/"):
+              raise SystemExit("Downloaded response is not reported as video content.")
+          out_dir = Path("pro_background_intake")
+          out_dir.mkdir(exist_ok=True)
+          target = out_dir / "MK-001-beautiful-sunrise-landscape.mp4"
+          digest = hashlib.sha256()
+          total = 0
+          with target.open("wb") as handle:
+              for chunk in response.iter_content(1024 * 1024):
+                  if chunk:
+                      total += len(chunk)
+                      if total > 80 * 1024 * 1024:
+                          raise SystemExit("Unexpectedly large file; refusing to retain it.")
+                      digest.update(chunk)
+                      handle.write(chunk)
+          if total < 100_000:
+              raise SystemExit(f"Downloaded file is unexpectedly small: {total} bytes.")
+          metadata = {
+              "asset_id": "MK-001",
+              "status": "candidate_only_not_approved",
+              "source_page_url": page_url,
+              "license_page_url": license_url,
+              "user_terms_url": terms_url,
+              "asset_page_license_text_present": True,
+              "downloaded_at_utc": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+              "download_url_host": parsed.hostname,
+              "content_type": response.headers.get("content-type"),
+              "bytes": total,
+              "sha256": digest.hexdigest(),
+              "approval": False,
+              "rights_record_created": False,
+              "note": "One individually listed candidate only. This intake does not establish third-party clearances or approve use."
+          }
+          (out_dir / "intake_metadata.json").write_text(json.dumps(metadata, indent=2) + "\\n", encoding="utf-8")
+          (out_dir / "source_and_license_urls.txt").write_text(
+              "\\n".join([page_url, license_url, terms_url]) + "\\n", encoding="utf-8"
+          )
+          print(json.dumps(metadata, indent=2))
+          PY
+
+      - name: Probe video and create visual contact sheet
+        shell: bash
+        run: |
+          set -euo pipefail
+          video="pro_background_intake/MK-001-beautiful-sunrise-landscape.mp4"
+          ffprobe -v error -show_entries format=duration,size:stream=codec_type,codec_name,width,height,r_frame_rate -of json "$video" | tee pro_background_intake/ffprobe.json
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          root = Path("pro_background_intake")
+          video = root / "MK-001-beautiful-sunrise-landscape.mp4"
+          info = json.loads((root / "ffprobe.json").read_text())
+          duration = float(info["format"]["duration"])
+          if duration <= 0:
+              raise SystemExit("Invalid video duration.")
+          times = [round(duration * x / 8, 2) for x in range(9)]
+          frames = []
+          for index, stamp in enumerate(times):
+              target = root / f"frame_{index+1:02d}.jpg"
+              subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                              "-ss", str(stamp), "-i", str(video), "-frames:v", "1",
+                              "-vf", "scale=480:-1", str(target)], check=True)
+              image = Image.open(target).convert("RGB")
+              frames.append((stamp, image.copy()))
+          width, height = 480, max(image.height for _, image in frames) + 36
+          sheet = Image.new("RGB", (width * 3, height * 3), "white")
+          draw = ImageDraw.Draw(sheet)
+          for index, (stamp, frame) in enumerate(frames):
+              x, y = (index % 3) * width, (index // 3) * height
+              sheet.paste(frame, (x, y + 30))
+              draw.text((x + 12, y + 8), f"{stamp:.2f}s", fill="black")
+          sheet.save(root / "contact_sheet.jpg", quality=90)
+          print(f"Created 9-frame contact sheet; duration={duration:.3f}s")
+          PY
+
+      - name: Upload review-only candidate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-background-intake-MK-001
+          path: pro_background_intake/
+          if-no-files-found: error
+          retention-days: 7
