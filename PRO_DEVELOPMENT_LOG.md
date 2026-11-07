@@ -1486,3 +1486,17 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Test commit: `ddb994ba2218466e3c217d6d200a089e02199a1d`; test blob: `685937e838567c28c480262fc807268e28bde7f8`.
 - Tests have NOT been run; the updated assertions are not a passing result. No workflow dispatch/rerun, render, Telegram request/send/upload, or TikTok publish occurred.
 - No changes to the original Quran engine, original Telegram bot/workflow, `main`, `feature/telegram-review-notifications`, secrets, Cron, or publishing settings.
+
+
+## 2026-11-07 — Static review: duration validation and audio boundary
+
+### Findings (review only; no code changes)
+- Confirmed the dedicated Pro renderer and the orchestrator's imported hard cap are both 65 seconds. The renderer test asserts 65 seconds and rejects a 66-second item; however, its test function name still says `test_duration_policy_enforces_the_40_second_cap`, which is stale naming only.
+- Found a duration-validation gap: Python `NaN` is a float and passes the current `value <= 0` checks; summing NaN then makes `total > 65` false. This affects the renderer item validator and both normal/preview orchestrator preflight paths. Positive infinity is rejected by the cap comparison, but NaN is not. Proposed safe hardening: explicitly require finite numeric durations (for example, `math.isfinite`) at each validation boundary, with regression tests for NaN and infinities.
+- Found an audio-boundary concern requiring a product decision: audio duration differences up to 0.75 seconds are accepted, but FFmpeg is still given `-t <video duration>`. Accepted longer audio is therefore cut at the video boundary; accepted shorter audio can end before the video, leaving a silent tail. This is not consistent with the function's stated refusal to pad or truncate. The exact acceptable tolerance should be decided before changing behavior; tests currently accept 9.0 seconds for a 9.5-second target and do not test both sides of the tolerance boundary.
+
+### Verification and safety
+- Re-fetched `src/render_dua_video.py`, `src/pro_orchestrator.py`, and `tests/test_render_dua_video.py` from `feature/quran-video-pro`. Current blob SHAs at review time: renderer `74b769e3309ea1ae8334701d5ec68e11ad1aaee7`; orchestrator `a76c75e72bdc030575652f9a76f105ee91865675`; tests `685937e838567c28c480262fc807268e28bde7f8`.
+- No source or test code was changed. No tests were run; no workflow dispatch/rerun, render, Telegram request/send/upload, or TikTok publish occurred.
+- Next safe code proposal, pending explicit approval: add finite-number checks and tests for NaN; separately agree an audio-duration policy and test short/long audio behavior before changing FFmpeg arguments.
+- No production branch, original Telegram bot/settings, secrets, Cron, `main`, `feature/telegram-review-notifications`, or original Quran engine was touched.
