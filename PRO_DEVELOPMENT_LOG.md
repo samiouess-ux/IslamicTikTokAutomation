@@ -2632,3 +2632,12 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Corrected the intake gate in commit `b0b4566d1739b982597da7ad3c54134b4fecd314`: retain the raw copyright flag for audit; accept recognized boolean values (true/false, yes/no, 1/0) when the separate exact CC0 name and canonical URL gates pass; continue to reject unknown non-boolean values. The separate Restrictions gate remains strict and rejects any non-empty value other than recognized false-like values. No general license relaxation or broad asset intake was introduced.
 - The Pro-only offline safety suite passed on the preceding diagnostic commit `1c296be5b2cd10a77342dfa45398bb2640409b5b` (run `42417436787`). The new correction push should trigger both the safety suite and the exact one-file WC-001 intake; their results are pending.
 - No video download, SHA-256, ffprobe, contact sheet, artifact, rights approval, render, Telegram send, or TikTok publication is claimed from the failed diagnostic run.
+
+
+## 2026-11-07 — Diagnose exact Commons creator/source metadata mismatch
+
+- Inspected the latest corrected intake run `42417577228` (job `128538881234`) on branch `feature/quran-video-pro`, commit `db4b0c51b724f838d3193d25af75d1b308b95cef`.
+- Branch isolation, exact-branch checkout, and inspection-tool installation passed. The metadata/download step stopped at the creator/source check. The log confirms `LicenseShortName=CC0`, the canonical CC0 deed URL, `Copyrighted=True`, and empty `Restrictions`; the creator/source mismatch prevented any file download. ffprobe, contact sheet, and artifact upload were skipped.
+- Updated the diagnostic output to include the exact raw `Artist` and `Source` API metadata values. The acceptance checks are unchanged; this is evidence collection only. The next push-triggered run must reveal the precise mismatch before any gate is changed.
+- The Pro offline safety run `42417577272` completed successfully on the correction commit. This does not validate or approve the media candidate.
+- No video download, SHA-256, ffprobe, contact sheet, artifact, rights record, media approval, render, Telegram send, or TikTok publication is claimed.
