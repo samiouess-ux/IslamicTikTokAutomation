@@ -2010,3 +2010,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - `src/persist_pro_ledger.py`: production ledger persistence now rejects a symlinked `data/` directory or symlinked ledger file before staging, matching the stricter preview-ledger persistence boundary.
 - Added offline regression tests for both symlink cases. This prevents a ledger-only Git operation from following an unexpected filesystem target.
 - Source, tests, and log committed on `feature/quran-video-pro` only. Tests were not executed here; no production render or Telegram send was performed.
+
+
+### Repair 17: verify production-ledger persistence against the remote branch
+- `src/persist_pro_ledger.py`: before staging, fetch the exact Pro branch and require local HEAD to match `origin/feature/quran-video-pro`. This prevents a stale local checkout from creating a ledger commit on top of outdated history.
+- After committing and pushing the ledger-only change, fetch again and verify local HEAD equals the remote-tracking HEAD. A successful push command alone is no longer treated as proof of remote persistence.
+- `tests/test_persist_pro_ledger.py`: added regression coverage for stale local HEAD rejection and post-push remote mismatch; updated the expected Git command sequence and retained the exact-path, symlink, and push-failure checks.
+- Verification: source and tests were committed to `feature/quran-video-pro` and are being refetched for content verification. Tests have not been executed; no passing result is claimed.
+- Safety: no workflow was dispatched, no render or Telegram request/send occurred, and no production branch, original Quran engine/bot, secrets, Cron, or TikTok publishing setting was touched.
