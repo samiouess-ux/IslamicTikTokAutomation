@@ -88,6 +88,20 @@ class ProTtsSpaceClientTests(unittest.TestCase):
         with self.assertRaisesRegex(ProTtsSchemaError, "HTTPS"):
             validate_human_review(text, record)
 
+    def test_review_gate_requires_timezone_aware_timestamp(self):
+        text = "دعاء"
+        record = approved_review(text)
+        record["reviewed_at"] = "2026-11-08T00:00:00"
+        with self.assertRaisesRegex(ProTtsSchemaError, "valid ISO-8601"):
+            validate_human_review(text, record)
+
+    def test_review_gate_rejects_source_url_with_credentials(self):
+        text = "دعاء"
+        record = approved_review(text)
+        record["source_url"] = "https://user:pass@sunnah.com/abudawud/43/302"
+        with self.assertRaisesRegex(ProTtsSchemaError, "HTTPS"):
+            validate_human_review(text, record)
+
     def test_validates_live_endpoint_contract(self):
         endpoint = validate_live_schema(fake_api_info())
         self.assertEqual(len(endpoint["parameters"]), 21)
