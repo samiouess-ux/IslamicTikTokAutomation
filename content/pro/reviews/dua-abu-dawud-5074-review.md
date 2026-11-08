@@ -13,10 +13,10 @@ This worksheet preserves the reported source wording for independent review. It 
 
 ## Primary-source references to compare
 1. Sunnah.com, Sunan Abi Dawud 5074: https://sunnah.com/abudawud/43/302
-2. Alifta portal (fully vocalized Arabic wording): https://www.alifta.gov.sa/
+2. Saudi General Presidency for Scholarly Research and Ifta (Alifta), Sunan Abi Dawud 5074 matn: https://sunna.alifta.gov.sa/BookToc/ViewMatnPage?bookId=3&mainId=95942
 3. Independent Arabic listing for cross-check only: https://mohaddis.com/View/Abu-Daud/T2/5074
 
-Do not treat a search snippet, secondary listing, or this worksheet as a substitute for opening and comparing the primary hadith source and its numbering edition. Record the exact Alifta page/article URL and precise reference after locating the relevant text; the portal homepage above is only a starting point, not a sufficient source citation.
+Do not treat a search snippet, secondary listing, or this worksheet as a substitute for opening and comparing the primary hadith source and its numbering edition. Open the exact Alifta matn page above and compare the full vocalized wording and narrator-variant note directly. Record the edition/reference and the reviewer's exact decision below; do not treat the page alone as pronunciation approval.
 
 ## Text for reviewer comparison — base wording reported by Sunnah.com
 
