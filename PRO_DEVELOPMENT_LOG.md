@@ -3046,3 +3046,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Confirmed the available GitHub connector has repository/file reads and workflow-run reads/reruns, but no Actions workflow-dispatch capability; its fetch endpoint is GET-only and cannot retrieve binary MP4 files. The connected interface also cannot inspect secret presence/values.
 - No MP4 was generated, no workflow was started, and no Telegram request was made. No production Quran branch, bot, Cron, or TikTok publishing was touched.
 - Do not mark the candidate approved or bypass pronunciation/media-rights gates to manufacture a delivery. The current tool boundary prevents me from completing the promised end-to-end render-and-send from this session; only report a Telegram delivery after a confirmed Telegram message ID exists.
+
+
+## 2026-11-08 — User confirms selected dua wording
+
+- User explicitly stated they personally checked the selected Abu Dawud 5074 wording and are satisfied with / rely on it.
+- Recorded this as the user's own wording confirmation in `content/pro/reviews/dua-abu-dawud-5074-review.md` (commit 8372ff86b120cced22eeff64697c7357636ba133).
+- This does not constitute an independent qualified Arabic pronunciation/diacritics review. The specialist-review fields remain blank; TTS/render/delivery hard stops remain active until the remaining review and media/credential gates are genuinely satisfied.
+- No TTS inference, audio/video render, Telegram send, production workflow, production bot, Cron, or TikTok publishing was performed or changed.
