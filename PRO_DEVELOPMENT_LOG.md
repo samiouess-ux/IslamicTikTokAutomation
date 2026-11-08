@@ -2968,3 +2968,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Confirmed in job log: full Pro offline safety test step passed; `test_pro_tts_space_client.py` ran 18 tests successfully, including rejection of NaN, positive/negative infinity, zero, negative, and boolean timeout values before client construction. Orchestrator suite: 16 passed; renderer suite: 9 passed.
 - Preceding implementation-only run `42431406565` also completed SUCCESS.
 - These are offline safety tests only. No hosted inference, audio generation/listening, video render, human hadith review, media approval, Telegram delivery, or TikTok publication occurred.
+
+
+### Candidate hadith review worksheet added — 2026-11-08
+
+- Added `content/pro/reviews/dua-abu-dawud-5074-review.md` on the Pro branch as a candidate-only worksheet for Sunan Abi Dawud 5074.
+- It records the reported base Arabic wording, flags the singular/plural `عَوْرَتِي` / `عَوْرَاتِي` wording variant explicitly, and separates source/grade comparison from diacritics and pronunciation review.
+- Reviewer fields are intentionally blank. The worksheet does not create an approved review record or manifest entry and does not authorize TTS, rendering, Telegram, or publication.
+- Commit adding worksheet: `b3ec6a3c61c103277635c1447a0ffc63264079ef`.
