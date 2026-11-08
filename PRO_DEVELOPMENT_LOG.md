@@ -2930,3 +2930,9 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added offline tests for exact-text hash binding, missing/unapproved review records, missing pronunciation review, and non-HTTPS source evidence. Updated mocked generation calls to supply a test-only review record. These fixtures are synthetic test data, not evidence that the actual hadith candidate has been reviewed.
 - GitHub Actions run `42431135692` on the intermediate code-only commit failed because the three pre-existing generation fixtures had not yet been updated to pass the new required keyword argument. The fixture updates were then committed; the latest full Pro safety run is `42431164497` on commit `5d78bc338c3a32185ede495d0e354539c745772d`, status was in progress at the time of this log entry. Do not report tests as passing until this exact run completes successfully.
 - No live TTS inference, GPU use, audio/video render, media download, Telegram send, production workflow, secret change, or production ledger/history change occurred. The actual hadith text still lacks a real independent human Arabic review and therefore remains blocked.
+
+
+### Verification update — 2026-11-08
+
+- The latest Pro offline safety workflow completed successfully: run `42431164497`, tested code commit `5d78bc338c3a32185ede495d0e354539c745772d`, all job steps successful, including `Run all Pro offline safety tests`.
+- This validates the offline test suite and the new TTS review-record gate against synthetic fixtures only. It does not certify the real hadith review, a generated audio sample, media rights, or a finished video.
