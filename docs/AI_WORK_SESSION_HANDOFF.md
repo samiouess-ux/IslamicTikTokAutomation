@@ -79,3 +79,30 @@ Candidate IDs at last inspection:
 4. If CI passes, report that CI validation passed, but do not claim production rotation or delivery is verified.
 5. For production confirmation, the owner must run the intended manual workflow. Then inspect its logs for the selected background and an explicit Telegram delivery confirmation.
 6. Keep the external cron untouched.
+
+
+## Follow-up verification (2026-11-08, after rotation fix)
+
+Checked the latest Actions runs on the branch:
+
+- `42513917877` — isolated request pipeline: completed successfully.
+- `42513917892` — Quran batch engine tests: completed successfully.
+- `42513917962` — inventory workflow on a push event: completed successfully. Its Telegram reservation/send/history steps were skipped as expected for a push event.
+- The passing test log explicitly includes `test_scheduled_rotation_uses_the_full_approved_background_count`.
+
+Current source inspection confirms:
+- `load_approved_backgrounds()` filters the catalog to explicitly approved, user-approved, download-verified Pexels MP4 entries.
+- The catalog currently has 11 candidates and all 11 satisfy those eligibility flags.
+- The scheduled rotation helper calculates modulo `background_count`, and the CLI passes `len(load_approved_backgrounds())`; there is no fixed `% 4` in that path.
+- The latest CI render log selected `pexels-sunset-sky-35477402`, reported `background_rotation_enabled: true`, and `background_rotation_start_index: 2`. This is render/CI evidence, not proof of a Telegram send.
+
+Latest known production Telegram send:
+- Run `42512967327` (manual `workflow_dispatch`, on older SHA `fa1550e7`) completed successfully and its log confirmed `Telegram confirmed delivery: message_id=66, size_mb=35.3`.
+- That production run predates the dynamic rotation fix, so it does not verify the new rotation behavior in a production-delivered video.
+
+### Remaining work
+
+1. The dynamic 11-background rotation code and tests are in place; the three latest CI runs passed.
+2. Still needed: owner-triggered production `workflow_dispatch` on the branch containing the rotation fix, then inspect the log for the actual chosen background and `Telegram confirmed delivery: message_id=...`. Do not trigger it on the owner's behalf.
+3. Keep the separate source-only background additions review-only until their visual/legibility review and explicit approval requirements are satisfied.
+4. External cron remains untouched.
