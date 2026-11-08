@@ -374,7 +374,7 @@ jobs:
           git add data/quran_delivery_pending.json
           git commit -m "Reserve Quran Telegram delivery attempt"
           git fetch origin feature/telegram-review-notifications
-          git rebase origin/feature/telegram-review-notifications
+          git -c rebase.autoStash=true rebase origin/feature/telegram-review-notifications
           git push origin HEAD:refs/heads/feature/telegram-review-notifications
 
       - name: Send one review-only video to Telegram for manual approval
@@ -450,7 +450,7 @@ jobs:
         if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.send_to_telegram == true))
         run: |
           git fetch origin feature/telegram-review-notifications
-          git rebase origin/feature/telegram-review-notifications
+          git -c rebase.autoStash=true rebase origin/feature/telegram-review-notifications
           git push origin HEAD:refs/heads/feature/telegram-review-notifications
 
       - name: Notify Telegram if video preparation or delivery fails
