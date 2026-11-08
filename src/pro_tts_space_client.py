@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import datetime
 from hashlib import sha256
+import math
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -171,7 +172,8 @@ def generate_spoken_dua_once(
 ) -> tuple[Path, str]:
     """Submit one text-review-bound spoken-dua job; never retry or call Quran text."""
     validate_human_review(text, review_record)
-    if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or timeout_seconds <= 0:
+    if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))
+            or not math.isfinite(timeout_seconds) or timeout_seconds <= 0):
         raise ValueError("A finite positive inference timeout is required.")
     if timeout_seconds > 180:
         raise ValueError("Inference timeout cannot exceed 180 seconds.")
