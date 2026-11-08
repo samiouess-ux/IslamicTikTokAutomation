@@ -2952,3 +2952,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Inspected the job log: `tests/test_pro_tts_space_client.py` ran 17 tests and passed, including the new timezone-aware timestamp and credential-bearing source URL rejection cases. The renderer suite ran 9 tests and passed; the Pro orchestrator suite ran 16 tests and passed.
 - The earlier hardening commit `0ff579e14cd1811e03f660502477a41b79e6e74a` also completed SUCCESS.
 - Scope remains unchanged: tests use synthetic review fixtures. No actual Arabic reviewer sign-off, hosted TTS inference, audio playback, video render, background approval, Telegram credentials or send, or TikTok publication exists. The candidate hadith remains blocked pending genuine independent review and media clearance.
+
+
+### TTS timeout validation hardening — 2026-11-08
+
+- A further code review found that the documented finite-positive timeout check did not explicitly reject IEEE NaN/infinity; NaN can evade ordinary less-than/greater-than comparisons.
+- Updated `generate_spoken_dua_once` to reject non-finite timeout values before constructing the hosted client, and added regression coverage for NaN, positive/negative infinity, zero, negative values, and booleans. The test asserts the client factory is never called for invalid values.
+- Code commit: `ba02cbbf47a2e27a8a24a82a8cafb62e4b81bb71`; associated workflow run `42431406565` was still in progress at log time. Test commit: `5db9ed586701d3e67dd8851fa547e062bf7ef951`; associated workflow run `42431415179` was queued. Do not claim these latest changes passed until the run for the test commit completes successfully.
+- No inference, audio/video generation, media download, Telegram send, or production-path action occurred.
