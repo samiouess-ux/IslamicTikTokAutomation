@@ -2,6 +2,7 @@
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from PIL import Image
 from src.prepare_background_review_previews import build_contact_sheet, composite_overlay_preview, prepare
@@ -60,6 +61,38 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
             self.assertEqual(report["unresolved_count"], 8)
             self.assertFalse(report["production_enabled"])
             self.assertIsNone(report["contact_sheet"])
+
+    def test_failed_probe_removes_downloaded_clip_and_partial_preview(self):
+        catalog = {
+            "candidates": [{
+                "id": "candidate-probe-failure",
+                "description": "Test candidate",
+                "creator": "Test",
+                "source_page_url": "https://www.pexels.com/video/test/",
+                "license": "Pexels License",
+                "direct_video_url": "https://videos.pexels.com/video-files/test.mp4",
+                "approved": False,
+                "user_approved": False,
+                "download_verified": False,
+            }]
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            catalog_path = root / "catalog.json"
+            output = root / "output"
+            catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
+
+            def fake_download(_url, destination):
+                destination.write_bytes(b"not-a-real-video")
+                return 16
+
+            with patch("src.prepare_background_review_previews.download_candidate", side_effect=fake_download), \\
+                 patch("src.prepare_background_review_previews.probe_video", side_effect=RuntimeError("ffprobe failed")):
+                with self.assertRaisesRegex(RuntimeError, "candidate-probe-failure"):
+                    prepare(catalog_path, output)
+
+            self.assertFalse((output / "candidate-probe-failure.mp4").exists())
+            self.assertFalse((output / "candidate-probe-failure_vertical_crop.jpg").exists())
 
     def test_prepare_rejects_approved_candidate_without_explicit_user_approval(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
