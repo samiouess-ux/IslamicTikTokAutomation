@@ -2,6 +2,15 @@ name: Review staged Quran video backgrounds
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/telegram-review-notifications
+    paths:
+      - ".github/workflows/review-background-candidates.yml"
+      - "data/background_additions_review.json"
+      - "src/prepare_background_review_previews.py"
+      - "tests/test_background_additions_review.py"
+      - "tests/test_prepare_background_review_previews.py"
 
 permissions:
   contents: read
