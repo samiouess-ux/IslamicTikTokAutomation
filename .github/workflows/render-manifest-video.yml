@@ -74,7 +74,7 @@ jobs:
           if 'Amiri' not in family or 'Bold' not in style or not path.endswith(('.ttf', '.otf')):
               raise SystemExit('Required Amiri Bold font is unavailable; refusing to render with a fallback font.')
           PY
-          pip install pillow
+          pip install pillow remotezip
           python --version
           ffmpeg -version | head -n 1
 
