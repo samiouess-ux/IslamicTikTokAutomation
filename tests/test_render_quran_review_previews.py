@@ -15,6 +15,19 @@ from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_l
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
+    def test_scheduled_rotation_uses_the_full_approved_background_count(self):
+        from datetime import datetime, timezone
+        for count in (4, 11, 16, 27):
+            index = renderer.scheduled_background_rotation_index(
+                datetime(2026, 11, 8, 18, 0, tzinfo=timezone.utc), count
+            )
+            self.assertGreaterEqual(index, 0)
+            self.assertLess(index, count)
+        with self.assertRaisesRegex(ValueError, "At least one approved background"):
+            renderer.scheduled_background_rotation_index(
+                datetime(2026, 11, 8, tzinfo=timezone.utc), 0
+            )
+
     def test_arabic_layout_keeps_every_word_and_fits_compact_block(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
