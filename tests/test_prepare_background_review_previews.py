@@ -86,10 +86,10 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
                 destination.write_bytes(b"not-a-real-video")
                 return 16
 
-            with patch("src.prepare_background_review_previews.download_candidate", side_effect=fake_download), \\
-                 patch("src.prepare_background_review_previews.probe_video", side_effect=RuntimeError("ffprobe failed")):
-                with self.assertRaisesRegex(RuntimeError, "candidate-probe-failure"):
-                    prepare(catalog_path, output)
+            with patch("src.prepare_background_review_previews.download_candidate", side_effect=fake_download):
+                with patch("src.prepare_background_review_previews.probe_video", side_effect=RuntimeError("ffprobe failed")):
+                    with self.assertRaisesRegex(RuntimeError, "candidate-probe-failure"):
+                        prepare(catalog_path, output)
 
             self.assertFalse((output / "candidate-probe-failure.mp4").exists())
             self.assertFalse((output / "candidate-probe-failure_vertical_crop.jpg").exists())
