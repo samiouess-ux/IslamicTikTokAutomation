@@ -54,3 +54,11 @@ Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded 
 - Updated `src/prepare_background_review_previews.py` in commit `964900cfe3d55e0fd108cf6dfbece0245eda444c`: the bounded per-file ceiling is now 1 GiB, the error reports the candidate ID, and partial files are deleted on download failure. The bound remains finite; no download-size protection was removed.
 - The source-only unit-test fixture is correctly isolated and all four relevant unit-test groups passed in run 373. The next CI run must establish whether each real MP4 downloads within the new cap, passes ffprobe, creates a 9:16 crop, and supports the Quran-overlay contact sheet.
 - No new background has been enabled. The original four approved backgrounds remain unchanged; all eight additions remain review-only and require explicit user approval before activation.
+
+
+## Workflow correction and checkpoint — 2026-11-08
+- Commit `ad4b383deddbc3964c8e5ab0819da5425f4a50ea` updates `.github/workflows/review-background-candidates.yml` to test and process `data/background_additions_review.json` (the eight Islamic/Arabic additions), rather than the unrelated six-item nature batch.
+- The workflow runs the catalog and preview safety tests, then downloads the seven staged Pexels clips under the existing finite 1 GiB per-file limit, probes them with `ffprobe`, extracts vertical 9:16 crops, and uploads a review-only artifact. The Pixabay item remains unresolved because it has no verified direct media URL.
+- Important correction: this workflow invocation does **not** pass an actual Quran overlay frame to the preview script. It therefore produces background-only crop previews, not Quran-overlay legibility composites. The older note above describing a later workflow change that adds Quran-overlay composition is not true for this commit and must not be treated as completed.
+- The workflow remains manual (`workflow_dispatch`). It has not been run from this commit, so no download, probe, crop, or artifact success is claimed.
+- Production remains untouched: all eight additions are still unapproved and disabled; the four existing approved backgrounds are unchanged.
