@@ -15,6 +15,7 @@ from pro_tts_space_client import (
     extract_single_audio_result,
     generate_spoken_dua_once,
     validate_live_schema,
+    validate_human_review,
 )
 
 
@@ -46,7 +47,47 @@ def fake_api_info():
     }}
 
 
+def approved_review(text):
+    import hashlib
+    return {
+        "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "decision": "approved",
+        "exact_text_checked": True,
+        "pronunciation_checked": True,
+        "reviewer": "Independent Arabic reviewer",
+        "source_url": "https://sunnah.com/abudawud/43/302",
+        "source_reference": "Sunan Abi Dawud 5074",
+        "reviewed_at": "2026-11-08T00:00:00+00:00",
+    }
+
+
 class ProTtsSpaceClientTests(unittest.TestCase):
+    def test_review_record_is_bound_to_exact_arabic_text(self):
+        text = "اللَّهُمَّ اغْفِرْ لِي"
+        validate_human_review(text, approved_review(text))
+        with self.assertRaisesRegex(ProTtsSchemaError, "exact Arabic text"):
+            validate_human_review(text + " ", approved_review(text))
+
+    def test_review_gate_rejects_missing_or_unapproved_record(self):
+        text = "دعاء"
+        with self.assertRaisesRegex(ProTtsSchemaError, "required"):
+            validate_human_review(text, None)
+        record = approved_review(text)
+        record["decision"] = "candidate"
+        with self.assertRaisesRegex(ProTtsSchemaError, "must be approved"):
+            validate_human_review(text, record)
+
+    def test_review_gate_requires_pronunciation_and_source_evidence(self):
+        text = "دعاء"
+        record = approved_review(text)
+        record["pronunciation_checked"] = False
+        with self.assertRaisesRegex(ProTtsSchemaError, "diacritics and pronunciation"):
+            validate_human_review(text, record)
+        record = approved_review(text)
+        record["source_url"] = "http://sunnah.com/abudawud/43/302"
+        with self.assertRaisesRegex(ProTtsSchemaError, "HTTPS"):
+            validate_human_review(text, record)
+
     def test_validates_live_endpoint_contract(self):
         endpoint = validate_live_schema(fake_api_info())
         self.assertEqual(len(endpoint["parameters"]), 21)
@@ -199,6 +240,7 @@ class ProTtsSpaceClientTests(unittest.TestCase):
                 generate_spoken_dua_once(
                     text="دعاء",
                     caption="Neutral spoken dua narration.",
+                    review_record=approved_review("دعاء"),
                     output_dir=Path(tmp),
                     client_factory=factory,
                 )
@@ -227,6 +269,7 @@ class ProTtsSpaceClientTests(unittest.TestCase):
                 generate_spoken_dua_once(
                     text="دعاء",
                     caption="Neutral spoken dua narration.",
+                    review_record=approved_review("دعاء"),
                     output_dir=Path(tmp),
                     client_factory=FakeClient,
                 )
