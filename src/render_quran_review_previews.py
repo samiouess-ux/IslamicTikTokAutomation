@@ -629,6 +629,14 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
     return result
 
 
+def scheduled_background_rotation_index(now: datetime, background_count: int) -> int:
+    """Choose a daily slot across every approved background, regardless of catalog size."""
+    if background_count < 1:
+        raise ValueError("At least one approved background is required.")
+    slot = {3: 0, 11: 1, 17: 2}.get(now.hour, now.hour % 3)
+    return (int(now.strftime("%j")) * 3 + slot) % background_count
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch", type=Path, required=True)
@@ -642,9 +650,9 @@ def main() -> None:
     rotation_index = args.background_rotation_index
     if rotation_index is None:
         now = datetime.now(timezone.utc)
-        slot = {3: 0, 11: 1, 17: 2}.get(now.hour, now.hour % 3)
-        approved_background_count = len(load_approved_backgrounds())
-        rotation_index = (int(now.strftime("%j")) * 3 + slot) % approved_background_count
+        rotation_index = scheduled_background_rotation_index(
+            now, len(load_approved_backgrounds())
+        )
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
                             minimum_previews=args.minimum_previews,
                             background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
