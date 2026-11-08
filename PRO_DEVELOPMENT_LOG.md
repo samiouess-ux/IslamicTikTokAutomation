@@ -2976,3 +2976,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - It records the reported base Arabic wording, flags the singular/plural `عَوْرَتِي` / `عَوْرَاتِي` wording variant explicitly, and separates source/grade comparison from diacritics and pronunciation review.
 - Reviewer fields are intentionally blank. The worksheet does not create an approved review record or manifest entry and does not authorize TTS, rendering, Telegram, or publication.
 - Commit adding worksheet: `b3ec6a3c61c103277635c1447a0ffc63264079ef`.
+
+
+### Fast continuation audit — 2026-11-08
+
+- Re-read the current candidate worksheet, Pro preview delivery-cycle preflight, and the latest log. The branch ref currently resolves to `b29ffc6d15cc55b06912dcc63de8cd051e766431`; the log blob fetched immediately before this append was `f0965c13adb2247b5b309ba908de5c93a6fea7ad`. Work remains confined to `feature/quran-video-pro`.
+- Confirmed the Abu Dawud 5074 worksheet is still explicitly candidate-only and all human-review fields remain blank. The exact narration/variant, diacritics, qualified pronunciation, and grading still need a real reviewer decision. Synthetic unit-test records are not a substitute.
+- Rechecked preview preflight: it validates the manifest/video locations, candidate ID and filename, size, media-rights record, and private-chat credentials. This is only a delivery safety gate; it does not itself establish that the hadith text has been human-reviewed or that a rendered video exists. No approved manifest or preview MP4 was present in the reviewed evidence.
+- Decision unchanged: do not invoke TTS, render, or send a Telegram test yet. First obtain genuine human Arabic review and resolve audio/background rights and user approval; separately configure the dedicated Pro private-chat credentials. No production bot, production branch, or TikTok publishing path was touched. No workflow was started in this continuation.
