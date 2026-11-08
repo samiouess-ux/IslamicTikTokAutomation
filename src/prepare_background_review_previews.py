@@ -128,11 +128,13 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
         preview_path = output_dir / f'{candidate["id"]}_vertical_crop.jpg'
         try:
             byte_count = download_candidate(url, video_path)
+            metadata = probe_video(video_path)
+            extract_vertical_crop(video_path, preview_path, metadata["duration_seconds"])
         except Exception as exc:
+            # A failed probe or crop must not leave a misleading partial review package.
             video_path.unlink(missing_ok=True)
-            raise RuntimeError(f"Failed to download review candidate {candidate['id']}: {exc}") from exc
-        metadata = probe_video(video_path)
-        extract_vertical_crop(video_path, preview_path, metadata["duration_seconds"])
+            preview_path.unlink(missing_ok=True)
+            raise RuntimeError(f"Failed to prepare review candidate {candidate['id']}: {exc}") from exc
         items.append({
             "id": candidate["id"],
             "description": candidate["description"],
