@@ -5,9 +5,12 @@ submit inference requests and must never be used for Quran recitation.
 """
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
+from datetime import datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 SPACE_ID = "sherif1313/3arab-TTS-VoiceDesign-v2"
 API_NAME = "/gradio_inference"
@@ -39,7 +42,45 @@ AUDIO_OUTPUT_SLOTS = 32
 
 
 class ProTtsSchemaError(ValueError):
-    """Raised when the live Space API no longer matches the reviewed contract."""
+    """Raised when the live Space API or review record violates the contract."""
+
+
+def validate_human_review(text: str, review_record: Mapping[str, Any] | None) -> None:
+    """Bind an explicit human text/pronunciation decision to the exact UTF-8 input."""
+    if not isinstance(text, str) or not text.strip():
+        raise ProTtsSchemaError("Reviewed spoken-dua text must be non-empty.")
+    if not isinstance(review_record, Mapping):
+        raise ProTtsSchemaError("A human review record is required before TTS inference.")
+    digest = sha256(text.encode("utf-8")).hexdigest()
+    if review_record.get("text_sha256") != digest:
+        raise ProTtsSchemaError("Human review record does not match the exact Arabic text.")
+    if review_record.get("decision") != "approved":
+        raise ProTtsSchemaError("Human review decision must be approved before TTS inference.")
+    if review_record.get("exact_text_checked") is not True:
+        raise ProTtsSchemaError("Human reviewer must confirm exact source-text comparison.")
+    if review_record.get("pronunciation_checked") is not True:
+        raise ProTtsSchemaError("Human reviewer must confirm Arabic diacritics and pronunciation.")
+    reviewer = review_record.get("reviewer")
+    if not isinstance(reviewer, str) or not reviewer.strip():
+        raise ProTtsSchemaError("Human review record must identify its reviewer.")
+    source_url = review_record.get("source_url")
+    try:
+        parsed = urlsplit(source_url) if isinstance(source_url, str) else None
+        valid_url = parsed is not None and parsed.scheme == "https" and bool(parsed.hostname)
+    except ValueError:
+        valid_url = False
+    if not valid_url:
+        raise ProTtsSchemaError("Human review record must include the exact HTTPS religious source URL.")
+    reference = review_record.get("source_reference")
+    if not isinstance(reference, str) or not reference.strip():
+        raise ProTtsSchemaError("Human review record must include the exact source reference.")
+    reviewed_at = review_record.get("reviewed_at")
+    if not isinstance(reviewed_at, str) or not reviewed_at.strip():
+        raise ProTtsSchemaError("Human review record must include an ISO-8601 review timestamp.")
+    try:
+        datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise ProTtsSchemaError("Human review timestamp must be valid ISO-8601.") from exc
 
 
 def _endpoint_info(api_info: Mapping[str, Any]) -> Mapping[str, Any]:
@@ -120,11 +161,13 @@ def generate_spoken_dua_once(
     *,
     text: str,
     caption: str,
+    review_record: Mapping[str, Any] | None,
     output_dir: Path,
     timeout_seconds: float = 150.0,
     client_factory: Any = None,
 ) -> tuple[Path, str]:
-    """Submit one reviewed spoken-dua job; never retry or call Quran-recitation text."""
+    """Submit one text-review-bound spoken-dua job; never retry or call Quran text."""
+    validate_human_review(text, review_record)
     if isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float)) or timeout_seconds <= 0:
         raise ValueError("A finite positive inference timeout is required.")
     if timeout_seconds > 180:
