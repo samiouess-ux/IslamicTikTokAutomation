@@ -199,6 +199,7 @@ class ProTtsSpaceClientTests(unittest.TestCase):
             path, log = generate_spoken_dua_once(
                 text="اللَّهُمَّ اغْفِرْ لِي",
                 caption="Neutral spoken dua narration; not Quran recitation; no imitation.",
+                review_record=approved_review("اللَّهُمَّ اغْفِرْ لِي"),
                 output_dir=output_dir,
                 timeout_seconds=90,
                 client_factory=factory,
