@@ -125,6 +125,7 @@ jobs:
           from pathlib import Path
           from urllib.request import Request, urlopen
           import hashlib
+          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           expected_sha256 = 'dfbbd1f3fc3fd36bf54b970dcdf64cbb48065fe4d89b5c7b4aa24df049bcb777'
           target = Path('build/cache/kfgqpc-ayat-12-1-2020.zip')
           target.parent.mkdir(parents=True, exist_ok=True)
