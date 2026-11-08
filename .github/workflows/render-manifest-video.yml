@@ -74,7 +74,7 @@ jobs:
           if 'Amiri' not in family or 'Bold' not in style or not path.endswith(('.ttf', '.otf')):
               raise SystemExit('Required Amiri Bold font is unavailable; refusing to render with a fallback font.')
           PY
-          pip install remotezip pillow
+          pip install pillow
           python --version
           ffmpeg -version | head -n 1
 
@@ -118,20 +118,47 @@ jobs:
             python src/validate_quran_text.py --manifest "$manifest"
           fi
 
+      - name: Download and verify complete KFGQPC audio archive
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          import hashlib
+          expected_sha256 = 'dfbbd1f3fc3fd36bf54b970dcdf64cbb48065fe4d89b5c7b4aa24df049bcb777'
+          target = Path('build/cache/kfgqpc-ayat-12-1-2020.zip')
+          target.parent.mkdir(parents=True, exist_ok=True)
+          digest, total = hashlib.sha256(), 0
+          request = Request(url, headers={'User-Agent': 'QuranVideoBuilder/1.0'})
+          with urlopen(request, timeout=90) as response, target.open('wb') as output:
+              while True:
+                  chunk = response.read(8 * 1024 * 1024)
+                  if not chunk: break
+                  total += len(chunk)
+                  if total > 900 * 1024 * 1024: raise RuntimeError('Archive exceeded 900 MiB safety limit.')
+                  digest.update(chunk)
+                  output.write(chunk)
+          actual = digest.hexdigest()
+          print(f'Downloaded {total} bytes; SHA-256={actual}')
+          if actual != expected_sha256:
+              target.unlink(missing_ok=True)
+              raise SystemExit('Archive SHA-256 mismatch; refusing to extract unverified audio.')
+          print('KFGQPC archive checksum verified.')
+          PY
+
       - name: Prepare review-only Ash-Sharh candidate audio and per-verse timing
         if: steps.selection.outputs.manifest == 'content/second_video_ash_sharh_94_1_8_draft.json'
         shell: bash
         run: |
           python - <<'PY'
-          from remotezip import RemoteZip
+          from zipfile import ZipFile
           from pathlib import Path
           import json, subprocess
 
-          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           work = Path('build/audio/processed')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
-          with RemoteZip(url) as archive:
+          with ZipFile('build/cache/kfgqpc-ayat-12-1-2020.zip') as archive:
               names = archive.namelist()
               for verse in range(1, 9):
                   suffix = f'10-094{verse:03d}-A08.mp3'
@@ -168,14 +195,13 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          from remotezip import RemoteZip
+          from zipfile import ZipFile
           from pathlib import Path
           import subprocess
 
-          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           out = Path('output/al_ikhlas_audio_review')
           out.mkdir(parents=True, exist_ok=True)
-          with RemoteZip(url) as archive:
+          with ZipFile('build/cache/kfgqpc-ayat-12-1-2020.zip') as archive:
               names = archive.namelist()
               for verse in range(1, 5):
                   suffix = f'10-112{verse:03d}-A08.mp3'
@@ -198,14 +224,13 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          from remotezip import RemoteZip
+          from zipfile import ZipFile
           from pathlib import Path
           import json, subprocess
-          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           work = Path('build/audio')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
-          with RemoteZip(url) as archive:
+          with ZipFile('build/cache/kfgqpc-ayat-12-1-2020.zip') as archive:
               names = archive.namelist()
               for verse in (5, 6):
                   suffix = '10-094%03d-A08.mp3' % verse
