@@ -66,7 +66,8 @@ def validate_human_review(text: str, review_record: Mapping[str, Any] | None) ->
     source_url = review_record.get("source_url")
     try:
         parsed = urlsplit(source_url) if isinstance(source_url, str) else None
-        valid_url = parsed is not None and parsed.scheme == "https" and bool(parsed.hostname)
+        valid_url = (parsed is not None and parsed.scheme == "https" and bool(parsed.hostname)
+                     and parsed.username is None and parsed.password is None)
     except ValueError:
         valid_url = False
     if not valid_url:
@@ -78,7 +79,9 @@ def validate_human_review(text: str, review_record: Mapping[str, Any] | None) ->
     if not isinstance(reviewed_at, str) or not reviewed_at.strip():
         raise ProTtsSchemaError("Human review record must include an ISO-8601 review timestamp.")
     try:
-        datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
+        parsed_time = datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
+        if parsed_time.tzinfo is None or parsed_time.utcoffset() is None:
+            raise ValueError("review timestamp must include a timezone")
     except ValueError as exc:
         raise ProTtsSchemaError("Human review timestamp must be valid ISO-8601.") from exc
 
