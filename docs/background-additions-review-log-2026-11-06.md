@@ -62,3 +62,9 @@ Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded 
 - Important correction: this workflow invocation does **not** pass an actual Quran overlay frame to the preview script. It therefore produces background-only crop previews, not Quran-overlay legibility composites. The older note above describing a later workflow change that adds Quran-overlay composition is not true for this commit and must not be treated as completed.
 - The workflow remains manual (`workflow_dispatch`). It has not been run from this commit, so no download, probe, crop, or artifact success is claimed.
 - Production remains untouched: all eight additions are still unapproved and disabled; the four existing approved backgrounds are unchanged.
+
+
+## Regression-test hardening — 2026-11-08
+- Commit `24b078295dce6f7168cec5b27ee7bc771ac83f69` strengthens `tests/test_background_additions_review.py`: each of the seven resolved media URLs must use the official Pexels video host, and the original four approved background IDs must match the exact protected set.
+- This is test-only hardening. It does not change either background catalog, download media, approve candidates, or activate production assets.
+- The review workflow is still manual and no run from the latest workflow commit has been confirmed. The seven MP4s remain unverified until a real workflow run completes download, ffprobe, and preview generation.
