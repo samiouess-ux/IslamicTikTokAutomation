@@ -3,7 +3,7 @@
   "purpose": "User-approved background assets awaiting integration into the production rotation; this catalog is not itself the active render catalog.",
   "license_source": "https://help.pexels.com/hc/en-us/articles/360042295174-What-is-the-license-of-the-photos-and-videos-on-Pexels",
   "license_summary": "Pexels states its uploaded photos/videos use the Pexels License and may be used free for personal and commercial purposes without attribution. Recheck the current license and clip page before downloading or enabling each asset.",
-  "activation_policy": "The original four candidates passed download/ffprobe verification and received explicit user visual approval on 2026-11-01. Seven additional Pexels candidates received explicit user visual approval on 2026-11-08 after reviewing the Quran-overlay contact sheet; their review-workflow download/ffprobe checks passed. All eleven are approved for production integration, but none of the new seven is active until renderer integration and render/legibility tests pass.",
+  "activation_policy": "The original four candidates and seven additional Pexels candidates were explicitly visually approved by the user (the seven new candidates on 2026-11-08). All eleven have passed download/ffprobe verification and are approved for production integration. No candidate is active in the renderer until integration and render/legibility tests pass. The Pixabay candidate remains unapproved and disabled because no direct video URL is verified.",
   "candidates": [
     {
       "id": "pexels-ocean-shore-35036280",
