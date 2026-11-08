@@ -13,7 +13,12 @@ on:
       - "content/second_video_ash_sharh_94_1_8_draft.json"
       - "data/reference/surah_ash_sharh_94_1_8_approved.json"
       - "tests/test_background_additions_review.py"
+      - "tests/test_background_candidates.py"
+      - "tests/test_background_rotation.py"
       - "tests/test_prepare_background_review_previews.py"
+      - "src/background_rotation.py"
+      - "src/render_video_scenes.py"
+      - ".github/workflows/render-manifest-video.yml"
 
 permissions:
   contents: write
@@ -38,7 +43,10 @@ jobs:
       - name: Test Islamic background catalog and preview safeguards
         run: |
           python -m unittest discover -s tests -p 'test_background_additions_review.py' -v
+          python -m unittest discover -s tests -p 'test_background_candidates.py' -v
+          python -m unittest discover -s tests -p 'test_background_rotation.py' -v
           python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
+          python -m py_compile src/background_rotation.py src/render_video_scenes.py
       - name: Render a genuine Quran overlay from the approved verse source
         run: |
           mkdir -p output/background_additions_review
