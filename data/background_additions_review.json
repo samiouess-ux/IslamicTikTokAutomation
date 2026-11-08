@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "New Islamic and Arabic architectural video background leads for review. Separate from the existing four approved backgrounds; not production-enabled.",
-  "activation_policy": "No candidate is active. Seven Pexels candidates were downloaded and ffprobe-verified in the review workflow only; the Pixabay candidate remains source-page-only because no direct video URL is verified. Review verification does not approve or production-enable any candidate. All candidates remain unapproved and disabled pending explicit user visual approval.",
+  "activation_policy": "Seven Pexels candidates were explicitly visually approved by the user on 2026-11-08 after reviewing the Quran-overlay contact sheet. Their review-workflow download/ffprobe checks passed. They are approved for production integration but are not active in the renderer until integration and render/legibility tests pass. The Pixabay candidate remains unapproved and disabled because no direct video URL is verified.",
   "candidates": [
     {
       "id": "pexels-islamic-dome-geometric-40564360",
@@ -15,8 +15,10 @@
       "duration_seconds": 10,
       "direct_video_url": "https://videos.pexels.com/video-files/40564360/17335023_2160_3840_60fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     },
     {
       "id": "pexels-modern-mosque-interior-35417846",
@@ -30,8 +32,10 @@
       "duration_seconds": 14,
       "direct_video_url": "https://videos.pexels.com/video-files/35417846/15005883_4320_7680_30fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     },
     {
       "id": "pexels-historic-mosque-stained-glass-30733250",
@@ -45,8 +49,10 @@
       "duration_seconds": 24,
       "direct_video_url": "https://videos.pexels.com/video-files/30733250/13147570_1080_1920_30fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     },
     {
       "id": "pixabay-chain-dome-rock-131292",
@@ -75,8 +81,10 @@
       "duration_seconds": 7,
       "direct_video_url": "https://videos.pexels.com/video-files/19819594/19819594-hd_1920_1080_50fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     },
     {
       "id": "pexels-illuminated-mosque-night-34928699",
@@ -90,8 +98,10 @@
       "duration_seconds": null,
       "direct_video_url": "https://videos.pexels.com/video-files/34928699/14795106_2160_3840_25fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     },
     {
       "id": "pexels-moroccan-courtyard-tiles-34527220",
@@ -105,8 +115,10 @@
       "duration_seconds": 9,
       "direct_video_url": "https://videos.pexels.com/video-files/34527220/14628540_1080_1920_30fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     },
     {
       "id": "pexels-moroccan-courtyard-decor-32719926",
@@ -120,8 +132,10 @@
       "duration_seconds": 6,
       "direct_video_url": "https://videos.pexels.com/video-files/32719926/13948792_3840_2160_30fps.mp4",
       "download_verified": false,
-      "approved": false,
-      "user_approved": false
+      "approved": true,
+      "user_approved": true,
+      "approval_date": "2026-11-08",
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
     }
   ]
 }
