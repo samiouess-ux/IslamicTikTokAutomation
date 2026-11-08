@@ -132,5 +132,8 @@
       "production_enabled": false,
       "user_approved": false
     }
-  ]
+  ],
+  "quran_overlay_contact_sheet": "output/background_additions_review/background_quran_overlay_contact_sheet.jpg",
+  "quran_overlay_frame_source": "output/background_additions_review/quran_overlay_ash_sharh_94_5.png",
+  "overlay_legibility_review_required": true
 }
