@@ -22,9 +22,9 @@
       "duration_seconds": 10.878,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     },
     {
       "id": "pexels-modern-mosque-interior-35417846",
@@ -38,9 +38,9 @@
       "duration_seconds": 15.167,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     },
     {
       "id": "pexels-historic-mosque-stained-glass-30733250",
@@ -54,9 +54,9 @@
       "duration_seconds": 24.567,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     },
     {
       "id": "pixabay-chain-dome-rock-131292",
@@ -80,9 +80,9 @@
       "duration_seconds": 7.253,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     },
     {
       "id": "pexels-illuminated-mosque-night-34928699",
@@ -96,9 +96,9 @@
       "duration_seconds": 5.4,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     },
     {
       "id": "pexels-moroccan-courtyard-tiles-34527220",
@@ -112,9 +112,9 @@
       "duration_seconds": 9.233,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     },
     {
       "id": "pexels-moroccan-courtyard-decor-32719926",
@@ -128,9 +128,9 @@
       "duration_seconds": 6.74,
       "video_codec": "h264",
       "download_probe_verified": true,
-      "visual_approval": false,
+      "visual_approval": true,
       "production_enabled": false,
-      "user_approved": false
+      "user_approved": true
     }
   ],
   "quran_overlay_contact_sheet": "output/background_additions_review/background_quran_overlay_contact_sheet.jpg",
