@@ -15,6 +15,7 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
         resolved = [item for item in catalog["candidates"] if item["direct_video_url"]]
         unresolved = [item for item in catalog["candidates"] if not item["direct_video_url"]]
         self.assertEqual(len(resolved), 7)
+        self.assertTrue(all(item["direct_video_url"].startswith("https://videos.pexels.com/") for item in resolved))
         self.assertEqual(len(unresolved), 1)
         self.assertEqual(unresolved[0]["id"], "pixabay-chain-dome-rock-131292")
         for item in catalog["candidates"]:
@@ -27,6 +28,15 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
         self.assertEqual(len(catalog["candidates"]), 4)
         self.assertTrue(all(item["user_approved"] and item["download_verified"] for item in catalog["candidates"]))
+        self.assertEqual(
+            {item["id"] for item in catalog["candidates"]},
+            {
+                "pexels-ocean-shore-35036280",
+                "pexels-mountain-lake-37675265",
+                "pexels-sunset-sky-35477402",
+                "pexels-mountain-bridge-5903759",
+            },
+        )
 
 
 if __name__ == "__main__":
