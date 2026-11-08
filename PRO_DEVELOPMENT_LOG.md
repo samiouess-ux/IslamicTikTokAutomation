@@ -2984,3 +2984,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Confirmed the Abu Dawud 5074 worksheet is still explicitly candidate-only and all human-review fields remain blank. The exact narration/variant, diacritics, qualified pronunciation, and grading still need a real reviewer decision. Synthetic unit-test records are not a substitute.
 - Rechecked preview preflight: it validates the manifest/video locations, candidate ID and filename, size, media-rights record, and private-chat credentials. This is only a delivery safety gate; it does not itself establish that the hadith text has been human-reviewed or that a rendered video exists. No approved manifest or preview MP4 was present in the reviewed evidence.
 - Decision unchanged: do not invoke TTS, render, or send a Telegram test yet. First obtain genuine human Arabic review and resolve audio/background rights and user approval; separately configure the dedicated Pro private-chat credentials. No production bot, production branch, or TikTok publishing path was touched. No workflow was started in this continuation.
+
+
+### Source-reference correction — 2026-11-08
+
+- Updated `content/pro/reviews/dua-abu-dawud-5074-review.md` to replace the Alifta portal homepage with the exact Alifta hadith-matn page for Sunan Abi Dawud 5074: https://sunna.alifta.gov.sa/BookToc/ViewMatnPage?bookId=3&mainId=95942.
+- Clarified that the exact page must be compared directly for full vocalized wording and the narrator variant, and that this textual source is not pronunciation approval.
+- Worksheet commit: `5dfe517d6840c811b049b28f46add7d2a6fac262`.
+- This is a source-reference/documentation correction only. Human-review fields remain blank; no TTS inference, audio/video render, media approval, Telegram send, or TikTok publication occurred. No production branch or bot was changed.
