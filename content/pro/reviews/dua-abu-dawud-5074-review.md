@@ -21,10 +21,10 @@ Do not treat a search snippet, secondary listing, or this worksheet as a substit
 ## Text for reviewer comparison — base wording reported by Sunnah.com
 
 ```arabic
-اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَتِي، وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي.
+اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي.
 ```
 
-**Variant requiring an explicit decision:** the report also records Uthman's wording `عَوْرَاتِي` in place of `عَوْرَتِي`. Do not silently merge variants or choose one without documenting the exact edition/source wording and reviewer decision. Preserve `وَآمِنْ رَوْعَاتِي` as a separate following phrase.
+**Variant choice recorded from the user:** use the plural Uthman wording `عَوْرَاتِي`, followed by `وَآمِنْ رَوْعَاتِي`. The user explicitly selected this wording in chat. This records a content preference only; it is not a qualified Arabic pronunciation review, diacritics sign-off, or independent hadith-edition approval.
 
 ## Authenticity / grading check
 - Sunnah.com edition labels the report Sahih (Al-Albani); independently open and record the exact grading text and authority from the source edition.
@@ -53,3 +53,9 @@ Until the human-review fields are completed by a real reviewer and the decision 
 - do not send anything to Telegram or publish to TikTok.
 
 Media rights and user approval for the exact audio and background remain separate mandatory gates even after text review.
+
+
+## User wording preference — 2026-11-08
+- User selected `عَوْرَاتِي` (the plural wording attributed to Uthman in the cited narration) instead of `عَوْرَتِي`.
+- Apply this variant in the candidate script, preserving the following phrase `وَآمِنْ رَوْعَاتِي`.
+- This selection is not represented as expert review or approval of the complete vocalized text/pronunciation. The human-review fields above remain blank and the TTS/render hard stop remains active.
