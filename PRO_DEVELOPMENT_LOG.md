@@ -2936,3 +2936,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 
 - The latest Pro offline safety workflow completed successfully: run `42431164497`, tested code commit `5d78bc338c3a32185ede495d0e354539c745772d`, all job steps successful, including `Run all Pro offline safety tests`.
 - This validates the offline test suite and the new TTS review-record gate against synthetic fixtures only. It does not certify the real hadith review, a generated audio sample, media rights, or a finished video.
+
+
+### Review-record hardening follow-up — 2026-11-08
+
+- Tightened `validate_human_review` further: review timestamps must now include an explicit timezone, and source URLs containing embedded username/password credentials are rejected.
+- Added offline regression tests for naive timestamps and credential-bearing HTTPS URLs.
+- Workflow run `42431295486` (code commit `0ff579e14cd1811e03f660502477a41b79e6e74a`) was still running when checked; run `42431300654` (latest code commit `cece8e4f373eb711f01dd5ceaf8178c21ad69e80`) was queued. Do not treat these additional hardening tests as passed until the latest run completes successfully.
+- These records remain synthetic test fixtures. They do not represent actual review or approval of Sunan Abi Dawud 5074, and no TTS inference or media generation was performed.
