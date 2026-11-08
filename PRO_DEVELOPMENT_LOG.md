@@ -2960,3 +2960,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated `generate_spoken_dua_once` to reject non-finite timeout values before constructing the hosted client, and added regression coverage for NaN, positive/negative infinity, zero, negative values, and booleans. The test asserts the client factory is never called for invalid values.
 - Code commit: `ba02cbbf47a2e27a8a24a82a8cafb62e4b81bb71`; associated workflow run `42431406565` was still in progress at log time. Test commit: `5db9ed586701d3e67dd8851fa547e062bf7ef951`; associated workflow run `42431415179` was queued. Do not claim these latest changes passed until the run for the test commit completes successfully.
 - No inference, audio/video generation, media download, Telegram send, or production-path action occurred.
+
+
+### Finite-timeout regression verification — 2026-11-08
+
+- Latest workflow run `42431415179` completed SUCCESS on code/test commit `5db9ed586701d3e67dd8851fa547e062bf7ef951`.
+- Confirmed in job log: full Pro offline safety test step passed; `test_pro_tts_space_client.py` ran 18 tests successfully, including rejection of NaN, positive/negative infinity, zero, negative, and boolean timeout values before client construction. Orchestrator suite: 16 passed; renderer suite: 9 passed.
+- Preceding implementation-only run `42431406565` also completed SUCCESS.
+- These are offline safety tests only. No hosted inference, audio generation/listening, video render, human hadith review, media approval, Telegram delivery, or TikTok publication occurred.
