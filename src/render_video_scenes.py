@@ -216,6 +216,8 @@ def main() -> None:
             args.background_rotation_key,
             args.recent_background_id,
         )
+        selected_background = dict(selected_background)
+        selected_background["source_url"] = selected_background["source_page_url"]
         data["visual"]["background_candidate"] = selected_background
         data["visual"].pop("approved_background_url", None)
         print(f"Selected approved background: {selected_background['id']}")
