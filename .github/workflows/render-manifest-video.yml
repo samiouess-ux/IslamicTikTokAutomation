@@ -30,9 +30,24 @@ on:
         default: true
         type: boolean
       rotation_key:
-        description: Stable key for deterministic selection
+        description: Stable key for deterministic manifest selection
         required: false
         default: manual-review
+        type: string
+      use_background_rotation:
+        description: Rotate through the eleven visually approved and verified backgrounds
+        required: false
+        default: true
+        type: boolean
+      recent_background_ids:
+        description: Newline-separated background IDs used recently (avoid repeats)
+        required: false
+        default: ''
+        type: string
+      background_rotation_key:
+        description: Unique key for this video; defaults to the GitHub run ID
+        required: false
+        default: ''
         type: string
 
 permissions:
@@ -230,12 +245,24 @@ jobs:
           PY
       - name: Render video and caption for review
         shell: bash
+        env:
+          USE_BACKGROUND_ROTATION: ${{ inputs.use_background_rotation }}
+          RECENT_BACKGROUND_IDS: ${{ inputs.recent_background_ids }}
+          BACKGROUND_ROTATION_KEY: ${{ inputs.background_rotation_key }}
         run: |
           manifest='${{ steps.selection.outputs.manifest }}'
           if [ "$manifest" = 'content/second_video_ash_sharh_94_1_8_draft.json' ]; then manifest='build/manifest_for_render.json'; fi
           if [ "$manifest" = 'content/first_video.json' ]; then manifest='build/first_video_manifest.json'; fi
           if [ "$manifest" = 'content/candidate_surah_al_ikhlas_112_1_4.json' ]; then echo 'Audio-probe-only run; video render intentionally skipped until audio and visual approvals.'; exit 0; fi
-          python src/render_video_scenes.py --manifest "$manifest" --output output/review.mp4
+          args=(--manifest "$manifest" --output output/review.mp4)
+          if [ "$USE_BACKGROUND_ROTATION" = "true" ]; then
+            key="${BACKGROUND_ROTATION_KEY:-run-${GITHUB_RUN_ID}}"
+            args+=(--background-rotation --background-rotation-key "$key")
+            while IFS= read -r item; do
+              [ -n "$item" ] && args+=(--recent-background-id "$item")
+            done <<< "$RECENT_BACKGROUND_IDS"
+          fi
+          python src/render_video_scenes.py "${args[@]}"
 
       - name: Verify rendered MP4 technical quality
         if: steps.selection.outputs.manifest != 'content/candidate_surah_al_ikhlas_112_1_4.json'
