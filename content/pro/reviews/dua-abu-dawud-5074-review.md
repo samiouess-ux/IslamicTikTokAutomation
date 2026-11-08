@@ -59,3 +59,9 @@ Media rights and user approval for the exact audio and background remain separat
 - User selected `عَوْرَاتِي` (the plural wording attributed to Uthman in the cited narration) instead of `عَوْرَتِي`.
 - Apply this variant in the candidate script, preserving the following phrase `وَآمِنْ رَوْعَاتِي`.
 - This selection is not represented as expert review or approval of the complete vocalized text/pronunciation. The human-review fields above remain blank and the TTS/render hard stop remains active.
+
+
+## User confirmation — 2026-11-08
+- User states they personally checked the wording and are satisfied with it / rely on this version.
+- This is recorded as the user's own text confirmation. It does not identify a qualified Arabic reviewer, document an independent pronunciation/diacritics check, or complete the specialist-review fields above.
+- Keep the selected plural wording `عَوْرَاتِي` followed by `وَآمِنْ رَوْعَاتِي` unchanged. Do not represent specialist review as completed.
