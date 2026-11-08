@@ -315,8 +315,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/background_review/background_review_report.json").read_text(encoding="utf-8"))
-          if report["candidate_count"] != 4 or report["production_enabled"] is not False or report["user_approval_required"] is not True:
-              raise SystemExit("Background review package must contain four disabled candidates.")
+          if report["candidate_count"] != 11 or report["production_enabled"] is not False or report["user_approval_required"] is not True:
+              raise SystemExit("Background review package must contain all eleven disabled candidates.")
           if not all(item["download_probe_verified"] and item["user_approved"] is True for item in report["items"]):
               raise SystemExit("A candidate download/probe check failed or the recorded user approval is missing.")
           if report.get("overlay_legibility_review_required") is not True or not Path(report.get("quran_overlay_contact_sheet", "")).is_file():
