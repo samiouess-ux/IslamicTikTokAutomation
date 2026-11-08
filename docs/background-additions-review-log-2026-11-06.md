@@ -68,3 +68,10 @@ Run `42197745790`, commit `b16c5e032c01a168651bd2d724d04ee7fc92f6fa`, concluded 
 - Commit `24b078295dce6f7168cec5b27ee7bc771ac83f69` strengthens `tests/test_background_additions_review.py`: each of the seven resolved media URLs must use the official Pexels video host, and the original four approved background IDs must match the exact protected set.
 - This is test-only hardening. It does not change either background catalog, download media, approve candidates, or activate production assets.
 - The review workflow is still manual and no run from the latest workflow commit has been confirmed. The seven MP4s remain unverified until a real workflow run completes download, ffprobe, and preview generation.
+
+
+## Failed preview cleanup hardening — 2026-11-08
+- Commit `63811b7fdcf34eea1a8c4a0c226a64d1338d7a63` changes the review preparation path so any failure during download, ffprobe, or vertical-crop extraction removes both the downloaded MP4 and any partial crop for that candidate before raising a candidate-specific error.
+- Commit `4eb7539ac67938b334b57533e5921f19de394adf` adds a regression test for cleanup after an ffprobe failure. The test context was corrected in commit `74b222b0ac2297a8a9fe1d1eba1ae01115a423a3` to use nested mocks cleanly.
+- This is review-pipeline safety only. No catalog flags, approved backgrounds, or production behavior were changed.
+- GitHub Actions showed an unrelated Quran audio inventory run queued for commit `4eb7539`; it is not the manual Islamic-background review workflow and does not validate these changes. The background review workflow remains unrun.
