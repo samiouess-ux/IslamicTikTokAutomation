@@ -201,11 +201,25 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", default="output/review.mp4")
+    parser.add_argument("--background-rotation", action="store_true", help="Select from the approved background catalog.")
+    parser.add_argument("--background-rotation-key", default="manual-review")
+    parser.add_argument("--recent-background-id", action="append", default=[])
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     validate_content_manifest(data)
+    if args.background_rotation:
+        from background_rotation import select_background
+        selected_background = select_background(
+            Path("data/background_candidates.json"),
+            args.background_rotation_key,
+            args.recent_background_id,
+        )
+        data["visual"]["background_candidate"] = selected_background
+        data["visual"].pop("approved_background_url", None)
+        print(f"Selected approved background: {selected_background['id']}")
+        validate_content_manifest(data)
     if data.get("content_type", "quran") != "quran":
         raise SystemExit("This renderer currently renders Quran manifests only; dua/dhikr rendering is being added separately.")
     source, audio, visual = data["source"], data["audio"], data["visual"]
