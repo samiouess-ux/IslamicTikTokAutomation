@@ -2999,3 +2999,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Pro safety workflow run `42431805868` completed SUCCESS on worksheet commit `5dfe517d6840c811b049b28f46add7d2a6fac262`.
 - Confirmed the exact Pro-branch guard, checkout, and full offline safety-test step all succeeded. The log output shows the test suites completed successfully, including 16 Pro orchestrator tests, 18 TTS-client tests, and 9 dua-renderer tests; all remaining configured Pro suites also completed without failures.
 - This validates code/safety regressions only. It does not constitute human review of the hadith, hosted TTS inference, audio listening, background approval, video rendering, or Telegram delivery. The candidate remains blocked at those real-world gates.
+
+
+### User-selected wording variant recorded — 2026-11-08
+
+- User explicitly chose the plural wording `عَوْرَاتِي` rather than `عَوْرَتِي` for the Sunan Abi Dawud 5074 candidate; the phrase `وَآمِنْ رَوْعَاتِي` remains immediately after it.
+- Updated `content/pro/reviews/dua-abu-dawud-5074-review.md` to reflect this choice in the candidate text and distinguish the user's content preference from qualified Arabic review.
+- Worksheet update commit: `00484b00235e0a6116de71c2304f8e04ff9ac417`.
+- This is not a human pronunciation/tashkeel sign-off. Reviewer identity, exact-text comparison, diacritics check, pronunciation check, and decision fields remain blank. TTS/render/delivery hard stops remain in force; no inference or media generation was performed.
