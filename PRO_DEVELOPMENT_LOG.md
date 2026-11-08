@@ -2944,3 +2944,11 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Added offline regression tests for naive timestamps and credential-bearing HTTPS URLs.
 - Workflow run `42431295486` (code commit `0ff579e14cd1811e03f660502477a41b79e6e74a`) was still running when checked; run `42431300654` (latest code commit `cece8e4f373eb711f01dd5ceaf8178c21ad69e80`) was queued. Do not treat these additional hardening tests as passed until the latest run completes successfully.
 - These records remain synthetic test fixtures. They do not represent actual review or approval of Sunan Abi Dawud 5074, and no TTS inference or media generation was performed.
+
+
+### Verification update — 2026-11-08 (review-record hardening)
+
+- Latest offline safety workflow run `42431300654` completed with conclusion SUCCESS on code commit `cece8e4f373eb711f01dd5ceaf8178c21ad69e80`; the job's branch guard and full offline safety test step both succeeded.
+- Inspected the job log: `tests/test_pro_tts_space_client.py` ran 17 tests and passed, including the new timezone-aware timestamp and credential-bearing source URL rejection cases. The renderer suite ran 9 tests and passed; the Pro orchestrator suite ran 16 tests and passed.
+- The earlier hardening commit `0ff579e14cd1811e03f660502477a41b79e6e74a` also completed SUCCESS.
+- Scope remains unchanged: tests use synthetic review fixtures. No actual Arabic reviewer sign-off, hosted TTS inference, audio playback, video render, background approval, Telegram credentials or send, or TikTok publication exists. The candidate hadith remains blocked pending genuine independent review and media clearance.
