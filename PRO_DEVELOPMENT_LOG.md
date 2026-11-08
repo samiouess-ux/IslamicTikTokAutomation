@@ -3007,3 +3007,16 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Updated `content/pro/reviews/dua-abu-dawud-5074-review.md` to reflect this choice in the candidate text and distinguish the user's content preference from qualified Arabic review.
 - Worksheet update commit: `00484b00235e0a6116de71c2304f8e04ff9ac417`.
 - This is not a human pronunciation/tashkeel sign-off. Reviewer identity, exact-text comparison, diacritics check, pronunciation check, and decision fields remain blank. TTS/render/delivery hard stops remain in force; no inference or media generation was performed.
+
+
+
+## 2026-11-08 — User instruction: stop waiting for the user to source the MP4; continue toward direct Telegram review
+
+- The user explicitly reiterated that the assistant is responsible for obtaining/producing the MP4 and sending the test directly to Telegram; the user should not be asked to source the MP4 or repeat prior approval.
+- Treat the existing one-time authorization for a private Pro review test as granted. Do not ask again for permission to send the first eligible preview. This does not authorize public posting, TikTok publishing, production workflow changes, or unsafe use of production secrets.
+- Current branch HEAD at the start of this entry: `fced4d09699488c0457a1c13b6d6a2d3ede07209`. Work remains restricted to `feature/quran-video-pro`.
+- Re-audited the current renderer, Pro orchestrator, preview sender, candidate worksheet, and manual safety workflow. The renderer and isolated Telegram sender exist, but the repository still has no approved candidate manifest, no generated `PREVIEW-ONLY-*.mp4`, and no configured/verified dedicated Pro Telegram bot/chat values. The Abu Dawud 5074 worksheet is candidate-only; its qualified pronunciation review and media rights gates remain incomplete.
+- Important execution limitation: the available GitHub connector exposes workflow/run reads and failed-job reruns, but no workflow-dispatch action. It also cannot fetch binary MP4 files. No MP4 was generated or sent during this audit; do not describe this log update as a test delivery.
+- Immediate development priority is now the shortest safe path to a real preview artifact: prepare a source- and rights-cleared candidate and a Pro-only render workflow that can produce an MP4 artifact; then connect the isolated one-time Telegram send path without touching the Quran production branch, production bot configuration, Cron, or TikTok publishing. Do not keep adding unrelated offline tests while the first real preview path remains unimplemented.
+- The user must not be asked to upload or obtain the MP4. If an essential external credential or genuine specialist review is still unavailable, state that specific blocker plainly rather than shifting the sourcing/rendering work back to the user.
+- No code, workflow, manifest, secret, production branch, Cron, or Telegram setting was changed in this entry. No render or Telegram request occurred.
