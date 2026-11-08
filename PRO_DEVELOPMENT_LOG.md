@@ -3020,3 +3020,20 @@ The strict gate should bind each rights record to the exact media file SHA-256 a
 - Immediate development priority is now the shortest safe path to a real preview artifact: prepare a source- and rights-cleared candidate and a Pro-only render workflow that can produce an MP4 artifact; then connect the isolated one-time Telegram send path without touching the Quran production branch, production bot configuration, Cron, or TikTok publishing. Do not keep adding unrelated offline tests while the first real preview path remains unimplemented.
 - The user must not be asked to upload or obtain the MP4. If an essential external credential or genuine specialist review is still unavailable, state that specific blocker plainly rather than shifting the sourcing/rendering work back to the user.
 - No code, workflow, manifest, secret, production branch, Cron, or Telegram setting was changed in this entry. No render or Telegram request occurred.
+
+## 2026-11-08 — Immediate delivery-path audit (after user's instruction to continue without involving them)
+
+### Verified blockers
+- The existing `.github/workflows/render-first-video.yml` is an Ash-Sharh Quran prototype, not a Dua & Adhkar Pro workflow. Its job condition explicitly excludes `refs/heads/feature/quran-video-pro`; it cannot produce the requested Pro video on this branch.
+- The Pro renderer and isolated Telegram sender exist, but there is no end-to-end Pro workflow in `.github/workflows` that invokes them.
+- The only currently documented dua candidate, Sunan Abi Dawud 5074, remains a worksheet, not a manifest. Its own review record explicitly blocks TTS, rendering, and Telegram delivery until qualified Arabic pronunciation and source review are recorded. The user's choice of the plural wording is retained, but is not represented as qualified pronunciation review.
+- The sender requires the dedicated `PRO_PREVIEW_TG_BOT_TOKEN` and `PRO_PREVIEW_TELEGRAM_CHAT_ID` environment secrets. Their presence/value cannot be inspected through the available GitHub read interface; no claim is made that they are configured.
+- Available GitHub integration exposes workflow read/rerun actions but no workflow-dispatch action. No new run or Telegram send was initiated.
+
+### Actions in this audit
+- Read the workflow directory and inspected the existing prototype, Pro renderer, orchestrator, candidate worksheet, README, and Telegram sender on `feature/quran-video-pro`.
+- No Quran production branch, production bot, Cron, TikTok publishing, or secrets were changed.
+- No MP4 was rendered or delivered in this audit.
+
+### Next safe action
+- Do not repurpose the Quran prototype or bypass the candidate's human-review and exact-media-rights gates. Complete a real Pro candidate review and wire the Pro-only render-to-Telegram workflow; delivery is only complete after Telegram returns a confirmed message ID.
