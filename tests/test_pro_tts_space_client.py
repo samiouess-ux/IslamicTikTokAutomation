@@ -225,6 +225,27 @@ class ProTtsSpaceClientTests(unittest.TestCase):
             self.assertEqual(holder["client"].kwargs["max_workers"], 1)
             self.assertEqual(holder["client"].payload["num_candidates"], 1)
 
+    def test_generate_rejects_non_finite_or_non_positive_timeout_before_client(self):
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as tmp:
+            for value in (float("nan"), float("inf"), float("-inf"), 0, -1, True):
+                factory_called = False
+                def factory(**kwargs):
+                    nonlocal factory_called
+                    factory_called = True
+                    raise AssertionError("client must not be constructed")
+                with self.subTest(timeout=value):
+                    with self.assertRaisesRegex(ValueError, "finite positive"):
+                        generate_spoken_dua_once(
+                            text="دعاء",
+                            caption="Neutral spoken dua narration.",
+                            review_record=approved_review("دعاء"),
+                            output_dir=Path(tmp),
+                            timeout_seconds=value,
+                            client_factory=factory,
+                        )
+                    self.assertFalse(factory_called)
+
     def test_generate_timeout_is_not_retried(self):
         from tempfile import TemporaryDirectory
 
