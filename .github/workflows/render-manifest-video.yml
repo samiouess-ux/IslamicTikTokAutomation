@@ -127,7 +127,7 @@ jobs:
           from pathlib import Path
           import json, subprocess
 
-          url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
+          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           work = Path('build/audio/processed')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
@@ -172,7 +172,7 @@ jobs:
           from pathlib import Path
           import subprocess
 
-          url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
+          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           out = Path('output/al_ikhlas_audio_review')
           out.mkdir(parents=True, exist_ok=True)
           with RemoteZip(url) as archive:
@@ -201,7 +201,7 @@ jobs:
           from remotezip import RemoteZip
           from pathlib import Path
           import json, subprocess
-          url = 'https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip'
+          url = 'https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip'
           work = Path('build/audio')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
