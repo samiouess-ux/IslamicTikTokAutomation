@@ -643,7 +643,8 @@ def main() -> None:
     if rotation_index is None:
         now = datetime.now(timezone.utc)
         slot = {3: 0, 11: 1, 17: 2}.get(now.hour, now.hour % 3)
-        rotation_index = (int(now.strftime("%j")) * 3 + slot) % 4
+        approved_background_count = len(load_approved_backgrounds())
+        rotation_index = (int(now.strftime("%j")) * 3 + slot) % approved_background_count
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
                             minimum_previews=args.minimum_previews,
                             background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
