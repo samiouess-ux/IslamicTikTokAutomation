@@ -122,3 +122,23 @@ Safety boundary:
 - No renderer, workflow, Telegram, cron, background catalog, or production setting was changed in this checkpoint.
 - No tests or production render were run; no commit/push has been made for the visual feature itself.
 - Do not invent the four cover styles or implement guessed alternatives. Resume by recovering the exact four user-selected references from the earlier project conversation/assets. Once recovered, implement only the cover layer, preserve the original template as the fallback, add tests for rotation and exact Arabic title/range rendering, and inspect a review-only artifact before any production use.
+
+
+## Four opening-cover references recovered (2026-11-09)
+
+The exact user-selected four-cover contact sheet has now been recovered from the conversation assets: `Sélection de cartes islamiques élégantes.png` (1199x1312 RGB). It contains, in a 2x2 grid:
+
+1. Night sky / blue mosque scene.
+2. Royal emerald / Islamic arch scene.
+3. Dark green-black marble with gold veining.
+4. Dawn light / mountain lake scene.
+
+Important implementation finding from direct image inspection:
+- Each quadrant is a composed poster, not a clean background plate. Each already contains the fixed Arabic title `سورة البقرة`, fixed range `الآيات 1 - 4`, circular medallion, and a numbered style label above it.
+- The four quadrants must not be used unchanged for arbitrary surahs/ranges: doing so would show incorrect embedded text underneath/alongside the dynamic title and range.
+- The 2x2 source sheet must be split with the white divider excluded; each cell is approximately 580x635 and is not itself a 9:16 asset.
+- A safe next implementation step is to create clean, text-free 9:16 background plates from the four designs (preserving decorative frame/lanterns/mushaf while clearing embedded title/range/number labels), inspect those assets visually, then wire a deterministic per-preview cover rotation into `make_intro_frame`. Do not overlay new dynamic text over the existing baked-in text.
+
+Renderer call path reconfirmed: `render()` invokes `make_intro_frame()` only for the first segment, and FFmpeg displays that still only for `lt(t,0.6)`; audio maps directly from the original ayah stream and starts at t=0. Preserve this behavior. Existing original template remains the fallback.
+
+No production renderer, workflow, Telegram, cron, or background code was changed in this follow-up. The four references are recovered and visually inspected, but clean text-free plates and feature implementation remain outstanding.
