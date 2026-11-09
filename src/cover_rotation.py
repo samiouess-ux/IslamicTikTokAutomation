@@ -59,11 +59,11 @@ def choose_cover(
         asset_path = item.get("asset_path")
         if not isinstance(cover_id, str) or not cover_id or cover_id in seen:
             continue
-        seen.add(cover_id)
         if item.get("approved") is not True or not isinstance(asset_path, str):
             continue
         if not Path(asset_path).is_file():
             continue
+        seen.add(cover_id)
         eligible.append(dict(item))
 
     original = next((item for item in eligible if item["id"] == original_cover_id), None)
@@ -97,6 +97,13 @@ def choose_cover(
         previous_id = state.get("last_cover_id")
         previous = next((item for item in eligible if item["id"] == previous_id), None)
         if previous is not None:
+            assignments[video_key] = previous["id"]
+            _atomic_write(Path(state_path), {
+                "schema_version": 1,
+                "last_cover_id": state.get("last_cover_id"),
+                "last_video_key": state.get("last_video_key"),
+                "video_assignments": assignments,
+            })
             return previous
 
     previous_id = state.get("last_cover_id")
