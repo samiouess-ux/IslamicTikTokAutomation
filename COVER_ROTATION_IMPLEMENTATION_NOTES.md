@@ -52,3 +52,6 @@ Production code and the production branch remain untouched.
 
 - Follow-up review found and fixed a rotation fairness bug: the selector previously chose the first eligible cover other than the last one, which could leave later designs unused. It now advances cyclically through the full approved catalog and wraps to the original after the final variant.
 - Updated the rotation test to assert that all catalog entries are visited in order before wrapping, with no consecutive repeat. Tests are authored but still require execution in the repository runtime/CI.
+
+- Added a bounded per-video assignment history (latest 500 video keys), so a delayed retry of an earlier video reuses its original cover even after later videos have advanced the rotation. If that assigned asset is no longer eligible, the selector fails closed rather than silently changing the cover for the same video.
+- Added a delayed-retry regression test. The isolated GitHub Actions workflow ran the expanded test command successfully on commit 9c4ff6a843de8f13075369cd9da5e0fe3fa2592d; the workflow job was still completing its post-run cleanup when last checked.
