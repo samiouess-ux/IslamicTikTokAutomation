@@ -43,6 +43,15 @@ class CoverRotationTests(unittest.TestCase):
             retry = choose_cover(catalog, state, "video-1")
             self.assertEqual(first["id"], retry["id"])
 
+    def test_delayed_retry_keeps_original_cover_after_later_videos(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog, state = self._setup(Path(tmp))
+            first = choose_cover(catalog, state, "video-1")
+            choose_cover(catalog, state, "video-2")
+            choose_cover(catalog, state, "video-3")
+            delayed_retry = choose_cover(catalog, state, "video-1")
+            self.assertEqual(first["id"], delayed_retry["id"])
+
     def test_state_survives_a_new_process_instance(self):
         with tempfile.TemporaryDirectory() as tmp:
             catalog, state = self._setup(Path(tmp))
