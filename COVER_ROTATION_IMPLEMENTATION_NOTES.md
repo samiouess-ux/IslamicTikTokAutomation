@@ -49,3 +49,6 @@ Production code and the production branch remain untouched.
 - The current renderer passes the same approved moving-background frame as an argument, but `make_intro_frame` does not use that argument; the original cover asset remains the actual background.
 - The current intro visibility is explicitly limited to 0.6 seconds, while the recitation audio is mapped from time zero. These settings are recorded for protection only and must not be changed as part of cover artwork work.
 - This audit establishes text placement and technical constraints, not the visual appearance of the original PNG. No replacement artwork has been generated or approved, and the original asset has not been changed.
+
+- Follow-up review found and fixed a rotation fairness bug: the selector previously chose the first eligible cover other than the last one, which could leave later designs unused. It now advances cyclically through the full approved catalog and wraps to the original after the final variant.
+- Updated the rotation test to assert that all catalog entries are visited in order before wrapping, with no consecutive repeat. Tests are authored but still require execution in the repository runtime/CI.
