@@ -40,3 +40,12 @@ This is an isolated implementation note. No production renderer, scheduler, or d
 4. Run the new tests and a regression render, then ask for approval before wiring the selector into production.
 
 Production code and the production branch remain untouched.
+
+
+## Renderer geometry audit (code inspection only)
+- The existing opening-cover function reads the immutable PNG asset directly and fits it to 1080x1920; the source asset itself is not edited.
+- The surah title is centered at (540, 918), uses Arabic RAQM shaping, and is fitted to the available title width.
+- The ayah range is centered at (540, 1148), uses Arabic RAQM shaping, and is fitted to the available range width.
+- The current renderer passes the same approved moving-background frame as an argument, but `make_intro_frame` does not use that argument; the original cover asset remains the actual background.
+- The current intro visibility is explicitly limited to 0.6 seconds, while the recitation audio is mapped from time zero. These settings are recorded for protection only and must not be changed as part of cover artwork work.
+- This audit establishes text placement and technical constraints, not the visual appearance of the original PNG. No replacement artwork has been generated or approved, and the original asset has not been changed.
