@@ -86,10 +86,11 @@ class CoverRotationTests(unittest.TestCase):
     def test_retry_fails_closed_if_assigned_asset_disappears(self):
         with tempfile.TemporaryDirectory() as tmp:
             catalog, state = self._setup(Path(tmp))
-            first = choose_cover(catalog, state, "video-1")
-            Path(first["asset_path"]).unlink()
+            choose_cover(catalog, state, "video-1")
+            second = choose_cover(catalog, state, "video-2")
+            Path(second["asset_path"]).unlink()
             with self.assertRaisesRegex(LookupError, "previously assigned cover"):
-                choose_cover(catalog, state, "video-1")
+                choose_cover(catalog, state, "video-2")
 
     def test_state_survives_a_new_process_instance(self):
         with tempfile.TemporaryDirectory() as tmp:
