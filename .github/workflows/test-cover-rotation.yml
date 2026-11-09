@@ -1,0 +1,26 @@
+name: Cover rotation isolated tests
+
+on:
+  push:
+    branches:
+      - feature/cover-rotation-preview
+    paths:
+      - "src/cover_rotation.py"
+      - "tests/test_cover_rotation.py"
+      - ".github/workflows/test-cover-rotation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cover-rotation-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out preview branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run isolated cover rotation tests
+        run: python -m unittest discover -s tests -p "test_cover_rotation.py" -v
