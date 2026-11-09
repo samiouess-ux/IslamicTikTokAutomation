@@ -30,9 +30,11 @@ class CoverRotationTests(unittest.TestCase):
             b = choose_cover(catalog, state, "video-2")
             c = choose_cover(catalog, state, "video-3")
             self.assertEqual([a["id"], b["id"], c["id"]],
-                             ["original", "variant-a", "original"])
-            self.assertNotEqual(a["id"], b["id"])
-            self.assertNotEqual(b["id"], c["id"])
+                             ["original", "variant-a", "variant-b"])
+            self.assertEqual(len({a["id"], b["id"], c["id"]}), 3)
+            d = choose_cover(catalog, state, "video-4")
+            self.assertEqual(d["id"], "original")
+            self.assertNotEqual(c["id"], d["id"])
 
     def test_same_video_retry_is_idempotent(self):
         with tempfile.TemporaryDirectory() as tmp:
