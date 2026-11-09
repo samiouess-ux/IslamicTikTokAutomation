@@ -27,5 +27,16 @@ This is an isolated implementation note. No production renderer, scheduler, or d
 - Surah title diacritics are checked against a reviewed 114-surah mapping, not generated heuristically.
 - Audio stream, cover timing, and output dimensions are unchanged in a regression render.
 
-## Current status
-Only this note and the separate rotation plan are present on this preview branch. Production code and the production branch remain untouched.
+## Progress recorded on the preview branch
+- Added src/cover_rotation.py: a dedicated selector for approved cover assets, with atomic persistent state and an idempotent video key so a render retry reuses its chosen cover.
+- Added tests/test_cover_rotation.py: tests for consecutive-repeat prevention, retry idempotency, persisted state, original-only fallback, ignoring unapproved variants, and fail-closed behavior if the original is missing.
+- These files are not imported by or wired into the production renderer, scheduler, Telegram workflow, or publishing path.
+- The tests have been authored but have not yet been executed in the repository's CI/runtime.
+
+## Remaining before any integration
+1. Visually inspect the existing original cover asset; binary image retrieval through the connected GitHub file reader is unavailable.
+2. Prepare and review new variants based on that original; do not invent or approve them automatically.
+3. Add the catalog and reviewed Arabic surah-name mapping.
+4. Run the new tests and a regression render, then ask for approval before wiring the selector into production.
+
+Production code and the production branch remain untouched.
