@@ -20,7 +20,7 @@ Status: preview branch only. This file does not change the renderer or scheduled
 ## Visual variety direction
 The new covers should feel meaningfully different at a glance, while clearly belonging to the same page identity:
 - Keep the same core title hierarchy, Arabic typography, respectful Quranic tone, and recognizable brand palette.
-- Explore distinct treatments such as deep emerald with gold ornament, warm ivory with restrained geometric detail, and a darker night-sky treatment with subtle light.
+- Keep exactly the four user-selected directions: emerald green with gold; ivory with gold; deep night blue; and natural, elegant styling.
 - Vary framing, ornament placement, and background atmosphere rather than changing only tiny colors.
 - Keep the Quran title and surah name readable; avoid busy imagery behind text.
 - Do not create final variants until the original template has been visually inspected. The original remains an unchanged option.
