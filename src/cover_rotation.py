@@ -83,11 +83,18 @@ def choose_cover(
             return previous
 
     previous_id = state.get("last_cover_id")
-    fresh = [item for item in eligible if item["id"] != previous_id]
-    # With multiple eligible covers this guarantees a different consecutive
-    # choice. With only the original available, keep the system operational.
-    pool = fresh or [original]
-    selected = pool[0]
+    # Walk the approved catalog in order so every approved design is reached;
+    # merely choosing the first non-previous item would starve later variants.
+    previous_index = next(
+        (index for index, item in enumerate(eligible) if item["id"] == previous_id),
+        None,
+    )
+    if len(eligible) == 1:
+        selected = original
+    elif previous_index is None:
+        selected = original
+    else:
+        selected = eligible[(previous_index + 1) % len(eligible)]
 
     _atomic_write(Path(state_path), {
         "schema_version": 1,
