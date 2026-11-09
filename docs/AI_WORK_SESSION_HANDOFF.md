@@ -106,3 +106,19 @@ Latest known production Telegram send:
 2. Still needed: owner-triggered production `workflow_dispatch` on the branch containing the rotation fix, then inspect the log for the actual chosen background and `Telegram confirmed delivery: message_id=...`. Do not trigger it on the owner's behalf.
 3. Keep the separate source-only background additions review-only until their visual/legibility review and explicit approval requirements are satisfied.
 4. External cron remains untouched.
+
+## Opening-cover enhancement checkpoint (2026-11-09)
+
+Inspected the current renderer, visual-template tests, and design specification on `feature/telegram-review-notifications`.
+
+Confirmed facts:
+- `src/render_quran_review_previews.py::make_intro_frame()` still uses the original root template `file_000000005e3481f4996a7ee6217f56c6.png`, fits it to 1080x1920, and writes the surah title and selected ayah range into the existing blank plaques.
+- The current surah title is assembled from the unvowelled `SURAH_NAMES` list as `سورة {surah_name}`; no verified fully vocalized surah-name mapping is currently present in the inspected renderer.
+- The current FFmpeg intro overlay is enabled for 0.6 seconds. Audio remains at t=0. Do not change this timing casually: the design spec's older 1.6-second / 0.4-second fade target conflicts with the current implementation and needs a deliberate decision plus regression tests.
+- The four templates in `src/render_video_scenes.py` and `tests/test_quran_visual_templates.py` are ayah-overlay styles, not evidence of the four opening-cover designs selected in the user's earlier discussion. Do not substitute them.
+- Inspected repository directories and the background review contact sheets. The four selected opening-cover reference images were not located in the current branch files inspected. The original template is present, but the four intended alternative cover references are not identified here.
+
+Safety boundary:
+- No renderer, workflow, Telegram, cron, background catalog, or production setting was changed in this checkpoint.
+- No tests or production render were run; no commit/push has been made for the visual feature itself.
+- Do not invent the four cover styles or implement guessed alternatives. Resume by recovering the exact four user-selected references from the earlier project conversation/assets. Once recovered, implement only the cover layer, preserve the original template as the fallback, add tests for rotation and exact Arabic title/range rendering, and inspect a review-only artifact before any production use.
