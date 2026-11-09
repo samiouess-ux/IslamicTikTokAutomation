@@ -76,6 +76,23 @@ def choose_cover(
                                           "last_video_key": None})
     if state.get("schema_version") != 1:
         raise ValueError("Unsupported cover rotation state schema.")
+    # Keep a bounded per-video assignment history. A retry may happen after
+    # later videos have already advanced the rotation, so last_video_key alone
+    # is not enough to guarantee stable cover selection.
+    assignments = state.get("video_assignments", {})
+    if not isinstance(assignments, dict):
+        raise ValueError("Cover rotation state field 'video_assignments' must be an object.")
+    assigned_id = assignments.get(video_key)
+    if assigned_id is not None:
+        assigned = next((item for item in eligible if item["id"] == assigned_id), None)
+        if assigned is None:
+            raise LookupError(
+                f"The previously assigned cover '{assigned_id}' for {video_key} "
+                "is no longer eligible; refusing to change this video's cover on retry."
+            )
+        return assigned
+
+    # Backward compatibility with state written before per-video history existed.
     if state.get("last_video_key") == video_key:
         previous_id = state.get("last_cover_id")
         previous = next((item for item in eligible if item["id"] == previous_id), None)
@@ -96,9 +113,16 @@ def choose_cover(
     else:
         selected = eligible[(previous_index + 1) % len(eligible)]
 
+    assignments[video_key] = selected["id"]
+    # Prevent the state file growing without bound while retaining a useful
+    # retry window for recent and delayed workflow reruns.
+    while len(assignments) > 500:
+        oldest_key = next(iter(assignments))
+        del assignments[oldest_key]
     _atomic_write(Path(state_path), {
         "schema_version": 1,
         "last_cover_id": selected["id"],
         "last_video_key": video_key,
+        "video_assignments": assignments,
     })
     return selected
