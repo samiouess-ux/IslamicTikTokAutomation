@@ -55,3 +55,11 @@ Production code and the production branch remain untouched.
 
 - Added a bounded per-video assignment history (latest 500 video keys), so a delayed retry of an earlier video reuses its original cover even after later videos have advanced the rotation. If that assigned asset is no longer eligible, the selector fails closed rather than silently changing the cover for the same video.
 - Added a delayed-retry regression test. The isolated GitHub Actions workflow ran the expanded test command successfully on commit 9c4ff6a843de8f13075369cd9da5e0fe3fa2592d; the workflow job was still completing its post-run cleanup when last checked.
+
+- Additional safety hardening on 2026-11-09:
+  - An invalid/unapproved duplicate catalog ID no longer shadows a later valid approved entry.
+  - A legacy state containing only `last_video_key` is migrated into the per-video assignment history when that last video is retried, preserving delayed retries from that point onward.
+  - Added regression tests for legacy-state migration, duplicate-ID handling, and fail-closed behavior when an assigned variant asset disappears.
+  - GitHub Actions run `42588875780` completed successfully on commit `d926216b6e9ef4101e686dd30970ce5e8e9722c4`.
+  - Run: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/42588875780
+
