@@ -63,6 +63,8 @@ class CoverRotationTests(unittest.TestCase):
                 "last_cover_id": first["id"],
                 "last_video_key": "video-1",
             }), encoding="utf-8")
+            migrated_first_retry = choose_cover(catalog, state, "video-1")
+            self.assertEqual(first["id"], migrated_first_retry["id"])
             choose_cover(catalog, state, "video-2")
             migrated_retry = choose_cover(catalog, state, "video-1")
             self.assertEqual(first["id"], migrated_retry["id"])
