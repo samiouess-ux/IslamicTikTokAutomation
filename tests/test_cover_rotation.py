@@ -52,6 +52,43 @@ class CoverRotationTests(unittest.TestCase):
             delayed_retry = choose_cover(catalog, state, "video-1")
             self.assertEqual(first["id"], delayed_retry["id"])
 
+
+    def test_legacy_last_video_assignment_is_migrated_for_delayed_retry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog, state = self._setup(Path(tmp))
+            first = choose_cover(catalog, state, "video-1")
+            # Simulate state created by the older implementation.
+            state.write_text(json.dumps({
+                "schema_version": 1,
+                "last_cover_id": first["id"],
+                "last_video_key": "video-1",
+            }), encoding="utf-8")
+            choose_cover(catalog, state, "video-2")
+            migrated_retry = choose_cover(catalog, state, "video-1")
+            self.assertEqual(first["id"], migrated_retry["id"])
+            persisted = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(persisted["video_assignments"]["video-1"], first["id"])
+
+    def test_invalid_duplicate_does_not_shadow_later_approved_asset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog, state = self._setup(Path(tmp), ("original", "variant-a"))
+            data = json.loads(catalog.read_text(encoding="utf-8"))
+            duplicate = dict(data["covers"][1])
+            data["covers"][1]["approved"] = False
+            data["covers"].append(duplicate)
+            catalog.write_text(json.dumps(data), encoding="utf-8")
+            first = choose_cover(catalog, state, "video-1")
+            second = choose_cover(catalog, state, "video-2")
+            self.assertEqual([first["id"], second["id"]], ["original", "variant-a"])
+
+    def test_retry_fails_closed_if_assigned_asset_disappears(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog, state = self._setup(Path(tmp))
+            first = choose_cover(catalog, state, "video-1")
+            Path(first["asset_path"]).unlink()
+            with self.assertRaisesRegex(LookupError, "previously assigned cover"):
+                choose_cover(catalog, state, "video-1")
+
     def test_state_survives_a_new_process_instance(self):
         with tempfile.TemporaryDirectory() as tmp:
             catalog, state = self._setup(Path(tmp))
