@@ -9,7 +9,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from render_video_scenes import probe_background_media
+from render_video_scenes import download, probe_background_media, validate_rendered_video
 
 
 class BackgroundMediaValidationTests(unittest.TestCase):
@@ -69,6 +69,45 @@ class BackgroundMediaValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "Invalid background duration"):
                     probe_background_media(path)
 
+
+    def test_rejects_generated_file_without_video_stream(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "reel.mp4"
+            path.write_bytes(b"video")
+            payload = self._probe([{"codec_type": "audio"}])
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "not a readable video"):
+                    validate_rendered_video(path, 10.0)
+
+    def test_rejects_generated_video_with_wrong_dimensions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "reel.mp4"
+            path.write_bytes(b"video")
+            payload = self._probe([{"codec_type": "video", "width": 1920, "height": 1080}])
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "1080x1920"):
+                    validate_rendered_video(path, 10.0)
+
+    def test_rejects_generated_video_shorter_than_audio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "reel.mp4"
+            path.write_bytes(b"video")
+            payload = self._probe([{"codec_type": "video", "width": 1080, "height": 1920}], duration="8.0")
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "too short"):
+                    validate_rendered_video(path, 10.0)
+
+    def test_download_rejects_oversized_content_length_and_cleans_partial(self):
+        class FakeResponse:
+            headers = {"Content-Length": str(300 * 1024 * 1024)}
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "partial.mp4"
+            with patch("render_video_scenes.urllib.request.urlopen", return_value=FakeResponse()):
+                with self.assertRaisesRegex(SystemExit, "250 MiB"):
+                    download("https://example.test/video.mp4", path)
+            self.assertFalse(path.exists())
 
 if __name__ == "__main__":
     unittest.main()
