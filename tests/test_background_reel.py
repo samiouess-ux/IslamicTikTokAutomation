@@ -1,4 +1,5 @@
 """Unit tests for the production background-reel builder."""
+import math
 import tempfile
 import unittest
 from pathlib import Path
@@ -48,6 +49,14 @@ class BackgroundReelTests(unittest.TestCase):
                 (work / "background_concat.txt").read_text(encoding="utf-8").count("file '"),
                 2,
             )
+
+    def test_rejects_non_finite_or_non_positive_target_duration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            for duration in (0.0, -1.0, math.nan, math.inf, -math.inf):
+                with self.subTest(duration=duration):
+                    with self.assertRaisesRegex(SystemExit, "finite positive"):
+                        build_background_reel([], duration, work, work / "background.mp4")
 
     def test_rejects_final_reel_shorter_than_audio(self):
         with tempfile.TemporaryDirectory() as directory:
