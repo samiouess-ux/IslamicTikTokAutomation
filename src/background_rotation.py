@@ -15,6 +15,7 @@ def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
         if item.get("approved") is True
         and item.get("user_approved") is True
         and item.get("download_verified") is True
+        and item.get("aspect_ratio") == "9:16"
         and isinstance(item.get("direct_video_url"), str)
         and item["direct_video_url"].startswith("https://")
         and isinstance(item.get("source_page_url"), str)
