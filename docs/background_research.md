@@ -238,3 +238,14 @@ A focused static review of `src/render_video_scenes.py` and `src/background_rota
 - A future caller that wants variation must supply a stable per-video key (for example, a unique manifest/video identifier) and, where available, pass recently used background IDs. This should be implemented only after checking the actual production invocation and persistence mechanism; do not invent recent-use state or change the current template/publishing flow as part of footage research.
 
 The existing unit tests cover deterministic selection, recent-ID avoidance, uniqueness of the ordered sequence, and rejection of unapproved/unverified candidates. They were reviewed statically only; they were not executed in this pass. No production code, candidate catalog, render, or workflow was changed.
+
+## Manifest background verification gate audit (2026-11-10)
+
+A second static review of `src/validate_content_manifest.py` and the non-rotation path in `src/render_video_scenes.py` found a fail-closed gap to address before changing any renderer behavior:
+
+- The shared manifest validator requires a background candidate with HTTPS/source metadata and both `approved` and `user_approved` set to true.
+- The renderer's rotation path additionally obtains candidates through `load_eligible_backgrounds`, which requires `download_verified is True`.
+- However, when rotation is not enabled and a manifest supplies `visual.background_candidate` directly, the shared validator and renderer do not independently require `download_verified is True`. This is weaker than the documented rule that every production background must be verified from its actual downloaded file.
+- This is a code-path inconsistency, not evidence that an unverified clip has been used. The current 11 catalog records are marked verified; no manifest or render was executed in this review.
+
+Recommended safe correction before future production use: add the same explicit `download_verified is True` requirement to shared manifest validation (and a focused negative unit test), then run the isolated unit suite. Do not alter the approved template, cover, audio, verse timing, or publishing flow. This pass is documentation-only; production code and catalog remain unchanged.
