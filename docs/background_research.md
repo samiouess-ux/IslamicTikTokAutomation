@@ -71,6 +71,27 @@ These are category/search pages, not individually selected or approved clips:
 | Desert dunes under cloudy sky | https://www.pexels.com/video/serene-sand-dunes-landscape-video-40611183/ | 2160x3840, 9:16, 20s, 59.94fps | Pending download, inspection, approval |
 
 
+
+## More individually identified Pexels clips (2026-11-10)
+
+These are clip-specific pages surfaced in a fresh search. Their Pexels pages currently show a Free license and vertical 9:16 format; that is not a substitute for checking the current license terms and downloading/inspecting the actual file.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Modern mosque interior architecture | https://www.pexels.com/video/stunning-modern-mosque-interior-architecture-35081871/ | 1512x2688, 9:16, 20s, 29.97fps | Pending download, inspection, approval |
+| Mosque architecture under blue sky | https://www.pexels.com/video/stunning-mosque-architecture-under-clear-blue-sky-40458840/ | 2160x3840, 9:16, 6s, 60fps | Pending download, inspection, approval |
+| Elegant modern mosque interior | https://www.pexels.com/video/elegant-interior-of-modern-mosque-40904685/ | 1080x1920, 9:16, 9s, 59.94fps | Pending download, inspection, approval |
+| Traditional Middle Eastern mosque facade | https://www.pexels.com/video/traditional-middle-eastern-mosque-architecture-34696360/ | 2160x3840, 9:16, 5s, 30fps | Pending download, inspection, approval |
+| Grand mosque courtyard | https://www.pexels.com/video/sunny-day-at-a-grand-mosque-courtyard-35250211/ | 1080x1920, 9:16, 5s, 60fps | Pending download, inspection, approval |
+| Historic mosque exterior and minaret | https://www.pexels.com/video/historic-mosque-exterior-with-tall-minaret-35040566/ | 1512x2688, 9:16, 9s, 29.97fps | Pending download, inspection, approval |
+| Forest river through greenery | https://www.pexels.com/video/serene-forest-river-flowing-through-greenery-36981100/ | 1080x1920, 9:16, 25s, 60fps | Pending download, inspection, approval |
+| Forest lake in summer | https://www.pexels.com/video/tranquil-forest-lake-in-summer-38885421/ | 2160x3840, 9:16, 7s, 30fps | Pending download, inspection, approval |
+| Sunset over ocean horizon | https://www.pexels.com/video/serene-sunset-over-ocean-horizon-40406833/ | 2160x3840, 9:16, 12s, 23.98fps | Pending download, inspection, approval |
+| River through lush forest | https://www.pexels.com/video/serene-river-flowing-through-lush-forest-39972132/ | 2160x3840, 9:16, 9s, 30fps | Pending download, inspection, approval |
+| Autumn forest and river | https://www.pexels.com/video/beautiful-autumn-forest-and-river-scene-32071375/ | 1080x1920, 9:16, 10s, 30fps | Pending download, inspection, approval |
+| Mountain peaks above clouds | https://www.pexels.com/video/a-view-of-the-mountains-from-above-the-clouds-27835798/ | 1080x1920, 9:16, 8s, 60fps | Pending download, inspection, approval |
+
+
 ## Next review sequence
 
 1. Prioritize actual vertical mosque and landscape clips, then waterfalls/forests/coastlines to avoid a repetitive library.
