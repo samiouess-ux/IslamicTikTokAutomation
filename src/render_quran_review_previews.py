@@ -467,6 +467,40 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
     }
 
 
+
+def audio_duration_seconds(path: Path) -> float:
+    """Return the measured duration of one ayah audio file; zero means probe unavailable."""
+    try:
+        raw = subprocess.check_output([
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(path)
+        ], text=True)
+        duration = float(raw.strip())
+        return duration if duration > 0 else 0.0
+    except (OSError, subprocess.SubprocessError, ValueError):
+        # A missing/failed probe must never stop a review preview. The renderer
+        # falls back to the longest verified approved background.
+        return 0.0
+
+
+def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
+                                used_ids: set[str] | None = None) -> dict:
+    """Choose an unused clip long enough for this ayah, else the longest safe fallback."""
+    if not backgrounds:
+        raise ValueError("At least one approved background is required.")
+    used_ids = used_ids or set()
+    available = [item for item in backgrounds if item["id"] not in used_ids]
+    if not available:
+        available = list(backgrounds)
+    if audio_duration > 0:
+        long_enough = [
+            item for item in available
+            if float(item.get("duration_seconds") or 0) >= audio_duration
+        ]
+        if long_enough:
+            return max(long_enough, key=lambda item: float(item.get("duration_seconds") or 0))
+    return max(available, key=lambda item: float(item.get("duration_seconds") or 0))
+
 def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -533,8 +567,18 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         background_sequence = [first_background] + remaining_backgrounds
         used_backgrounds = []
         segments = []
+        used_background_ids = set()
         for index, verse in enumerate(verses):
-            background_candidate = background_sequence[index % len(background_sequence)]
+            processed_audio = item.get("processed_audio_files", {}).get(str(int(verse["ayah"])))
+            audio = (Path(processed_audio) if processed_audio else
+                     Path(item["audio_file"]).parent / f"{int(candidate['surah_number']):03d}_{int(verse['ayah']):03d}.mp3")
+            if not audio.is_file():
+                raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
+            ayah_audio_duration = audio_duration_seconds(audio)
+            background_candidate = choose_background_for_ayah(
+                background_sequence, ayah_audio_duration, used_background_ids
+            )
+            used_background_ids.add(background_candidate["id"])
             if background_candidate["id"] not in prepared_backgrounds:
                 bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
                 bg_path.parent.mkdir(parents=True, exist_ok=True)
@@ -551,11 +595,6 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
                         "english": verse["english_saheeh_international"]},
                        surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1])
-            processed_audio = item.get("processed_audio_files", {}).get(str(int(verse["ayah"])))
-            audio = (Path(processed_audio) if processed_audio else
-                     Path(item["audio_file"]).parent / f"{int(candidate['surah_number']):03d}_{int(verse['ayah']):03d}.mp3")
-            if not audio.is_file():
-                raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
             segment = work / f"segment_{index:02d}.mp4"
             command = [
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
