@@ -303,3 +303,4 @@ No production code, candidate catalog, template, cover, audio, Quran text/timing
 - Without that flag, the original single-background looping path is unchanged. Existing manifests, template, cover, Quran text, audio handling, Telegram delivery, and publishing configuration are unchanged.
 - Added unit tests for duration coverage, no repeats, and insufficient/non-positive duration handling.
 - This change is opt-in only. No workflow was dispatched, no production render was run, and no video was generated. The test suite has not been executed in this environment; the source and test files were reviewed statically after commit.
+- Before concatenation, the renderer now probes every downloaded background with ffprobe and checks the actual combined duration against the recitation. If the downloaded files do not cover the audio, rendering stops rather than producing a truncated Quran video.
