@@ -46,6 +46,8 @@ def validate_content_manifest(data: dict[str, Any]) -> None:
         raise SystemExit("Background source and direct video URLs are required.")
     if background.get("approved") is not True or background.get("user_approved") is not True:
         raise SystemExit("Background must be approved and user-reviewed.")
+    if background.get("download_verified") is not True:
+        raise SystemExit("Background file must be downloaded and technically verified.")
 
     kind = audio.get("kind", "quran_recitation" if content_type == "quran" else None)
     if kind not in AUDIO_KINDS:
