@@ -204,3 +204,14 @@ Reviewed (but did not execute) the existing safety tests:
 - `tests/test_background_rotation.py` asserts that the current catalog contains exactly 11 eligible approved backgrounds and excludes unverified additions.
 
 No tests, renders, GitHub Actions workflows, production files, or candidate-catalog records were run or changed as part of this review. A test run should be done only in an isolated local/CI environment with no publishing or Telegram side effects.
+
+## License screening: additional Mixkit mosque clips (2026-11-10)
+
+Checked four individual mosque-related items from Mixkit's Islamic collection. Their individual pages explicitly label the free 720p downloads as **Mixkit Restricted License — personal use only**; the commercial-use versions are premium Envato downloads. These are therefore excluded from this project's reusable/monetizable background shortlist and must not be added to the candidate catalog:
+
+- https://mixkit.co/free-stock-video/mosque-in-the-top-of-a-cloudy-hill-9595/ (60s, 60fps)
+- https://mixkit.co/free-stock-video/mosque-and-marina-in-the-seashore-9885/ (34s, 30fps)
+- https://mixkit.co/free-stock-video/cloud-landscape-and-mosque-at-the-top-of-the-mountain-9799/ (40s, 60fps)
+- https://mixkit.co/free-stock-video/islamic-mosque-in-the-middle-of-a-town-35472/ (17s, 30fps)
+
+This is a license-based exclusion only; the files were not downloaded or visually inspected. Prefer individually identified clips whose pages explicitly state the Mixkit Stock Video Free License, and verify the exact downloaded asset's license before use.
