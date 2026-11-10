@@ -122,3 +122,13 @@ Fresh clip-specific Pexels results. The page metadata below is discovery informa
 | Mosque with pigeons in courtyard | https://www.pexels.com/video/majestic-mosque-with-pigeons-in-courtyard-33821779/ | 2160x3840, 9:16, 15s, 30fps | Pending download, inspection, approval |
 | Aerial view of mosque in a city | https://www.pexels.com/video/an-aerial-view-of-a-mosque-in-the-middle-of-a-city-17670314/ | 1080x1920, 9:16, 19s, 23.98fps | Pending download, inspection, approval |
 
+## Additional individually verified Pexels page metadata (2026-11-10)
+
+These three clip-specific pages were rechecked in current search results. Metadata is from the source pages; footage files still require download, full visual inspection, and user approval.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Waterfall in lush forest (recent upload) | https://www.pexels.com/video/serene-forest-waterfall-in-lush-greenery-40707359/ | 2160x3840, 9:16, 6s, 60fps | Pending download, inspection, approval |
+| Long mosque shot under dramatic sky | https://www.pexels.com/video/majestic-mosque-against-dramatic-sky-33547103/ | 1080x1920, 9:16, 70s, 50fps | Pending download, inspection, approval |
+| Vertical waterfall in lush forest | https://www.pexels.com/video/beautiful-waterfalls-8830448/ | 1080x1920, 9:16, 25s, 25fps | Pending download, inspection, approval |
+
