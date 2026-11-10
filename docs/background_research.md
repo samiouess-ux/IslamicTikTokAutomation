@@ -359,3 +359,11 @@ On the isolated branch `fix/background-rotation-validation-order`, the active re
 - Added mocked regression tests for valid portrait media, missing video streams, landscape media, empty downloads, and non-finite duration.
 
 The renderer still uses the probed duration for trimming and reel assembly. These checks are static-code changes plus mocked tests; the tests have **not** been executed, no external clips were downloaded in this pass, and no render, workflow, Telegram delivery, or publishing action was performed. The change remains isolated and is not merged.
+
+## Background download and generated-reel safeguards (2026-11-10)
+
+- Background downloads now have a 90-second timeout and a 250 MiB maximum. The limit is checked against Content-Length when present and enforced while streaming when absent or inaccurate.
+- Empty downloads are rejected, and partial destination files are removed whenever download fails.
+- Every normalized clip and the concatenated background reel is checked with ffprobe for a real video stream, exact 1080x1920 dimensions, and a finite duration that covers its requested segment/audio length (with a 0.10-second tolerance).
+- Added mocked regression cases for oversized download rejection/cleanup, missing output video streams, incorrect output dimensions, and insufficient output duration.
+- These are code and mocked-test additions only. Tests have not been executed; no source clips were downloaded, no ffmpeg render was run, and no workflow, Telegram delivery, or publishing action was performed.
