@@ -45,6 +45,18 @@ def ffmpeg_text(value: str) -> str:
 def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
 
+def probe_video_duration(path: Path) -> float:
+    """Read the downloaded clip's real duration; catalog metadata is only a selection hint."""
+    result = subprocess.check_output([
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=nw=1:nk=1", str(path)
+    ], text=True).strip()
+    duration = float(result)
+    if duration <= 0:
+        raise SystemExit(f"Background clip has invalid duration: {path.name}")
+    return duration
+
+
 
 def create_arabic_overlay(title: str, verses: list[dict], destination: Path) -> None:
     """Shape Arabic with libraqm; never normalize, strip, or rewrite Quran text."""
@@ -284,7 +296,15 @@ def main() -> None:
         for candidate in selected_backgrounds:
             local_file = rotation_dir / f"{candidate['id']}.mp4"
             download(candidate["direct_video_url"], local_file)
-            background_files.append((local_file, float(candidate["duration_seconds"])))
+            actual_duration = probe_video_duration(local_file)
+            background_files.append((local_file, actual_duration))
+
+        available_background_seconds = sum(duration for _, duration in background_files)
+        if available_background_seconds + 0.05 < duration:
+            raise SystemExit(
+                f"Downloaded approved backgrounds cover only {available_background_seconds:.2f}s "
+                f"of the {duration:.2f}s recitation. Refusing to render a truncated video."
+            )
 
         background_inputs: list[str] = []
         background_filters: list[str] = []
