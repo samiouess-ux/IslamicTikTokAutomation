@@ -64,8 +64,8 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_download(url, path):
                 path.write_bytes(b"mock video")
 
-            with patch("render_video_scenes.download", side_effect=fake_download), \\
-                 patch("render_video_scenes.probe_media_duration", return_value=0.0), \\
+            with patch("render_video_scenes.download", side_effect=fake_download), \
+                 patch("render_video_scenes.probe_media_duration", return_value=0.0), \
                  patch("render_video_scenes.run") as run:
                 with self.assertRaisesRegex(SystemExit, "no usable duration"):
                     build_background_reel(
