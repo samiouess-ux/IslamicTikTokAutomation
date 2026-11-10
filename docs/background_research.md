@@ -330,3 +330,10 @@ The active scene renderer now rejects non-finite audio durations (NaN and positi
 - The draft Ash-Sharh manifest also lacks `download_verified: true`; it remains blocked as well.
 - Updated the manifest regression test to assert this fail-closed behavior rather than incorrectly expecting the first manifest to pass.
 - This is intentional safety behavior: a prior approval/download marker is not treated as proof that the current file can be decoded and has the expected media properties. No verification flag was fabricated and no manifest was changed.
+
+
+## Background reel edge-case regression coverage (2026-11-10)
+
+- Added unit cases proving the production reel builder refuses an empty candidate list and refuses candidates whose probed duration is zero, without invoking ffmpeg normalization.
+- These are mocked unit tests only; they do not download media or execute ffmpeg.
+- Tests have not been run in this environment. No workflow, production render, manifest, catalog, template, audio, Quran text, or publishing setting was changed.
