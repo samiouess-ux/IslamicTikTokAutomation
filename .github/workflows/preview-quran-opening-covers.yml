@@ -1,0 +1,42 @@
+name: Preview four Quran opening covers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/telegram-review-notifications]
+    paths:
+      - "src/render_cover_template_previews.py"
+      - "tests/test_opening_cover_previews.py"
+      - ".github/workflows/preview-quran-opening-covers.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Arabic rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-hosny-amiri
+          python -m pip install --disable-pip-version-check Pillow
+      - name: Run preview-only tests
+        run: python -m unittest discover -s tests -p 'test_opening_cover_previews.py' -v
+      - name: Render four sample opening covers
+        run: |
+          python src/render_cover_template_previews.py \
+            --surah-title 'سُورَةُ الْفَاتِحَةِ' \
+            --start-ayah 1 --end-ayah 7
+      - name: Upload preview images
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-opening-cover-designs-review-only
+          path: output/cover_templates_review/*.png
+          if-no-files-found: error
+          retention-days: 7
