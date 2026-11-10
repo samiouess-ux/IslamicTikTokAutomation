@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from background_rotation import load_eligible_backgrounds, select_background
+from background_rotation import (load_eligible_backgrounds, select_background,\n                                 select_background_sequence)
 
 
 class BackgroundRotationTests(unittest.TestCase):
@@ -34,6 +34,20 @@ class BackgroundRotationTests(unittest.TestCase):
         self.assertEqual(first["id"], again["id"])
         remaining = select_background(self.catalog, "stable-video-key", [first["id"]])
         self.assertNotEqual(first["id"], remaining["id"])
+
+    def test_sequence_covers_duration_without_repeating_clips(self):
+        items = select_background_sequence(self.catalog, "sequence-key", 35)
+        self.assertGreaterEqual(sum(x["duration_seconds"] for x in items), 35)
+        self.assertEqual(len(items), len({x["id"] for x in items}))
+        self.assertTrue(all(x["aspect_ratio"] == "9:16" for x in items))
+
+    def test_sequence_rejects_impossible_duration(self):
+        with self.assertRaisesRegex(ValueError, "short of the required"):
+            select_background_sequence(self.catalog, "sequence-key", 1000)
+
+    def test_sequence_rejects_nonpositive_duration(self):
+        with self.assertRaisesRegex(ValueError, "positive"):
+            select_background_sequence(self.catalog, "sequence-key", 0)
 
     def test_rejects_empty_rotation_key(self):
         with self.assertRaisesRegex(ValueError, "non-empty"):
