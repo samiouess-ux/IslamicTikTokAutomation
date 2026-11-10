@@ -304,3 +304,9 @@ No production code, candidate catalog, template, cover, audio, Quran text/timing
 - Added unit tests for duration coverage, no repeats, and insufficient/non-positive duration handling.
 - This change is opt-in only. No workflow was dispatched, no production render was run, and no video was generated. The test suite has not been executed in this environment; the source and test files were reviewed statically after commit.
 - Before concatenation, the renderer now probes every downloaded background with ffprobe and checks the actual combined duration against the recitation. If the downloaded files do not cover the audio, rendering stops rather than producing a truncated Quran video.
+
+## Active renderer wiring clarification (2026-11-10)
+
+A workflow-path audit confirmed that `.github/workflows/render-manifest-video.yml` invokes `src/render_video_scenes.py`, not the separate `src/render_video.py` helper. The active renderer already accepts `--background-rotation`, receives the deterministic rotation key and recent-background IDs from the workflow, selects only eligible catalog clips, probes each downloaded file with ffprobe, assembles the reel, and rejects a final reel that is shorter than the audio. The new `src/render_video.py` switch is therefore not the production workflow integration and must not be described as such.
+
+Added `tests/test_background_reel.py` to exercise the active reel builder with mocked downloads/FFmpeg calls: multi-clip assembly and rejection of a too-short final reel. These tests are committed but have not been executed. No workflow was dispatched, and no production render or Telegram delivery was performed.
