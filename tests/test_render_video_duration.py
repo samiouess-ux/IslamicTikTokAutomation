@@ -92,8 +92,17 @@ class ManifestBackgroundVerificationTests(unittest.TestCase):
 
     def test_manifest_rejects_background_without_download_verification(self):
         from validate_content_manifest import validate_content_manifest
+        for verified in (False, None):
+            with self.subTest(download_verified=verified):
+                with self.assertRaisesRegex(SystemExit, "downloaded and technically verified"):
+                    validate_content_manifest(self._manifest(verified))
+
+    def test_manifest_rejects_missing_download_verification_flag(self):
+        from validate_content_manifest import validate_content_manifest
+        manifest = self._manifest(True)
+        del manifest["visual"]["background_candidate"]["download_verified"]
         with self.assertRaisesRegex(SystemExit, "downloaded and technically verified"):
-            validate_content_manifest(self._manifest(False))
+            validate_content_manifest(manifest)
 
     def test_manifest_accepts_approved_user_reviewed_verified_background(self):
         from validate_content_manifest import validate_content_manifest
