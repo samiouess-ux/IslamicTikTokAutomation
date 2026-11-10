@@ -30,10 +30,7 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_run(command):
                 Path(command[-1]).write_bytes(b"mock output")
 
-            with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_background_media", side_effect=[6.0, 5.0]), \\
-                 patch("render_video_scenes.validate_rendered_video"), \
-                 patch("render_video_scenes.run", side_effect=fake_run) as run:
+            with patch("render_video_scenes.download", side_effect=fake_download), patch("render_video_scenes.probe_background_media", side_effect=[6.0, 5.0]), patch("render_video_scenes.validate_rendered_video"), patch("render_video_scenes.run", side_effect=fake_run) as run:
                 build_background_reel(
                     [self._candidate("clip-a"), self._candidate("clip-b")],
                     10.0, work, destination
@@ -65,9 +62,7 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_download(url, path):
                 path.write_bytes(b"mock video")
 
-            with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_background_media", return_value=0.0), \
-                 patch("render_video_scenes.run") as run:
+            with patch("render_video_scenes.download", side_effect=fake_download), patch("render_video_scenes.probe_background_media", return_value=0.0), patch("render_video_scenes.run") as run:
                 with self.assertRaisesRegex(SystemExit, "no usable duration"):
                     build_background_reel(
                         [self._candidate("empty-clip")], 10.0, work, destination
@@ -93,9 +88,7 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_run(command):
                 Path(command[-1]).write_bytes(b"mock output")
 
-            with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_background_media", return_value=10.0), patch("render_video_scenes.validate_rendered_video", side_effect=[None, SystemExit("Generated background is too short")]), \
-                 patch("render_video_scenes.run", side_effect=fake_run):
+            with patch("render_video_scenes.download", side_effect=fake_download), patch("render_video_scenes.probe_background_media", return_value=10.0), patch("render_video_scenes.validate_rendered_video", side_effect=[None, SystemExit("Generated background is too short")]), patch("render_video_scenes.run", side_effect=fake_run):
                 with self.assertRaisesRegex(SystemExit, "too short"):
                     build_background_reel([self._candidate("clip-a")], 10.0, work, destination)
 
