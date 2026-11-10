@@ -5,7 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from render_video_scenes import validate_video_duration, validate_quran_audio_approval\nfrom background_rotation import order_backgrounds, select_background
+from render_video_scenes import validate_video_duration, validate_quran_audio_approval
+from background_rotation import order_backgrounds, select_background
 
 
 class BackgroundRotationTests(unittest.TestCase):
