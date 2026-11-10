@@ -166,3 +166,14 @@ The page metadata displayed 2160x3840, 9:16, 5 seconds, and 30fps. This establis
 
 Use an authenticated/normal browser download path or an approved Pexels API integration to obtain the original MP4 files, then run ffprobe and inspect the footage. Do not use unofficial scraping services, expose API credentials, or mark any shortlist entry as downloaded/verified/approved until the actual file has been checked. Existing production assets and workflows remain untouched.
 
+## Renderer download compatibility review (2026-11-10)
+
+Reviewed the current branch's `src/render_video_scenes.py` and `src/background_rotation.py` without running a render or workflow.
+
+- The renderer already has a standard-library downloader (`urllib.request`) that fetches a candidate's `direct_video_url` into a local MP4 file.
+- The rotation loader only admits records with all three flags explicitly true: `approved`, `user_approved`, and `download_verified`; it also requires HTTPS direct-video and source-page URLs.
+- Therefore, a Pexels API key is not inherently required for the existing renderer if a legitimate direct MP4 URL is obtained from the source page and the file is independently verified. A page URL alone is insufficient.
+- The direct MP4 URL discovered above is structurally compatible with the renderer's downloader, but the current research environment cannot resolve external hosts (DNS failure) and the web retrieval service cannot fetch the MP4 host. Consequently, no download or ffprobe test could be completed here.
+
+No renderer, rotation, candidate-catalog, production workflow, template, or publishing settings were changed. The next safe validation is to fetch one direct MP4 in an environment with normal outbound network access, verify it with ffprobe, inspect the actual frames, and show a preview before requesting approval.
+
