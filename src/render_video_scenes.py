@@ -211,6 +211,34 @@ def probe_media_duration(path: Path) -> float:
         raise SystemExit(f"Invalid media duration for {path}: {duration}")
     return duration
 
+def probe_background_media(path: Path) -> float:
+    """Fail closed unless a downloaded background is a valid 9:16 video."""
+    if not path.is_file() or path.stat().st_size == 0:
+        raise SystemExit(f"Downloaded background is missing or empty: {path}")
+    raw = subprocess.check_output([
+        "ffprobe", "-v", "error", "-show_streams", "-show_format",
+        "-of", "json", str(path)
+    ], text=True)
+    try:
+        info = json.loads(raw)
+        video = next(
+            stream for stream in info.get("streams", [])
+            if stream.get("codec_type") == "video"
+        )
+        width, height = int(video["width"]), int(video["height"])
+        duration = float(info["format"]["duration"])
+    except (ValueError, TypeError, KeyError, StopIteration, json.JSONDecodeError) as exc:
+        raise SystemExit(f"Downloaded background is not a readable video: {path}") from exc
+    if width <= 0 or height <= 0 or not math.isclose(
+        width / height, 9 / 16, rel_tol=0.02
+    ):
+        raise SystemExit(
+            f"Background must be portrait 9:16; got {width}x{height}: {path}"
+        )
+    if not math.isfinite(duration) or duration <= 0:
+        raise SystemExit(f"Invalid background duration for {path}: {duration}")
+    return duration
+
 
 def build_background_reel(
     candidates: list[dict], duration: float, work: Path, destination: Path
@@ -238,7 +266,7 @@ def build_background_reel(
                 raw_path = work / f"background_source_{len(raw_files)}.mp4"
                 download(candidate["direct_video_url"], raw_path)
                 raw_files[candidate_id] = raw_path
-                clip_durations[candidate_id] = probe_media_duration(raw_path)
+                clip_durations[candidate_id] = probe_background_media(raw_path)
             take = min(clip_durations[candidate_id], remaining)
             if take <= 0.02:
                 continue
