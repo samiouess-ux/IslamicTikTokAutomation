@@ -132,3 +132,12 @@ These three clip-specific pages were rechecked in current search results. Metada
 | Long mosque shot under dramatic sky | https://www.pexels.com/video/majestic-mosque-against-dramatic-sky-33547103/ | 1080x1920, 9:16, 70s, 50fps | Pending download, inspection, approval |
 | Vertical waterfall in lush forest | https://www.pexels.com/video/beautiful-waterfalls-8830448/ | 1080x1920, 9:16, 25s, 25fps | Pending download, inspection, approval |
 
+## Additional coastline and mosque leads (2026-11-10)
+
+Fresh Pexels page checks. These remain discovery leads only; no MP4 has been downloaded or visually reviewed.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Istanbul mosque with brick minaret | https://www.pexels.com/video/istanbul-mosque-with-brick-minaret-on-sunny-day-40756422/ | 2160x3840, 9:16, 5s, 30fps | Pending download, inspection, approval |
+| Serene coastal landscape with mountains | https://www.pexels.com/video/serene-coastal-landscape-with-mountains-35104897/ | 1080x1920, 9:16, 11s, 29.97fps | Pending download, inspection, approval |
+| Tropical coastline with mountains | https://www.pexels.com/video/tropical-coastal-view-with-mountains-36906681/ | 1080x1920, 9:16, 15s, 59.94fps | Pending download, inspection, approval |
