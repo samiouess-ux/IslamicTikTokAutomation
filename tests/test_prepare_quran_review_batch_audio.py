@@ -43,6 +43,30 @@ class QuranBatchAudioTests(unittest.TestCase):
                     self.assertEqual(archive.namelist(), ["audio/001.mp3"])
                     self.assertEqual(archive.read("audio/001.mp3"), b"official-audio")
 
+    def test_falls_back_when_range_fails_only_when_reading_a_member(self):
+        class LateRangeFailureArchive:
+            def namelist(self):
+                return ["audio/001.mp3"]
+            def open(self, member):
+                raise module.remotezip.RangeNotSupported("range rejected during member read")
+            def close(self):
+                pass
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_zip = root / "source.zip"
+            with ZipFile(source_zip, "w") as archive:
+                archive.writestr("audio/001.mp3", b"official-audio")
+            def fake_download(url, destination):
+                module.shutil.copyfile(source_zip, destination)
+                return str(destination), None
+
+            with patch.object(module, "RemoteZip", return_value=LateRangeFailureArchive()), \\
+                 patch.object(module.urllib.request, "urlretrieve", side_effect=fake_download):
+                with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}) as archive:
+                    with archive.open("audio/001.mp3") as source:
+                        self.assertEqual(source.read(), b"official-audio")
+
     def test_rejects_corrupt_fallback_archive(self):
         with tempfile.TemporaryDirectory() as tmp:
             corrupt_zip = Path(tmp) / "corrupt.zip"
