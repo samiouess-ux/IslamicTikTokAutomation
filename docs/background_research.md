@@ -100,3 +100,25 @@ These are clip-specific pages surfaced in a fresh search. Their Pexels pages cur
 4. Verify the actual downloaded file (codec, dimensions, aspect ratio, frame rate, duration).
 5. Present a contact sheet/preview for user approval.
 6. Only then add approved records to the candidate catalog. Keep the current production workflow and manual review unchanged.
+
+## Further waterfall and mosque footage leads (2026-11-10)
+
+Fresh clip-specific Pexels results. The page metadata below is discovery information only; none of these files has been downloaded, visually inspected, or approved for use.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Vertical waterfall among rocky cliffs and greenery | https://www.pexels.com/video/vertical-video-of-a-waterfalls-8859850/ | 2160x3840, 9:16, 15s, 25fps | Pending download, inspection, approval |
+| Waterfall in lush forest | https://www.pexels.com/video/serene-waterfall-in-lush-forest-setting-40346392/ | 2160x3840, 9:16, 9s, 29.9fps | Pending download, inspection, approval |
+| Forest waterfall landscape | https://www.pexels.com/video/scenic-waterfall-flow-in-forest-landscape-36207276/ | 2160x3840, 9:16, 13s, 59.94fps | Pending download, inspection, approval |
+| Quiet forest stream over mossy rocks | https://www.pexels.com/video/scenic-waterfall-in-forest-setting-37339819/ | 1080x1920, 9:16, 16s, 29.97fps | Pending download, inspection, approval |
+| Waterfall with evergreen forest backdrop | https://www.pexels.com/video/stunning-waterfall-with-lush-forest-backdrop-36206598/ | 2160x3840, 9:16, 14s, 60fps | Pending download, inspection, approval |
+| Turquoise waterfall in verdant forest | https://www.pexels.com/video/cascading-waterfall-in-the-forest-15170290/ | 2160x3840, 9:16, 2s, 29.97fps | Pending download, inspection, approval |
+| Waterfall in tropical forest | https://www.pexels.com/video/serene-waterfall-in-lush-tropical-forest-37291486/ | 1512x2688, 9:16, 20s, 29.97fps | Pending download, inspection, approval |
+| Waterfall in green forest | https://www.pexels.com/video/waterfall-in-green-forest-16546157/ | 2160x3840, 9:16, 10s, 25fps | Pending download, inspection, approval |
+| Historic Middle Eastern courtyard at dusk | https://www.pexels.com/video/historic-middle-eastern-courtyard-at-dusk-37426375/ | 2160x3840, 9:16, 11s, 60fps | Pending download, inspection, approval |
+| Historic mosque courtyard in daylight | https://www.pexels.com/video/historic-mosque-courtyard-in-daylight-36944544/ | 1080x1920, 9:16, 6s, 59.94fps | Pending download, inspection, approval |
+| Night scene at a historic mosque courtyard | https://www.pexels.com/video/bustling-night-at-historic-mosque-courtyard-36296506/ | 1728x3072, 9:16, 18s, 50fps | Pending download, inspection, approval |
+| Mosque with twin minarets at sunset | https://www.pexels.com/video/majestic-mosque-with-twin-minarets-at-sunset-35287128/ | 1080x1920, 9:16, 14s, 30fps | Pending download, inspection, approval |
+| Mosque with pigeons in courtyard | https://www.pexels.com/video/majestic-mosque-with-pigeons-in-courtyard-33821779/ | 2160x3840, 9:16, 15s, 30fps | Pending download, inspection, approval |
+| Aerial view of mosque in a city | https://www.pexels.com/video/an-aerial-view-of-a-mosque-in-the-middle-of-a-city-17670314/ | 1080x1920, 9:16, 19s, 23.98fps | Pending download, inspection, approval |
+
