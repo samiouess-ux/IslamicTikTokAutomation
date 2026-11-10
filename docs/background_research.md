@@ -295,3 +295,11 @@ A new source-page search identified the following additional individual clips. T
 - Do not add any of these records to `data/background_candidates.json` until the actual file is downloaded, inspected, technically verified, and explicitly approved by the user.
 
 No production code, candidate catalog, template, cover, audio, Quran text/timing, render, workflow, Telegram delivery, or publishing settings were changed.
+
+## Approved background sequence integration (2026-11-10)
+
+- Added `select_background_sequence()` to the rotation module. It uses the existing fail-closed eligibility checks, deterministic ordering, and verified clip durations; it never repeats a clip within one selected sequence and fails if the approved portrait pool cannot cover the requested duration.
+- Added an opt-in renderer switch: `--rotate-approved-backgrounds`. When explicitly supplied, the renderer downloads the minimum deterministic sequence of approved, user-approved, download-verified 9:16 catalog clips needed to cover the audio duration, normalizes each to 1080x1920/30fps, concatenates them, and overlays the existing text layers.
+- Without that flag, the original single-background looping path is unchanged. Existing manifests, template, cover, Quran text, audio handling, Telegram delivery, and publishing configuration are unchanged.
+- Added unit tests for duration coverage, no repeats, and insufficient/non-positive duration handling.
+- This change is opt-in only. No workflow was dispatched, no production render was run, and no video was generated. The test suite has not been executed in this environment; the source and test files were reviewed statically after commit.
