@@ -10,9 +10,12 @@ from validate_content_manifest import validate_content_manifest
 
 
 class ContentManifestTests(unittest.TestCase):
-    def test_existing_quran_manifest_remains_compatible(self):
+    def test_quran_manifest_without_technical_background_verification_is_rejected(self):
         data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
-        validate_content_manifest(data)
+        self.assertTrue(data["visual"]["background_candidate"].get("downloaded"))
+        self.assertIsNot(data["visual"]["background_candidate"].get("download_verified"), True)
+        with self.assertRaisesRegex(SystemExit, "downloaded and technically verified"):
+            validate_content_manifest(data)
 
     def test_unapproved_quran_audio_is_allowed_only_as_review_preview(self):
         data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
