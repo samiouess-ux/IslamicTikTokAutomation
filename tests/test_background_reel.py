@@ -50,6 +50,29 @@ class BackgroundReelTests(unittest.TestCase):
                 2,
             )
 
+    def test_rejects_empty_candidate_list(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            with self.assertRaisesRegex(SystemExit, "No approved backgrounds"):
+                build_background_reel([], 10.0, work, work / "background.mp4")
+
+    def test_rejects_candidates_with_no_usable_duration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            work = Path(directory)
+            destination = work / "background.mp4"
+
+            def fake_download(url, path):
+                path.write_bytes(b"mock video")
+
+            with patch("render_video_scenes.download", side_effect=fake_download), \\
+                 patch("render_video_scenes.probe_media_duration", return_value=0.0), \\
+                 patch("render_video_scenes.run") as run:
+                with self.assertRaisesRegex(SystemExit, "no usable duration"):
+                    build_background_reel(
+                        [self._candidate("empty-clip")], 10.0, work, destination
+                    )
+            run.assert_not_called()
+
     def test_rejects_non_finite_or_non_positive_target_duration(self):
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
