@@ -177,3 +177,21 @@ Reviewed the current branch's `src/render_video_scenes.py` and `src/background_r
 
 No renderer, rotation, candidate-catalog, production workflow, template, or publishing settings were changed. The next safe validation is to fetch one direct MP4 in an environment with normal outbound network access, verify it with ffprobe, inspect the actual frames, and show a preview before requesting approval.
 
+## Mixkit individual vertical nature leads (2026-11-10)
+
+Two clip-specific Mixkit pages were checked as alternate download sources. Both pages explicitly state **Mixkit Stock Video Free License** and offer vertical Full HD downloads. These are research leads only; the video files have not been downloaded or visually inspected.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Waterfall between green hills | https://mixkit.co/free-stock-video/waterfall-between-green-hills-100174/ | Vertical 1080x1920 option, 15s, 24fps, 5.51 MB | Pending download, inspection, approval |
+| Cascading waterfall with lush greenery | https://mixkit.co/free-stock-video/cascading-waterfall-with-lush-greenery-100176/ | Vertical 1080x1920 option, 13s, 24fps, 4.76 MB | Pending download, inspection, approval |
+
+Mixkit's general licensing information distinguishes the Free License (commercial and non-commercial projects) from the Restricted License (personal projects only). These two individual pages specifically identify the Free License, but the exact downloaded file and current terms must still be rechecked before use.
+
+Source checks:
+- https://mixkit.co/license/
+- https://mixkit.co/free-stock-video/waterfall-between-green-hills-100174/
+- https://mixkit.co/free-stock-video/cascading-waterfall-with-lush-greenery-100176/
+
+The research pool now contains 63 unique Pexels clip pages plus 2 individually identified Mixkit clip pages (65 unique clip-page leads total). None of these new leads has been approved or added to the production candidate catalog.
+
