@@ -197,6 +197,81 @@ def create_english_overlay(verses: list[dict], destination: Path) -> None:
         y+=line_h
     image.save(destination)
 
+
+
+def probe_media_duration(path: Path) -> float:
+    result = subprocess.check_output([
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=nw=1:nk=1", str(path)
+    ], text=True).strip()
+    duration = float(result)
+    if not math.isfinite(duration) or duration <= 0:
+        raise SystemExit(f"Invalid media duration for {path}: {duration}")
+    return duration
+
+
+def build_background_reel(
+    candidates: list[dict], duration: float, work: Path, destination: Path
+) -> None:
+    """Join approved clips in order, trimming the final clip to the audio length."""
+    if not candidates:
+        raise SystemExit("No approved backgrounds are available for this render.")
+    raw_files: dict[str, Path] = {}
+    clip_durations: dict[str, float] = {}
+    normalized_files: list[Path] = []
+    remaining = duration
+    sequence_index = 0
+    cycles = 0
+
+    while remaining > 0.02:
+        cycles += 1
+        if cycles > 20:
+            raise SystemExit("Background clips could not cover the full audio duration.")
+        progress_before_cycle = remaining
+        for candidate in candidates:
+            candidate_id = candidate["id"]
+            if candidate_id not in raw_files:
+                raw_path = work / f"background_source_{len(raw_files)}.mp4"
+                download(candidate["direct_video_url"], raw_path)
+                raw_files[candidate_id] = raw_path
+                clip_durations[candidate_id] = probe_media_duration(raw_path)
+            take = min(clip_durations[candidate_id], remaining)
+            if take <= 0.02:
+                continue
+            normalized = work / f"background_scene_{sequence_index:03d}.mp4"
+            run([
+                "ffmpeg", "-hide_banner", "-y", "-i", str(raw_files[candidate_id]),
+                "-t", f"{take:.6f}",
+                "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
+                       "crop=1080:1920,setsar=1,fps=30,format=yuv420p",
+                "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                "-pix_fmt", "yuv420p", "-r", "30", str(normalized)
+            ])
+            normalized_files.append(normalized)
+            remaining -= take
+            sequence_index += 1
+            if remaining <= 0.02:
+                break
+        if progress_before_cycle - remaining <= 0.02:
+            raise SystemExit("Approved background clips have no usable duration.")
+
+    concat_list = work / "background_concat.txt"
+    concat_list.write_text(
+        "".join("file '" + path.resolve().as_posix() + "'\n" for path in normalized_files),
+        encoding="utf-8",
+    )
+    run([
+        "ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
+        "-i", str(concat_list), "-an", "-c", "copy", "-movflags", "+faststart",
+        str(destination)
+    ])
+    actual_duration = probe_media_duration(destination)
+    if actual_duration + 0.10 < duration:
+        raise SystemExit(
+            f"Background reel is too short ({actual_duration:.3f}s for {duration:.3f}s audio)."
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
@@ -209,14 +284,16 @@ def main() -> None:
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     validate_content_manifest(data)
+    background_sequence = None
     if args.background_rotation:
-        from background_rotation import select_background
-        selected_background = select_background(
+        from background_rotation import order_backgrounds
+        background_sequence = order_backgrounds(
             Path("data/background_candidates.json"),
             args.background_rotation_key,
             args.recent_background_id,
         )
-        selected_background = dict(selected_background)
+        selected_background = dict(background_sequence[0])
+        background_sequence = [dict(item) for item in background_sequence]
         selected_background["source_url"] = selected_background["source_page_url"]
         data["visual"]["background_candidate"] = selected_background
         data["visual"].pop("approved_background_url", None)
@@ -291,7 +368,7 @@ def main() -> None:
     if set(verse_durations) != set(verse_numbers):
         raise SystemExit("Processed verse timing data is incomplete.")
     inter_verse_gap = float(audio.get("inter_verse_silence_seconds", 0.05))
-    download(background_url, bg_file)
+    # The background reel is built after the exact audio duration is known.
 
     # Scene boundaries use the approved processed verse durations.
     scene_boundaries = []
@@ -306,8 +383,11 @@ def main() -> None:
     ], text=True).strip()
     duration = float(duration_result)
     validate_video_duration(duration)
+    build_background_reel(
+        background_sequence or [background], duration, work, bg_file
+    )
 
-    inputs = ["-stream_loop", "-1", "-i", str(bg_file), "-i", str(audio_file)]
+    inputs = ["-i", str(bg_file), "-i", str(audio_file)]
     filters = [
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,setsar=1,fps=30,"
