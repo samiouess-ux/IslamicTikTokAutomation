@@ -37,7 +37,9 @@ MAX_VIDEO_SECONDS = 40.0
 
 
 def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS) -> None:
-    """Reject any render that would exceed the user's strict duration cap."""
+    """Reject non-finite, non-positive, or over-limit render durations."""
+    if not math.isfinite(duration):
+        raise SystemExit("Video duration must be a finite number.")
     if duration <= 0:
         raise SystemExit("Video duration must be positive.")
     if duration > maximum:
