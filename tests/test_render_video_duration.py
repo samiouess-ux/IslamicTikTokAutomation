@@ -15,7 +15,7 @@ class BackgroundRotationTests(unittest.TestCase):
         import tempfile
         catalog = {"candidates": [
             {"id": f"bg-{i}", "direct_video_url": f"https://cdn.example/{i}.mp4",
-             "source_page_url": f"https://example/{i}", "approved": True,
+             "source_page_url": f"https://example/{i}", "aspect_ratio": "9:16", "approved": True,
              "user_approved": True, "download_verified": True}
             for i in range(5)
         ]}
@@ -34,13 +34,13 @@ class BackgroundRotationTests(unittest.TestCase):
         import tempfile
         catalog = {"candidates": [
             {"id": "good", "direct_video_url": "https://cdn.example/good.mp4",
-             "source_page_url": "https://example/good", "approved": True,
+             "source_page_url": "https://example/good", "aspect_ratio": "9:16", "approved": True,
              "user_approved": True, "download_verified": True},
             {"id": "not-approved", "direct_video_url": "https://cdn.example/no.mp4",
-             "source_page_url": "https://example/no", "approved": False,
+             "source_page_url": "https://example/no", "aspect_ratio": "9:16", "approved": False,
              "user_approved": True, "download_verified": True},
             {"id": "not-verified", "direct_video_url": "https://cdn.example/no2.mp4",
-             "source_page_url": "https://example/no2", "approved": True,
+             "source_page_url": "https://example/no2", "aspect_ratio": "9:16", "approved": True,
              "user_approved": True, "download_verified": False},
         ]}
         with tempfile.TemporaryDirectory() as directory:
