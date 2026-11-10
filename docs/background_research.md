@@ -267,3 +267,31 @@ A follow-up static audit confirmed that the renderer center-crops every source t
 - The eligible rotation pool is therefore seven portrait clips. The three landscape clips and the one unknown-ratio clip remain untouched in the catalog and are not silently deleted or reclassified.
 - Rotation tests now expect seven eligible clips and use explicit 9:16 metadata in their synthetic fixtures.
 - This is a static code/catalog audit only; tests were not executed and no video was rendered. The approved template, cover, audio, verse text/timing, and publishing flow remain unchanged.
+
+
+## Fresh Pexels shortlist: mosque and nature clips (2026-11-10)
+
+A new source-page search identified the following additional individual clips. Their Pexels pages report a Free license and portrait 9:16 metadata. These remain **unverified discovery leads**: page metadata is not proof of the downloaded rendition, visual suitability, or final licensing status. No candidate catalog entries or approval flags were changed.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Illuminated mosque at night (aerial) | https://www.pexels.com/video/a-view-of-a-mosque-at-night-with-lights-19981896/ | 1080x1920, 9:16, 30s, 30fps | Pending download, inspection, approval |
+| Aerial illuminated mosque at night | https://www.pexels.com/video/aerial-night-view-of-illuminated-mosque-30963441/ | 1080x1920, 9:16, 18s, 60fps | Pending download, inspection, approval |
+| Nighttime pilgrimage at Makkah | https://www.pexels.com/video/nighttime-pilgrimage-at-makkah-s-holy-site-35424178/ | 2160x3840, 9:16, 15s, 30fps | Pending download, inspection, approval |
+| Night aerial of illuminated mosque | https://www.pexels.com/video/stunning-night-aerial-of-illuminated-mosque-34753278/ | 2160x3840, 9:16, 17s, 30fps | Pending download, inspection, approval |
+| Historic mosque courtyard at night | https://www.pexels.com/video/bustling-night-at-historic-mosque-courtyard-36296506/ | 1728x3072, 9:16, 18s, 50fps | Pending download, inspection, approval |
+| Grand mosque exterior at night | https://www.pexels.com/video/night-view-of-a-grand-mosque-exterior-34918471/ | 2160x3840, 9:16, 11s, 29.97fps | Pending download, inspection, approval |
+| Waterfall in forest setting | https://www.pexels.com/video/waterfall-on-cliff-13835378/ | 1080x1920, 9:16, 15s, 30fps | Pending download, inspection, approval |
+| Waterfall in lush forest | https://www.pexels.com/video/majestic-waterfall-flowing-in-forest-setting-35527412/ | 1080x1920, 9:16, 15s, 30fps | Pending download, inspection, approval |
+| Serene waterfall cascade | https://www.pexels.com/video/serene-waterfall-cascade-in-nature-40228114/ | 2160x3840, 9:16, 31s, 59.97fps | Pending download, inspection, approval |
+| Waterfall among rocky cliffs and greenery | https://www.pexels.com/video/waterfall-over-rocks-in-forest-10382687/ | 1080x1920, 9:16, 10s, 29.97fps | Pending download, inspection, approval |
+
+### Current disposition
+
+- Best next download/visual-review priorities: the three Makkah/mosque night clips (19981896, 30963441, 35424178) and the 15–31 second forest/waterfall clips (35527412, 40228114, 13835378).
+- Short 5–6 second clips and busy crowd footage should be visually checked carefully for looping, text contrast, and distraction before consideration.
+- Search-result page metadata was reviewed; **no MP4 was downloaded, no ffprobe report was produced, and no clip was watched in full** in this pass.
+- The Pexels page labels these clips Free; re-check the current Pexels license and the downloaded asset details at the time of acquisition.
+- Do not add any of these records to `data/background_candidates.json` until the actual file is downloaded, inspected, technically verified, and explicitly approved by the user.
+
+No production code, candidate catalog, template, cover, audio, Quran text/timing, render, workflow, Telegram delivery, or publishing settings were changed.
