@@ -41,6 +41,45 @@ def _star(draw: ImageDraw.ImageDraw, x: int, y: int, radius: int, color: tuple) 
     draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill=color)
 
 
+def _eight_point_star(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int,
+                     color: tuple, width: int = 3) -> None:
+    """Draw a restrained eight-point Islamic star with a fine inner rosette."""
+    outer, inner = [], []
+    for i in range(16):
+        angle = -math.pi / 2 + i * math.pi / 8
+        r = radius if i % 2 == 0 else radius * 0.43
+        outer.append((cx + math.cos(angle) * r, cy + math.sin(angle) * r))
+    for i in range(8):
+        angle = -math.pi / 2 + i * math.pi / 4
+        inner.append((cx + math.cos(angle) * radius * 0.30,
+                      cy + math.sin(angle) * radius * 0.30))
+    draw.polygon(outer, outline=color, width=width)
+    draw.ellipse((cx-radius*.19, cy-radius*.19, cx+radius*.19, cy+radius*.19),
+                 outline=color, width=max(1, width-1))
+    for point in inner:
+        draw.line((cx, cy, point[0], point[1]), fill=color, width=max(1, width-1))
+
+
+def _ornamental_frame(draw: ImageDraw.ImageDraw, accent: tuple,
+                      subdued: tuple) -> None:
+    """Layered fine borders, corner stars and side rosettes."""
+    for inset, stroke in ((34, 4), (52, 2), (76, 1)):
+        draw.rounded_rectangle((inset, inset, WIDTH-inset, HEIGHT-inset),
+                               radius=34, outline=(*accent, 205), width=stroke)
+    for x in (112, WIDTH-112):
+        for y in (150, 1770):
+            _eight_point_star(draw, x, y, 43, (*accent, 225), 3)
+        for y in range(360, 1561, 240):
+            _eight_point_star(draw, x, y, 25, (*subdued, 150), 2)
+    # Delicate repeating diamonds along the upper and lower rails.
+    for x in range(210, 900, 86):
+        draw.polygon(((x, 62), (x+13, 76), (x, 90), (x-13, 76)),
+                     outline=(*accent, 150), width=2)
+        draw.polygon(((x, HEIGHT-62), (x+13, HEIGHT-76),
+                      (x, HEIGHT-90), (x-13, HEIGHT-76)),
+                     outline=(*accent, 150), width=2)
+
+
 def _mosque_silhouette(draw: ImageDraw.ImageDraw, color: tuple, y: int) -> None:
     # Restrained distant skyline; the title and verse range remain unobstructed.
     draw.rectangle((0, y+105, WIDTH, HEIGHT), fill=color)
@@ -67,6 +106,7 @@ def _arch(draw: ImageDraw.ImageDraw, accent: tuple, inset: int = 105) -> None:
 
 def _background_decor(image: Image.Image, template: str, accent: tuple) -> None:
     draw = ImageDraw.Draw(image, "RGBA")
+    _ornamental_frame(draw, accent, tuple(max(0, c-35) for c in accent))
     if template == "blue_royal":
         _arch(draw, accent)
         # Warm horizon and distant skyline at the foot of the cover.
@@ -146,6 +186,16 @@ def render_cover(surah_title: str, start_ayah: int, end_ayah: int,
     title_color = _draw_title_panel(draw, template, accent)
 
     font_path = _font_path()
+    identity_font = ImageFont.truetype(
+        font_path, 62, layout_engine=ImageFont.Layout.RAQM
+    )
+    identity_color = (*accent, 255) if template == "ivory_classic" else title_color
+    draw.text((540, 505), "الْقُرْآنُ الْكَرِيمُ", font=identity_font,
+              fill=identity_color, anchor="mm", direction="rtl", language="ar")
+    draw.line((330, 565, 750, 565), fill=(*accent, 220), width=3)
+    _eight_point_star(draw, 310, 565, 13, (*accent, 235), 2)
+    _eight_point_star(draw, 770, 565, 13, (*accent, 235), 2)
+
     title_font = None
     for size in (112, 104, 96, 88, 80, 72, 64):
         candidate = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
@@ -158,6 +208,9 @@ def render_cover(surah_title: str, start_ayah: int, end_ayah: int,
         raise ValueError("Vocalized surah title cannot fit without clipping.")
     draw.text((540, 805), surah_title, font=title_font, fill=title_color,
               anchor="mm", direction="rtl", language="ar")
+    # Fine inner cartouche ornaments frame the surah name without touching glyphs.
+    for x in (155, 925):
+        _eight_point_star(draw, x, 805, 22, (*accent, 230), 2)
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     first, last = str(start_ayah).translate(digits), str(end_ayah).translate(digits)
