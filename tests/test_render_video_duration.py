@@ -48,6 +48,24 @@ class BackgroundRotationTests(unittest.TestCase):
             path.write_text(json.dumps(catalog), encoding="utf-8")
             self.assertEqual([item["id"] for item in order_backgrounds(path, "key")], ["good"])
 
+    def test_recent_backgrounds_are_deferred_until_fresh_candidates(self):
+        import json
+        import tempfile
+        catalog = {"candidates": [
+            {"id": f"bg-{i}", "direct_video_url": f"https://cdn.example/{i}.mp4",
+             "source_page_url": f"https://example/{i}", "approved": True,
+             "user_approved": True, "download_verified": True}
+            for i in range(6)
+        ]}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "catalog.json"
+            path.write_text(json.dumps(catalog), encoding="utf-8")
+            first = select_background(path, "video-003", ["bg-1", "bg-2"])
+            sequence = order_backgrounds(path, "video-003", ["bg-1", "bg-2"])
+            self.assertEqual(sequence[0]["id"], first["id"])
+            self.assertNotIn(sequence[1]["id"], {"bg-1", "bg-2"})
+            self.assertNotIn(sequence[2]["id"], {"bg-1", "bg-2"})
+
 
 class VideoDurationTests(unittest.TestCase):
     def test_exactly_40_seconds_is_allowed(self):
