@@ -9,6 +9,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, features
 
+from background_rotation import select_background_sequence
+
 
 MAX_VIDEO_SECONDS = 40.0
 
@@ -169,6 +171,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", default="output/review.mp4")
+    parser.add_argument(
+        "--rotate-approved-backgrounds",
+        action="store_true",
+        help="Use only user-approved, download-verified 9:16 clips from data/background_candidates.json.",
+    )
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest)
@@ -255,7 +262,6 @@ def main() -> None:
     concat_list.write_text("".join("file '" + str(p.resolve()) + "'\n" for p in extracted), encoding="utf-8")
     run(["ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
          "-i", str(concat_list), "-c", "copy", str(audio_file)])
-    download(background_url, bg_file)
 
     duration_result = subprocess.check_output([
         "ffprobe", "-v", "error", "-show_entries", "format=duration",
@@ -264,21 +270,72 @@ def main() -> None:
     duration = float(duration_result)
     validate_video_duration(duration)
 
-    draw = (
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-        "crop=1080:1920,setsar=1,fps=30,"
-        "drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill[v0];"
-        "[v0][2:v]overlay=0:0[v1];"
-        "[v1][3:v]overlay=0:0[v]"
-    )
+    if args.rotate_approved_backgrounds:
+        rotation_key = (
+            f"{source.get('surah_number', source['surah_name_ar'])}:"
+            f"{','.join(str(number) for number in verse_numbers)}"
+        )
+        selected_backgrounds = select_background_sequence(
+            Path("data/background_candidates.json"), rotation_key, duration
+        )
+        rotation_dir = work / "background_rotation"
+        rotation_dir.mkdir(parents=True, exist_ok=True)
+        background_files = []
+        for candidate in selected_backgrounds:
+            local_file = rotation_dir / f"{candidate['id']}.mp4"
+            download(candidate["direct_video_url"], local_file)
+            background_files.append((local_file, float(candidate["duration_seconds"])))
+
+        background_inputs: list[str] = []
+        background_filters: list[str] = []
+        for index, (local_file, clip_duration) in enumerate(background_files):
+            background_inputs.extend(["-i", str(local_file)])
+            background_filters.append(
+                f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+                f"crop=1080:1920,setsar=1,fps=30,trim=duration={clip_duration:.3f},"
+                f"setpts=PTS-STARTPTS[bg{index}]"
+            )
+        concat_inputs = "".join(f"[bg{index}]" for index in range(len(background_files)))
+        audio_index = len(background_files)
+        arabic_index = audio_index + 1
+        english_index = audio_index + 2
+        background_filters.append(
+            f"{concat_inputs}concat=n={len(background_files)}:v=1:a=0,"
+            f"trim=duration={duration:.3f},setpts=PTS-STARTPTS[background]"
+        )
+        background_filters.extend([
+            "[background]drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill[v0]",
+            f"[v0][{arabic_index}:v]overlay=0:0[v1]",
+            f"[v1][{english_index}:v]overlay=0:0[v]",
+        ])
+        draw = ";".join(background_filters)
+        input_args = background_inputs + [
+            "-i", str(audio_file), "-i", str(arabic_overlay), "-i", str(english_overlay)
+        ]
+        audio_map = f"{audio_index}:a"
+    else:
+        # Preserve the original single-background path unless rotation is explicitly requested.
+        download(background_url, bg_file)
+        draw = (
+            "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920,setsar=1,fps=30,"
+            "drawbox=x=55:y=380:w=970:h=1120:color=black@0.30:t=fill[v0];"
+            "[v0][2:v]overlay=0:0[v1];"
+            "[v1][3:v]overlay=0:0[v]"
+        )
+        input_args = [
+            "-stream_loop", "-1", "-i", str(bg_file),
+            "-i", str(audio_file), "-i", str(arabic_overlay),
+            "-i", str(english_overlay)
+        ]
+        audio_map = "1:a"
+
     run([
-        "ffmpeg", "-hide_banner", "-y", "-stream_loop", "-1", "-i", str(bg_file),
-        "-i", str(audio_file), "-i", str(arabic_overlay),
-        "-i", str(english_overlay), "-filter_complex", draw,
-        "-map", "[v]", "-map", "1:a", "-t", str(duration),
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-        "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
-        "-movflags", "+faststart", str(output)
+        "ffmpeg", "-hide_banner", "-y", *input_args,
+        "-filter_complex", draw, "-map", "[v]", "-map", audio_map,
+        "-t", str(duration), "-c:v", "libx264", "-preset", "veryfast",
+        "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac",
+        "-b:a", "192k", "-movflags", "+faststart", str(output)
     ])
 
     caption_path = output.with_suffix(".caption.json")
