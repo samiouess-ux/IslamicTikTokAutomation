@@ -322,3 +322,11 @@ The active scene renderer now rejects non-finite audio durations (NaN and positi
 - Added regression coverage for all five invalid duration values in `tests/test_background_reel.py`.
 - The change does not alter candidate selection, clip ordering, trim behavior, video layout, audio, captions, Telegram delivery, or publishing.
 - Tests were added but have not been executed in this environment. No GitHub Actions workflow or production render was dispatched.
+
+
+## Manifest verification gate audit (2026-11-10)
+
+- Static review found that `content/first_video.json` records `downloaded: true` but does not record `download_verified: true`. The active manifest validator deliberately requires the latter, so the current first-video manifest is blocked from rendering until the exact background file is technically verified and the manifest is updated with evidence.
+- The draft Ash-Sharh manifest also lacks `download_verified: true`; it remains blocked as well.
+- Updated the manifest regression test to assert this fail-closed behavior rather than incorrectly expecting the first manifest to pass.
+- This is intentional safety behavior: a prior approval/download marker is not treated as proof that the current file can be decoded and has the expected media properties. No verification flag was fabricated and no manifest was changed.
