@@ -276,6 +276,34 @@ def build_background_reel(
         )
 
 
+def prepare_manifest_background(
+    data: dict,
+    background_rotation: bool,
+    rotation_key: str,
+    recent_background_ids: list[str],
+) -> list[dict] | None:
+    """Apply an eligible rotated background before validating the manifest."""
+    background_sequence = None
+    if background_rotation:
+        visual = data.get("visual")
+        if not isinstance(visual, dict):
+            raise SystemExit("Manifest visual must be an object before background rotation.")
+        from background_rotation import order_backgrounds
+        background_sequence = order_backgrounds(
+            Path("data/background_candidates.json"),
+            rotation_key,
+            recent_background_ids,
+        )
+        selected_background = dict(background_sequence[0])
+        background_sequence = [dict(item) for item in background_sequence]
+        selected_background["source_url"] = selected_background["source_page_url"]
+        visual["background_candidate"] = selected_background
+        visual.pop("approved_background_url", None)
+        print(f"Selected approved background: {selected_background['id']}")
+    validate_content_manifest(data)
+    return background_sequence
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
@@ -287,24 +315,12 @@ def main() -> None:
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
-    background_sequence = None
-    if args.background_rotation:
-        visual = data.get("visual")
-        if not isinstance(visual, dict):
-            raise SystemExit("Manifest visual must be an object before background rotation.")
-        from background_rotation import order_backgrounds
-        background_sequence = order_backgrounds(
-            Path("data/background_candidates.json"),
-            args.background_rotation_key,
-            args.recent_background_id,
-        )
-        selected_background = dict(background_sequence[0])
-        background_sequence = [dict(item) for item in background_sequence]
-        selected_background["source_url"] = selected_background["source_page_url"]
-        visual["background_candidate"] = selected_background
-        visual.pop("approved_background_url", None)
-        print(f"Selected approved background: {selected_background['id']}")
-    validate_content_manifest(data)
+    background_sequence = prepare_manifest_background(
+        data,
+        args.background_rotation,
+        args.background_rotation_key,
+        args.recent_background_id,
+    )
     if data.get("content_type", "quran") != "quran":
         raise SystemExit("This renderer currently renders Quran manifests only; dua/dhikr rendering is being added separately.")
     source, audio, visual = data["source"], data["audio"], data["visual"]
