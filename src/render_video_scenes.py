@@ -389,7 +389,7 @@ def main() -> None:
 
     inputs = ["-i", str(bg_file), "-i", str(audio_file)]
     filters = [
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+        "[0:v]tpad=stop_mode=clone:stop_duration=1,scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,setsar=1,fps=30,"
         "drawbox=x=55:y=380:w=970:h=1340:color=black@0.30:t=fill[vbase]"
     ]
