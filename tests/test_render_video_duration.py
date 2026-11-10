@@ -53,7 +53,7 @@ class BackgroundRotationTests(unittest.TestCase):
         import tempfile
         catalog = {"candidates": [
             {"id": f"bg-{i}", "direct_video_url": f"https://cdn.example/{i}.mp4",
-             "source_page_url": f"https://example/{i}", "approved": True,
+             "source_page_url": f"https://example/{i}", "aspect_ratio": "9:16", "approved": True,
              "user_approved": True, "download_verified": True}
             for i in range(6)
         ]}
