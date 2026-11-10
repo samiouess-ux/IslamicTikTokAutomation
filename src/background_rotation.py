@@ -53,10 +53,15 @@ def order_backgrounds(
     """Return a deterministic per-video sequence, starting with the rotated pick."""
     eligible = load_eligible_backgrounds(catalog_path)
     first = select_background(catalog_path, rotation_key, recent_ids)
-    remainder = [item for item in eligible if item["id"] != first["id"]]
-    remainder.sort(
-        key=lambda item: hashlib.sha256(
+    recent = set(recent_ids)
+    fresh = [item for item in eligible if item["id"] != first["id"] and item["id"] not in recent]
+    previously_used = [item for item in eligible if item["id"] != first["id"] and item["id"] in recent]
+
+    def order_key(item: dict) -> str:
+        return hashlib.sha256(
             f"{rotation_key}:{first['id']}:{item['id']}".encode("utf-8")
         ).hexdigest()
-    )
-    return [first, *remainder]
+
+    fresh.sort(key=order_key)
+    previously_used.sort(key=order_key)
+    return [first, *fresh, *previously_used]
