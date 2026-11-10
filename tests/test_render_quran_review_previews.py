@@ -405,5 +405,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertEqual(chosen["id"], "second")
 
 
+    @patch("render_quran_review_previews.subprocess.check_output", return_value="12.500")
+    def test_audio_duration_is_measured_with_ffprobe(self, _check):
+        self.assertEqual(renderer.audio_duration_seconds(Path("ayah.mp3")), 12.5)
+
+    @patch("render_quran_review_previews.subprocess.check_output", side_effect=renderer.subprocess.CalledProcessError(1, "ffprobe"))
+    def test_audio_duration_probe_failure_is_a_safe_zero_fallback(self, _check):
+        self.assertEqual(renderer.audio_duration_seconds(Path("ayah.mp3")), 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()
