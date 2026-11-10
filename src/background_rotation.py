@@ -66,3 +66,30 @@ def order_backgrounds(
     fresh.sort(key=order_key)
     previously_used.sort(key=order_key)
     return [first, *fresh, *previously_used]
+
+
+
+def select_background_sequence(
+    catalog_path: Path,
+    rotation_key: str,
+    required_duration: float,
+    recent_ids: Iterable[str] = (),
+) -> list[dict]:
+    """Select approved portrait clips in deterministic order until duration is covered."""
+    if required_duration <= 0:
+        raise ValueError("Required background duration must be positive.")
+    ordered = order_backgrounds(catalog_path, rotation_key, recent_ids)
+    selected: list[dict] = []
+    total = 0.0
+    for item in ordered:
+        clip_duration = item.get("duration_seconds")
+        if not isinstance(clip_duration, (int, float)) or clip_duration <= 0:
+            raise ValueError(f"Background {item.get('id', '<unknown>')} has no verified positive duration.")
+        selected.append(item)
+        total += float(clip_duration)
+        if total >= required_duration:
+            return selected
+    raise ValueError(
+        f"Approved portrait backgrounds provide {total:.2f}s, "
+        f"short of the required {required_duration:.2f}s."
+    )
