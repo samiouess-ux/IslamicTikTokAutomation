@@ -13,14 +13,32 @@ from hashtag_strategy import build_hashtags
 from validate_content_manifest import validate_content_manifest
 
 
+MAX_BACKGROUND_DOWNLOAD_BYTES = 250 * 1024 * 1024
+
+
 def download(url: str, destination: Path) -> None:
+    """Download a bounded background file and remove partial output on failure."""
     request = urllib.request.Request(url, headers={"User-Agent": "IslamicTikTokAutomation/1.0"})
-    with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as out:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            out.write(chunk)
+    try:
+        with urllib.request.urlopen(request, timeout=90) as response:
+            declared_size = response.headers.get("Content-Length")
+            if declared_size is not None and int(declared_size) > MAX_BACKGROUND_DOWNLOAD_BYTES:
+                raise SystemExit("Background download exceeds the 250 MiB safety limit.")
+            total = 0
+            with destination.open("wb") as out:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > MAX_BACKGROUND_DOWNLOAD_BYTES:
+                        raise SystemExit("Background download exceeds the 250 MiB safety limit.")
+                    out.write(chunk)
+            if total == 0:
+                raise SystemExit("Background download returned an empty file.")
+    except BaseException:
+        destination.unlink(missing_ok=True)
+        raise
 
 
 def ffmpeg_text(value: str) -> str:
@@ -212,6 +230,30 @@ def probe_media_duration(path: Path) -> float:
     return duration
 
 
+def validate_rendered_video(path: Path, expected_duration: float) -> None:
+    """Verify generated reel output is a real 1080x1920 video of sufficient length."""
+    if not path.is_file() or path.stat().st_size == 0:
+        raise SystemExit(f"Generated background video is missing or empty: {path}")
+    raw = subprocess.check_output([
+        "ffprobe", "-v", "error", "-show_streams", "-show_format",
+        "-of", "json", str(path)
+    ], text=True)
+    try:
+        info = json.loads(raw)
+        video = next(s for s in info.get("streams", []) if s.get("codec_type") == "video")
+        width, height = int(video["width"]), int(video["height"])
+        actual_duration = float(info["format"]["duration"])
+    except (ValueError, TypeError, KeyError, StopIteration, json.JSONDecodeError) as exc:
+        raise SystemExit(f"Generated background is not a readable video: {path}") from exc
+    if (width, height) != (1080, 1920):
+        raise SystemExit(f"Generated background must be 1080x1920; got {width}x{height}: {path}")
+    if not math.isfinite(actual_duration) or actual_duration + 0.10 < expected_duration:
+        raise SystemExit(
+            f"Generated background is too short or has invalid duration "
+            f"({actual_duration:.3f}s for {expected_duration:.3f}s): {path}"
+        )
+
+
 def probe_background_media(path: Path) -> float:
     """Fail closed unless a downloaded background is a valid 9:16 video."""
     if not path.is_file() or path.stat().st_size == 0:
@@ -280,6 +322,7 @@ def build_background_reel(
                 "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                 "-pix_fmt", "yuv420p", "-r", "30", str(normalized)
             ])
+            validate_rendered_video(normalized, take)
             normalized_files.append(normalized)
             remaining -= take
             sequence_index += 1
@@ -298,11 +341,7 @@ def build_background_reel(
         "-i", str(concat_list), "-an", "-c", "copy", "-movflags", "+faststart",
         str(destination)
     ])
-    actual_duration = probe_media_duration(destination)
-    if actual_duration + 0.10 < duration:
-        raise SystemExit(
-            f"Background reel is too short ({actual_duration:.3f}s for {duration:.3f}s audio)."
-        )
+    validate_rendered_video(destination, duration)
 
 
 def prepare_manifest_background(
