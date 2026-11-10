@@ -215,3 +215,15 @@ Checked four individual mosque-related items from Mixkit's Islamic collection. T
 - https://mixkit.co/free-stock-video/islamic-mosque-in-the-middle-of-a-town-35472/ (17s, 30fps)
 
 This is a license-based exclusion only; the files were not downloaded or visually inspected. Prefer individually identified clips whose pages explicitly state the Mixkit Stock Video Free License, and verify the exact downloaded asset's license before use.
+
+## Portrait framing audit of the existing approved catalog (2026-11-10)
+
+A static cross-check of the 11 catalog records against their stored source metadata found three landscape (16:9) assets in a portrait (9:16) video workflow:
+
+- `pexels-mountain-bridge-5903759` — 3840x2160 landscape MP4.
+- `pexels-mosque-interior-calligraphy-19819594` — 1920x1080 landscape MP4.
+- `pexels-moroccan-courtyard-decor-32719926` — 3840x2160 landscape MP4.
+
+The renderer currently applies scale-to-fill followed by a centered 1080x1920 crop. These three assets will therefore lose substantial horizontal content and may frame the intended subject poorly. This is a static metadata/code finding, not a visual review. Do not silently change their approval flags or remove them from the catalog; treat them as portrait-crop review items and prefer the eight portrait/unknown-orientation records when choosing a portrait background until each is visually checked.
+
+No production code, candidate catalog, render, or workflow was changed as part of this audit.
