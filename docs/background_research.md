@@ -348,3 +348,14 @@ The active scene renderer now rejects non-finite audio durations (NaN and positi
 - Corrected the ordering on the isolated branch `fix/background-rotation-validation-order`: the renderer now applies the selected catalog background before calling the shared manifest validator. The preparation step is isolated in `prepare_manifest_background()` and covered by `tests/test_renderer_background_preparation.py`, including rotation, no-rotation, and malformed-visual cases.
 - The manifest review workflow remains manual-dispatch only; the branch-specific correction does not trigger the separate batch test workflow, which listens only to `feature/telegram-review-notifications`. No workflow was dispatched, no renderer was run, and no video or Telegram message was produced.
 - The catalog contains eleven records with approval/download metadata, but only seven meet the renderer's 9:16 portrait eligibility rule. The manual workflow description was corrected to say seven eligible portrait backgrounds. Three landscape/invalid-ratio records remain excluded.
+
+## Downloaded background stream validation hardening (2026-11-10)
+
+On the isolated branch `fix/background-rotation-validation-order`, the active renderer now validates each downloaded background before normalization:
+
+- Rejects missing or zero-byte downloads before invoking ffprobe.
+- Requires ffprobe to report a video stream with readable dimensions and a finite, positive duration.
+- Requires the actual video dimensions to be portrait 9:16 (within a 2% ratio tolerance); catalog metadata alone is not trusted for this check.
+- Added mocked regression tests for valid portrait media, missing video streams, landscape media, empty downloads, and non-finite duration.
+
+The renderer still uses the probed duration for trimming and reel assembly. These checks are static-code changes plus mocked tests; the tests have **not** been executed, no external clips were downloaded in this pass, and no render, workflow, Telegram delivery, or publishing action was performed. The change remains isolated and is not merged.
