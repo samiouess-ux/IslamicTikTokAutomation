@@ -7,7 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from background_rotation import (load_eligible_backgrounds, select_background,\n                                 select_background_sequence)
+from background_rotation import (load_eligible_backgrounds, select_background,
+                                 select_background_sequence)
 
 
 class BackgroundRotationTests(unittest.TestCase):
