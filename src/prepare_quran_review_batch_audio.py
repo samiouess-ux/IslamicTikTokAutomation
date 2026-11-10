@@ -8,6 +8,7 @@ not production approval or publication.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
 import shutil
@@ -93,33 +94,81 @@ def open_audio_archive(inventory: dict):
         return
 
     source_url = inventory.get("source_url", DEFAULT_ARCHIVE)
-    remote_archive = None
-    try:
-        remote_archive = RemoteZip(source_url)
-        # Force the remote directory read here so RangeNotSupported is caught
-        # before any candidate audio is processed.
-        remote_archive.namelist()
-    except remotezip.RangeNotSupported:
-        remote_archive = None
-    else:
-        with remote_archive as archive:
-            yield archive
-        return
-
-    # Some official hosting endpoints do not implement HTTP byte ranges.
-    # Download once to a temporary file, verify the ZIP central directory and
-    # every member's CRC, then use the standard local ZIP reader.
+    # Keep the full-download fallback alive for the entire read operation:
+    # some hosts accept the ZIP directory request but reject a later member range.
     with tempfile.TemporaryDirectory(prefix="quran-audio-") as temp_dir:
-        local_archive = Path(temp_dir) / "official-audio.zip"
-        urllib.request.urlretrieve(source_url, local_archive)
+        remote_archive = None
         try:
-            with ZipFile(local_archive) as archive:
-                bad_member = archive.testzip()
+            remote_archive = RemoteZip(source_url)
+            remote_archive.namelist()
+        except remotezip.RangeNotSupported:
+            if remote_archive is not None:
+                remote_archive.close()
+            local_archive = Path(temp_dir) / "official-audio.zip"
+            urllib.request.urlretrieve(source_url, local_archive)
+            try:
+                with ZipFile(local_archive) as archive:
+                    bad_member = archive.testzip()
+                    if bad_member is not None:
+                        raise BadZipFile(f"Corrupt ZIP member: {bad_member}")
+                    yield archive
+            except BadZipFile as exc:
+                raise ValueError(f"Downloaded official audio archive is invalid: {exc}") from exc
+            return
+
+        archive = RangeFallbackArchive(
+            remote_archive, source_url, Path(temp_dir) / "official-audio.zip"
+        )
+        try:
+            yield archive
+        finally:
+            archive.close()
+
+
+class RangeFallbackArchive:
+    """Read remote ZIP members, downloading and verifying the full ZIP if Range fails mid-read."""
+
+    def __init__(self, remote_archive, source_url: str, local_archive_path: Path):
+        self.remote_archive = remote_archive
+        self.source_url = source_url
+        self.local_archive_path = local_archive_path
+        self.local_archive = None
+
+    def namelist(self):
+        return self.remote_archive.namelist()
+
+    def _open_local_archive(self):
+        if self.local_archive is None:
+            urllib.request.urlretrieve(self.source_url, self.local_archive_path)
+            try:
+                candidate = ZipFile(self.local_archive_path)
+                bad_member = candidate.testzip()
                 if bad_member is not None:
+                    candidate.close()
                     raise BadZipFile(f"Corrupt ZIP member: {bad_member}")
-                yield archive
-        except BadZipFile as exc:
-            raise ValueError(f"Downloaded official audio archive is invalid: {exc}") from exc
+                self.local_archive = candidate
+            except BadZipFile as exc:
+                raise ValueError(f"Downloaded official audio archive is invalid: {exc}") from exc
+            self.remote_archive.close()
+        return self.local_archive
+
+    @contextmanager
+    def open(self, member):
+        try:
+            with self.remote_archive.open(member) as source:
+                data = source.read()
+        except remotezip.RangeNotSupported:
+            archive = self._open_local_archive()
+            with archive.open(member) as source:
+                yield source
+            return
+        yield io.BytesIO(data)
+
+    def close(self):
+        if self.local_archive is not None:
+            self.local_archive.close()
+        else:
+            self.remote_archive.close()
 
 
 def resolve_archive_member(archive_names: list[str], requested_member: str) -> str:
