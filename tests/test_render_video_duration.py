@@ -5,7 +5,47 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from render_video_scenes import validate_video_duration, validate_quran_audio_approval
+from render_video_scenes import validate_video_duration, validate_quran_audio_approval\nfrom background_rotation import order_backgrounds
+
+
+class BackgroundRotationTests(unittest.TestCase):
+    def test_sequence_starts_with_selected_background_and_contains_all_eligible_once(self):
+        import json
+        import tempfile
+        catalog = {"candidates": [
+            {"id": f"bg-{i}", "direct_video_url": f"https://cdn.example/{i}.mp4",
+             "source_page_url": f"https://example/{i}", "approved": True,
+             "user_approved": True, "download_verified": True}
+            for i in range(5)
+        ]}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "catalog.json"
+            path.write_text(json.dumps(catalog), encoding="utf-8")
+            sequence = order_backgrounds(path, "video-001")
+            self.assertEqual(sequence[0]["id"], sequence[0]["id"])
+            self.assertEqual({item["id"] for item in sequence}, {f"bg-{i}" for i in range(5)})
+            self.assertEqual(len({item["id"] for item in sequence}), 5)
+            self.assertEqual(sequence, order_backgrounds(path, "video-001"))
+            self.assertNotEqual(sequence, order_backgrounds(path, "video-002"))
+
+    def test_unapproved_or_unverified_candidates_are_excluded(self):
+        import json
+        import tempfile
+        catalog = {"candidates": [
+            {"id": "good", "direct_video_url": "https://cdn.example/good.mp4",
+             "source_page_url": "https://example/good", "approved": True,
+             "user_approved": True, "download_verified": True},
+            {"id": "not-approved", "direct_video_url": "https://cdn.example/no.mp4",
+             "source_page_url": "https://example/no", "approved": False,
+             "user_approved": True, "download_verified": True},
+            {"id": "not-verified", "direct_video_url": "https://cdn.example/no2.mp4",
+             "source_page_url": "https://example/no2", "approved": True,
+             "user_approved": True, "download_verified": False},
+        ]}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "catalog.json"
+            path.write_text(json.dumps(catalog), encoding="utf-8")
+            self.assertEqual([item["id"] for item in order_backgrounds(path, "key")], ["good"])
 
 
 class VideoDurationTests(unittest.TestCase):
