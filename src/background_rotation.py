@@ -22,7 +22,7 @@ def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
         and item["source_page_url"].startswith("https://")
     ]
     if not eligible:
-        raise ValueError("No explicitly approved and download-verified backgrounds are eligible.")
+        raise ValueError("No explicitly approved, download-verified 9:16 portrait backgrounds are eligible.")
     ids = [item.get("id") for item in eligible]
     if any(not item_id for item_id in ids) or len(ids) != len(set(ids)):
         raise ValueError("Eligible background IDs must be present and unique.")
