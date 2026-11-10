@@ -370,5 +370,40 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 probe(path)
 
 
+    def test_background_selection_preserves_rotation_when_clip_is_long_enough(self):
+        backgrounds = [
+            {"id": "scheduled", "duration_seconds": 12.0},
+            {"id": "longer", "duration_seconds": 30.0},
+            {"id": "longest", "duration_seconds": 45.0},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 10.0, set())
+        self.assertEqual(chosen["id"], "scheduled")
+
+    def test_background_selection_chooses_next_suitable_clip_for_long_ayah(self):
+        backgrounds = [
+            {"id": "scheduled", "duration_seconds": 8.0},
+            {"id": "medium", "duration_seconds": 18.0},
+            {"id": "longest", "duration_seconds": 45.0},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 20.0, set())
+        self.assertEqual(chosen["id"], "longest")
+
+    def test_background_selection_uses_longest_fallback_when_no_clip_is_long_enough(self):
+        backgrounds = [
+            {"id": "scheduled", "duration_seconds": 8.0},
+            {"id": "medium", "duration_seconds": 18.0},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 60.0, set())
+        self.assertEqual(chosen["id"], "medium")
+
+    def test_background_selection_avoids_reuse_until_all_clips_are_used(self):
+        backgrounds = [
+            {"id": "first", "duration_seconds": 12.0},
+            {"id": "second", "duration_seconds": 30.0},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 10.0, {"first"})
+        self.assertEqual(chosen["id"], "second")
+
+
 if __name__ == "__main__":
     unittest.main()
