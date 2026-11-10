@@ -216,6 +216,8 @@ def build_background_reel(
     candidates: list[dict], duration: float, work: Path, destination: Path
 ) -> None:
     """Join approved clips in order, trimming the final clip to the audio length."""
+    if not math.isfinite(duration) or duration <= 0:
+        raise SystemExit("Background reel duration must be a finite positive number.")
     if not candidates:
         raise SystemExit("No approved backgrounds are available for this render.")
     raw_files: dict[str, Path] = {}
