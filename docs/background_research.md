@@ -249,3 +249,12 @@ A second static review of `src/validate_content_manifest.py` and the non-rotatio
 - This is a code-path inconsistency, not evidence that an unverified clip has been used. The current 11 catalog records are marked verified; no manifest or render was executed in this review.
 
 Recommended safe correction before future production use: add the same explicit `download_verified is True` requirement to shared manifest validation (and a focused negative unit test), then run the isolated unit suite. Do not alter the approved template, cover, audio, verse timing, or publishing flow. This pass is documentation-only; production code and catalog remain unchanged.
+
+## Manifest verification gate fixed (2026-11-10)
+
+The previously documented manifest bypass has now been closed:
+
+- `src/validate_content_manifest.py` now requires `visual.background_candidate.download_verified is True` for every manifest, in addition to approval and user-review flags.
+- `tests/test_render_video_duration.py` now contains positive and negative unit cases for this gate: verified candidates pass; candidates without download verification are rejected.
+- Both files were fetched again after the commits and the new gate/tests were confirmed present.
+- Tests were not executed in this pass. No workflow, render, candidate catalog, template, audio, verse text/timing, or publishing configuration was changed.
