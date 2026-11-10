@@ -42,3 +42,21 @@ def select_background(
     pool = fresh or eligible
     digest = hashlib.sha256(rotation_key.encode("utf-8")).digest()
     return pool[int.from_bytes(digest[:8], "big") % len(pool)]
+
+
+
+def order_backgrounds(
+    catalog_path: Path,
+    rotation_key: str,
+    recent_ids: Iterable[str] = (),
+) -> list[dict]:
+    """Return a deterministic per-video sequence, starting with the rotated pick."""
+    eligible = load_eligible_backgrounds(catalog_path)
+    first = select_background(catalog_path, rotation_key, recent_ids)
+    remainder = [item for item in eligible if item["id"] != first["id"]]
+    remainder.sort(
+        key=lambda item: hashlib.sha256(
+            f"{rotation_key}:{first['id']}:{item['id']}".encode("utf-8")
+        ).hexdigest()
+    )
+    return [first, *remainder]
