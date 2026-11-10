@@ -195,3 +195,12 @@ Source checks:
 
 The research pool now contains 63 unique Pexels clip pages plus 2 individually identified Mixkit clip pages (65 unique clip-page leads total). None of these new leads has been approved or added to the production candidate catalog.
 
+## Mixkit download attempt and test review (2026-11-10)
+
+Re-opened both individual Mixkit pages and reconfirmed the vertical Full HD options and the page-level Free License statements. An attempt to retrieve the page source from the working container failed before HTTP connection because external DNS resolution was unavailable. No direct MP4 download URL could therefore be verified from the page's download action, and no MP4, ffprobe report, or visual preview was produced. Both clips remain pending and are not eligible for the production catalog.
+
+Reviewed (but did not execute) the existing safety tests:
+- `tests/test_render_video_duration.py` covers the 40-second duration cap, audio approval gates, and deterministic background sequence ordering.
+- `tests/test_background_rotation.py` asserts that the current catalog contains exactly 11 eligible approved backgrounds and excludes unverified additions.
+
+No tests, renders, GitHub Actions workflows, production files, or candidate-catalog records were run or changed as part of this review. A test run should be done only in an isolated local/CI environment with no publishing or Telegram side effects.
