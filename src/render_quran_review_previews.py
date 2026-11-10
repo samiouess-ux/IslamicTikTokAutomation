@@ -501,6 +501,10 @@ def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
             # Preserve the scheduled rotation whenever its first clip is long
             # enough; otherwise use the next suitable clip in the ordered list.
             return long_enough[0]
+    if audio_duration <= 0:
+        # If probing is unavailable, retain the scheduled rotation rather than
+        # making an unsupported duration-based choice.
+        return available[0]
     return max(available, key=lambda item: float(item.get("duration_seconds") or 0))
 
 def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
