@@ -258,3 +258,12 @@ The previously documented manifest bypass has now been closed:
 - `tests/test_render_video_duration.py` now contains positive and negative unit cases for this gate: verified candidates pass; candidates without download verification are rejected.
 - Both files were fetched again after the commits and the new gate/tests were confirmed present.
 - Tests were not executed in this pass. No workflow, render, candidate catalog, template, audio, verse text/timing, or publishing configuration was changed.
+
+## Portrait-only rotation safeguard (2026-11-10)
+
+A follow-up static audit confirmed that the renderer center-crops every source to 1080x1920, while the approved catalog contains three known 16:9 clips and one clip with no recorded aspect ratio. The previous rotation loader admitted all eleven.
+
+- `src/background_rotation.py` now admits only candidates whose recorded `aspect_ratio` is exactly `9:16`, in addition to the existing approval, download-verification, and HTTPS checks.
+- The eligible rotation pool is therefore seven portrait clips. The three landscape clips and the one unknown-ratio clip remain untouched in the catalog and are not silently deleted or reclassified.
+- Rotation tests now expect seven eligible clips and use explicit 9:16 metadata in their synthetic fixtures.
+- This is a static code/catalog audit only; tests were not executed and no video was rendered. The approved template, cover, audio, verse text/timing, and publishing flow remain unchanged.
