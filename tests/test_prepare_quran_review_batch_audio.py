@@ -61,7 +61,7 @@ class QuranBatchAudioTests(unittest.TestCase):
                 module.shutil.copyfile(source_zip, destination)
                 return str(destination), None
 
-            with patch.object(module, "RemoteZip", return_value=LateRangeFailureArchive()), \\
+            with patch.object(module, "RemoteZip", return_value=LateRangeFailureArchive()), \
                  patch.object(module.urllib.request, "urlretrieve", side_effect=fake_download):
                 with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}) as archive:
                     with archive.open("audio/001.mp3") as source:
