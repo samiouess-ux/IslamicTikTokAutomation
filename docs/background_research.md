@@ -337,3 +337,12 @@ The active scene renderer now rejects non-finite audio durations (NaN and positi
 - Added unit cases proving the production reel builder refuses an empty candidate list and refuses candidates whose probed duration is zero, without invoking ffmpeg normalization.
 - These are mocked unit tests only; they do not download media or execute ffmpeg.
 - Tests have not been run in this environment. No workflow, production render, manifest, catalog, template, audio, Quran text, or publishing setting was changed.
+
+
+## Renderer entrypoint and workflow audit (2026-11-10)
+
+- Confirmed the manifest-driven review workflow invokes `src/render_video_scenes.py`, not the older `src/render_video.py`.
+- Found an ordering defect in `src/render_video_scenes.py`: it calls `validate_content_manifest(data)` before applying `--background-rotation`. The checked-in first-video manifest lacks `background_candidate.download_verified: true`, so the default rotation path is rejected before it can replace that candidate with an eligible verified catalog entry. The subsequent validation after rotation is correctly placed but is unreachable for that manifest.
+- The separate `render-second-ash-sharh-review.yml` workflow also invokes the same renderer with the draft manifest and a separately downloaded Mixkit background; that manifest likewise lacks the required technical-verification flag, so the shared validator blocks it before rendering. That workflow also contains a direct Telegram-send step, currently guarded by `if: false`; it was not run.
+- The older `src/render_video.py` does not call the shared manifest validator. The primary manifest workflow does not invoke this older entrypoint, but it remains a less-protected legacy path and should not be used.
+- No workflow was dispatched or run. No renderer, manifest, background catalog, audio, Quran text, template, or publishing configuration was changed. A safe code correction needs to apply the selected verified catalog background before the first manifest validation, with a regression test; deferred here to avoid triggering repository workflows through a renderer-file push.
