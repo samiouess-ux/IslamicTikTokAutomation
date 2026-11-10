@@ -214,6 +214,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual([x["background"]["id"] for x in result["items"]], [
                 "pexels-sunset-sky-35477402", "pexels-mountain-bridge-5903759"
             ])
+            first_sequence = [x["id"] for x in result["items"][0]["background_sequence"]]
+            self.assertEqual(len(first_sequence), 3)
+            self.assertEqual(len(set(first_sequence)), 3)
+            self.assertEqual(first_sequence[0], "pexels-sunset-sky-35477402")
+            self.assertEqual(
+                [x["duration_seconds"] for x in result["items"][0]["background_sequence"]],
+                [5.0, 24.0, 14.0],
+            )
             self.assertEqual(result["background_rotation_start_index"], 2)
             self.assertEqual({x["surah_number"] for x in result["items"]}, {19, 88})
             self.assertTrue(all(x["review_only"] for x in result["items"]))
