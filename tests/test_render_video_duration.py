@@ -67,6 +67,39 @@ class BackgroundRotationTests(unittest.TestCase):
             self.assertNotIn(sequence[2]["id"], {"bg-1", "bg-2"})
 
 
+class ManifestBackgroundVerificationTests(unittest.TestCase):
+    def _manifest(self, download_verified):
+        return {
+            "content_type": "dua",
+            "source": {},
+            "visual": {
+                "background_candidate": {
+                    "direct_video_url": "https://cdn.example/background.mp4",
+                    "source_url": "https://example.com/background",
+                    "approved": True,
+                    "user_approved": True,
+                    "download_verified": download_verified,
+                }
+            },
+            "audio": {"kind": "silent"},
+            "publishing": {"approval_required": True, "auto_publish": False},
+            "items": [{
+                "arabic": "ذكر تجريبي",
+                "source_name": "مصدر موثّق",
+                "source_url": "https://example.com/dhikr",
+            }],
+        }
+
+    def test_manifest_rejects_background_without_download_verification(self):
+        from validate_content_manifest import validate_content_manifest
+        with self.assertRaisesRegex(SystemExit, "downloaded and technically verified"):
+            validate_content_manifest(self._manifest(False))
+
+    def test_manifest_accepts_approved_user_reviewed_verified_background(self):
+        from validate_content_manifest import validate_content_manifest
+        validate_content_manifest(self._manifest(True))
+
+
 class VideoDurationTests(unittest.TestCase):
     def test_exactly_40_seconds_is_allowed(self):
         validate_video_duration(40.0)
