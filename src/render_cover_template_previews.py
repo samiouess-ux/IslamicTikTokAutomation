@@ -40,6 +40,40 @@ def _gradient(top: tuple, bottom: tuple) -> Image.Image:
 def _star(draw: ImageDraw.ImageDraw, x: int, y: int, radius: int, color: tuple) -> None:
     draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill=color)
 
+def _ornate_medallion(draw: ImageDraw.ImageDraw, cx: int, cy: int, r: int, gold: tuple) -> None:
+    """Layered floral geometry used as a detailed ornamental centerpiece."""
+    for i in range(16):
+        a = i * math.pi / 8
+        x, y = cx + math.cos(a)*r*.55, cy + math.sin(a)*r*.55
+        rr = r*.34
+        draw.ellipse((x-rr, y-rr, x+rr, y+rr), outline=(*gold, 145), width=3)
+    _eight_point_star(draw, cx, cy, r, (*gold, 220), 3)
+    draw.ellipse((cx-r*.24, cy-r*.24, cx+r*.24, cy+r*.24),
+                 outline=(*gold, 220), width=3)
+
+
+def _hanging_lantern(draw: ImageDraw.ImageDraw, x: int, y: int, gold: tuple, scale: float = 1.0) -> None:
+    w, h = int(48*scale), int(92*scale)
+    draw.line((x, y-90*scale, x, y), fill=(*gold, 210), width=3)
+    draw.polygon([(x-w//2,y), (x+w//2,y), (x+w//3,y+h), (x-w//3,y+h)],
+                 fill=(255,190,85,45), outline=(*gold,230))
+    draw.line((x-w//2+7,y+8,x-w//3+4,y+h-8), fill=(*gold,190), width=2)
+    draw.line((x+w//2-7,y+8,x+w//3-4,y+h-8), fill=(*gold,190), width=2)
+    draw.arc((x-w//2,y+h-14,x+w//2,y+h+16), 0, 180, fill=(*gold,230), width=3)
+
+
+def _deep_arch(draw: ImageDraw.ImageDraw, gold: tuple, fill: tuple) -> None:
+    # Nested, filled arch bands give the composition architectural depth.
+    for inset, top, bottom, width in ((82,205,1590,10),(101,225,1570,4),(122,247,1548,2)):
+        draw.rounded_rectangle((inset,top,WIDTH-inset,bottom), radius=390,
+                               fill=(*fill,24) if width == 10 else None,
+                               outline=(*gold,210 if width == 10 else 125), width=width)
+    draw.arc((145,270,WIDTH-145,800), 180, 360, fill=(*gold,130), width=3)
+    _ornate_medallion(draw, WIDTH//2, 240, 42, gold)
+    for x in (145, WIDTH-145):
+        for y in range(520,1450,155):
+            _eight_point_star(draw,x,y,19,(*gold,175),2)
+
 
 def _eight_point_star(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int,
                      color: tuple, width: int = 3) -> None:
@@ -107,42 +141,30 @@ def _arch(draw: ImageDraw.ImageDraw, accent: tuple, inset: int = 105) -> None:
 def _background_decor(image: Image.Image, template: str, accent: tuple) -> None:
     draw = ImageDraw.Draw(image, "RGBA")
     _ornamental_frame(draw, accent, tuple(max(0, c-35) for c in accent))
+    _deep_arch(draw, accent, (4, 13, 31) if template != "ivory_classic" else (247,239,218))
     if template == "blue_royal":
-        _arch(draw, accent)
-        # Warm horizon and distant skyline at the foot of the cover.
-        _mosque_silhouette(draw, (5, 12, 28, 115), 1650)
-        for x, y in ((180, 280), (830, 350), (320, 470), (740, 540)):
-            _star(draw, x, y, 3, (*accent, 180))
+        _hanging_lantern(draw, 175, 385, accent, 1.05)
+        _hanging_lantern(draw, 905, 385, accent, 1.05)
+        _ornate_medallion(draw, 540, 425, 58, accent)
+        _mosque_silhouette(draw, (5, 12, 28, 125), 1650)
     elif template == "emerald_arch":
-        _arch(draw, accent, 125)
-        # Quiet geometric lattice in the outer margins.
-        for y in range(250, 1600, 105):
-            for x in (72, 1008):
-                draw.polygon([(x, y-20), (x+20, y), (x, y+20), (x-20, y)],
-                             outline=(*accent, 115), width=2)
-        for x in (105, 975):
-            draw.rounded_rectangle((x-22, 370, x+22, 520), radius=18,
-                                   outline=(*accent, 210), width=4)
-            draw.ellipse((x-12, 405, x+12, 485), outline=(*accent, 170), width=2)
+        for y in range(320,1510,115):
+            for x in (75,1005):
+                _ornate_medallion(draw,x,y,24,accent)
+        _hanging_lantern(draw,175,410,accent,.9)
+        _hanging_lantern(draw,905,410,accent,.9)
     elif template == "ivory_classic":
-        for inset, width in ((48, 5), (68, 2), (92, 1)):
-            draw.rectangle((inset, inset, WIDTH-inset, HEIGHT-inset),
-                           outline=accent, width=width)
-        # Delicate corner arabesques, leaving a broad quiet center.
-        for x in (115, WIDTH-115):
-            for y in (125, HEIGHT-125):
-                for radius in (28, 48, 68):
-                    draw.arc((x-radius, y-radius, x+radius, y+radius),
-                             0, 300, fill=(*accent, 150), width=3)
-                draw.ellipse((x-7, y-7, x+7, y+7), fill=accent)
+        for x in (125, WIDTH-125):
+            for y in (145, HEIGHT-145):
+                _ornate_medallion(draw,x,y,68,accent)
+        _hanging_lantern(draw,175,410,accent,.85)
+        _hanging_lantern(draw,905,410,accent,.85)
     else:
-        # Crescent and fine stars above a distant, low-contrast skyline.
-        draw.ellipse((790, 250, 910, 370), fill=(*accent, 245))
-        draw.ellipse((830, 220, 950, 340), fill=(8, 19, 42, 255))
-        for x, y, r in ((180, 260, 4), (330, 390, 3), (620, 245, 4),
-                        (720, 470, 3), (970, 510, 3), (130, 570, 2)):
-            _star(draw, x, y, r, (*accent, 190))
-        _mosque_silhouette(draw, (1, 6, 19, 150), 1640)
+        draw.ellipse((785,245,915,375), fill=(*accent,245))
+        draw.ellipse((830,210,960,340), fill=(7,18,40,255))
+        _hanging_lantern(draw,180,420,accent,.95)
+        _hanging_lantern(draw,900,420,accent,.95)
+        _mosque_silhouette(draw,(1,6,19,155),1640)
 
 
 def _draw_title_panel(draw: ImageDraw.ImageDraw, template: str, accent: tuple) -> tuple:
