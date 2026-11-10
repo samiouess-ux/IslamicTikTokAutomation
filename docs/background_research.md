@@ -50,6 +50,27 @@ These are category/search pages, not individually selected or approved clips:
 - Mixkit vertical landscape: https://mixkit.co/free-stock-video/discover/landscape/?orientation=vertical
 - Mixkit general nature library: https://mixkit.co/free-stock-video/nature/
 
+
+## Further Pexels leads: coastlines, mountains, desert (2026-11-10)
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Misty forest among clouds | https://www.pexels.com/video/forest-in-the-clouds-27770490/ | 1080x1920, 9:16, 11s, 29.97fps | Pending download, inspection, approval |
+| Mountain sunrise with clouds | https://www.pexels.com/video/stunning-mountain-sunrise-with-clouds-40821249/ | 1080x1920, 9:16, 20s, 30fps | Pending download, inspection, approval |
+| Coastal cliffs and ocean waves | https://www.pexels.com/video/stunning-coastal-cliffs-and-ocean-waves-37922027/ | 1080x1920, 9:16, 24s, 30fps | Pending download, inspection, approval |
+| Aerial rugged coastline | https://www.pexels.com/video/aerial-view-of-rugged-coastline-and-ocean-waves-37443957/ | 2160x3840, 9:16, 34s, 29.97fps | Pending download, inspection, approval |
+| Mountain range above clouds | https://www.pexels.com/video/breathtaking-mountain-landscape-above-the-clouds-37291882/ | 2160x3840, 9:16, 17s, 59.94fps | Pending download, inspection, approval |
+| Mountain range at sunrise | https://www.pexels.com/video/majestic-mountain-range-at-sunrise-33620863/ | 2160x3840, 9:16, 16s, 60fps | Pending download, inspection, approval |
+| Clouds over mountain peaks | https://www.pexels.com/video/aerial-view-of-cloud-covered-mountains-at-sunrise-28956194/ | 2160x3840, 9:16, 20s, 30fps | Pending download, inspection, approval |
+| Alpine lake reflection | https://www.pexels.com/video/serene-alpine-lake-reflection-at-sunrise-37062731/ | 1080x1920, 9:16, 19s, 60fps | Pending download, inspection, approval |
+| Snowy mountain at sunset | https://www.pexels.com/video/serene-snowy-mountain-landscape-at-sunset-35608692/ | 2160x3840, 9:16, 19s, 30fps | Pending download, inspection, approval |
+| Calm ocean and rocky shore at sunset | https://www.pexels.com/video/serene-beach-sunset-over-calm-ocean-waves-37600413/ | 2160x3840, 9:16, 119s, 100fps | Pending download, inspection, approval |
+| Ocean waves on rocky coast | https://www.pexels.com/video/dramatic-ocean-waves-hitting-rocky-coastline-28851690/ | 2160x3840, 9:16, 51s, 30fps | Pending download, inspection, approval |
+| White sand dunes | https://www.pexels.com/video/a-white-sand-dune-with-a-blue-sky-16777782/ | 2160x3840, 9:16, 11s, 29.97fps | Pending download, inspection, approval |
+| Sahara desert landscape | https://www.pexels.com/video/stunning-sahara-desert-views-under-blue-skies-36204312/ | 2160x3840, 9:16, 15s, 30fps | Pending download, inspection, approval |
+| Desert dunes under cloudy sky | https://www.pexels.com/video/serene-sand-dunes-landscape-video-40611183/ | 2160x3840, 9:16, 20s, 59.94fps | Pending download, inspection, approval |
+
+
 ## Next review sequence
 
 1. Prioritize actual vertical mosque and landscape clips, then waterfalls/forests/coastlines to avoid a repetitive library.
