@@ -141,3 +141,28 @@ Fresh Pexels page checks. These remain discovery leads only; no MP4 has been dow
 | Istanbul mosque with brick minaret | https://www.pexels.com/video/istanbul-mosque-with-brick-minaret-on-sunny-day-40756422/ | 2160x3840, 9:16, 5s, 30fps | Pending download, inspection, approval |
 | Serene coastal landscape with mountains | https://www.pexels.com/video/serene-coastal-landscape-with-mountains-35104897/ | 1080x1920, 9:16, 11s, 29.97fps | Pending download, inspection, approval |
 | Tropical coastline with mountains | https://www.pexels.com/video/tropical-coastal-view-with-mountains-36906681/ | 1080x1920, 9:16, 15s, 59.94fps | Pending download, inspection, approval |
+
+## Download-path investigation and shortlist deduplication (2026-11-10)
+
+A fresh count of the Pexels page entries found **66 table rows but 63 unique clip URLs**. Three URLs had been repeated in separate discovery batches; they are not three additional clips:
+
+- https://www.pexels.com/video/vertical-video-of-a-waterfalls-8859850/
+- https://www.pexels.com/video/scenic-waterfall-flow-in-forest-landscape-36207276/
+- https://www.pexels.com/video/scenic-waterfall-in-forest-setting-37339819/
+
+This corrects the earlier shorthand count: the shortlist contains 63 unique Pexels clips, not 66 unique clips. The duplicate rows are retained as historical research entries; no candidate status was changed.
+
+### Confirmed Pexels page-to-file route (single test)
+
+Opened the individual page for the Istanbul mosque clip:
+https://www.pexels.com/video/istanbul-mosque-with-brick-minaret-on-sunny-day-40756422/
+
+The page exposes a **Free download** action. Following that action resolved to this direct MP4 URL:
+https://videos.pexels.com/video-files/40756422/17406936_2160_3840_30fps.mp4
+
+The page metadata displayed 2160x3840, 9:16, 5 seconds, and 30fps. This establishes that the page's download action can reveal a direct MP4 rendition for at least this clip; it does **not** establish that the MP4 was downloaded or inspected. The web retrieval environment could not fetch the video-file host, so no local MP4, ffprobe report, or visual preview was produced.
+
+### Safe next step
+
+Use an authenticated/normal browser download path or an approved Pexels API integration to obtain the original MP4 files, then run ffprobe and inspect the footage. Do not use unofficial scraping services, expose API credentials, or mark any shortlist entry as downloaded/verified/approved until the actual file has been checked. Existing production assets and workflows remain untouched.
+
