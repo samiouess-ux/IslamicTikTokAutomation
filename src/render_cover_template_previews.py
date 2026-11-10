@@ -6,7 +6,7 @@ import math
 import subprocess
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont, features
+from PIL import Image, ImageDraw, ImageFont, ImageOps, features
 
 WIDTH, HEIGHT = 1080, 1920
 TEMPLATES = ("blue_royal", "emerald_arch", "ivory_classic", "midnight_cinematic")
@@ -25,6 +25,34 @@ def _font_path() -> str:
     if not path or not Path(path).is_file():
         raise RuntimeError("Amiri Bold font is required for Arabic cover previews.")
     return path
+
+
+REFERENCE_IMAGE = Path("file_000000005e3481f4996a7ee6217f56c6.png")
+
+
+def _reference_background(template: str) -> Image.Image:
+    """Use the repository's supplied Quran template image as the actual cover art."""
+    if not REFERENCE_IMAGE.is_file():
+        raise FileNotFoundError(f"Reference cover image not found: {REFERENCE_IMAGE}")
+    source = Image.open(REFERENCE_IMAGE).convert("RGB")
+    image = ImageOps.fit(source, (WIDTH, HEIGHT), method=Image.Resampling.LANCZOS,
+                         centering=(0.5, 0.5)).convert("RGBA")
+    # Restrained color grading only; preserve the supplied artwork itself.
+    tint = {
+        "blue_royal": (15, 35, 78, 34),
+        "emerald_arch": (4, 67, 48, 38),
+        "ivory_classic": (255, 231, 185, 30),
+        "midnight_cinematic": (3, 12, 35, 55),
+    }[template]
+    image = Image.alpha_composite(image, Image.new("RGBA", image.size, tint))
+    # A gentle dark veil keeps the Arabic title legible without replacing the image.
+    veil = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    veil_draw = ImageDraw.Draw(veil)
+    for y in range(HEIGHT):
+        distance = abs(y - 850) / 1100
+        alpha = int(12 + min(34, distance * 34))
+        veil_draw.line((0, y, WIDTH, y), fill=(0, 0, 0, alpha))
+    return Image.alpha_composite(image, veil)
 
 
 def _gradient(top: tuple, bottom: tuple) -> Image.Image:
@@ -202,8 +230,7 @@ def render_cover(surah_title: str, start_ayah: int, end_ayah: int,
         raise ValueError("Ayah range must be positive and ordered.")
 
     top, bottom, accent, _ = PALETTES[template]
-    image = _gradient(top, bottom)
-    _background_decor(image, template, accent)
+    image = _reference_background(template)
     draw = ImageDraw.Draw(image, "RGBA")
     title_color = _draw_title_panel(draw, template, accent)
 
