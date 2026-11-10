@@ -447,13 +447,18 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
         raise RuntimeError(f"Background download is missing or unexpectedly small: {candidate['id']}")
     raw = subprocess.check_output([
         "ffprobe", "-v", "error", "-select_streams", "v:0",
-        "-show_entries", "stream=codec_name,width,height", "-of", "json", str(destination)
+        "-show_entries", "format=duration:stream=codec_name,width,height", "-of", "json", str(destination)
     ], text=True)
-    streams = json.loads(raw).get("streams", [])
+    metadata = json.loads(raw)
+    streams = metadata.get("streams", [])
     if not streams or streams[0].get("codec_name") not in {"h264", "hevc", "vp9", "av1"}:
         raise RuntimeError(f"Background is not a valid moving video stream: {candidate['id']}")
+    duration = float(metadata.get("format", {}).get("duration") or candidate.get("duration_seconds") or 0)
+    if duration <= 0:
+        raise RuntimeError(f"Background duration could not be verified: {candidate['id']}")
     return {
         "id": candidate["id"],
+        "duration_seconds": round(duration, 3),
         "description": candidate.get("description", candidate["id"]),
         "source_page_url": candidate.get("source_page_url", ""),
         "codec": streams[0].get("codec_name"),
@@ -514,18 +519,31 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         part_id = item["candidate_id"]
         work = output_dir / part_id
         work.mkdir(parents=True, exist_ok=True)
-        # Stable rotation: each distinct passage uses the next approved background.
-        background_candidate = approved_backgrounds[(background_rotation_index + len(previews)) % len(approved_backgrounds)]
-        if background_candidate["id"] not in prepared_backgrounds:
-            bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
-            bg_path.parent.mkdir(parents=True, exist_ok=True)
-            prepared_backgrounds[background_candidate["id"]] = prepare_moving_background(
-                background_candidate, bg_path
-            )
-            prepared_backgrounds[background_candidate["id"]]["path"] = str(bg_path)
-        background = Path(prepared_backgrounds[background_candidate["id"]]["path"])
+        # Keep the scheduled rotation as the first scene, then use the longest
+        # approved clips first for subsequent ayahs. This prevents one short clip
+        # from looping behind the entire passage.
+        first_background = approved_backgrounds[
+            (background_rotation_index + len(previews)) % len(approved_backgrounds)
+        ]
+        remaining_backgrounds = sorted(
+            (candidate for candidate in approved_backgrounds if candidate["id"] != first_background["id"]),
+            key=lambda candidate: float(candidate.get("duration_seconds") or 0),
+            reverse=True,
+        )
+        background_sequence = [first_background] + remaining_backgrounds
+        used_backgrounds = []
         segments = []
         for index, verse in enumerate(verses):
+            background_candidate = background_sequence[index % len(background_sequence)]
+            if background_candidate["id"] not in prepared_backgrounds:
+                bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
+                bg_path.parent.mkdir(parents=True, exist_ok=True)
+                prepared_backgrounds[background_candidate["id"]] = prepare_moving_background(
+                    background_candidate, bg_path
+                )
+                prepared_backgrounds[background_candidate["id"]]["path"] = str(bg_path)
+            background = Path(prepared_backgrounds[background_candidate["id"]]["path"])
+            used_backgrounds.append(prepared_backgrounds[background_candidate["id"]])
             frame = work / f"ayah_{int(verse['ayah']):03d}.png"
             surah_number = int(candidate["surah_number"])
             if not 1 <= surah_number <= len(SURAH_NAMES):
@@ -599,7 +617,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "part_count": int(item.get("part_count", 1)),
             "surah_number": int(candidate["surah_number"]),
             "verses": numbers,
-            "background": prepared_backgrounds[background_candidate["id"]],
+            "background": used_backgrounds[0],
+            "background_sequence": used_backgrounds,
             "file": str(output),
             **info,
             "review_only": True,
