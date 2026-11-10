@@ -227,3 +227,14 @@ A static cross-check of the 11 catalog records against their stored source metad
 The renderer currently applies scale-to-fill followed by a centered 1080x1920 crop. These three assets will therefore lose substantial horizontal content and may frame the intended subject poorly. This is a static metadata/code finding, not a visual review. Do not silently change their approval flags or remove them from the catalog; treat them as portrait-crop review items and prefer the eight portrait/unknown-orientation records when choosing a portrait background until each is visually checked.
 
 No production code, candidate catalog, render, or workflow was changed as part of this audit.
+
+## Rotation invocation audit (2026-11-10)
+
+A focused static review of `src/render_video_scenes.py` and `src/background_rotation.py` confirmed an integration detail worth preserving before any future production wiring:
+
+- The renderer's CLI default for `--background-rotation-key` is the fixed string `manual-review`.
+- The renderer accepts repeatable `--recent-background-id` arguments, and the rotation helper can avoid those IDs when fresh approved candidates remain.
+- The rotation helper is deterministic: the same key and same recent-ID set produce the same first selection. Merely enabling `--background-rotation` with the default key does not itself guarantee a different first background on each run.
+- A future caller that wants variation must supply a stable per-video key (for example, a unique manifest/video identifier) and, where available, pass recently used background IDs. This should be implemented only after checking the actual production invocation and persistence mechanism; do not invent recent-use state or change the current template/publishing flow as part of footage research.
+
+The existing unit tests cover deterministic selection, recent-ID avoidance, uniqueness of the ordered sequence, and rejection of unapproved/unverified candidates. They were reviewed statically only; they were not executed in this pass. No production code, candidate catalog, render, or workflow was changed.
