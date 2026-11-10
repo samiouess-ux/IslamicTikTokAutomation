@@ -211,6 +211,7 @@ def probe_media_duration(path: Path) -> float:
         raise SystemExit(f"Invalid media duration for {path}: {duration}")
     return duration
 
+
 def probe_background_media(path: Path) -> float:
     """Fail closed unless a downloaded background is a valid 9:16 video."""
     if not path.is_file() or path.stat().st_size == 0:
