@@ -27,8 +27,7 @@ class BackgroundReelTests(unittest.TestCase):
                 path.write_bytes(b"mock video")
 
             def fake_run(command):
-                if "-f" in command and "concat" in command:
-                    Path(command[-1]).write_bytes(b"mock reel")
+                Path(command[-1]).write_bytes(b"mock output")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
                  patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 5.0, 11.0]), \
@@ -40,6 +39,15 @@ class BackgroundReelTests(unittest.TestCase):
 
             self.assertTrue(destination.is_file())
             self.assertEqual(run.call_count, 3)
+            normalized_durations = [
+                call.args[0][call.args[0].index("-t") + 1]
+                for call in run.call_args_list[:2]
+            ]
+            self.assertEqual(normalized_durations, ["6.000000", "4.000000"])
+            self.assertEqual(
+                (work / "background_concat.txt").read_text(encoding="utf-8").count("file '"),
+                2,
+            )
 
     def test_rejects_final_reel_shorter_than_audio(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -50,8 +58,7 @@ class BackgroundReelTests(unittest.TestCase):
                 path.write_bytes(b"mock video")
 
             def fake_run(command):
-                if "-f" in command and "concat" in command:
-                    Path(command[-1]).write_bytes(b"mock reel")
+                Path(command[-1]).write_bytes(b"mock output")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
                  patch("render_video_scenes.probe_media_duration", side_effect=[10.0, 9.8]), \
