@@ -314,3 +314,11 @@ Added `tests/test_background_reel.py` to exercise the active reel builder with m
 ## Additional duration-input guard (2026-11-10)
 
 The active scene renderer now rejects non-finite audio durations (NaN and positive/negative infinity) before applying the existing positive-duration and 40-second maximum checks. Regression tests were added for all three non-finite values. This prevents malformed ffprobe output from bypassing the duration limit comparison. Tests remain unexecuted; no workflow or renderer was run.
+
+
+## Background reel duration input hardening (2026-11-10)
+
+- The active `build_background_reel()` helper now independently rejects a target duration that is non-finite (NaN or either infinity), zero, or negative. This duplicates the caller's safety boundary intentionally so direct/test callers cannot bypass it.
+- Added regression coverage for all five invalid duration values in `tests/test_background_reel.py`.
+- The change does not alter candidate selection, clip ordering, trim behavior, video layout, audio, captions, Telegram delivery, or publishing.
+- Tests were added but have not been executed in this environment. No GitHub Actions workflow or production render was dispatched.
