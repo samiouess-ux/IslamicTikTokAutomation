@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from render_video_scenes import validate_video_duration, validate_quran_audio_approval\nfrom background_rotation import order_backgrounds
+from render_video_scenes import validate_video_duration, validate_quran_audio_approval\nfrom background_rotation import order_backgrounds, select_background
 
 
 class BackgroundRotationTests(unittest.TestCase):
@@ -22,7 +22,7 @@ class BackgroundRotationTests(unittest.TestCase):
             path = Path(directory) / "catalog.json"
             path.write_text(json.dumps(catalog), encoding="utf-8")
             sequence = order_backgrounds(path, "video-001")
-            self.assertEqual(sequence[0]["id"], sequence[0]["id"])
+            self.assertEqual(sequence[0]["id"], select_background(path, "video-001")["id"])
             self.assertEqual({item["id"] for item in sequence}, {f"bg-{i}" for i in range(5)})
             self.assertEqual(len({item["id"] for item in sequence}), 5)
             self.assertEqual(sequence, order_backgrounds(path, "video-001"))
