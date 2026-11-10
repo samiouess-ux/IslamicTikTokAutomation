@@ -149,7 +149,9 @@ class RangeFallbackArchive:
                 self.local_archive = candidate
             except BadZipFile as exc:
                 raise ValueError(f"Downloaded official audio archive is invalid: {exc}") from exc
-            self.remote_archive.close()
+            close_remote = getattr(self.remote_archive, "close", None)
+            if close_remote:
+                close_remote()
         return self.local_archive
 
     @contextmanager
@@ -168,7 +170,9 @@ class RangeFallbackArchive:
         if self.local_archive is not None:
             self.local_archive.close()
         else:
-            self.remote_archive.close()
+            close_remote = getattr(self.remote_archive, "close", None)
+            if close_remote:
+                close_remote()
 
 
 def resolve_archive_member(archive_names: list[str], requested_member: str) -> str:
