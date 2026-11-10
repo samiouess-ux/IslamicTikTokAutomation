@@ -31,7 +31,8 @@ class BackgroundReelTests(unittest.TestCase):
                 Path(command[-1]).write_bytes(b"mock output")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 5.0, 11.0]), \
+                 patch("render_video_scenes.probe_background_media", side_effect=[6.0, 5.0]), \\
+                 patch("render_video_scenes.validate_rendered_video"), \
                  patch("render_video_scenes.run", side_effect=fake_run) as run:
                 build_background_reel(
                     [self._candidate("clip-a"), self._candidate("clip-b")],
@@ -65,7 +66,7 @@ class BackgroundReelTests(unittest.TestCase):
                 path.write_bytes(b"mock video")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_media_duration", return_value=0.0), \
+                 patch("render_video_scenes.probe_background_media", return_value=0.0), \
                  patch("render_video_scenes.run") as run:
                 with self.assertRaisesRegex(SystemExit, "no usable duration"):
                     build_background_reel(
