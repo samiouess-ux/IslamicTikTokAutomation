@@ -287,9 +287,11 @@ def main() -> None:
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
-    validate_content_manifest(data)
     background_sequence = None
     if args.background_rotation:
+        visual = data.get("visual")
+        if not isinstance(visual, dict):
+            raise SystemExit("Manifest visual must be an object before background rotation.")
         from background_rotation import order_backgrounds
         background_sequence = order_backgrounds(
             Path("data/background_candidates.json"),
@@ -299,10 +301,10 @@ def main() -> None:
         selected_background = dict(background_sequence[0])
         background_sequence = [dict(item) for item in background_sequence]
         selected_background["source_url"] = selected_background["source_page_url"]
-        data["visual"]["background_candidate"] = selected_background
-        data["visual"].pop("approved_background_url", None)
+        visual["background_candidate"] = selected_background
+        visual.pop("approved_background_url", None)
         print(f"Selected approved background: {selected_background['id']}")
-        validate_content_manifest(data)
+    validate_content_manifest(data)
     if data.get("content_type", "quran") != "quran":
         raise SystemExit("This renderer currently renders Quran manifests only; dua/dhikr rendering is being added separately.")
     source, audio, visual = data["source"], data["audio"], data["visual"]
