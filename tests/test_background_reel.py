@@ -94,7 +94,7 @@ class BackgroundReelTests(unittest.TestCase):
                 Path(command[-1]).write_bytes(b"mock output")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_media_duration", side_effect=[10.0, 9.8]), \
+                 patch("render_video_scenes.probe_background_media", return_value=10.0), patch("render_video_scenes.validate_rendered_video", side_effect=[None, SystemExit("Generated background is too short")]), \
                  patch("render_video_scenes.run", side_effect=fake_run):
                 with self.assertRaisesRegex(SystemExit, "too short"):
                     build_background_reel([self._candidate("clip-a")], 10.0, work, destination)
