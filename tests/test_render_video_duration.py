@@ -144,6 +144,12 @@ class VideoDurationTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "must be positive"):
                     validate_video_duration(duration)
 
+    def test_non_finite_duration_is_rejected(self):
+        for duration in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(duration=duration):
+                with self.assertRaisesRegex(SystemExit, "finite number"):
+                    validate_video_duration(duration)
+
 
 if __name__ == "__main__":
     unittest.main()
