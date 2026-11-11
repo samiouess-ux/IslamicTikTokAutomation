@@ -9,7 +9,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from render_video_scenes import download, probe_background_media, validate_rendered_video
+from render_video_scenes import (download, probe_background_media, validate_rendered_video,\n                                 validate_final_review_video)
 
 
 class BackgroundMediaValidationTests(unittest.TestCase):
@@ -96,6 +96,50 @@ class BackgroundMediaValidationTests(unittest.TestCase):
             with patch("render_video_scenes.subprocess.check_output", return_value=payload):
                 with self.assertRaisesRegex(SystemExit, "too short"):
                     validate_rendered_video(path, 10.0)
+
+    def _final_video_payload(self, duration="12.5", audio=True, width=1080, height=1920, fps="30/1"):
+        streams = [{
+            "codec_type": "video", "width": width, "height": height,
+            "avg_frame_rate": fps,
+        }]
+        if audio:
+            streams.append({"codec_type": "audio"})
+        return json.dumps({"streams": streams, "format": {"duration": duration}})
+
+    def test_accepts_valid_final_review_video(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "review.mp4"
+            path.write_bytes(b"video")
+            with patch("render_video_scenes.subprocess.check_output",
+                       return_value=self._final_video_payload()):
+                validate_final_review_video(path, 12.4)
+
+    def test_rejects_final_review_video_without_audio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "review.mp4"
+            path.write_bytes(b"video")
+            payload = self._final_video_payload(audio=False)
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "audio/video MP4"):
+                    validate_final_review_video(path, 12.4)
+
+    def test_rejects_final_review_video_with_wrong_frame_rate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "review.mp4"
+            path.write_bytes(b"video")
+            payload = self._final_video_payload(fps="25/1")
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "30 fps"):
+                    validate_final_review_video(path, 12.4)
+
+    def test_rejects_final_review_video_shorter_than_audio(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "review.mp4"
+            path.write_bytes(b"video")
+            payload = self._final_video_payload(duration="10.0")
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "shorter"):
+                    validate_final_review_video(path, 12.4)
 
     def test_download_rejects_oversized_content_length_and_cleans_partial(self):
         class FakeResponse:
