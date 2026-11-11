@@ -35,6 +35,7 @@ class QuranTemplateTests(unittest.TestCase):
                     "source_url": "https://example.test/license",
                     "approved": True,
                     "user_approved": True,
+                    "download_verified": True,
                 },
             },
             "audio": {
