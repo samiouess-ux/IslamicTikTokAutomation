@@ -93,7 +93,7 @@ class BackgroundReelTests(unittest.TestCase):
                 Path(command[-1]).write_bytes(b"mock output")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_media_duration", side_effect=[9.8]), \
+                 patch("render_video_scenes.probe_media_duration", side_effect=[9.8, 9.8]), \
                  patch("render_video_scenes.run", side_effect=fake_run):
                 with self.assertRaisesRegex(SystemExit, "Looped background"):
                     build_background_reel([self._candidate("clip-a")], 10.0, work, destination)
