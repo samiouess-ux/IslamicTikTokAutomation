@@ -138,7 +138,7 @@ class BackgroundMediaValidationTests(unittest.TestCase):
             path.write_bytes(b"video")
             payload = self._final_video_payload(duration="10.0")
             with patch("render_video_scenes.subprocess.check_output", return_value=payload):
-                with self.assertRaisesRegex(SystemExit, "shorter"):
+                with self.assertRaisesRegex(SystemExit, "streams do not cover"):
                     validate_final_review_video(path, 12.4)
 
     def test_rejects_short_video_stream_even_when_container_duration_matches(self):
