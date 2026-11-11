@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Iterable
 
@@ -78,15 +79,24 @@ def select_background_sequence(
     recent_ids: Iterable[str] = (),
 ) -> list[dict]:
     """Select approved clips in deterministic order until duration is covered."""
-    if required_duration <= 0:
-        raise ValueError("Required background duration must be positive.")
+    if not math.isfinite(required_duration) or required_duration <= 0:
+        raise ValueError("Required background duration must be finite and positive.")
     ordered = order_backgrounds(catalog_path, rotation_key, recent_ids)
     selected: list[dict] = []
     total = 0.0
     for item in ordered:
         clip_duration = item.get("duration_seconds")
-        if not isinstance(clip_duration, (int, float)) or clip_duration <= 0:
-            raise ValueError(f"Background {item.get('id', '<unknown>')} has no verified positive duration.")
+        # Unknown catalog durations are not evidence of unusable media:
+        # the production renderer probes the downloaded file with ffprobe.
+        # This duration-only helper skips unknown values rather than failing
+        # the entire rotation; the candidate remains eligible elsewhere.
+        if (
+            isinstance(clip_duration, bool)
+            or not isinstance(clip_duration, (int, float))
+            or not math.isfinite(float(clip_duration))
+            or clip_duration <= 0
+        ):
+            continue
         selected.append(item)
         total += float(clip_duration)
         if total >= required_duration:
