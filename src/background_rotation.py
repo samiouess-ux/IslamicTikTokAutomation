@@ -7,6 +7,18 @@ from pathlib import Path
 from typing import Iterable
 
 
+# Keep the Quran-video rotation focused on Islamic visual material. Generic
+# nature/sea/sky clips are intentionally excluded while approved Islamic clips
+# exist in the catalog.
+ISLAMIC_BACKGROUND_CATEGORIES = {
+    "islamic_architecture",
+    "mosque_interior",
+    "historic_mosque",
+    "mosque_exterior",
+    "arabesque_courtyard",
+}
+
+
 def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     candidates = catalog.get("candidates", [])
@@ -21,8 +33,14 @@ def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
         and isinstance(item.get("source_page_url"), str)
         and item["source_page_url"].startswith("https://")
     ]
+    eligible = [
+        item for item in eligible
+        if item.get("category") in ISLAMIC_BACKGROUND_CATEGORIES
+    ]
     if not eligible:
-        raise ValueError("No explicitly approved, download-verified 9:16 portrait backgrounds are eligible.")
+        raise ValueError(
+            "No explicitly approved, download-verified 9:16 Islamic portrait backgrounds are eligible."
+        )
     ids = [item.get("id") for item in eligible]
     if any(not item_id for item_id in ids) or len(ids) != len(set(ids)):
         raise ValueError("Eligible background IDs must be present and unique.")
