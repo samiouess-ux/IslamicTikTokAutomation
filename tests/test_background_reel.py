@@ -19,7 +19,7 @@ class BackgroundReelTests(unittest.TestCase):
             "direct_video_url": f"https://cdn.example/{name}.mp4",
         }
 
-    def test_uses_one_long_enough_clip_and_skips_short_candidates(self):
+    def test_loops_one_short_clip_to_cover_full_audio(self):
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
             destination = work / "background.mp4"
@@ -32,7 +32,7 @@ class BackgroundReelTests(unittest.TestCase):
 
             with (
                 patch("render_video_scenes.download", side_effect=fake_download),
-                patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 11.0, 10.0]),
+                patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 10.0]),
                 patch("render_video_scenes.run", side_effect=fake_run) as run,
             ):
                 selected = build_background_reel(
@@ -40,11 +40,12 @@ class BackgroundReelTests(unittest.TestCase):
                     10.0, work, destination
                 )
 
-            self.assertEqual(selected, "clip-b")
+            self.assertEqual(selected, "clip-a")
             self.assertTrue(destination.is_file())
             self.assertEqual(run.call_count, 1)
-            self.assertEqual(
-                run.call_args.args[0][run.call_args.args[0].index("-t") + 1],
+            command = run.call_args.args[0]
+            self.assertEqual(command[command.index("-stream_loop") + 1], "-1")
+            self.assertEqual(command[command.index("-t") + 1],
                 "10.000000",
             )
             self.assertFalse((work / "background_concat.txt").exists())
@@ -66,7 +67,7 @@ class BackgroundReelTests(unittest.TestCase):
             with patch("render_video_scenes.download", side_effect=fake_download), \
                  patch("render_video_scenes.probe_media_duration", return_value=0.0), \
                  patch("render_video_scenes.run") as run:
-                with self.assertRaisesRegex(SystemExit, "No single approved background"):
+                with self.assertRaisesRegex(SystemExit, "No approved background has a usable"):
                     build_background_reel(
                         [self._candidate("empty-clip")], 10.0, work, destination
                     )
@@ -94,7 +95,7 @@ class BackgroundReelTests(unittest.TestCase):
             with patch("render_video_scenes.download", side_effect=fake_download), \
                  patch("render_video_scenes.probe_media_duration", side_effect=[9.8]), \
                  patch("render_video_scenes.run", side_effect=fake_run):
-                with self.assertRaisesRegex(SystemExit, "No single approved background"):
+                with self.assertRaisesRegex(SystemExit, "Looped background"):
                     build_background_reel([self._candidate("clip-a")], 10.0, work, destination)
 
 
