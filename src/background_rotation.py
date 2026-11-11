@@ -23,7 +23,7 @@ def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
     ]
     if not eligible:
         raise ValueError(
-            "No explicitly approved, download-verified 9:16 backgrounds are eligible."
+            "No explicitly approved, download-verified backgrounds are eligible."
         )
     ids = [item.get("id") for item in eligible]
     if any(not item_id for item_id in ids) or len(ids) != len(set(ids)):
@@ -77,7 +77,7 @@ def select_background_sequence(
     required_duration: float,
     recent_ids: Iterable[str] = (),
 ) -> list[dict]:
-    """Select approved portrait clips in deterministic order until duration is covered."""
+    """Select approved clips in deterministic order until duration is covered."""
     if required_duration <= 0:
         raise ValueError("Required background duration must be positive.")
     ordered = order_backgrounds(catalog_path, rotation_key, recent_ids)
@@ -92,6 +92,6 @@ def select_background_sequence(
         if total >= required_duration:
             return selected
     raise ValueError(
-        f"Approved portrait backgrounds provide {total:.2f}s, "
+        f"Approved backgrounds provide {total:.2f}s, "
         f"short of the required {required_duration:.2f}s."
     )
