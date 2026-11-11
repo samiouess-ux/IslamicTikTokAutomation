@@ -47,6 +47,8 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
         self.assertIn("test_only:", dispatch)
         self.assertIn("default: false", dispatch)
         self.assertIn("type: boolean", dispatch)
+        send_option = dispatch[dispatch.index("      send_to_telegram:"):]
+        self.assertIn("default: false", send_option)
 
     def test_test_now_skips_production_reservation_and_history(self):
         guard = self.text[self.text.index("- name: Block automatic sends"):self.text.index("- uses: actions/setup-python")]
