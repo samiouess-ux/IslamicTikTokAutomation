@@ -387,6 +387,13 @@ def calculate_scene_boundaries(
         raise SystemExit("Inter-verse gap must be finite and non-negative.")
     if any(not math.isfinite(value) or value <= 0 for value in verse_durations.values()):
         raise SystemExit("Every processed verse duration must be finite and positive.")
+    for scene in scenes:
+        numbers = scene.get("verses")
+        if not isinstance(numbers, list) or not numbers:
+            raise SystemExit("Scene timing requires a non-empty verse list.")
+        for number in numbers:
+            if number not in verse_durations:
+                raise SystemExit(f"Missing processed duration for verse {number}.")
     boundaries = []
     elapsed = 0.0
     for scene in scenes[:-1]:
