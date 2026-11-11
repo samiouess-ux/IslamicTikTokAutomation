@@ -43,6 +43,19 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
         from src.prepare_background_review_previews import TrustedDownloadRedirectHandler
         handler = TrustedDownloadRedirectHandler()
         request = Request("https://videos.pexels.com/video-files/source.mp4")
+        from src.render_video_scenes import TrustedDownloadRedirectHandler as ProductionRedirectHandler
+        production_handler = ProductionRedirectHandler()
+        production_request = Request("https://videos.pexels.com/video-files/source.mp4")
+        for target in (
+            "http://videos.pexels.com/video-files/target.mp4",
+            "https://example.com/target.mp4",
+            "https://videos.pexels.com.evil.test/video-files/target.mp4",
+        ):
+            with self.subTest(production_target=target):
+                with self.assertRaises(Exception):
+                    production_handler.redirect_request(
+                        production_request, None, 302, "Found", {}, target
+                    )
         for target in (
             "http://videos.pexels.com/video-files/target.mp4",
             "https://videos.pexels.com.evil.test/video-files/target.mp4",
