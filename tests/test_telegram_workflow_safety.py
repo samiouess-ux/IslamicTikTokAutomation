@@ -11,6 +11,9 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.text = WORKFLOW.read_text(encoding="utf-8")
 
+    def test_new_runs_do_not_cancel_an_in_flight_delivery(self):
+        self.assertIn("cancel-in-progress: false", self.text)
+
     def test_reservation_is_committed_before_telegram_send(self):
         reserve = self.text.index("- name: Reserve Telegram delivery attempt before sending")
         send = self.text.index("- name: Send one review-only video to Telegram for manual approval")
