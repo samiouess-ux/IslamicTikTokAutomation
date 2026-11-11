@@ -394,3 +394,12 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 - Added mocked/unit regression cases for correct boundaries, invalid durations/gaps, missing timing data, and a boundary beyond the audio.
 - These checks do not alter the Quran text, audio file, recitation speed, trimming filter, or intended scene order.
 - Tests remain unexecuted; no workflow, render, Telegram delivery, or publishing was run.
+
+
+## Islamic-only background rotation implementation (2026-11-11)
+
+- Updated `src/background_rotation.py` so production rotation admits only already approved, user-approved, download-verified 9:16 candidates in Islamic visual categories: mosque interiors/exteriors, Islamic architecture, historic mosques, and arabesque courtyards.
+- Generic sea, nature, and sky clips are no longer selected for Quran videos. The selector fails closed if no approved Islamic portrait background is available; it does not silently fall back to unrelated scenery.
+- Added regression tests for excluding generic scenery and rejecting an empty Islamic-approved pool.
+- Existing catalog approvals and media URLs were not changed. No candidate was newly approved, no MP4 was downloaded, and no production render/workflow/Telegram action was run.
+- Tests have been added but have not yet been executed in this environment.
