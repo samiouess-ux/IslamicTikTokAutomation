@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import subprocess
 import urllib.request
 from pathlib import Path
@@ -41,14 +42,20 @@ def probe_video(path: Path) -> dict:
     ], text=True)
     data = json.loads(raw)
     video = next((s for s in data.get("streams", []) if s.get("codec_type") == "video"), None)
-    if not video or not video.get("width") or not video.get("height"):
+    if not video:
         raise RuntimeError(f"No valid video stream found in {path.name}")
-    duration = float(data.get("format", {}).get("duration", 0))
-    if duration <= 0:
+    try:
+        width, height = int(video["width"]), int(video["height"])
+        duration = float(data.get("format", {}).get("duration", 0))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RuntimeError(f"Invalid video metadata in {path.name}") from exc
+    if width <= 0 or height <= 0:
+        raise RuntimeError(f"Invalid video dimensions in {path.name}: {width}x{height}")
+    if not math.isfinite(duration) or duration <= 0:
         raise RuntimeError(f"Invalid duration in {path.name}")
     return {
-        "width": int(video["width"]),
-        "height": int(video["height"]),
+        "width": width,
+        "height": height,
         "duration_seconds": round(duration, 3),
         "video_codec": video.get("codec_name"),
     }
