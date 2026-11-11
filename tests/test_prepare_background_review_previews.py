@@ -5,10 +5,38 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 from PIL import Image
-from src.prepare_background_review_previews import build_contact_sheet, composite_overlay_preview, prepare
+from src.prepare_background_review_previews import (build_contact_sheet, composite_overlay_preview, prepare, probe_video)
 
 
 class BackgroundReviewPreviewTests(unittest.TestCase):
+
+    def test_probe_rejects_nonfinite_or_nonpositive_duration(self):
+        for duration in ("NaN", "Infinity", "-Infinity", "0", "-1"):
+            with self.subTest(duration=duration), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "candidate.mp4"
+                path.write_bytes(b"video")
+                payload = json.dumps({
+                    "streams": [{"codec_type": "video", "width": 1080, "height": 1920}],
+                    "format": {"duration": duration},
+                })
+                with patch("src.prepare_background_review_previews.subprocess.check_output",
+                           return_value=payload):
+                    with self.assertRaisesRegex(RuntimeError, "Invalid duration"):
+                        probe_video(path)
+
+    def test_probe_rejects_nonpositive_video_dimensions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "candidate.mp4"
+            path.write_bytes(b"video")
+            payload = json.dumps({
+                "streams": [{"codec_type": "video", "width": 0, "height": 1920}],
+                "format": {"duration": "12.5"},
+            })
+            with patch("src.prepare_background_review_previews.subprocess.check_output",
+                       return_value=payload):
+                with self.assertRaisesRegex(RuntimeError, "Invalid video dimensions"):
+                    probe_video(path)
+
     def test_contact_sheet_is_vertical_and_contains_four_tiles(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
