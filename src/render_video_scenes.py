@@ -55,24 +55,7 @@ def download(url: str, destination: Path) -> None:
     opener = urllib.request.build_opener(handler)
     try:
         with opener.open(request, timeout=90) as response:
-            declared_size = response.headers.get("Content-Length")
-            if declared_size is not None and int(declared_size) > MAX_BACKGROUND_DOWNLOAD_BYTES:
-                raise SystemExit("Background download exceeds the 250 MiB safety limit.")
-            total = 0
-            with destination.open("wb") as out:
-                while True:
-                    chunk = response.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    total += len(chunk)
-                    if total > MAX_BACKGROUND_DOWNLOAD_BYTES:
-                        raise SystemExit("Background download exceeds the 250 MiB safety limit.")
-                    out.write(chunk)
-            if total == 0:
-                raise SystemExit("Background download returned an empty file.")
-    except BaseException:
-        destination.unlink(missing_ok=True)
-        raise
+
             declared_size = response.headers.get("Content-Length")
             if declared_size is not None and int(declared_size) > MAX_BACKGROUND_DOWNLOAD_BYTES:
                 raise SystemExit("Background download exceeds the 250 MiB safety limit.")
