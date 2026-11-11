@@ -286,13 +286,14 @@ def probe_background_media(path: Path) -> float:
 def build_background_reel(
     candidates: list[dict], duration: float, work: Path, destination: Path
 ) -> None:
-    """Join approved clips in order, trimming the final clip to the audio length."""
+    """Join usable approved clips in order, skipping individual source failures."""
     if not math.isfinite(duration) or duration <= 0:
         raise SystemExit("Background reel duration must be a finite positive number.")
     if not candidates:
         raise SystemExit("No approved backgrounds are available for this render.")
     raw_files: dict[str, Path] = {}
     clip_durations: dict[str, float] = {}
+    failed_ids: set[str] = set()
     normalized_files: list[Path] = []
     remaining = duration
     sequence_index = 0
@@ -305,35 +306,52 @@ def build_background_reel(
         progress_before_cycle = remaining
         for candidate in candidates:
             candidate_id = candidate["id"]
-            if candidate_id not in raw_files:
-                raw_path = work / f"background_source_{len(raw_files)}.mp4"
-                download(candidate["direct_video_url"], raw_path)
-                raw_files[candidate_id] = raw_path
-                clip_durations[candidate_id] = probe_background_media(raw_path)
-            take = min(clip_durations[candidate_id], remaining)
-            if take <= 0.02:
+            if candidate_id in failed_ids:
                 continue
             normalized = work / f"background_scene_{sequence_index:03d}.mp4"
-            run([
-                "ffmpeg", "-hide_banner", "-y", "-i", str(raw_files[candidate_id]),
-                "-t", f"{take:.6f}",
-                "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
-                       "crop=1080:1920,setsar=1,fps=30,format=yuv420p",
-                "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                "-pix_fmt", "yuv420p", "-r", "30", str(normalized)
-            ])
-            validate_rendered_video(normalized, take)
+            try:
+                if candidate_id not in raw_files:
+                    raw_path = work / f"background_source_{len(raw_files)}.mp4"
+                    download(candidate["direct_video_url"], raw_path)
+                    raw_files[candidate_id] = raw_path
+                    clip_durations[candidate_id] = probe_background_media(raw_path)
+                take = min(clip_durations[candidate_id], remaining)
+                if take <= 0.02:
+                    failed_ids.add(candidate_id)
+                    print(f"Skipping unusably short background: {candidate_id}")
+                    continue
+                run([
+                    "ffmpeg", "-hide_banner", "-y", "-i", str(raw_files[candidate_id]),
+                    "-t", f"{take:.6f}",
+                    "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
+                           "crop=1080:1920,setsar=1,fps=30,format=yuv420p",
+                    "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                    "-pix_fmt", "yuv420p", "-r", "30", str(normalized)
+                ])
+                validate_rendered_video(normalized, take)
+            except (Exception, SystemExit) as exc:
+                failed_ids.add(candidate_id)
+                normalized.unlink(missing_ok=True)
+                raw_path = raw_files.pop(candidate_id, None)
+                clip_durations.pop(candidate_id, None)
+                if raw_path is not None:
+                    raw_path.unlink(missing_ok=True)
+                print(f"Skipping unusable background {candidate_id}: {exc}")
+                continue
+
             normalized_files.append(normalized)
             remaining -= take
             sequence_index += 1
             if remaining <= 0.02:
                 break
         if progress_before_cycle - remaining <= 0.02:
+            if len(failed_ids) == len({item["id"] for item in candidates}):
+                raise SystemExit("No approved background clips could be downloaded and verified.")
             raise SystemExit("Approved background clips have no usable duration.")
 
     concat_list = work / "background_concat.txt"
     concat_list.write_text(
-        "".join("file '" + path.resolve().as_posix() + "'\n" for path in normalized_files),
+        "".join("file '" + path.resolve().as_posix() + "'\\n" for path in normalized_files),
         encoding="utf-8",
     )
     run([
@@ -342,7 +360,6 @@ def build_background_reel(
         str(destination)
     ])
     validate_rendered_video(destination, duration)
-
 
 def prepare_manifest_background(
     data: dict,
