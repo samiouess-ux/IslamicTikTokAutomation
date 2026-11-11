@@ -48,8 +48,8 @@ class BackgroundReelTests(unittest.TestCase):
                 2,
             )
             concat_text = (work / "background_concat.txt").read_text(encoding="utf-8")
-            self.assertTrue(concat_text.endswith("\\n"))
-            self.assertEqual(concat_text.count("\\n"), 2)
+            self.assertTrue(concat_text.endswith("\n"))
+            self.assertEqual(concat_text.count("\n"), 2)
 
     def test_rejects_empty_candidate_list(self):
         with tempfile.TemporaryDirectory() as directory:
