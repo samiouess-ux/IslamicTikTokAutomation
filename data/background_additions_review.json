@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "purpose": "New Islamic and Arabic architectural video background leads for review. Separate from the existing four approved backgrounds; not production-enabled.",
-  "activation_policy": "Seven Pexels candidates were explicitly visually approved by the user on 2026-11-08 after reviewing the Quran-overlay contact sheet. Their review-workflow download/ffprobe checks passed. They are approved for production integration but are not active in the renderer until integration and render/legibility tests pass. The Pixabay candidate remains unapproved and disabled because no direct video URL is verified.",
+  "purpose": "Audit and review record for eight additional Islamic and Arabic architectural background leads. Seven user-approved candidates have been promoted into the active production rotation catalog at data/background_candidates.json; the unresolved Pixabay candidate remains disabled.",
+  "activation_policy": "Seven Pexels candidates were explicitly visually approved by the user on 2026-11-08 after reviewing the Quran-overlay contact sheet and their download/ffprobe checks passed. These seven are already integrated and active in data/background_candidates.json when --background-rotation is enabled. This file remains the review/audit record; the Pixabay candidate remains unapproved and disabled because no direct video URL is verified.",
   "candidates": [
     {
       "id": "pexels-islamic-dome-geometric-40564360",
@@ -18,7 +18,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     },
     {
       "id": "pexels-modern-mosque-interior-35417846",
@@ -35,7 +35,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     },
     {
       "id": "pexels-historic-mosque-stained-glass-30733250",
@@ -52,7 +52,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     },
     {
       "id": "pixabay-chain-dome-rock-131292",
@@ -84,7 +84,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     },
     {
       "id": "pexels-illuminated-mosque-night-34928699",
@@ -101,7 +101,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     },
     {
       "id": "pexels-moroccan-courtyard-tiles-34527220",
@@ -118,7 +118,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     },
     {
       "id": "pexels-moroccan-courtyard-decor-32719926",
@@ -135,7 +135,7 @@
       "approved": true,
       "user_approved": true,
       "approval_date": "2026-11-08",
-      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+      "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Promoted into the active production rotation catalog data/background_candidates.json."
     }
   ]
 }
