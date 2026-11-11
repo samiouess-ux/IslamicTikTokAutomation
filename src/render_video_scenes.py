@@ -214,66 +214,46 @@ def probe_media_duration(path: Path) -> float:
 
 def build_background_reel(
     candidates: list[dict], duration: float, work: Path, destination: Path
-) -> None:
-    """Join approved clips in order, trimming the final clip to the audio length."""
+) -> str:
+    """Use exactly one approved clip that covers the complete audio duration."""
     if not math.isfinite(duration) or duration <= 0:
-        raise SystemExit("Background reel duration must be a finite positive number.")
+        raise SystemExit("Background duration must be a finite positive number.")
     if not candidates:
         raise SystemExit("No approved backgrounds are available for this render.")
-    raw_files: dict[str, Path] = {}
-    clip_durations: dict[str, float] = {}
-    normalized_files: list[Path] = []
-    remaining = duration
-    sequence_index = 0
-    cycles = 0
 
-    while remaining > 0.02:
-        cycles += 1
-        if cycles > 20:
-            raise SystemExit("Background clips could not cover the full audio duration.")
-        progress_before_cycle = remaining
-        for candidate in candidates:
-            candidate_id = candidate["id"]
-            if candidate_id not in raw_files:
-                raw_path = work / f"background_source_{len(raw_files)}.mp4"
-                download(candidate["direct_video_url"], raw_path)
-                raw_files[candidate_id] = raw_path
-                clip_durations[candidate_id] = probe_media_duration(raw_path)
-            take = min(clip_durations[candidate_id], remaining)
-            if take <= 0.02:
-                continue
-            normalized = work / f"background_scene_{sequence_index:03d}.mp4"
-            run([
-                "ffmpeg", "-hide_banner", "-y", "-i", str(raw_files[candidate_id]),
-                "-t", f"{take:.6f}",
-                "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
-                       "crop=1080:1920,setsar=1,fps=30,format=yuv420p",
-                "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                "-pix_fmt", "yuv420p", "-r", "30", str(normalized)
-            ])
-            normalized_files.append(normalized)
-            remaining -= take
-            sequence_index += 1
-            if remaining <= 0.02:
-                break
-        if progress_before_cycle - remaining <= 0.02:
-            raise SystemExit("Approved background clips have no usable duration.")
+    for index, candidate in enumerate(candidates):
+        candidate_id = candidate["id"]
+        raw_path = work / f"background_source_{index}.mp4"
+        download(candidate["direct_video_url"], raw_path)
+        clip_duration = probe_media_duration(raw_path)
+        if clip_duration + 0.10 < duration:
+            print(
+                f"Skipping short background {candidate_id}: "
+                f"{clip_duration:.3f}s for {duration:.3f}s audio."
+            )
+            continue
 
-    concat_list = work / "background_concat.txt"
-    concat_list.write_text(
-        "".join("file '" + path.resolve().as_posix() + "'\n" for path in normalized_files),
-        encoding="utf-8",
+        run([
+            "ffmpeg", "-hide_banner", "-y", "-i", str(raw_path),
+            "-t", f"{duration:.6f}",
+            "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
+                   "crop=1080:1920,setsar=1,fps=30,format=yuv420p",
+            "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-pix_fmt", "yuv420p", "-r", "30", str(destination)
+        ])
+        actual_duration = probe_media_duration(destination)
+        if actual_duration + 0.10 < duration:
+            raise SystemExit(
+                f"Single background {candidate_id} is too short after normalization "
+                f"({actual_duration:.3f}s for {duration:.3f}s audio)."
+            )
+        print(f"Using one continuous background: {candidate_id} ({actual_duration:.2f}s).")
+        return candidate_id
+
+    raise SystemExit(
+        f"No single approved background is long enough for the {duration:.2f}s audio; "
+        "refusing to combine or repeat backgrounds within one video."
     )
-    run([
-        "ffmpeg", "-hide_banner", "-y", "-f", "concat", "-safe", "0",
-        "-i", str(concat_list), "-an", "-c", "copy", "-movflags", "+faststart",
-        str(destination)
-    ])
-    actual_duration = probe_media_duration(destination)
-    if actual_duration + 0.10 < duration:
-        raise SystemExit(
-            f"Background reel is too short ({actual_duration:.3f}s for {duration:.3f}s audio)."
-        )
 
 
 def main() -> None:
@@ -300,7 +280,6 @@ def main() -> None:
         selected_background["source_url"] = selected_background["source_page_url"]
         data["visual"]["background_candidate"] = selected_background
         data["visual"].pop("approved_background_url", None)
-        print(f"Selected approved background: {selected_background['id']}")
     # Validate the effective manifest after rotation has selected its approved background.
     validate_content_manifest(data)
     if data.get("content_type", "quran") != "quran":
