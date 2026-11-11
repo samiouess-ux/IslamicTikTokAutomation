@@ -403,6 +403,18 @@ def calculate_scene_boundaries(
         if elapsed >= audio_duration:
             raise SystemExit("A verse scene boundary falls at or beyond the end of the audio.")
         boundaries.append(elapsed)
+    planned_duration = sum(
+        verse_durations[number]
+        for scene in scenes
+        for number in scene.get("verses", [])
+    ) + inter_verse_gap * sum(
+        len(scene.get("verses", [])) for scene in scenes[:-1]
+    )
+    if abs(planned_duration - audio_duration) > 0.50:
+        raise SystemExit(
+            f"Processed verse timings differ from the audio duration "
+            f"({planned_duration:.3f}s planned vs {audio_duration:.3f}s actual)."
+        )
     return boundaries
 
 
