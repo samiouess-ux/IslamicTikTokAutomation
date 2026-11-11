@@ -52,6 +52,32 @@ class BackgroundMediaProbeTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "dimensions must be positive"):
                     probe_background_media(media)
 
+    def test_source_without_video_stream_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            media = Path(tmp) / "audio-only.mp4"
+            media.write_bytes(b"mock media")
+            payload = json.dumps({
+                "streams": [{"codec_type": "audio"}],
+                "format": {"duration": "12.5"},
+            })
+            with patch(
+                "render_video_scenes.subprocess.check_output",
+                return_value=payload,
+            ):
+                with self.assertRaisesRegex(SystemExit, "not a readable video"):
+                    probe_background_media(media)
+
+    def test_non_positive_source_duration_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            media = Path(tmp) / "zero-duration.mp4"
+            media.write_bytes(b"mock video")
+            with patch(
+                "render_video_scenes.subprocess.check_output",
+                return_value=self._probe(1920, 1080, duration=0),
+            ):
+                with self.assertRaisesRegex(SystemExit, "Invalid background duration"):
+                    probe_background_media(media)
+
     def test_reel_normalizes_landscape_source_to_vertical_canvas(self):
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp)
