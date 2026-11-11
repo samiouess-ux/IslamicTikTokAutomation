@@ -6,7 +6,24 @@ import json
 import math
 from pathlib import Path
 from typing import Iterable
+from urllib.parse import urlsplit
 
+
+
+def _is_trusted_pexels_url(value: object, *, media: bool = False) -> bool:
+    if not isinstance(value, str):
+        return False
+    try:
+        parsed = urlsplit(value)
+        if parsed.scheme != "https" or parsed.username or parsed.password:
+            return False
+        if parsed.port not in (None, 443) or parsed.query or parsed.fragment:
+            return False
+        if media:
+            return parsed.hostname == "videos.pexels.com" and parsed.path.startswith("/video-files/")
+        return parsed.hostname in {"pexels.com", "www.pexels.com"}
+    except ValueError:
+        return False
 
 
 def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
@@ -17,10 +34,8 @@ def load_eligible_backgrounds(catalog_path: Path) -> list[dict]:
         if item.get("approved") is True
         and item.get("user_approved") is True
         and item.get("download_verified") is True
-        and isinstance(item.get("direct_video_url"), str)
-        and item["direct_video_url"].startswith("https://")
-        and isinstance(item.get("source_page_url"), str)
-        and item["source_page_url"].startswith("https://")
+        and _is_trusted_pexels_url(item.get("direct_video_url"), media=True)
+        and _is_trusted_pexels_url(item.get("source_page_url"))
     ]
     if not eligible:
         raise ValueError(
