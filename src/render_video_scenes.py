@@ -272,11 +272,11 @@ def probe_background_media(path: Path) -> float:
         duration = float(info["format"]["duration"])
     except (ValueError, TypeError, KeyError, StopIteration, json.JSONDecodeError) as exc:
         raise SystemExit(f"Downloaded background is not a readable video: {path}") from exc
-    if width <= 0 or height <= 0 or not math.isclose(
-        width / height, 9 / 16, rel_tol=0.02
-    ):
+    # Source clips may be portrait or landscape. The reel normalizer below
+    # center-crops every verified source to the fixed 1080x1920 output.
+    if width <= 0 or height <= 0:
         raise SystemExit(
-            f"Background must be portrait 9:16; got {width}x{height}: {path}"
+            f"Background dimensions must be positive; got {width}x{height}: {path}"
         )
     if not math.isfinite(duration) or duration <= 0:
         raise SystemExit(f"Invalid background duration for {path}: {duration}")
