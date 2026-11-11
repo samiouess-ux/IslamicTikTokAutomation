@@ -53,6 +53,36 @@ class BackgroundMediaProbeTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "dimensions must be positive"):
                     probe_background_media(media)
 
+    def test_reel_normalizes_landscape_source_to_vertical_canvas(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            destination = work / "background.mp4"
+            commands = []
+
+            def fake_download(url, path):
+                path.write_bytes(b"mock source")
+
+            def fake_run(command):
+                commands.append(command)
+                Path(command[-1]).write_bytes(b"mock output")
+
+            with patch("render_video_scenes.download", side_effect=fake_download), patch(
+                "render_video_scenes.probe_background_media", return_value=8.0
+            ), patch("render_video_scenes.run", side_effect=fake_run), patch(
+                "render_video_scenes.validate_rendered_video"
+            ):
+                build_background_reel(
+                    [{"id": "landscape", "direct_video_url": "https://cdn.example/landscape.mp4"}],
+                    5.0, work, destination,
+                )
+
+            normalize = commands[0]
+            vf = normalize[normalize.index("-vf") + 1]
+            self.assertIn("scale=1080:1920:force_original_aspect_ratio=increase", vf)
+            self.assertIn("crop=1080:1920", vf)
+            self.assertIn("setsar=1,fps=30", vf)
+            self.assertEqual(commands[-1][-1], str(destination))
+
 
 if __name__ == "__main__":
     unittest.main()
