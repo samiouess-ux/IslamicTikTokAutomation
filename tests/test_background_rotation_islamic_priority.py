@@ -1,4 +1,4 @@
-"""Ensure the production rotation preserves all approved portrait backgrounds."""
+"""Ensure production rotation preserves every explicitly approved background."""
 import json
 import sys
 import tempfile
