@@ -5,8 +5,10 @@ import argparse
 import json
 import math
 import subprocess
+import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlsplit
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -14,10 +16,42 @@ MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024  # 1 GiB per source clip; Pexels 4K/60fp
 USER_AGENT = "IslamicTikTokAutomation/1.0 (background-review-only)"
 
 
+class TrustedDownloadRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Keep review downloads on the approved HTTPS media hosts."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.allowed_hosts = {"videos.pexels.com", "cdn.pixabay.com"}
+
+    def _is_allowed(self, url: str) -> bool:
+        try:
+            parsed = urlsplit(url)
+            return (
+                parsed.scheme == "https"
+                and parsed.hostname in self.allowed_hosts
+                and not parsed.username
+                and not parsed.password
+                and parsed.port in (None, 443)
+            )
+        except ValueError:
+            return False
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not self._is_allowed(newurl):
+            raise urllib.error.HTTPError(
+                req.full_url, code, "Untrusted background review redirect", headers, fp
+            )
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def download_candidate(url: str, destination: Path) -> int:
+    handler = TrustedDownloadRedirectHandler()
+    if not handler._is_allowed(url):
+        raise RuntimeError("Untrusted candidate media URL.")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    opener = urllib.request.build_opener(handler)
     total = 0
-    with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as target:
+    with opener.open(request, timeout=90) as response, destination.open("wb") as target:
         content_type = response.headers.get("Content-Type", "").lower()
         if "video" not in content_type and "octet-stream" not in content_type:
             raise RuntimeError(f"Unexpected content type for video download: {content_type}")
@@ -32,7 +66,6 @@ def download_candidate(url: str, destination: Path) -> int:
     if total == 0:
         raise RuntimeError("Downloaded background candidate is empty.")
     return total
-
 
 def probe_video(path: Path) -> dict:
     raw = subprocess.check_output([
