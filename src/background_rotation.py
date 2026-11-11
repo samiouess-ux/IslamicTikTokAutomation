@@ -8,8 +8,7 @@ from typing import Iterable
 
 
 # Keep the Quran-video rotation focused on Islamic visual material. Generic
-# nature/sea/sky clips are intentionally excluded while approved Islamic clips
-# exist in the catalog.
+# nature/sea/sky clips are intentionally excluded from production rotation.
 ISLAMIC_BACKGROUND_CATEGORIES = {
     "islamic_architecture",
     "mosque_interior",
