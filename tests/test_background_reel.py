@@ -19,7 +19,7 @@ class BackgroundReelTests(unittest.TestCase):
             "direct_video_url": f"https://cdn.example/{name}.mp4",
         }
 
-    def test_builds_reel_from_multiple_clips_and_checks_final_duration(self):
+    def test_uses_one_long_enough_clip_and_skips_short_candidates(self):
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
             destination = work / "background.mp4"
@@ -30,25 +30,22 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_run(command):
                 Path(command[-1]).write_bytes(b"mock output")
 
-            with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 5.0, 11.0]), \
+            with patch("render_video_scenes.download", side_effect=fake_download), \\
+                 patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 11.0, 10.0]), \\
                  patch("render_video_scenes.run", side_effect=fake_run) as run:
-                build_background_reel(
+                selected = build_background_reel(
                     [self._candidate("clip-a"), self._candidate("clip-b")],
                     10.0, work, destination
                 )
 
+            self.assertEqual(selected, "clip-b")
             self.assertTrue(destination.is_file())
-            self.assertEqual(run.call_count, 3)
-            normalized_durations = [
-                call.args[0][call.args[0].index("-t") + 1]
-                for call in run.call_args_list[:2]
-            ]
-            self.assertEqual(normalized_durations, ["6.000000", "4.000000"])
+            self.assertEqual(run.call_count, 1)
             self.assertEqual(
-                (work / "background_concat.txt").read_text(encoding="utf-8").count("file '"),
-                2,
+                run.call_args.args[0][run.call_args.args[0].index("-t") + 1],
+                "10.000000",
             )
+            self.assertFalse((work / "background_concat.txt").exists()
 
     def test_rejects_empty_candidate_list(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -67,7 +64,7 @@ class BackgroundReelTests(unittest.TestCase):
             with patch("render_video_scenes.download", side_effect=fake_download), \
                  patch("render_video_scenes.probe_media_duration", return_value=0.0), \
                  patch("render_video_scenes.run") as run:
-                with self.assertRaisesRegex(SystemExit, "no usable duration"):
+                with self.assertRaisesRegex(SystemExit, "No single approved background"):
                     build_background_reel(
                         [self._candidate("empty-clip")], 10.0, work, destination
                     )
@@ -93,9 +90,9 @@ class BackgroundReelTests(unittest.TestCase):
                 Path(command[-1]).write_bytes(b"mock output")
 
             with patch("render_video_scenes.download", side_effect=fake_download), \
-                 patch("render_video_scenes.probe_media_duration", side_effect=[10.0, 9.8]), \
+                 patch("render_video_scenes.probe_media_duration", side_effect=[9.8]), \
                  patch("render_video_scenes.run", side_effect=fake_run):
-                with self.assertRaisesRegex(SystemExit, "too short"):
+                with self.assertRaisesRegex(SystemExit, "No single approved background"):
                     build_background_reel([self._candidate("clip-a")], 10.0, work, destination)
 
 
