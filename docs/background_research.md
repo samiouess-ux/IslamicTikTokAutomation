@@ -375,3 +375,13 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 - Added mocked regression cases for a valid final MP4, missing audio, incorrect frame rate, and a final file shorter than the approved audio.
 - These changes are isolated to final-output validation. The existing template, cover, Quran text, audio source/timing, background catalog, Telegram delivery, and publishing settings were not changed.
 - Tests have not been executed. No render, workflow, Telegram delivery, or publishing action was performed.
+
+
+## Ash-Sharh 94:5-6 scene timing correction (2026-11-11)
+
+- The manual workflow previously stored source MP3 durations before silence trimming, then used those stale durations to time the on-screen verse overlays.
+- It also declared a 20 ms inter-verse gap although the final audio concat for this specific two-verse video joins the processed files directly without inserting a silence asset.
+- The workflow now measures each processed verse file after trimming and records a zero-second inter-verse gap, so overlay boundaries follow the audio that is actually concatenated.
+- The source recitation, trimming filter, concatenation command, Quran text, and scene order are unchanged. This adjusts timing metadata only.
+- The eight-verse Ash-Sharh workflow already measures processed verse files and explicitly inserts 20 ms silence assets between them; that behavior was left unchanged.
+- The workflow was statically reviewed only; it was not executed and no audio/video was generated.
