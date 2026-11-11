@@ -9,7 +9,8 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from render_video_scenes import (download, probe_background_media, validate_rendered_video,\n                                 validate_final_review_video)
+from render_video_scenes import (download, probe_background_media, validate_rendered_video,
+                                 validate_final_review_video)
 
 
 class BackgroundMediaValidationTests(unittest.TestCase):
