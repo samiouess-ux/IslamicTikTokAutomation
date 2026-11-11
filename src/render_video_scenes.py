@@ -5,8 +5,10 @@ import argparse
 import json
 import math
 import subprocess
+import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from PIL import Image, ImageDraw, ImageFont, features
 from hashtag_strategy import build_hashtags
@@ -16,11 +18,61 @@ from validate_content_manifest import validate_content_manifest
 MAX_BACKGROUND_DOWNLOAD_BYTES = 250 * 1024 * 1024
 
 
+class TrustedDownloadRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Allow redirects only to HTTPS media URLs on the approved Pexels host."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.allowed_hosts = {"videos.pexels.com"}
+
+    def _is_allowed(self, url: str) -> bool:
+        try:
+            parsed = urlsplit(url)
+            return (
+                parsed.scheme == "https"
+                and parsed.hostname in self.allowed_hosts
+                and not parsed.username
+                and not parsed.password
+                and parsed.port in (None, 443)
+            )
+        except ValueError:
+            return False
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not self._is_allowed(newurl):
+            raise urllib.error.HTTPError(
+                req.full_url, code, "Untrusted background download redirect", headers, fp
+            )
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def download(url: str, destination: Path) -> None:
-    """Download a bounded background file and remove partial output on failure."""
+    """Download a bounded Pexels background without following untrusted redirects."""
+    handler = TrustedDownloadRedirectHandler()
+    if not handler._is_allowed(url):
+        raise SystemExit("Background download URL is not an approved HTTPS Pexels media URL.")
     request = urllib.request.Request(url, headers={"User-Agent": "IslamicTikTokAutomation/1.0"})
+    opener = urllib.request.build_opener(handler)
     try:
-        with urllib.request.urlopen(request, timeout=90) as response:
+        with opener.open(request, timeout=90) as response:
+            declared_size = response.headers.get("Content-Length")
+            if declared_size is not None and int(declared_size) > MAX_BACKGROUND_DOWNLOAD_BYTES:
+                raise SystemExit("Background download exceeds the 250 MiB safety limit.")
+            total = 0
+            with destination.open("wb") as out:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > MAX_BACKGROUND_DOWNLOAD_BYTES:
+                        raise SystemExit("Background download exceeds the 250 MiB safety limit.")
+                    out.write(chunk)
+            if total == 0:
+                raise SystemExit("Background download returned an empty file.")
+    except BaseException:
+        destination.unlink(missing_ok=True)
+        raise
             declared_size = response.headers.get("Content-Length")
             if declared_size is not None and int(declared_size) > MAX_BACKGROUND_DOWNLOAD_BYTES:
                 raise SystemExit("Background download exceeds the 250 MiB safety limit.")
