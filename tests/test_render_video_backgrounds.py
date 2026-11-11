@@ -11,7 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from render_video_scenes import probe_background_media
+from render_video_scenes import build_background_reel, probe_background_media
 
 
 class BackgroundMediaProbeTests(unittest.TestCase):
