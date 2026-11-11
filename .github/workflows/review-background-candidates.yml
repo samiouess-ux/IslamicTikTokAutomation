@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - feature/telegram-review-notifications
+      - fix/background-rotation-validation-order
     paths:
       - ".github/workflows/review-background-candidates.yml"
       - "data/background_additions_review.json"
