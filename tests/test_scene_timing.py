@@ -20,7 +20,7 @@ class SceneTimingTests(unittest.TestCase):
         boundaries = calculate_scene_boundaries(
             self.scenes, {5: 3.25, 6: 4.10}, 0.02, 7.39
         )
-        self.assertEqual(boundaries, [3.27])
+        self.assertAlmostEqual(boundaries[0], 3.27, places=7)
 
     def test_rejects_non_finite_or_non_positive_verse_duration(self):
         for invalid in (0.0, -1.0, float("nan"), float("inf")):
@@ -42,6 +42,12 @@ class SceneTimingTests(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "at or beyond"):
             calculate_scene_boundaries(
                 self.scenes, {5: 8.0, 6: 1.0}, 0.0, 8.0
+            )
+
+    def test_rejects_cumulative_timing_that_disagrees_with_audio(self):
+        with self.assertRaisesRegex(SystemExit, "differ from the audio duration"):
+            calculate_scene_boundaries(
+                self.scenes, {5: 3.0, 6: 4.0}, 0.0, 9.0
             )
 
     def test_rejects_missing_processed_verse_duration(self):
