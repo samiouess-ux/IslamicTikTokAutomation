@@ -78,6 +78,52 @@ class BackgroundMediaProbeTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "Invalid background duration"):
                     probe_background_media(media)
 
+    def test_reel_skips_failed_candidate_and_uses_next_approved_clip(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            destination = work / "background.mp4"
+            commands = []
+
+            def fake_download(url, path):
+                if "unavailable" in url:
+                    raise OSError("source unavailable")
+                path.write_bytes(b"mock source")
+
+            def fake_run(command):
+                commands.append(command)
+                Path(command[-1]).write_bytes(b"mock output")
+
+            candidates = [
+                {"id": "unavailable", "direct_video_url": "https://cdn.example/unavailable.mp4"},
+                {"id": "usable", "direct_video_url": "https://cdn.example/usable.mp4"},
+            ]
+            with patch("render_video_scenes.download", side_effect=fake_download), patch(
+                "render_video_scenes.probe_background_media", return_value=8.0
+            ), patch("render_video_scenes.run", side_effect=fake_run), patch(
+                "render_video_scenes.validate_rendered_video"
+            ):
+                build_background_reel(candidates, 5.0, work, destination)
+
+            self.assertEqual(len(commands), 2)
+            self.assertIn("background_source_0.mp4", commands[0])
+            self.assertTrue(destination.is_file())
+
+    def test_reel_fails_clearly_when_all_approved_candidates_are_unusable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work = Path(tmp)
+            destination = work / "background.mp4"
+            candidates = [
+                {"id": "bad-a", "direct_video_url": "https://cdn.example/bad-a.mp4"},
+                {"id": "bad-b", "direct_video_url": "https://cdn.example/bad-b.mp4"},
+            ]
+            with patch(
+                "render_video_scenes.download", side_effect=OSError("source unavailable")
+            ):
+                with self.assertRaisesRegex(
+                    SystemExit, "No approved background clips could be downloaded and verified"
+                ):
+                    build_background_reel(candidates, 5.0, work, destination)
+
     def test_reel_normalizes_landscape_source_to_vertical_canvas(self):
         with tempfile.TemporaryDirectory() as tmp:
             work = Path(tmp)
