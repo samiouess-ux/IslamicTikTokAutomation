@@ -390,7 +390,7 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 ## Verse-screen boundary validation (2026-11-11)
 
 - Scene timing is now calculated only after the actual audio duration is probed.
-- A shared helper rejects missing, non-finite, zero, or negative processed verse durations; invalid inter-verse gaps; and any intermediate screen boundary at or beyond the audio end.
+- A shared helper rejects missing, non-finite, zero, or negative processed verse durations; invalid inter-verse gaps; intermediate screen boundaries at or beyond the audio end; and cumulative verse timing that differs from the probed audio duration by more than 0.50 seconds.
 - Added mocked/unit regression cases for correct boundaries, invalid durations/gaps, missing timing data, and a boundary beyond the audio.
 - These checks do not alter the Quran text, audio file, recitation speed, trimming filter, or intended scene order.
 - Tests remain unexecuted; no workflow, render, Telegram delivery, or publishing was run.
