@@ -371,7 +371,7 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 ## Final composed review-video validation (2026-11-11)
 
 - The active scene renderer now probes the completed MP4 immediately after FFmpeg composition and before writing the review caption.
-- It requires both video and audio streams, exact 1080x1920 dimensions, 30 fps, a finite duration close to the approved audio duration, and the existing 40-second maximum.
+- It requires both video and audio streams, exact 1080x1920 dimensions, 30 fps, independently checks that both streams cover the approved audio duration (not just the container duration), and enforces the existing 40-second maximum.
 - Added mocked regression cases for a valid final MP4, missing audio, incorrect frame rate, and a final file shorter than the approved audio.
 - These changes are isolated to final-output validation. The existing template, cover, Quran text, audio source/timing, background catalog, Telegram delivery, and publishing settings were not changed.
 - Tests have not been executed. No render, workflow, Telegram delivery, or publishing action was performed.
