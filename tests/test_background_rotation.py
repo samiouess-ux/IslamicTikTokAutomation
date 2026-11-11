@@ -15,19 +15,18 @@ class BackgroundRotationTests(unittest.TestCase):
     def setUp(self):
         self.catalog = ROOT / "data" / "background_candidates.json"
 
-    def test_only_verified_portrait_backgrounds_are_rotation_eligible(self):
+    def test_all_verified_approved_backgrounds_are_rotation_eligible(self):
         items = load_eligible_backgrounds(self.catalog)
-        self.assertEqual(len(items), 7)
+        self.assertEqual(len(items), 11)
         self.assertTrue(all(x["approved"] and x["user_approved"] and x["download_verified"] for x in items))
-        original = {
+        expected = {
             "pexels-ocean-shore-35036280",
             "pexels-mountain-lake-37675265",
             "pexels-sunset-sky-35477402",
+            "pexels-mountain-bridge-5903759",
+            "pexels-illuminated-mosque-night-34928699",
         }
-        self.assertTrue(original.issubset({x["id"] for x in items}))
-        self.assertTrue(all(x.get("aspect_ratio") == "9:16" for x in items))
-        self.assertNotIn("pexels-mountain-bridge-5903759", {x["id"] for x in items})
-        self.assertNotIn("pexels-illuminated-mosque-night-34928699", {x["id"] for x in items})
+        self.assertTrue(expected.issubset({x["id"] for x in items}))
 
     def test_selection_is_deterministic_and_avoids_recent_ids(self):
         first = select_background(self.catalog, "stable-video-key")
@@ -40,7 +39,6 @@ class BackgroundRotationTests(unittest.TestCase):
         items = select_background_sequence(self.catalog, "sequence-key", 35)
         self.assertGreaterEqual(sum(x["duration_seconds"] for x in items), 35)
         self.assertEqual(len(items), len({x["id"] for x in items}))
-        self.assertTrue(all(x["aspect_ratio"] == "9:16" for x in items))
 
     def test_sequence_rejects_impossible_duration(self):
         with self.assertRaisesRegex(ValueError, "short of the required"):
