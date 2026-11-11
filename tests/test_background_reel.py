@@ -47,6 +47,9 @@ class BackgroundReelTests(unittest.TestCase):
                 (work / "background_concat.txt").read_text(encoding="utf-8").count("file '"),
                 2,
             )
+            concat_text = (work / "background_concat.txt").read_text(encoding="utf-8")
+            self.assertTrue(concat_text.endswith("\\n"))
+            self.assertEqual(concat_text.count("\\n"), 2)
 
     def test_rejects_empty_candidate_list(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -63,7 +66,7 @@ class BackgroundReelTests(unittest.TestCase):
                 path.write_bytes(b"mock video")
 
             with patch("render_video_scenes.download", side_effect=fake_download), patch("render_video_scenes.probe_background_media", return_value=0.0), patch("render_video_scenes.run") as run:
-                with self.assertRaisesRegex(SystemExit, "no usable duration"):
+                with self.assertRaisesRegex(SystemExit, "No approved background clips could be downloaded and verified"):
                     build_background_reel(
                         [self._candidate("empty-clip")], 10.0, work, destination
                     )
