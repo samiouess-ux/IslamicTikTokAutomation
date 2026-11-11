@@ -372,6 +372,40 @@ def prepare_manifest_background(
     return background_sequence
 
 
+
+def validate_final_review_video(path: Path, expected_duration: float) -> None:
+    """Fail closed unless the composed review MP4 has valid video and audio."""
+    if not path.is_file() or path.stat().st_size == 0:
+        raise SystemExit(f"Final review video is missing or empty: {path}")
+    if not math.isfinite(expected_duration) or expected_duration <= 0:
+        raise SystemExit("Expected final video duration must be finite and positive.")
+    raw = subprocess.check_output([
+        "ffprobe", "-v", "error", "-show_streams", "-show_format",
+        "-of", "json", str(path)
+    ], text=True)
+    try:
+        info = json.loads(raw)
+        streams = info.get("streams", [])
+        video = next(s for s in streams if s.get("codec_type") == "video")
+        next(s for s in streams if s.get("codec_type") == "audio")
+        width, height = int(video["width"]), int(video["height"])
+        duration = float(info["format"]["duration"])
+        frame_rate = video.get("avg_frame_rate") or video.get("r_frame_rate")
+        numerator, denominator = (int(part) for part in frame_rate.split("/", 1))
+        fps = numerator / denominator
+    except (ValueError, TypeError, KeyError, StopIteration, ZeroDivisionError,
+            json.JSONDecodeError, AttributeError) as exc:
+        raise SystemExit(f"Final review file is not a readable audio/video MP4: {path}") from exc
+    if (width, height) != (1080, 1920):
+        raise SystemExit(f"Final review video must be 1080x1920; got {width}x{height}: {path}")
+    if not math.isfinite(fps) or not math.isclose(fps, 30.0, abs_tol=0.01):
+        raise SystemExit(f"Final review video must be 30 fps; got {frame_rate}: {path}")
+    if not math.isfinite(duration) or duration < expected_duration - 0.25:
+        raise SystemExit(f"Final review video is shorter than its approved audio ({duration:.3f}s for {expected_duration:.3f}s): {path}")
+    if duration > MAX_VIDEO_SECONDS or duration > expected_duration + 0.50:
+        raise SystemExit(f"Final review video duration is outside the allowed range ({duration:.3f}s for {expected_duration:.3f}s): {path}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
@@ -505,6 +539,7 @@ def main() -> None:
         "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
         "-movflags", "+faststart", str(output)
     ])
+    validate_final_review_video(output, duration)
 
     caption_path = output.with_suffix(".caption.json")
     hashtag_sets = build_hashtags(str(data.get("id", "")), caption)
