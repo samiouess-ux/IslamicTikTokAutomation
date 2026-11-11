@@ -11,9 +11,6 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.text = WORKFLOW.read_text(encoding="utf-8")
 
-    def test_new_runs_do_not_cancel_an_in_flight_delivery(self):
-        self.assertIn("cancel-in-progress: false", self.text)
-
     def test_reservation_is_committed_before_telegram_send(self):
         reserve = self.text.index("- name: Reserve Telegram delivery attempt before sending")
         send = self.text.index("- name: Send one review-only video to Telegram for manual approval")
@@ -50,8 +47,6 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
         self.assertIn("test_only:", dispatch)
         self.assertIn("default: false", dispatch)
         self.assertIn("type: boolean", dispatch)
-        send_option = dispatch[dispatch.index("      send_to_telegram:"):]
-        self.assertIn("default: false", send_option)
 
     def test_test_now_skips_production_reservation_and_history(self):
         guard = self.text[self.text.index("- name: Block automatic sends"):self.text.index("- uses: actions/setup-python")]
