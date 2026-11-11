@@ -28,6 +28,47 @@ class BackgroundRotationTests(unittest.TestCase):
         }
         self.assertTrue(expected.issubset({x["id"] for x in items}))
 
+    def test_rejects_untrusted_https_hosts_and_deceptive_pexels_urls(self):
+        data = json.loads(self.catalog.read_text(encoding="utf-8"))
+        base = dict(data["candidates"][0])
+        malicious_urls = [
+            "https://example.com/video.mp4",
+            "https://videos.pexels.com.evil.test/video-files/1/video.mp4",
+            "https://videos.pexels.com@evil.test/video-files/1/video.mp4",
+            "https://videos.pexels.com:8443/video-files/1/video.mp4",
+            "http://videos.pexels.com/video-files/1/video.mp4",
+        ]
+        for index, url in enumerate(malicious_urls):
+            candidate = dict(base)
+            candidate.update({
+                "id": f"untrusted-{index}",
+                "direct_video_url": url,
+                "approved": True,
+                "user_approved": True,
+                "download_verified": True,
+            })
+            data["candidates"].append(candidate)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "catalog.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            ids = {item["id"] for item in load_eligible_backgrounds(path)}
+        self.assertEqual(len(ids), 11)
+        self.assertFalse(any(item_id.startswith("untrusted-") for item_id in ids))
+
+    def test_rejects_untrusted_source_page_host(self):
+        data = json.loads(self.catalog.read_text(encoding="utf-8"))
+        candidate = dict(data["candidates"][0])
+        candidate.update({
+            "id": "untrusted-source-page",
+            "source_page_url": "https://pexels.com.evil.test/video/123/",
+        })
+        data["candidates"].append(candidate)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "catalog.json"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            ids = {item["id"] for item in load_eligible_backgrounds(path)}
+        self.assertNotIn("untrusted-source-page", ids)
+
     def test_selection_is_deterministic_and_avoids_recent_ids(self):
         first = select_background(self.catalog, "stable-video-key")
         again = select_background(self.catalog, "stable-video-key")
