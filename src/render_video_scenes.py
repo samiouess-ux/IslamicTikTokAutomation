@@ -255,7 +255,7 @@ def validate_rendered_video(path: Path, expected_duration: float) -> None:
 
 
 def probe_background_media(path: Path) -> float:
-    """Fail closed unless a downloaded background is a valid 9:16 video."""
+    """Fail closed unless a downloaded background is a valid video with positive dimensions."""
     if not path.is_file() or path.stat().st_size == 0:
         raise SystemExit(f"Downloaded background is missing or empty: {path}")
     raw = subprocess.check_output([
