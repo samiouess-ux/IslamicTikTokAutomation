@@ -373,6 +373,40 @@ def prepare_manifest_background(
 
 
 
+
+def calculate_scene_boundaries(
+    scenes: list[dict],
+    verse_durations: dict[int, float],
+    inter_verse_gap: float,
+    audio_duration: float,
+) -> list[float]:
+    """Calculate strictly increasing verse-screen boundaries inside the audio."""
+    if not math.isfinite(audio_duration) or audio_duration <= 0:
+        raise SystemExit("Scene timing requires a finite positive audio duration.")
+    if not math.isfinite(inter_verse_gap) or inter_verse_gap < 0:
+        raise SystemExit("Inter-verse gap must be finite and non-negative.")
+    if any(not math.isfinite(value) or value <= 0 for value in verse_durations.values()):
+        raise SystemExit("Every processed verse duration must be finite and positive.")
+    boundaries = []
+    elapsed = 0.0
+    for scene in scenes[:-1]:
+        numbers = scene.get("verses")
+        if not isinstance(numbers, list) or not numbers:
+            raise SystemExit("Scene timing requires a non-empty verse list.")
+        try:
+            elapsed += sum(verse_durations[number] for number in numbers)
+        except KeyError as exc:
+            raise SystemExit(f"Missing processed duration for verse {exc.args[0]}.") from exc
+        elapsed += inter_verse_gap * len(numbers)
+        if not math.isfinite(elapsed) or elapsed <= (boundaries[-1] if boundaries else 0.0):
+            raise SystemExit("Scene timing boundaries must be finite and strictly increasing.")
+        if elapsed >= audio_duration:
+            raise SystemExit("A verse scene boundary falls at or beyond the end of the audio.")
+        boundaries.append(elapsed)
+    return boundaries
+
+
+
 def validate_final_review_video(path: Path, expected_duration: float) -> None:
     """Fail closed unless the composed review MP4 has valid video and audio."""
     if not path.is_file() or path.stat().st_size == 0:
@@ -503,19 +537,17 @@ def main() -> None:
     inter_verse_gap = float(audio.get("inter_verse_silence_seconds", 0.05))
     # The background reel is built after the exact audio duration is known.
 
-    # Scene boundaries use the approved processed verse durations.
-    scene_boundaries = []
-    elapsed = 0.0
-    for scene in scenes[:-1]:
-        elapsed += sum(verse_durations[n] for n in scene["verses"]) + inter_verse_gap * len(scene["verses"])
-        scene_boundaries.append(elapsed)
-
     duration_result = subprocess.check_output([
         "ffprobe", "-v", "error", "-show_entries", "format=duration",
         "-of", "default=nw=1:nk=1", str(audio_file)
     ], text=True).strip()
     duration = float(duration_result)
     validate_video_duration(duration)
+
+    # Scene boundaries use the approved processed verse durations.
+    scene_boundaries = calculate_scene_boundaries(
+        scenes, verse_durations, inter_verse_gap, duration
+    )
     build_background_reel(
         background_sequence or [background], duration, work, bg_file
     )
