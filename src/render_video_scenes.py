@@ -215,7 +215,7 @@ def probe_media_duration(path: Path) -> float:
 def build_background_reel(
     candidates: list[dict], duration: float, work: Path, destination: Path
 ) -> str:
-    """Use exactly one approved clip that covers the complete audio duration."""
+    """Loop one approved background clip to cover the complete audio duration."""
     if not math.isfinite(duration) or duration <= 0:
         raise SystemExit("Background duration must be a finite positive number.")
     if not candidates:
@@ -226,16 +226,14 @@ def build_background_reel(
         raw_path = work / f"background_source_{index}.mp4"
         download(candidate["direct_video_url"], raw_path)
         clip_duration = probe_media_duration(raw_path)
-        if clip_duration + 0.10 < duration:
-            print(
-                f"Skipping short background {candidate_id}: "
-                f"{clip_duration:.3f}s for {duration:.3f}s audio."
-            )
+        if not math.isfinite(clip_duration) or clip_duration <= 0:
+            print(f"Skipping background with unusable duration: {candidate_id}.")
             continue
 
+        # Repeat this same source clip; never splice different backgrounds together.
         run([
-            "ffmpeg", "-hide_banner", "-y", "-i", str(raw_path),
-            "-t", f"{duration:.6f}",
+            "ffmpeg", "-hide_banner", "-y", "-stream_loop", "-1",
+            "-i", str(raw_path), "-t", f"{duration:.6f}",
             "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
                    "crop=1080:1920,setsar=1,fps=30,format=yuv420p",
             "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
@@ -244,16 +242,16 @@ def build_background_reel(
         actual_duration = probe_media_duration(destination)
         if actual_duration + 0.10 < duration:
             raise SystemExit(
-                f"Single background {candidate_id} is too short after normalization "
+                f"Looped background {candidate_id} is too short after normalization "
                 f"({actual_duration:.3f}s for {duration:.3f}s audio)."
             )
-        print(f"Using one continuous background: {candidate_id} ({actual_duration:.2f}s).")
+        print(
+            f"Using one background loop: {candidate_id} "
+            f"(source {clip_duration:.2f}s, output {actual_duration:.2f}s)."
+        )
         return candidate_id
 
-    raise SystemExit(
-        f"No single approved background is long enough for the {duration:.2f}s audio; "
-        "refusing to combine or repeat backgrounds within one video."
-    )
+    raise SystemExit("No approved background has a usable positive duration.")
 
 
 def main() -> None:
