@@ -10,6 +10,13 @@ from validate_content_manifest import validate_content_manifest
 
 
 class ContentManifestTests(unittest.TestCase):
+    def review_preview_manifest(self):
+        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        # Unit-test fixture: isolate audio policy from the separate technical
+        # background-download gate. The real manifest remains unmodified.
+        data["visual"]["background_candidate"]["download_verified"] = True
+        return data
+
     def test_quran_manifest_without_technical_background_verification_is_rejected(self):
         data = json.loads((ROOT / "content/first_video.json").read_text(encoding="utf-8"))
         self.assertTrue(data["visual"]["background_candidate"].get("downloaded"))
@@ -18,26 +25,26 @@ class ContentManifestTests(unittest.TestCase):
             validate_content_manifest(data)
 
     def test_unapproved_quran_audio_is_allowed_only_as_review_preview(self):
-        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data = self.review_preview_manifest()
         self.assertFalse(data["audio"]["approved"])
         self.assertTrue(data["audio"]["preview_only"])
         self.assertFalse(data["audio"]["exact_recording_user_reviewed"])
         validate_content_manifest(data)
 
     def test_preview_only_quran_audio_still_requires_reuse_rights(self):
-        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data = self.review_preview_manifest()
         data["audio"]["rights_verified"] = False
         with self.assertRaisesRegex(SystemExit, "Reuse permission"):
             validate_content_manifest(data)
 
     def test_unapproved_quran_audio_without_preview_gate_is_rejected(self):
-        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data = self.review_preview_manifest()
         data["audio"]["preview_only"] = False
         with self.assertRaisesRegex(SystemExit, "only an explicit preview_only"):
             validate_content_manifest(data)
 
     def test_preview_only_quran_audio_cannot_be_marked_production_approved(self):
-        data = json.loads((ROOT / "content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+        data = self.review_preview_manifest()
         data["audio"]["approved"] = True
         with self.assertRaisesRegex(SystemExit, "cannot also be marked"):
             validate_content_manifest(data)
@@ -61,7 +68,8 @@ class ContentManifestTests(unittest.TestCase):
                 "background_candidate": {
                     "source_url": "https://example.org/background",
                     "direct_video_url": "https://example.org/background.mp4",
-                    "approved": True, "user_approved": True
+                    "approved": True, "user_approved": True,
+                    "download_verified": True
                 }
             },
             "publishing": {"approval_required": True, "auto_publish": False}
