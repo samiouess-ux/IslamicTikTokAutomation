@@ -351,7 +351,7 @@ def build_background_reel(
 
     concat_list = work / "background_concat.txt"
     concat_list.write_text(
-        "".join("file '" + path.resolve().as_posix() + "'\\n" for path in normalized_files),
+        "".join("file '" + path.resolve().as_posix() + "'\n" for path in normalized_files),
         encoding="utf-8",
     )
     run([
