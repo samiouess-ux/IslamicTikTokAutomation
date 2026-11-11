@@ -35,7 +35,7 @@ on:
         default: manual-review
         type: string
       use_background_rotation:
-        description: Rotate through the seven eligible, verified 9:16 portrait backgrounds
+        description: Rotate through the eleven approved, verified portrait and landscape backgrounds
         required: false
         default: true
         type: boolean
