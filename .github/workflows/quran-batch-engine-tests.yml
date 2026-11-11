@@ -78,6 +78,7 @@ jobs:
             tests/test_build_quran_video_catalog.py \
             tests/test_quran_visual_templates.py \
             tests/test_render_video_duration.py \
+            tests/test_background_reel.py \
             tests/test_render_quran_review_batch.py \
             tests/test_prepare_quran_review_batch_audio.py \
             tests/test_quran_audio_parts.py \
