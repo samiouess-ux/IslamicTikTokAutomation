@@ -52,7 +52,28 @@ class ApprovedBackgroundPreservationTests(unittest.TestCase):
 
         self.assertEqual([item["id"] for item in selected], ["mosque", "ocean"])
 
-    def test_rotation_fails_closed_when_no_approved_portrait_exists(self):
+    def test_verified_landscape_and_unreported_ratio_assets_are_preserved(self):
+        candidates = [
+            {
+                "id": "landscape", "approved": True, "user_approved": True,
+                "download_verified": True, "aspect_ratio": "16:9",
+                "direct_video_url": "https://cdn.example/landscape.mp4",
+                "source_page_url": "https://example.com/landscape",
+            },
+            {
+                "id": "ratio-unreported", "approved": True, "user_approved": True,
+                "download_verified": True, "aspect_ratio": None,
+                "direct_video_url": "https://cdn.example/unknown.mp4",
+                "source_page_url": "https://example.com/unknown",
+            },
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = Path(tmp) / "catalog.json"
+            catalog.write_text(json.dumps({"candidates": candidates}), encoding="utf-8")
+            selected = load_eligible_backgrounds(catalog)
+        self.assertEqual([item["id"] for item in selected], ["landscape", "ratio-unreported"])
+
+    def test_rotation_fails_closed_when_no_approved_background_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
             catalog = Path(tmp) / "catalog.json"
             catalog.write_text(json.dumps({"candidates": []}), encoding="utf-8")
