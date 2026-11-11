@@ -30,9 +30,11 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_run(command):
                 Path(command[-1]).write_bytes(b"mock output")
 
-            with patch("render_video_scenes.download", side_effect=fake_download), \\
-                 patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 11.0, 10.0]), \\
-                 patch("render_video_scenes.run", side_effect=fake_run) as run:
+            with (
+                patch("render_video_scenes.download", side_effect=fake_download),
+                patch("render_video_scenes.probe_media_duration", side_effect=[6.0, 11.0, 10.0]),
+                patch("render_video_scenes.run", side_effect=fake_run) as run,
+            ):
                 selected = build_background_reel(
                     [self._candidate("clip-a"), self._candidate("clip-b")],
                     10.0, work, destination
@@ -45,7 +47,7 @@ class BackgroundReelTests(unittest.TestCase):
                 run.call_args.args[0][run.call_args.args[0].index("-t") + 1],
                 "10.000000",
             )
-            self.assertFalse((work / "background_concat.txt").exists()
+            self.assertFalse((work / "background_concat.txt").exists())
 
     def test_rejects_empty_candidate_list(self):
         with tempfile.TemporaryDirectory() as directory:
