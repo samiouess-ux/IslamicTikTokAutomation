@@ -100,10 +100,10 @@ class BackgroundMediaValidationTests(unittest.TestCase):
     def _final_video_payload(self, duration="12.5", audio=True, width=1080, height=1920, fps="30/1"):
         streams = [{
             "codec_type": "video", "width": width, "height": height,
-            "avg_frame_rate": fps,
+            "avg_frame_rate": fps, "duration": duration,
         }]
         if audio:
-            streams.append({"codec_type": "audio"})
+            streams.append({"codec_type": "audio", "duration": duration})
         return json.dumps({"streams": streams, "format": {"duration": duration}})
 
     def test_accepts_valid_final_review_video(self):
