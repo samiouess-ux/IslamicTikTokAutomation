@@ -385,3 +385,12 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 - The source recitation, trimming filter, concatenation command, Quran text, and scene order are unchanged. This adjusts timing metadata only.
 - The eight-verse Ash-Sharh workflow already measures processed verse files and explicitly inserts 20 ms silence assets between them; that behavior was left unchanged.
 - The workflow was statically reviewed only; it was not executed and no audio/video was generated.
+
+
+## Verse-screen boundary validation (2026-11-11)
+
+- Scene timing is now calculated only after the actual audio duration is probed.
+- A shared helper rejects missing, non-finite, zero, or negative processed verse durations; invalid inter-verse gaps; and any intermediate screen boundary at or beyond the audio end.
+- Added mocked/unit regression cases for correct boundaries, invalid durations/gaps, missing timing data, and a boundary beyond the audio.
+- These checks do not alter the Quran text, audio file, recitation speed, trimming filter, or intended scene order.
+- Tests remain unexecuted; no workflow, render, Telegram delivery, or publishing was run.
