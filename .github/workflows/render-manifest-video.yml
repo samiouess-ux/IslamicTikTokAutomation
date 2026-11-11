@@ -270,7 +270,7 @@ jobs:
           manifest = json.loads(Path('content/first_video.json').read_text(encoding='utf-8'))
           manifest['audio']['production_audio_file'] = str(output)
           manifest['audio']['processed_verse_durations_seconds'] = durations
-          manifest['audio']['inter_verse_silence_seconds'] = 0.02
+          manifest['audio']['inter_verse_silence_seconds'] = 0.0
           Path('build/first_video_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
           print('Verified processed verse durations:', json.dumps(durations,sort_keys=True))
           print('Prepared approved continuous recitation; long leading/trailing silences trimmed with 100ms safety padding, no added inter-verse silence.')
