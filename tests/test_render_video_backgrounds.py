@@ -105,7 +105,7 @@ class BackgroundMediaProbeTests(unittest.TestCase):
                 build_background_reel(candidates, 5.0, work, destination)
 
             self.assertEqual(len(commands), 2)
-            self.assertIn("background_source_0.mp4", commands[0])
+            self.assertTrue(any(arg.endswith("background_source_0.mp4") for arg in commands[0]))
             self.assertTrue(destination.is_file())
 
     def test_reel_fails_clearly_when_all_approved_candidates_are_unusable(self):
