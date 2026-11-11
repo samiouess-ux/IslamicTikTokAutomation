@@ -403,3 +403,19 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 - Added regression tests for excluding generic scenery and rejecting an empty Islamic-approved pool.
 - Existing catalog approvals and media URLs were not changed. No candidate was newly approved, no MP4 was downloaded, and no production render/workflow/Telegram action was run.
 - Tests have been added but have not yet been executed in this environment.
+
+
+## Arabic and Arab-region Islamic footage shortlist (2026-11-11)
+
+These leads were selected specifically for recognizably Arab/Islamic subjects (Makkah, the Kaaba, Al-Aqsa/Dome of the Rock, and Quran imagery), not Ottoman/Turkish mosque footage. They are additions only: the existing 11 approved catalog entries must remain intact and must not be filtered out or deleted. These links remain pending until the MP4 is downloaded, visually inspected in the actual Quran layout, probed with ffprobe, and the user approves the exact clip.
+
+| Candidate | Page | Page metadata observed | Status |
+|---|---|---|---|
+| Pilgrims performing Tawaf around the Kaaba, Makkah | https://www.pexels.com/video/pilgrims-gather-at-kaaba-for-sacred-ritual-36592383/ | 2160x3840, 9:16, 11s, 59.94fps; Pexels page marked Free | Pending download, visual inspection, approval |
+| Pilgrims around the Kaaba at Masjid Al-Haram | https://www.pexels.com/video/people-are-standing-in-front-of-the-kaaba-27411329/ | 1080x1920, 9:16, 11s, 59.94fps; Pexels page marked Free | Pending download, visual inspection, approval |
+| First view of the Kaaba inside Masjid Al-Haram, Makkah | https://www.pexels.com/video/first-sight-of-the-holy-kaaba-walking-into-the-masjid-e-haram-makkah-saudi-arabia-20710425/ | 2160x3840, 9:16, 20s, 60fps; Pexels page marked Free | Pending download, visual inspection, approval |
+| Quran and mosque, vertical | https://pixabay.com/videos/quran-islam-arabic-140568/ | 1080x1920, 9:16, 25fps; Pixabay Content License | Pending duration/visual inspection/download/approval |
+| Arab Muslim architecture and Dome of the Rock chain-dome decoration | https://pixabay.com/videos/mosque-islamic-quran-islam-muslim-131292/ | 2160x3840, 9:16, 30fps; Pixabay Content License | Pending duration/visual inspection/download/approval |
+| Islamic video (AI-generated), vertical | https://pixabay.com/videos/islam-mosque-muslim-quran-culture-281205/ | 1440x2560, portrait, 29fps; Pixabay Content License; uploader tags it AI-generated | Pending duration/visual inspection/download/approval; lower priority because AI-generated |
+
+**Selection rule:** prefer real footage of Makkah/Madinah/Al-Aqsa and authentic Arab-Islamic architecture, Quran close-ups, Arabic calligraphy, and traditional Arabesque details. Do not label a clip Arab merely because it depicts a mosque; exclude Turkish/Ottoman-specific footage when the brief asks for Arab-Islamic visuals. No item above has been added to the production catalog or marked approved.
