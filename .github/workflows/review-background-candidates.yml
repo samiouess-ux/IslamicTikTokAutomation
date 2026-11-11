@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/telegram-review-notifications
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -83,7 +83,7 @@ jobs:
             echo "No review images changed."
           else
             git commit -m "Publish Quran overlay background review previews"
-            git push origin HEAD:feature/telegram-review-notifications
+            git push origin HEAD:${{ github.ref_name }}
           fi
       - name: Upload review contact sheets and verified source clips
         continue-on-error: true
