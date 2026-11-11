@@ -367,3 +367,11 @@ The renderer still uses the probed duration for trimming and reel assembly. Thes
 - Every normalized clip and the concatenated background reel is checked with ffprobe for a real video stream, exact 1080x1920 dimensions, and a finite duration that covers its requested segment/audio length (with a 0.10-second tolerance).
 - Added mocked regression cases for oversized download rejection/cleanup, missing output video streams, incorrect output dimensions, and insufficient output duration.
 - These are code and mocked-test additions only. Tests have not been executed; no source clips were downloaded, no ffmpeg render was run, and no workflow, Telegram delivery, or publishing action was performed.
+
+## Final composed review-video validation (2026-11-11)
+
+- The active scene renderer now probes the completed MP4 immediately after FFmpeg composition and before writing the review caption.
+- It requires both video and audio streams, exact 1080x1920 dimensions, 30 fps, a finite duration close to the approved audio duration, and the existing 40-second maximum.
+- Added mocked regression cases for a valid final MP4, missing audio, incorrect frame rate, and a final file shorter than the approved audio.
+- These changes are isolated to final-output validation. The existing template, cover, Quran text, audio source/timing, background catalog, Telegram delivery, and publishing settings were not changed.
+- Tests have not been executed. No render, workflow, Telegram delivery, or publishing action was performed.
