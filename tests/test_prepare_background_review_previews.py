@@ -43,6 +43,8 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
         from src.prepare_background_review_previews import TrustedDownloadRedirectHandler
         handler = TrustedDownloadRedirectHandler()
         request = Request("https://videos.pexels.com/video-files/source.mp4")
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
         from src.render_video_scenes import TrustedDownloadRedirectHandler as ProductionRedirectHandler
         production_handler = ProductionRedirectHandler()
         production_request = Request("https://videos.pexels.com/video-files/source.mp4")
