@@ -38,7 +38,7 @@ class BackgroundMediaValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "not a readable video"):
                     probe_background_media(path)
 
-    def test_rejects_landscape_video(self):
+    def test_accepts_landscape_video_for_center_crop(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "landscape.mp4"
             path.write_bytes(b"video")
@@ -46,8 +46,7 @@ class BackgroundMediaValidationTests(unittest.TestCase):
                 "codec_type": "video", "width": 1920, "height": 1080,
             }])
             with patch("render_video_scenes.subprocess.check_output", return_value=payload):
-                with self.assertRaisesRegex(SystemExit, "portrait 9:16"):
-                    probe_background_media(path)
+                self.assertEqual(probe_background_media(path), 12.5)
 
     def test_rejects_empty_download_before_probing(self):
         with tempfile.TemporaryDirectory() as tmp:
