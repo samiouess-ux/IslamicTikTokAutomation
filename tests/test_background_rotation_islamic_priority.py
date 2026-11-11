@@ -1,4 +1,4 @@
-"""Ensure the production rotation uses Islamic visuals, not generic nature clips."""
+"""Ensure the production rotation preserves all approved portrait backgrounds."""
 import json
 import sys
 import tempfile
@@ -11,8 +11,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from background_rotation import load_eligible_backgrounds
 
 
-class IslamicBackgroundPriorityTests(unittest.TestCase):
-    def test_only_approved_islamic_portrait_candidates_enter_rotation(self):
+class ApprovedBackgroundPreservationTests(unittest.TestCase):
+    def test_all_approved_portrait_candidates_enter_rotation(self):
         candidates = [
             {
                 "id": "mosque",
@@ -50,13 +50,13 @@ class IslamicBackgroundPriorityTests(unittest.TestCase):
             catalog.write_text(json.dumps({"candidates": candidates}), encoding="utf-8")
             selected = load_eligible_backgrounds(catalog)
 
-        self.assertEqual([item["id"] for item in selected], ["mosque"])
+        self.assertEqual([item["id"] for item in selected], ["mosque", "ocean"])
 
-    def test_rotation_fails_closed_when_no_approved_islamic_portrait_exists(self):
+    def test_rotation_fails_closed_when_no_approved_portrait_exists(self):
         with tempfile.TemporaryDirectory() as tmp:
             catalog = Path(tmp) / "catalog.json"
             catalog.write_text(json.dumps({"candidates": []}), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "Islamic portrait backgrounds"):
+            with self.assertRaisesRegex(ValueError, "9:16 backgrounds"):
                 load_eligible_backgrounds(catalog)
 
 
