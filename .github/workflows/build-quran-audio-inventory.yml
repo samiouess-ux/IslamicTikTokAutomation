@@ -2,7 +2,7 @@ name: Build Quran-wide official verse audio inventory
 
 concurrency:
   group: quran-review-inventory-v2-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 on:
   push:
@@ -51,7 +51,7 @@ on:
       send_to_telegram:
         description: 'Explicitly approve sending one review-only video to Telegram'
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
