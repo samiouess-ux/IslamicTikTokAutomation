@@ -141,6 +141,22 @@ class BackgroundMediaValidationTests(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, "shorter"):
                     validate_final_review_video(path, 12.4)
 
+    def test_rejects_short_video_stream_even_when_container_duration_matches(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "review.mp4"
+            path.write_bytes(b"video")
+            payload = json.dumps({
+                "streams": [
+                    {"codec_type": "video", "width": 1080, "height": 1920,
+                     "avg_frame_rate": "30/1", "duration": "10.0"},
+                    {"codec_type": "audio", "duration": "12.5"},
+                ],
+                "format": {"duration": "12.5"},
+            })
+            with patch("render_video_scenes.subprocess.check_output", return_value=payload):
+                with self.assertRaisesRegex(SystemExit, "streams do not cover"):
+                    validate_final_review_video(path, 12.4)
+
     def test_download_rejects_oversized_content_length_and_cleans_partial(self):
         class FakeResponse:
             headers = {"Content-Length": str(300 * 1024 * 1024)}
