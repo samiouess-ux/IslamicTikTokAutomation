@@ -37,6 +37,36 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "Invalid video dimensions"):
                     probe_video(path)
 
+
+    def test_redirect_handler_rejects_untrusted_or_downgraded_targets(self):
+        from urllib.request import Request
+        from src.prepare_background_review_previews import TrustedDownloadRedirectHandler
+        handler = TrustedDownloadRedirectHandler()
+        request = Request("https://videos.pexels.com/video-files/source.mp4")
+        for target in (
+            "http://videos.pexels.com/video-files/target.mp4",
+            "https://videos.pexels.com.evil.test/video-files/target.mp4",
+            "https://cdn.pixabay.com.evil.test/video/target.mp4",
+            "https://user@videos.pexels.com/video-files/target.mp4",
+            "https://videos.pexels.com:8443/video-files/target.mp4",
+        ):
+            with self.subTest(target=target):
+                with self.assertRaises(Exception):
+                    handler.redirect_request(request, None, 302, "Found", {}, target)
+
+    def test_redirect_handler_allows_only_approved_https_media_hosts(self):
+        from urllib.request import Request
+        from src.prepare_background_review_previews import TrustedDownloadRedirectHandler
+        handler = TrustedDownloadRedirectHandler()
+        request = Request("https://videos.pexels.com/video-files/source.mp4")
+        for target in (
+            "https://videos.pexels.com/video-files/target.mp4",
+            "https://cdn.pixabay.com/video/target.mp4",
+        ):
+            with self.subTest(target=target):
+                redirected = handler.redirect_request(request, None, 302, "Found", {}, target)
+                self.assertEqual(redirected.full_url, target)
+
     def test_contact_sheet_is_vertical_and_contains_four_tiles(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
