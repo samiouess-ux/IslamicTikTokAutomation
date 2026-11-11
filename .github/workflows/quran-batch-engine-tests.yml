@@ -31,6 +31,7 @@ on:
       - "tests/test_render_quran_review_batch.py"
       - "tests/test_orchestrator.py"
       - "tests/test_content_rotation.py"
+      - "tests/test_background_reel.py"
       - ".github/workflows/quran-batch-engine-tests.yml"
   workflow_dispatch:
 
