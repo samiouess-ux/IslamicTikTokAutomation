@@ -15,12 +15,13 @@ def manifest(surah, background, template="ornate_gold_classic"):
         "source": {"surah_number": surah, "surah_name_ar": "الفاتحة", "verses": [1]},
         "visual": {
             "template": template,
-            "template_approved": template == "ornate_gold_classic" or True,
+            "template_approved": True,
             "background_candidate": {
                 "direct_video_url": background,
                 "source_url": "https://example.test/license",
                 "approved": True,
                 "user_approved": True,
+                "download_verified": True,
             },
         },
         "audio": {
