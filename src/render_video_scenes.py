@@ -387,9 +387,11 @@ def validate_final_review_video(path: Path, expected_duration: float) -> None:
         info = json.loads(raw)
         streams = info.get("streams", [])
         video = next(s for s in streams if s.get("codec_type") == "video")
-        next(s for s in streams if s.get("codec_type") == "audio")
+        audio = next(s for s in streams if s.get("codec_type") == "audio")
         width, height = int(video["width"]), int(video["height"])
         duration = float(info["format"]["duration"])
+        video_duration = float(video["duration"])
+        audio_duration = float(audio["duration"])
         frame_rate = video.get("avg_frame_rate") or video.get("r_frame_rate")
         numerator, denominator = (int(part) for part in frame_rate.split("/", 1))
         fps = numerator / denominator
@@ -400,8 +402,15 @@ def validate_final_review_video(path: Path, expected_duration: float) -> None:
         raise SystemExit(f"Final review video must be 1080x1920; got {width}x{height}: {path}")
     if not math.isfinite(fps) or not math.isclose(fps, 30.0, abs_tol=0.01):
         raise SystemExit(f"Final review video must be 30 fps; got {frame_rate}: {path}")
-    if not math.isfinite(duration) or duration < expected_duration - 0.25:
-        raise SystemExit(f"Final review video is shorter than its approved audio ({duration:.3f}s for {expected_duration:.3f}s): {path}")
+    if (not math.isfinite(duration) or not math.isfinite(video_duration)
+            or not math.isfinite(audio_duration)
+            or video_duration < expected_duration - 0.25
+            or audio_duration < expected_duration - 0.25):
+        raise SystemExit(
+            f"Final review streams do not cover the approved audio "
+            f"(container={duration:.3f}s, video={video_duration:.3f}s, "
+            f"audio={audio_duration:.3f}s; expected={expected_duration:.3f}s): {path}"
+        )
     if duration > MAX_VIDEO_SECONDS or duration > expected_duration + 0.50:
         raise SystemExit(f"Final review video duration is outside the allowed range ({duration:.3f}s for {expected_duration:.3f}s): {path}")
 
