@@ -162,11 +162,25 @@ class BackgroundMediaValidationTests(unittest.TestCase):
             headers = {"Content-Length": str(300 * 1024 * 1024)}
             def __enter__(self): return self
             def __exit__(self, *args): return False
+
+        class FakeOpener:
+            def open(self, request, timeout):
+                self.request = request
+                self.timeout = timeout
+                return FakeResponse()
+
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "partial.mp4"
-            with patch("render_video_scenes.urllib.request.urlopen", return_value=FakeResponse()):
+            path.write_bytes(b"stale partial data")
+            opener = FakeOpener()
+            with patch("render_video_scenes.urllib.request.build_opener", return_value=opener):
                 with self.assertRaisesRegex(SystemExit, "250 MiB"):
-                    download("https://example.test/video.mp4", path)
+                    download("https://videos.pexels.com/video-files/test.mp4", path)
+            self.assertEqual(opener.timeout, 90)
+            self.assertEqual(
+                opener.request.full_url,
+                "https://videos.pexels.com/video-files/test.mp4",
+            )
             self.assertFalse(path.exists())
 
 if __name__ == "__main__":
