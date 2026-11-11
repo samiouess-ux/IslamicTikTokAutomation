@@ -8,8 +8,8 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
     def test_eight_new_candidates_are_separate_and_fail_closed(self):
         catalog = json.loads(Path("data/background_additions_review.json").read_text(encoding="utf-8"))
         self.assertEqual(len(catalog["candidates"]), 8)
-        self.assertIn("not production-enabled", catalog["purpose"])
-        self.assertIn("not active in the renderer", catalog["activation_policy"])
+        self.assertIn("Seven user-approved candidates have been promoted", catalog["purpose"])
+        self.assertIn("already integrated and active in data/background_candidates.json", catalog["activation_policy"])
         ids = [item["id"] for item in catalog["candidates"]]
         self.assertEqual(len(ids), len(set(ids)))
         resolved = [item for item in catalog["candidates"] if item["direct_video_url"]]
