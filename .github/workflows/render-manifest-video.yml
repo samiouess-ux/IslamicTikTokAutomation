@@ -185,7 +185,7 @@ jobs:
           manifest = json.loads(Path('content/second_video_ash_sharh_94_1_8_draft.json').read_text(encoding='utf-8'))
           manifest['audio']['production_audio_file'] = str(output)
           manifest['audio']['processed_verse_durations_seconds'] = durations
-          manifest['audio']['inter_verse_silence_seconds'] = 0.02
+          manifest['audio']['inter_verse_silence_seconds'] = 0.0
           Path('build/manifest_for_render.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
           print('Processed verse durations:', json.dumps(durations,sort_keys=True))
           print('Production audio duration:', subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(output)],text=True).strip())
@@ -243,7 +243,6 @@ jobs:
                           chunk = src.read(1024 * 1024)
                           if not chunk: break
                           dst.write(chunk)
-                  durations[str(verse)] = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(target)],text=True).strip())
           # Trim only long leading/trailing silence on each verse. Keep 100ms
           # safety padding so quiet recitation endings are not clipped.
           for verse in (5, 6):
@@ -254,6 +253,13 @@ jobs:
                   '-af','silenceremove=start_periods=1:start_duration=0.15:start_threshold=-50dB:start_silence=0.10:stop_periods=1:stop_duration=0.15:stop_threshold=-50dB:stop_silence=0.10',
                   '-c:a','libmp3lame','-q:a','2',str(processed)
               ],check=True)
+              processed_duration = float(subprocess.check_output([
+                  'ffprobe','-v','error','-show_entries','format=duration',
+                  '-of','default=nw=1:nk=1',str(processed)
+              ],text=True).strip())
+              if processed_duration <= 0:
+                  raise RuntimeError(f'Invalid processed duration for verse {verse}: {processed_duration}')
+              durations[str(verse)] = processed_duration
           concat = work / 'concat.txt'
           concat.write_text("\n".join([
               "file '%s'" % (work / 'processed_05.mp3').resolve(),
@@ -266,7 +272,7 @@ jobs:
           manifest['audio']['processed_verse_durations_seconds'] = durations
           manifest['audio']['inter_verse_silence_seconds'] = 0.02
           Path('build/first_video_manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
-          print('Verified source verse durations:', json.dumps(durations,sort_keys=True))
+          print('Verified processed verse durations:', json.dumps(durations,sort_keys=True))
           print('Prepared approved continuous recitation; long leading/trailing silences trimmed with 100ms safety padding, no added inter-verse silence.')
           PY
       - name: Render video and caption for review
