@@ -59,6 +59,33 @@ class RendererBackgroundPreparationTests(unittest.TestCase):
         )
 
     @patch("render_video_scenes.validate_content_manifest")
+    @patch("background_rotation.order_backgrounds")
+    def test_rotation_keeps_approved_candidate_with_unreported_catalog_duration(
+        self, order_backgrounds, validate_manifest
+    ):
+        selected = {
+            "id": "approved-duration-probed-at-runtime",
+            "direct_video_url": "https://cdn.example/verified.mp4",
+            "source_page_url": "https://example.com/source",
+            "approved": True,
+            "user_approved": True,
+            "download_verified": True,
+            "duration_seconds": None,
+        }
+        order_backgrounds.return_value = [selected]
+
+        sequence = prepare_manifest_background(
+            self._manifest(), True, "stable-key", []
+        )
+
+        self.assertEqual(sequence[0]["id"], selected["id"])
+        self.assertIsNone(sequence[0]["duration_seconds"])
+        self.assertEqual(
+            sequence[0]["direct_video_url"], "https://cdn.example/verified.mp4"
+        )
+        validate_manifest.assert_called_once()
+
+    @patch("render_video_scenes.validate_content_manifest")
     def test_without_rotation_validation_keeps_original_manifest(self, validate_manifest):
         manifest = self._manifest()
 
