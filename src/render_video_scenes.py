@@ -5,6 +5,8 @@ import argparse
 import hashlib
 import json
 import math
+import re
+import secrets
 import subprocess
 import urllib.request
 from pathlib import Path
@@ -268,9 +270,11 @@ ARABIC_BACKGROUND_KEYWORDS = {
 }
 
 def infer_background_tags(arabic_text: str) -> set[str]:
-    """Conservative literal keyword matching; never interprets or rewrites Quran text."""
+    """Conservative keyword matching after removing Arabic diacritics for lookup only."""
+    normalized = re.sub(r"[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]", "", arabic_text)
     return {tag for tag, words in ARABIC_BACKGROUND_KEYWORDS.items()
-            if any(word in arabic_text for word in words)}
+            if any(re.sub(r"[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]", "", word) in normalized
+                   for word in words)}
 
 def select_photo_for_scene(eligible: list[dict], arabic_text: str, rotation_key: str,
                            scene_index: int, used_ids: set[str]) -> dict:
