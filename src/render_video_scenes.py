@@ -256,10 +256,38 @@ def build_background_reel(
 
 
 
+ARABIC_BACKGROUND_KEYWORDS = {
+    "sea": ("البحر", "بحر", "البحار", "موج"),
+    "mountains": ("الجبال", "جبل", "طور", "رواسي"),
+    "desert": ("الصحراء", "رمال", "沙"),
+    "river": ("نهر", "الأنهار", "أنهار", "ماء"),
+    "sunset": ("غروب", "الشمس", "الشمس", "ليل"),
+    "mosque": ("مسجد", "المساجد", "المسجد"),
+    "nature": ("شجر", "أشجار", "نبات", "زرع", "جنة", "جنات"),
+    "sky": ("سماء", "السماوات", "نجوم", "قمر"),
+}
+
+def infer_background_tags(arabic_text: str) -> set[str]:
+    """Conservative literal keyword matching; never interprets or rewrites Quran text."""
+    return {tag for tag, words in ARABIC_BACKGROUND_KEYWORDS.items()
+            if any(word in arabic_text for word in words)}
+
+def select_photo_for_scene(eligible: list[dict], arabic_text: str, rotation_key: str,
+                           scene_index: int, used_ids: set[str]) -> dict:
+    wanted = infer_background_tags(arabic_text)
+    matching = [item for item in eligible
+                if wanted.intersection(set(item.get("tags", []))) and item["id"] not in used_ids]
+    pool = matching or [item for item in eligible if item["id"] not in used_ids]
+    if not pool:
+        pool = eligible
+    return min(pool, key=lambda item: hashlib.sha256(
+        f"{rotation_key}:{scene_index}:{item['id']}".encode("utf-8")).digest())
+
 def build_photo_background_reel(
-    candidates: list[dict], duration: float, work: Path, destination: Path, rotation_key: str
+    candidates: list[dict], scenes: list[dict], duration: float, work: Path,
+    destination: Path, rotation_key: str
 ) -> list[str]:
-    """Build a calm photo slideshow with gentle Ken Burns motion and soft crossfades."""
+    """Choose a tag-matched photo per verse scene and crossfade on scene boundaries."""
     if not math.isfinite(duration) or duration <= 0:
         raise SystemExit("Photo background duration must be a finite positive number.")
     if not rotation_key.strip():
@@ -271,57 +299,52 @@ def build_photo_background_reel(
             eligible.append(item)
     if not eligible:
         raise SystemExit("No downloaded and verified photo backgrounds are available.")
+    if not scenes:
+        raise SystemExit("No timed verse scenes were supplied for photo backgrounds.")
 
-    # Stable per-video shuffle: different runs get a varied order, reruns stay reproducible.
-    eligible.sort(key=lambda item: hashlib.sha256(
-        f"{rotation_key}:{item['id']}".encode("utf-8")
-    ).digest())
-    transition = 0.8
-    clip_duration = 6.5
-    count = max(1, math.ceil(max(0.0, duration - transition) / (clip_duration - transition)))
-    chosen = [eligible[i % len(eligible)] for i in range(min(count, len(eligible)))]
-    inputs = []
-    filters = []
-    frame_count = max(2, round(clip_duration * 30))
-    for index, item in enumerate(chosen):
-        path = Path(item["local_path"])
-        inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.3f}", "-i", str(path)]
-        # Alternate a very slow horizontal drift direction; zoom remains restrained.
+    used_ids: set[str] = set()
+    chosen, scene_durations = [], []
+    for index, scene in enumerate(scenes):
+        text = " ".join(str(v.get("arabic", "")) for v in scene.get("verses", []))
+        item = select_photo_for_scene(eligible, text, rotation_key, index, used_ids)
+        chosen.append(item)
+        used_ids.add(item["id"])
+        scene_durations.append(float(scene["duration"]))
+    # Correct only accumulated timing round-off; the audio track remains untouched.
+    scene_durations[-1] += duration - sum(scene_durations)
+    if any(not math.isfinite(d) or d <= 0 for d in scene_durations):
+        raise SystemExit("Every verse scene must have a positive duration.")
+    transition = min(0.6, min(scene_durations) * 0.20) if len(chosen) > 1 else 0.0
+    inputs, filters = [], []
+    for index, (item, scene_duration) in enumerate(zip(chosen, scene_durations)):
+        clip_duration = scene_duration + (transition if index < len(chosen)-1 else 0)
+        frames = max(2, round(clip_duration * 30))
+        inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.6f}",
+                   "-i", item["local_path"]]
         drift = "0.5+0.10*sin(on/75)" if index % 2 == 0 else "0.5-0.10*sin(on/75)"
         filters.append(
             f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
             f"crop=1080:1920,setsar=1,zoompan=z='min(1+0.00035*on,1.07)':"
             f"x='(iw-iw/zoom)*({drift})':y='(ih-ih/zoom)*0.5':"
-            f"d={frame_count}:s=1080x1920:fps=30,format=yuv420p[p{index}]"
-        )
-
-    current = "p0"
-    elapsed = clip_duration
+            f"d={frames}:s=1080x1920:fps=30,format=yuv420p[p{index}]")
+    current, elapsed = "p0", scene_durations[0]
     for index in range(1, len(chosen)):
-        next_label = f"x{index}"
-        offset = elapsed - transition
+        label = f"x{index}"
         filters.append(
-            f"[{current}][p{index}]xfade=transition=fade:duration={transition:.3f}:"
-            f"offset={offset:.3f}[{next_label}]"
-        )
-        current = next_label
-        elapsed += clip_duration - transition
-
+            f"[{current}][p{index}]xfade=transition=fade:duration={transition:.6f}:"
+            f"offset={elapsed:.6f}[{label}]")
+        current = label
+        elapsed += scene_durations[index]
     filters.append(f"[{current}]trim=duration={duration:.6f},setpts=PTS-STARTPTS,format=yuv420p[outv]")
-    run([
-        "ffmpeg", "-hide_banner", "-y", *inputs,
-        "-filter_complex", ";".join(filters),
-        "-map", "[outv]", "-an", "-t", f"{duration:.6f}",
-        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-        "-pix_fmt", "yuv420p", "-r", "30", str(destination)
-    ])
-    actual_duration = probe_media_duration(destination)
-    if actual_duration + 0.10 < duration:
-        raise SystemExit(
-            f"Photo background reel is too short ({actual_duration:.3f}s for {duration:.3f}s)."
-        )
+    run(["ffmpeg", "-hide_banner", "-y", *inputs, "-filter_complex", ";".join(filters),
+         "-map", "[outv]", "-an", "-t", f"{duration:.6f}", "-c:v", "libx264",
+         "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p", "-r", "30",
+         str(destination)])
+    actual = probe_media_duration(destination)
+    if actual + 0.10 < duration:
+        raise SystemExit(f"Photo scene reel is too short ({actual:.3f}s for {duration:.3f}s).")
     ids = [item["id"] for item in chosen]
-    print(f"Using {len(ids)} photo backgrounds with slow motion and {transition:.1f}s crossfades: {', '.join(ids)}")
+    print("Verse-matched photo backgrounds:", ", ".join(ids))
     return ids
 
 
@@ -333,7 +356,7 @@ def main() -> None:
     parser.add_argument("--use-photo-backgrounds", action="store_true", help="Use the downloaded Pexels photo library with gentle motion and crossfades.")
     parser.add_argument("--background-rotation-key", default="manual-review")
     parser.add_argument("--recent-background-id", action="append", default=[])
-    args = parser.parse_args()
+    args = parser.parse_args()\n    if args.use_photo_backgrounds and not args.background_rotation_key.strip():\n        args.background_rotation_key = secrets.token_hex(16)
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -438,9 +461,16 @@ def main() -> None:
     validate_video_duration(duration)
     if args.use_photo_backgrounds:
         photo_data = json.loads(Path("data/background_photos_manifest.json").read_text(encoding="utf-8"))
+        timed_scenes = []
+        for index, scene in enumerate(scenes):
+            selected_verses = [v for v in verses if int(v["number"]) in scene["verses"]]
+            scene_duration = sum(verse_durations[n] for n in scene["verses"])
+            if index < len(scenes) - 1:
+                scene_duration += inter_verse_gap * len(scene["verses"])
+            timed_scenes.append({"verses": selected_verses, "duration": scene_duration})
         build_photo_background_reel(
-            photo_data.get("candidates", []), duration, work, bg_file,
-            args.background_rotation_key if args.background_rotation else "manual-photo-review"
+            photo_data.get("candidates", []), timed_scenes, duration, work, bg_file,
+            args.background_rotation_key
         )
     else:
         build_background_reel(
