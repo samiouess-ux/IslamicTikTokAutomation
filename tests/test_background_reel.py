@@ -62,8 +62,8 @@ class BackgroundReelTests(unittest.TestCase):
             def fake_run(command):
                 Path(command[-1]).write_bytes(b"mock output")
             with patch("render_video_scenes.run", side_effect=fake_run) as run:
-                with patch("render_video_scenes.probe_media_duration", return_value=12.0):
-                    chosen = build_photo_background_reel(photos, 12.0, work, destination, "stable-test-key")
+                with patch("render_video_scenes.probe_media_duration", return_value=16.0):
+                    chosen = build_photo_background_reel(photos, 16.0, work, destination, "stable-test-key")
             self.assertEqual(len(chosen), 3)
             self.assertEqual(len(set(chosen)), 3)
             self.assertTrue(destination.is_file())
