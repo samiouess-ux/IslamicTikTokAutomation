@@ -15,6 +15,15 @@ from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_l
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
+    def test_photo_background_filter_has_continuous_zoom_and_pan(self):
+        photo_filter = renderer.photo_motion_filter()
+        self.assertIn("zoompan=", photo_filter)
+        self.assertIn("sin(on/900)", photo_filter)
+        self.assertIn("sin(on/700)", photo_filter)
+        self.assertIn("cos(on/850)", photo_filter)
+        self.assertIn("fps=30", photo_filter)
+        self.assertNotIn("min(zoom+", photo_filter)
+
     def test_scheduled_rotation_uses_the_full_approved_background_count(self):
         from datetime import datetime, timezone
         for count in (4, 11, 16, 27):
