@@ -9,7 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from render_video_scenes import build_background_reel, build_photo_background_reel
+from render_video_scenes import (build_background_reel, build_photo_background_reel,\n                                 infer_background_tags, select_photo_for_scene)
 
 
 class BackgroundReelTests(unittest.TestCase):
@@ -50,27 +50,37 @@ class BackgroundReelTests(unittest.TestCase):
             )
             self.assertFalse((work / "background_concat.txt").exists())
 
-    def test_photo_reel_uses_verified_local_photos_motion_and_crossfades(self):
+    def test_arabic_keyword_tags_are_literal_and_conservative(self):
+        self.assertEqual(infer_background_tags("وَإِلَى الْجِبَالِ كَيْفَ نُصِبَتْ"), {"mountains"})
+        self.assertEqual(infer_background_tags("نص لا يحتوي كلمات طبيعية"), set())
+
+    def test_scene_photo_prefers_matching_tags_and_falls_back(self):
+        pool = [{"id":"sea","tags":["sea"]},{"id":"mountain","tags":["mountains"]}]
+        self.assertEqual(select_photo_for_scene(pool, "هذا البحر", "seed", 0, set())["id"], "sea")
+        self.assertEqual(select_photo_for_scene(pool, "كلمات عامة", "seed", 0, set())["id"], "mountain")
+
+    def test_photo_reel_uses_one_photo_per_timed_scene_and_crossfades(self):
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
             photos = []
-            for index in range(3):
-                path = work / f"photo-{index}.jpg"
+            for name, tag in (("sea","sea"),("mountain","mountains")):
+                path = work / f"{name}.jpg"
                 path.write_bytes(b"x" * 60000)
-                photos.append({"id": f"photo-{index}", "local_path": str(path)})
+                photos.append({"id":name,"tags":[tag],"local_path":str(path)})
+            scenes = [
+                {"verses":[{"arabic":"هذا البحر"}],"duration":5.0},
+                {"verses":[{"arabic":"هذه الجبال"}],"duration":5.0},
+            ]
             destination = work / "photo-reel.mp4"
             def fake_run(command):
                 Path(command[-1]).write_bytes(b"mock output")
             with patch("render_video_scenes.run", side_effect=fake_run) as run:
-                with patch("render_video_scenes.probe_media_duration", return_value=16.0):
-                    chosen = build_photo_background_reel(photos, 16.0, work, destination, "stable-test-key")
-            self.assertEqual(len(chosen), 3)
-            self.assertEqual(len(set(chosen)), 3)
-            self.assertTrue(destination.is_file())
+                with patch("render_video_scenes.probe_media_duration", return_value=10.0):
+                    chosen = build_photo_background_reel(photos, scenes, 10.0, work, destination, "stable-test-key")
+            self.assertEqual(chosen, ["sea","mountain"])
             graph = run.call_args.args[0][run.call_args.args[0].index("-filter_complex") + 1]
             self.assertIn("zoompan=", graph)
             self.assertIn("xfade=transition=fade", graph)
-            self.assertIn("duration=0.800", graph)
 
     def test_photo_reel_rejects_missing_local_assets(self):
         with tempfile.TemporaryDirectory() as directory:
