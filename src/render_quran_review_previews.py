@@ -611,10 +611,26 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         first_background = approved_backgrounds[
             (background_rotation_index + len(previews)) % len(approved_backgrounds)
         ]
-        remaining_backgrounds = [
+        remaining_videos = sorted(
+            (
+                candidate for candidate in approved_backgrounds
+                if candidate["id"] != first_background["id"]
+                and candidate.get("background_type") != "photo"
+            ),
+            key=lambda candidate: float(candidate.get("duration_seconds") or 0),
+            reverse=True,
+        )
+        remaining_photos = [
             candidate for candidate in approved_backgrounds
             if candidate["id"] != first_background["id"]
+            and candidate.get("background_type") == "photo"
         ]
+        remaining_backgrounds = []
+        for background_index in range(max(len(remaining_videos), len(remaining_photos))):
+            if background_index < len(remaining_videos):
+                remaining_backgrounds.append(remaining_videos[background_index])
+            if background_index < len(remaining_photos):
+                remaining_backgrounds.append(remaining_photos[background_index])
         background_sequence = [first_background] + remaining_backgrounds
         used_backgrounds = []
         segments = []
