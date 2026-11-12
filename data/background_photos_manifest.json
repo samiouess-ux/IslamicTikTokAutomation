@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "source": "Pexels",
+  "license": "Pexels License; each linked source page was marked Free at research time. Recheck license/source before redistribution or use outside this project.",
+  "usage": "Background imagery only. Photos are downloaded at 1800px wide; renderer must crop to 9:16 and preserve text-safe center area.",
+  "candidates": [
+    {
+      "id": "pexels-mosque-village-greenery",
+      "photo_id": 32617834,
+      "creator": "Alper Tunga Danyıldız",
+      "description": "Idyllic village landscape with mosque and greenery",
+      "source_page_url": "https://www.pexels.com/photo/idyllic-village-landscape-with-mosque-and-greenery-32617834/",
+      "image_url": "https://images.pexels.com/photos/32617834/pexels-photo-32617834.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mosque-village-greenery.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-hilltop-mosque-nature",
+      "photo_id": 32815080,
+      "creator": "Aydın Kiraz",
+      "description": "Hilltop mosque surrounded by nature",
+      "source_page_url": "https://www.pexels.com/photo/hilltop-mosque-surrounded-by-nature-32815080/",
+      "image_url": "https://images.pexels.com/photos/32815080/pexels-photo-32815080.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-hilltop-mosque-nature.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-mosque-lush-trees",
+      "photo_id": 36917116,
+      "creator": "Abdullah Öğük",
+      "description": "Mosque surrounded by lush trees",
+      "source_page_url": "https://www.pexels.com/photo/mosque-surrounded-by-lush-trees-36917116/",
+      "image_url": "https://images.pexels.com/photos/36917116/pexels-photo-36917116.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mosque-lush-trees.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-historic-mosque-desert",
+      "photo_id": 34721938,
+      "creator": "Beneid",
+      "description": "Historic mosque with tower in desert landscape",
+      "source_page_url": "https://www.pexels.com/photo/historic-mosque-with-tower-in-desert-landscape-34721938/",
+      "image_url": "https://images.pexels.com/photos/34721938/pexels-photo-34721938.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-historic-mosque-desert.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-mosque-urban-minaret",
+      "photo_id": 29080198,
+      "creator": "Ömer Derinyar",
+      "description": "Mosque with tall minaret in urban setting",
+      "source_page_url": "https://www.pexels.com/photo/mosque-with-tall-minaret-in-urban-setting-29080198/",
+      "image_url": "https://images.pexels.com/photos/29080198/pexels-photo-29080198.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mosque-urban-minaret.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-historic-mosque-vertical",
+      "photo_id": 37099396,
+      "creator": "Sinan Aslan",
+      "description": "Historic mosque architecture, vertical photo",
+      "source_page_url": "https://www.pexels.com/photo/historic-mosque-architecture-vertical-photo-37099396/",
+      "image_url": "https://images.pexels.com/photos/37099396/pexels-photo-37099396.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-historic-mosque-vertical.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-minarets-grass-field",
+      "photo_id": 16648000,
+      "creator": "Rahib Yaqubov",
+      "description": "Grass field and coniferous trees with distant minarets",
+      "source_page_url": "https://www.pexels.com/photo/grass-field-and-coniferous-trees-with-distant-minarets-16648000/",
+      "image_url": "https://images.pexels.com/photos/16648000/pexels-photo-16648000.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-minarets-grass-field.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-mosque-iron-gates",
+      "photo_id": 30720771,
+      "creator": "Sami TÜRK",
+      "description": "Historic mosque framed by trees and iron gates",
+      "source_page_url": "https://www.pexels.com/photo/historic-mosque-framed-by-trees-and-iron-gates-30720771/",
+      "image_url": "https://images.pexels.com/photos/30720771/pexels-photo-30720771.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mosque-iron-gates.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-mosque-behind-trees",
+      "photo_id": 5722258,
+      "creator": "Anfisa Eremina",
+      "description": "Mosque behind trees",
+      "source_page_url": "https://www.pexels.com/photo/mosque-behind-trees-5722258/",
+      "image_url": "https://images.pexels.com/photos/5722258/pexels-photo-5722258.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mosque-behind-trees.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-rural-mosque-landscape",
+      "photo_id": 33425960,
+      "creator": "Tahir Xəlfəquliyev",
+      "description": "Mosque and minaret in rural landscape",
+      "source_page_url": "https://www.pexels.com/photo/mosque-and-minaret-in-rural-landscape-33425960/",
+      "image_url": "https://images.pexels.com/photos/33425960/pexels-photo-33425960.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-rural-mosque-landscape.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-desert-sand-dunes",
+      "photo_id": 11880826,
+      "creator": "Mostafa Ft.shots",
+      "description": "Scenic desert view",
+      "source_page_url": "https://www.pexels.com/photo/scenic-desert-view-11880826/",
+      "image_url": "https://images.pexels.com/photos/11880826/pexels-photo-11880826.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-desert-sand-dunes.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-mountain-ocean-forest",
+      "photo_id": 35652156,
+      "creator": "Nothing Ahead",
+      "description": "Mountain and ocean view with lush forest",
+      "source_page_url": "https://www.pexels.com/photo/mountain-and-ocean-view-with-lush-forest-35652156/",
+      "image_url": "https://images.pexels.com/photos/35652156/pexels-photo-35652156.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mountain-ocean-forest.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-coastal-rocky-mountains",
+      "photo_id": 34321267,
+      "creator": "Andrea Gambirasio",
+      "description": "Coastal landscape with rocky mountains and ocean",
+      "source_page_url": "https://www.pexels.com/photo/coastal-landscape-with-rocky-mountains-and-ocean-34321267/",
+      "image_url": "https://images.pexels.com/photos/34321267/pexels-photo-34321267.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-coastal-rocky-mountains.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-mountain-sunset",
+      "photo_id": 33406291,
+      "creator": "Davide Comunian",
+      "description": "Serene mountain landscape at sunset",
+      "source_page_url": "https://www.pexels.com/photo/serene-mountain-landscape-at-sunset-33406291/",
+      "image_url": "https://images.pexels.com/photos/33406291/pexels-photo-33406291.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-mountain-sunset.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-sunset-pine-forest",
+      "photo_id": 3832482,
+      "creator": "Chris F",
+      "description": "Sunset sky over mountains and pine forest",
+      "source_page_url": "https://www.pexels.com/photo/sunset-sky-over-mountains-and-pine-forest-3832482/",
+      "image_url": "https://images.pexels.com/photos/3832482/pexels-photo-3832482.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-sunset-pine-forest.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-sunset-over-mountains",
+      "photo_id": 5300216,
+      "creator": "Yunus Eren Tekneci",
+      "description": "Sunset over mountains nature landscape",
+      "source_page_url": "https://www.pexels.com/photo/sunset-over-mountains-nature-landscape-5300216/",
+      "image_url": "https://images.pexels.com/photos/5300216/pexels-photo-5300216.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-sunset-over-mountains.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-river-mountains-sunset",
+      "photo_id": 13721885,
+      "creator": "Andreas Ebner",
+      "description": "River and mountains at sunset",
+      "source_page_url": "https://www.pexels.com/photo/river-and-mountains-at-sunset-13721885/",
+      "image_url": "https://images.pexels.com/photos/13721885/pexels-photo-13721885.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-river-mountains-sunset.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-forest-mountain-sunset",
+      "photo_id": 20287033,
+      "creator": "Johannes Plenio",
+      "description": "Scenic mountains landscape at sunset",
+      "source_page_url": "https://www.pexels.com/photo/scenic-mountains-landscape-at-sunset-20287033/",
+      "image_url": "https://images.pexels.com/photos/20287033/pexels-photo-20287033.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-forest-mountain-sunset.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-meadow-sunset",
+      "photo_id": 13909011,
+      "creator": "Ferencz Istvan",
+      "description": "Meadow trees and mountains under sunset sky",
+      "source_page_url": "https://www.pexels.com/photo/meadow-trees-and-mountains-under-sunset-sky-13909011/",
+      "image_url": "https://images.pexels.com/photos/13909011/pexels-photo-13909011.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-meadow-sunset.jpg",
+      "license": "Pexels License — Free download"
+    },
+    {
+      "id": "pexels-sunset-mountain-forest",
+      "photo_id": 1681875,
+      "creator": "Luis Quintero",
+      "description": "Sunset on mountain and forest",
+      "source_page_url": "https://www.pexels.com/photo/sunset-on-mountain-and-forest-1681875/",
+      "image_url": "https://images.pexels.com/photos/1681875/pexels-photo-1681875.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-sunset-mountain-forest.jpg",
+      "license": "Pexels License — Free download"
+    }
+  ]
+}
