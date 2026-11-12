@@ -693,8 +693,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     if background_candidate.get("background_type") == "photo"
                     else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
-                filter_complex = (
-                    background_filter
+                filter_complex = background_filter + (
                     # The cover is a brief opening flash only. The still-image input loops,
                     # so explicitly disable its overlay after 0.6 seconds; otherwise it
                     # remains visible underneath the ayah artwork for the rest of the video.
