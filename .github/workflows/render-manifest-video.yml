@@ -11,7 +11,7 @@ on:
       use_rotation:
         description: Select an eligible reviewed manifest instead of the explicit path
         required: false
-        default: false
+        default: true
         type: boolean
       content_type:
         description: Content type for reviewed-manifest rotation
@@ -32,15 +32,15 @@ on:
       rotation_key:
         description: Stable key for deterministic manifest selection
         required: false
-        default: manual-review
+        default: ''
         type: string
       use_photo_backgrounds:
-        description: Use the 20 downloaded free Pexels photos with gentle motion and crossfades
+        description: Use downloaded free Pexels photos with gentle motion and crossfades
         required: false
         default: true
         type: boolean
       use_background_rotation:
-        description: Rotate through the eleven visually approved and verified backgrounds
+        description: Rotate through the visually approved and verified backgrounds
         required: false
         default: true
         type: boolean
@@ -94,7 +94,8 @@ jobs:
           EXPLICIT_MANIFEST: ${{ inputs.manifest }}
         run: |
           if [ "$USE_ROTATION" = "true" ]; then
-            args=(--content-type "$CONTENT_TYPE" --rotation-key "$ROTATION_KEY")
+            rotation_key="${ROTATION_KEY:-run-${GITHUB_RUN_ID}}"
+            args=(--content-type "$CONTENT_TYPE" --rotation-key "$rotation_key")
             while IFS= read -r item; do
               [ -n "$item" ] && args+=(--recent-id "$item")
             done <<< "$RECENT_IDS"
