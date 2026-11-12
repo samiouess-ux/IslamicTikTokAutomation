@@ -203,6 +203,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.make_intro_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
     def test_renders_multiple_complete_distinct_review_previews(
         self, _font, run, make_intro_frame, make_frame, _probe, _check_output, _download
     ):
@@ -253,7 +254,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertTrue(any("-stream_loop" in call.args[0] for call in run.call_args_list))
             self.assertTrue(any("processed" in " ".join(call.args[0]) for call in run.call_args_list))
             report_data = json.loads((root / "out" / "preview_report.json").read_text(encoding="utf-8"))
-            self.assertEqual(report_data["background_type"], "moving_video")
+            self.assertEqual(report_data["background_type"], "mixed_moving_video_and_photo")
 
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
@@ -265,6 +266,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.make_intro_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
     def test_allows_one_requested_passage_when_explicitly_configured(
         self, _font, _run, _intro, _frame, _probe, _check, _download
     ):
@@ -293,6 +295,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.make_intro_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
     def test_renders_selected_contiguous_prefix_when_later_ayahs_are_deferred(
         self, _font, _run, make_intro_frame, make_frame, _probe, _check, _download
     ):
@@ -403,6 +406,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         ]
         chosen = renderer.choose_background_for_ayah(backgrounds, 10.0, {"first"})
         self.assertEqual(chosen["id"], "second")
+
+    def test_photo_background_can_cover_an_ayah_longer_than_every_video_clip(self):
+        backgrounds = [
+            {"id": "short-video", "duration_seconds": 8.0, "background_type": "moving_video"},
+            {"id": "photo", "duration_seconds": None, "background_type": "photo"},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 60.0, set())
+        self.assertEqual(chosen["id"], "photo")
 
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value="12.500")
