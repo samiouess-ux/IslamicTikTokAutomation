@@ -501,6 +501,17 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
 
 
 
+def photo_motion_filter() -> str:
+    """Return a slow, continuous Ken Burns move for still-photo backgrounds."""
+    return (
+        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
+        "zoompan=z='1.05+0.025*sin(on/900)':"
+        "x='(iw-iw/zoom)*(0.5+0.18*sin(on/700))':"
+        "y='(ih-ih/zoom)*(0.5+0.14*cos(on/850))':"
+        "d=1:s=1080x1920:fps=30,setsar=1[bg];"
+    )
+
+
 def audio_duration_seconds(path: Path) -> float:
     """Return the measured duration of one ayah audio file; zero means probe unavailable."""
     try:
@@ -711,8 +722,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                                  background_frame=cover_background)
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 background_filter = (
-                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-                    "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=1080x1920:fps=30,setsar=1[bg];"
+                    photo_motion_filter()
                     if background_candidate.get("background_type") == "photo"
                     else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
@@ -728,8 +738,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 )
             else:
                 background_filter = (
-                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-                    "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=1080x1920:fps=30,setsar=1[bg];"
+                    photo_motion_filter()
                     if background_candidate.get("background_type") == "photo"
                     else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
