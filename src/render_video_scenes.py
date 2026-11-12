@@ -96,6 +96,20 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         raise SystemExit(f"Required Amiri Bold font is missing: {bold_path!r}")
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
+
+    # Restore the approved translucent emerald reading panel behind the
+    # complete ayah layout. Keep the footage visible through the panel.
+    panel_accent = (213, 221, 175)
+    draw.rectangle((0, 0, 1080, 1920), fill=(18, 42, 34, 30))
+    draw.rounded_rectangle(
+        (82, 320, 998, 1600), radius=48,
+        fill=(3, 12, 18, 148), outline=(*panel_accent, 175), width=2
+    )
+    draw.rounded_rectangle(
+        (94, 332, 986, 1588), radius=40,
+        outline=(*panel_accent, 55), width=1
+    )
+
     palettes = {
         "ornate_gold_classic": ((231,190,103,255),(255,255,255,255)),
         "nature_clean": ((205,238,211,255),(255,255,255,255)),
