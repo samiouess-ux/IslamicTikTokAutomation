@@ -366,6 +366,161 @@
         "prayer",
         "architecture"
       ]
+    },
+    {
+      "id": "pexels-40352601",
+      "photo_id": 40352601,
+      "creator": "AmirHadi Manavi Moghadam",
+      "description": "Open Quran with lantern and prayer beads",
+      "source_page_url": "https://www.pexels.com/photo/holy-quran-with-lantern-and-prayer-beads-40352601/",
+      "image_url": "https://images.pexels.com/photos/40352601/pexels-photo-40352601.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-40352601.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "quran",
+        "prayer",
+        "lantern"
+      ]
+    },
+    {
+      "id": "pexels-16483164",
+      "photo_id": 16483164,
+      "creator": "casper somia",
+      "description": "Prayer beads and candle lantern",
+      "source_page_url": "https://www.pexels.com/photo/islamic-prayer-beads-and-a-candle-16483164/",
+      "image_url": "https://images.pexels.com/photos/16483164/pexels-photo-16483164.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-16483164.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "prayer",
+        "tasbih",
+        "lantern"
+      ]
+    },
+    {
+      "id": "pexels-36704278",
+      "photo_id": 36704278,
+      "creator": "Badr Mo",
+      "description": "Islamic architectural details and ornate lantern",
+      "source_page_url": "https://www.pexels.com/photo/intricate-islamic-architectural-details-with-lantern-36704278/",
+      "image_url": "https://images.pexels.com/photos/36704278/pexels-photo-36704278.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-36704278.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "islamic_art",
+        "architecture",
+        "lantern",
+        "calligraphy"
+      ]
+    },
+    {
+      "id": "pexels-28975736",
+      "photo_id": 28975736,
+      "creator": "Beneid",
+      "description": "Islamic geometric patterns and Arabic calligraphy in Madinah",
+      "source_page_url": "https://www.pexels.com/photo/intricate-islamic-architecture-in-madinah-28975736/",
+      "image_url": "https://images.pexels.com/photos/28975736/pexels-photo-28975736.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-28975736.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "islamic_art",
+        "calligraphy",
+        "architecture"
+      ]
+    },
+    {
+      "id": "pexels-35720587",
+      "photo_id": 35720587,
+      "creator": "Onur",
+      "description": "Historic mosque courtyard with stone arches",
+      "source_page_url": "https://www.pexels.com/photo/historic-mosque-courtyard-with-stone-arches-35720587/",
+      "image_url": "https://images.pexels.com/photos/35720587/pexels-photo-35720587.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-35720587.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "architecture",
+        "courtyard"
+      ]
+    },
+    {
+      "id": "pexels-38901615",
+      "photo_id": 38901615,
+      "creator": "Melike Elif Erdem",
+      "description": "Pilgrims gathered around the Kaaba in Mecca",
+      "source_page_url": "https://www.pexels.com/photo/muslim-pilgrims-at-the-kaaba-in-mecca-38901615/",
+      "image_url": "https://images.pexels.com/photos/38901615/pexels-photo-38901615.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-38901615.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "kaaba",
+        "mecca",
+        "hajj",
+        "pilgrimage"
+      ]
+    },
+    {
+      "id": "pexels-16106055",
+      "photo_id": 16106055,
+      "creator": "Bayram Yalçın",
+      "description": "Mosque minaret silhouette beneath a crescent moon",
+      "source_page_url": "https://www.pexels.com/photo/silhouette-of-minaret-and-moon-in-crescent-16106055/",
+      "image_url": "https://images.pexels.com/photos/16106055/pexels-photo-16106055.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-16106055.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "night",
+        "moon",
+        "minaret"
+      ]
+    },
+    {
+      "id": "pexels-31584135",
+      "photo_id": 31584135,
+      "creator": "Ahmad Shakir Shamsulbadri",
+      "description": "Illuminated mosque minarets at night",
+      "source_page_url": "https://www.pexels.com/photo/illuminated-mosque-minarets-at-night-31584135/",
+      "image_url": "https://images.pexels.com/photos/31584135/pexels-photo-31584135.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-31584135.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "night",
+        "minaret",
+        "architecture"
+      ]
+    },
+    {
+      "id": "pexels-2233416",
+      "photo_id": 2233416,
+      "creator": "Ahmed Aqtai",
+      "description": "Warm Ramadan lantern with crescent motifs",
+      "source_page_url": "https://www.pexels.com/photo/photo-of-ramadan-light-on-top-of-table-2233416/",
+      "image_url": "https://images.pexels.com/photos/2233416/pexels-photo-2233416.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-2233416.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "ramadan",
+        "lantern",
+        "crescent"
+      ]
+    },
+    {
+      "id": "pexels-36521625",
+      "photo_id": 36521625,
+      "creator": "Elif Cemre Akyürek",
+      "description": "Ramadan table setting with lanterns and tea",
+      "source_page_url": "https://www.pexels.com/photo/cozy-ramadan-table-setting-with-lanterns-36521625/",
+      "image_url": "https://images.pexels.com/photos/36521625/pexels-photo-36521625.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-36521625.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "ramadan",
+        "lantern",
+        "tea",
+        "still_life"
+      ]
     }
   ]
 }
