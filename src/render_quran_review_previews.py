@@ -131,6 +131,7 @@ SURAH_NAMES = [
 ]
 
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
+BACKGROUND_PHOTO_MANIFEST = Path("data/background_photos_manifest.json")
 
 INTRO_DURATION_SECONDS = 0.6
 INTRO_FADE_SECONDS = 0.0
@@ -437,7 +438,39 @@ def load_approved_backgrounds(catalog_path: Path = BACKGROUND_CATALOG) -> list[d
     ]
     if not approved:
         raise RuntimeError("No fully verified and user-approved background candidates are available.")
+    for item in approved:
+        item["background_type"] = "moving_video"
     return approved
+
+
+def load_approved_photo_backgrounds(manifest_path: Path = BACKGROUND_PHOTO_MANIFEST) -> list[dict]:
+    """Load downloaded photo backgrounds from the separate approved photo library."""
+    catalog = json.loads(manifest_path.read_text(encoding="utf-8"))
+    photos = []
+    for item in catalog.get("candidates", []):
+        relative_path = Path(str(item.get("local_path", "")))
+        if not relative_path.parts or relative_path.is_absolute() or ".." in relative_path.parts:
+            continue
+        path = Path.cwd() / relative_path
+        if not path.is_file():
+            continue
+        try:
+            with Image.open(path) as photo:
+                photo.verify()
+        except (OSError, ValueError):
+            continue
+        photos.append({
+            "id": item["id"],
+            "description": item.get("description", item["id"]),
+            "source_page_url": item.get("source_page_url", ""),
+            "tags": item.get("tags", []),
+            "path": str(path),
+            "background_type": "photo",
+            "duration_seconds": None,
+        })
+    if not photos:
+        raise RuntimeError("No downloaded photo backgrounds from data/background_photos_manifest.json are available.")
+    return photos
 
 
 def prepare_moving_background(candidate: dict, destination: Path) -> dict:
@@ -495,17 +528,21 @@ def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
     if audio_duration > 0:
         long_enough = [
             item for item in available
-            if float(item.get("duration_seconds") or 0) >= audio_duration
+            if item.get("background_type") == "photo"
+            or float(item.get("duration_seconds") or 0) >= audio_duration
         ]
         if long_enough:
-            # Preserve the scheduled rotation whenever its first clip is long
-            # enough; otherwise use the next suitable clip in the ordered list.
+            # A still photo can cover the full ayah; moving clips must be long
+            # enough to avoid restarting a short clip behind a longer recitation.
             return long_enough[0]
     if audio_duration <= 0:
         # If probing is unavailable, retain the scheduled rotation rather than
         # making an unsupported duration-based choice.
         return available[0]
-    return max(available, key=lambda item: float(item.get("duration_seconds") or 0))
+    moving = [item for item in available if item.get("background_type") != "photo"]
+    if moving:
+        return max(moving, key=lambda item: float(item.get("duration_seconds") or 0))
+    return available[0]
 
 def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
@@ -541,7 +578,16 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             raise ValueError("Preview must select the opening contiguous prefix of the requested ayahs.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
-    approved_backgrounds = load_approved_backgrounds()
+    moving_backgrounds = load_approved_backgrounds()
+    photo_backgrounds = load_approved_photo_backgrounds()
+    # Interleave the two libraries so a multi-ayah preview naturally uses
+    # both moving footage and still photography instead of exhausting one pool.
+    approved_backgrounds = []
+    for index in range(max(len(moving_backgrounds), len(photo_backgrounds))):
+        if index < len(moving_backgrounds):
+            approved_backgrounds.append(moving_backgrounds[index])
+        if index < len(photo_backgrounds):
+            approved_backgrounds.append(photo_backgrounds[index])
     prepared_backgrounds = {}
     previews = []
     for item in report_items:
@@ -559,17 +605,16 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         part_id = item["candidate_id"]
         work = output_dir / part_id
         work.mkdir(parents=True, exist_ok=True)
-        # Keep the scheduled rotation as the first scene, then use the longest
-        # approved clips first for subsequent ayahs. This prevents one short clip
-        # from looping behind the entire passage.
+        # Rotate across the combined video+photo pool. The run-specific index
+        # is supplied by GitHub Actions so consecutive Cron dispatches do not
+        # keep starting at the same daily time slot.
         first_background = approved_backgrounds[
             (background_rotation_index + len(previews)) % len(approved_backgrounds)
         ]
-        remaining_backgrounds = sorted(
-            (candidate for candidate in approved_backgrounds if candidate["id"] != first_background["id"]),
-            key=lambda candidate: float(candidate.get("duration_seconds") or 0),
-            reverse=True,
-        )
+        remaining_backgrounds = [
+            candidate for candidate in approved_backgrounds
+            if candidate["id"] != first_background["id"]
+        ]
         background_sequence = [first_background] + remaining_backgrounds
         used_backgrounds = []
         segments = []
@@ -586,12 +631,24 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             )
             used_background_ids.add(background_candidate["id"])
             if background_candidate["id"] not in prepared_backgrounds:
-                bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
-                bg_path.parent.mkdir(parents=True, exist_ok=True)
-                prepared_backgrounds[background_candidate["id"]] = prepare_moving_background(
-                    background_candidate, bg_path
-                )
-                prepared_backgrounds[background_candidate["id"]]["path"] = str(bg_path)
+                if background_candidate.get("background_type") == "photo":
+                    prepared_backgrounds[background_candidate["id"]] = {
+                        "id": background_candidate["id"],
+                        "description": background_candidate.get("description", background_candidate["id"]),
+                        "source_page_url": background_candidate.get("source_page_url", ""),
+                        "path": background_candidate["path"],
+                        "background_type": "photo",
+                        "width": None,
+                        "height": None,
+                    }
+                else:
+                    bg_path = output_dir / "background_assets" / f'{background_candidate["id"]}.mp4'
+                    bg_path.parent.mkdir(parents=True, exist_ok=True)
+                    prepared_backgrounds[background_candidate["id"]] = prepare_moving_background(
+                        background_candidate, bg_path
+                    )
+                    prepared_backgrounds[background_candidate["id"]]["path"] = str(bg_path)
+                    prepared_backgrounds[background_candidate["id"]]["background_type"] = "moving_video"
             background = Path(prepared_backgrounds[background_candidate["id"]]["path"])
             used_backgrounds.append(prepared_backgrounds[background_candidate["id"]])
             frame = work / f"ayah_{int(verse['ayah']):03d}.png"
@@ -602,27 +659,42 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                         "english": verse["english_saheeh_international"]},
                        surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1])
             segment = work / f"segment_{index:02d}.mp4"
+            background_input = (
+                ["-loop", "1", "-framerate", "30", "-i", str(background)]
+                if background_candidate.get("background_type") == "photo"
+                else ["-stream_loop", "-1", "-i", str(background)]
+            )
             command = [
                 "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                "-stream_loop", "-1", "-i", str(background), "-i", str(audio), "-i", str(frame),
+                *background_input, "-i", str(audio), "-i", str(frame),
             ]
             if index == 0:
                 # The opening title is an overlay on the first ayah segment.
                 # It adds no silent lead-in and does not change the audio stream.
                 intro = work / "opening_cover.png"
                 cover_background = work / "opening_background.png"
-                subprocess.run([
-                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                    "-ss", "0", "-i", str(background), "-frames:v", "1",
-                    "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
-                    str(cover_background),
-                ], check=True)
+                if background_candidate.get("background_type") == "photo":
+                    with Image.open(background) as source_photo:
+                        ImageOps.fit(source_photo.convert("RGB"), (1080, 1920)).save(cover_background)
+                else:
+                    subprocess.run([
+                        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                        "-ss", "0", "-i", str(background), "-frames:v", "1",
+                        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+                        str(cover_background),
+                    ], check=True)
                 make_intro_frame(surah_number, int(numbers[0]), int(numbers[-1]),
                                  intro, font_path, SURAH_NAMES[surah_number - 1],
                                  background_frame=cover_background)
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
+                background_filter = (
+                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
+                    "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=1080x1920:fps=30,setsar=1[bg];"
+                    if background_candidate.get("background_type") == "photo"
+                    else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
+                )
                 filter_complex = (
-                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
+                    background_filter
                     # The cover is a brief opening flash only. The still-image input loops,
                     # so explicitly disable its overlay after 0.6 seconds; otherwise it
                     # remains visible underneath the ayah artwork for the rest of the video.
@@ -633,10 +705,13 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     "[covered][2:v]overlay=0:0:format=auto:enable='gte(t,0.6)'[v]"
                 )
             else:
-                filter_complex = (
-                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
-                    "[bg][2:v]overlay=0:0:format=auto[v]"
+                background_filter = (
+                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
+                    "zoompan=z='min(zoom+0.0005,1.08)':d=1:s=1080x1920:fps=30,setsar=1[bg];"
+                    if background_candidate.get("background_type") == "photo"
+                    else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
+                filter_complex = background_filter + "[bg][2:v]overlay=0:0:format=auto[v]"
             command.extend([
                 "-filter_complex", filter_complex,
                 "-map", "[v]", "-map", "1:a:0",
@@ -681,8 +756,13 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "production_approved": False,
         "telegram_delivery": False,
         "auto_publish": False,
-        "background_type": "moving_video",
-        "background_source": "User-approved Pexels rotation",
+        "background_type": "mixed_moving_video_and_photo",
+        "background_source": "Approved Pexels moving-video catalog plus downloaded photo manifest",
+        "background_library_counts": {
+            "moving_video": len(moving_backgrounds),
+            "photo": len(photo_backgrounds),
+            "combined": len(approved_backgrounds),
+        },
         "background_rotation": [prepared_backgrounds[k] for k in prepared_backgrounds],
         "background_rotation_enabled": True,
         "background_rotation_start_index": background_rotation_index % len(approved_backgrounds),
@@ -714,9 +794,8 @@ def main() -> None:
     rotation_index = args.background_rotation_index
     if rotation_index is None:
         now = datetime.now(timezone.utc)
-        rotation_index = scheduled_background_rotation_index(
-            now, len(load_approved_backgrounds())
-        )
+        total_backgrounds = len(load_approved_backgrounds()) + len(load_approved_photo_backgrounds())
+        rotation_index = scheduled_background_rotation_index(now, total_backgrounds)
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
                             minimum_previews=args.minimum_previews,
                             background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
