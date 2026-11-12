@@ -88,7 +88,7 @@ class BackgroundReelTests(unittest.TestCase):
             work = Path(directory)
             candidate = {"id": "missing", "local_path": str(work / "missing.jpg")}
             with self.assertRaisesRegex(SystemExit, "No downloaded and verified photo"):
-                build_photo_background_reel([candidate], 5.0, work, work / "photo-reel.mp4", "test")
+                build_photo_background_reel([candidate], [{"verses":[{"arabic":"نص"}],"duration":5.0}], 5.0, work, work / "photo-reel.mp4", "test")
     def test_rejects_empty_candidate_list(self):
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
