@@ -9,7 +9,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from render_video_scenes import (build_background_reel, build_photo_background_reel,\n                                 infer_background_tags, select_photo_for_scene)
+from render_video_scenes import (build_background_reel, build_photo_background_reel,
+                                 infer_background_tags, select_photo_for_scene)
 
 
 class BackgroundReelTests(unittest.TestCase):
