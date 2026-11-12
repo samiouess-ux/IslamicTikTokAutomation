@@ -289,6 +289,83 @@
       "tags": [
         "nature"
       ]
+    },
+    {
+      "id": "pexels-34219158",
+      "photo_id": 34219158,
+      "creator": "Ayşegül Aytören",
+      "description": "Ornate mosque mihrab and prayer hall",
+      "source_page_url": "https://www.pexels.com/photo/intricate-islamic-architecture-of-mosque-interior-34219158/",
+      "image_url": "https://images.pexels.com/photos/34219158/pexels-photo-34219158.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-34219158.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "architecture",
+        "islamic_art"
+      ]
+    },
+    {
+      "id": "pexels-31607767",
+      "photo_id": 31607767,
+      "creator": "Mohammed Alim",
+      "description": "Mosque interior with geometric stained glass and prayer rugs",
+      "source_page_url": "https://www.pexels.com/photo/elegant-islamic-architecture-with-stained-glass-windows-31607767/",
+      "image_url": "https://images.pexels.com/photos/31607767/pexels-photo-31607767.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-31607767.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "architecture",
+        "islamic_art"
+      ]
+    },
+    {
+      "id": "pexels-34993385",
+      "photo_id": 34993385,
+      "creator": "Muhtelifane",
+      "description": "Open Quran on a wooden stand in a mosque",
+      "source_page_url": "https://www.pexels.com/photo/open-quran-on-stand-in-mosque-interior-34993385/",
+      "image_url": "https://images.pexels.com/photos/34993385/pexels-photo-34993385.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-34993385.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "quran",
+        "prayer"
+      ]
+    },
+    {
+      "id": "pexels-31433867",
+      "photo_id": 31433867,
+      "creator": "Muhammed Hanefi",
+      "description": "Quran on a stand beside a warmly lit mosque window",
+      "source_page_url": "https://www.pexels.com/photo/warm-interior-of-mosque-with-quran-display-31433867/",
+      "image_url": "https://images.pexels.com/photos/31433867/pexels-photo-31433867.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-31433867.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "quran",
+        "prayer",
+        "architecture"
+      ]
+    },
+    {
+      "id": "pexels-34317177",
+      "photo_id": 34317177,
+      "creator": "Omar Ramadan",
+      "description": "Mosque prayer niche with Arabic calligraphy",
+      "source_page_url": "https://www.pexels.com/photo/interior-of-mosque-prayer-area-with-arabic-calligraphy-34317177/",
+      "image_url": "https://images.pexels.com/photos/34317177/pexels-photo-34317177.jpeg?auto=compress&cs=tinysrgb&w=1800",
+      "local_path": "assets/background_photos/pexels-34317177.jpg",
+      "license": "Pexels License — Free download",
+      "tags": [
+        "mosque",
+        "calligraphy",
+        "prayer",
+        "architecture"
+      ]
     }
   ]
 }
