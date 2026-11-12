@@ -130,7 +130,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
                 draw.ellipse((px-5,py-5,px+5,py+5),outline=accent,width=2)
         title_y=475
     elif template == "nature_clean":
-        draw.rounded_rectangle((95,385,985,565),radius=48,outline=accent,width=5)
+        # Keep the approved shared reading panel; do not draw a second title frame.
         draw.line((170,590,910,590),fill=accent,width=3)
         title_y=475
     elif template == "minimal_mushaf":
@@ -139,7 +139,7 @@ def create_arabic_overlay(title: str, verses: list[dict], destination: Path,
         draw.ellipse((520,463,560,503),outline=accent,width=2)
         title_y=475
     else:
-        draw.rounded_rectangle((65,365,1015,580),radius=12,outline=accent,width=3)
+        # Keep the approved shared reading panel; do not draw a second title frame.
         draw.line((120,600,960,600),fill=accent,width=2)
         title_y=475
     draw.text((540,title_y),title,font=title_font,fill=accent,anchor="mm",
