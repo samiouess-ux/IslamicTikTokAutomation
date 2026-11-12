@@ -271,9 +271,9 @@ ARABIC_BACKGROUND_KEYWORDS = {
 
 def infer_background_tags(arabic_text: str) -> set[str]:
     """Conservative keyword matching after removing Arabic diacritics for lookup only."""
-    normalized = re.sub(r"[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]", "", arabic_text)
+    normalized = re.sub(r"[\u064B-\u065F\u0670\u06D6-\u06ED]", "", arabic_text)
     return {tag for tag, words in ARABIC_BACKGROUND_KEYWORDS.items()
-            if any(re.sub(r"[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]", "", word) in normalized
+            if any(re.sub(r"[\u064B-\u065F\u0670\u06D6-\u06ED]", "", word) in normalized
                    for word in words)}
 
 def select_photo_for_scene(eligible: list[dict], arabic_text: str, rotation_key: str,
