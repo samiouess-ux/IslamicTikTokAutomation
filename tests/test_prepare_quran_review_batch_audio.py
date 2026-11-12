@@ -32,7 +32,8 @@ class QuranBatchAudioTests(unittest.TestCase):
             root = Path(tmp)
             source_zip = root / "source.zip"
             with ZipFile(source_zip, "w") as archive:
-                archive.writestr("audio/001.mp3", b"official-audio")
+                archive.writestr("audio/001.mp3", b"official-audio-1")
+                archive.writestr("audio/002.mp3", b"official-audio-2")
             def fake_download(url, destination):
                 module.shutil.copyfile(source_zip, destination)
                 return str(destination), None
