@@ -15,14 +15,30 @@ from render_quran_review_previews import (render, SURAH_NAMES, fit_translation_l
 
 
 class ReviewPreviewRendererTests(unittest.TestCase):
-    def test_photo_background_filter_has_continuous_zoom_and_pan(self):
-        photo_filter = renderer.photo_motion_filter()
-        self.assertIn("zoompan=", photo_filter)
-        self.assertIn("sin(on/900)", photo_filter)
-        self.assertIn("sin(on/700)", photo_filter)
-        self.assertIn("cos(on/850)", photo_filter)
-        self.assertIn("fps=30", photo_filter)
-        self.assertNotIn("min(zoom+", photo_filter)
+    def test_photo_background_has_four_distinct_continuous_motion_styles(self):
+        filters = {
+            effect: renderer.photo_motion_filter(effect)
+            for effect in renderer.PHOTO_MOTION_EFFECTS
+        }
+        self.assertEqual(len(set(filters.values())), 4)
+        for photo_filter in filters.values():
+            self.assertIn("zoompan=", photo_filter)
+            self.assertIn("fps=30", photo_filter)
+            self.assertIn("s=1080x1920", photo_filter)
+            self.assertNotIn("min(zoom+", photo_filter)
+
+    def test_photo_motion_style_is_stable_per_background_and_varies_across_library(self):
+        first = renderer.photo_motion_effect_for_background("photo-garden-01")
+        self.assertEqual(first, renderer.photo_motion_effect_for_background("photo-garden-01"))
+        styles = {
+            renderer.photo_motion_effect_for_background(f"approved-photo-{index}")
+            for index in range(40)
+        }
+        self.assertEqual(styles, set(renderer.PHOTO_MOTION_EFFECTS))
+
+    def test_photo_motion_filter_rejects_unknown_effect(self):
+        with self.assertRaisesRegex(ValueError, "Unsupported photo motion effect"):
+            renderer.photo_motion_filter("unknown")
 
     def test_scheduled_rotation_uses_the_full_approved_background_count(self):
         from datetime import datetime, timezone
