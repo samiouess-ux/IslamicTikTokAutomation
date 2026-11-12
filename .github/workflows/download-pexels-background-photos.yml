@@ -1,0 +1,68 @@
+name: Download free Quran background photos
+
+on:
+  push:
+    branches:
+      - feature/telegram-review-notifications
+    paths:
+      - .github/workflows/download-pexels-background-photos.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  download-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+          fetch-depth: 0
+
+      - name: Download and verify 20 Pexels photos
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          import json
+          import urllib.request
+          from pathlib import Path
+          from PIL import Image
+
+          manifest = json.loads(Path("data/background_photos_manifest.json").read_text(encoding="utf-8"))
+          candidates = manifest["candidates"]
+          if len(candidates) != 20:
+              raise SystemExit(f"Expected 20 photo records, found {len(candidates)}")
+
+          for item in candidates:
+              destination = Path(item["local_path"])
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              request = urllib.request.Request(
+                  item["image_url"],
+                  headers={"User-Agent": "Mozilla/5.0 (compatible; QuranBackgroundAssets/1.0)"}
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  payload = response.read()
+              if len(payload) < 50_000 or not payload.startswith(bytes.fromhex("FFD8FF")):
+                  raise SystemExit(f"Not a valid JPEG or unexpectedly small download: {item['id']}")
+              destination.write_bytes(payload)
+              with Image.open(destination) as image:
+                  image.verify()
+              with Image.open(destination) as image:
+                  width, height = image.size
+              if width < 1000 or height < 1000:
+                  raise SystemExit(f"Insufficient image dimensions for {item['id']}: {width}x{height}")
+              print(f"Verified {item['id']}: {width}x{height}, {len(payload)} bytes")
+
+          print(f"Successfully downloaded and verified {len(candidates)} photos.")
+          PY
+
+      - name: Commit downloaded photos to the project branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/background_photos/
+          git diff --cached --quiet && echo "No new photo files to commit." && exit 0
+          git commit -m "Add 20 free Pexels background photos"
+          git push origin HEAD:feature/telegram-review-notifications
