@@ -6,6 +6,7 @@ on:
       - feature/telegram-review-notifications
     paths:
       - .github/workflows/download-pexels-background-photos.yml
+      - data/background_photos_manifest.json
   workflow_dispatch:
 
 permissions:
