@@ -34,6 +34,11 @@ on:
         required: false
         default: manual-review
         type: string
+      use_photo_backgrounds:
+        description: Use the 20 downloaded free Pexels photos with gentle motion and crossfades
+        required: false
+        default: true
+        type: boolean
       use_background_rotation:
         description: Rotate through the eleven visually approved and verified backgrounds
         required: false
@@ -273,6 +278,7 @@ jobs:
         shell: bash
         env:
           USE_BACKGROUND_ROTATION: ${{ inputs.use_background_rotation }}
+          USE_PHOTO_BACKGROUNDS: ${{ inputs.use_photo_backgrounds }}
           RECENT_BACKGROUND_IDS: ${{ inputs.recent_background_ids }}
           BACKGROUND_ROTATION_KEY: ${{ inputs.background_rotation_key }}
         run: |
@@ -281,6 +287,7 @@ jobs:
           if [ "$manifest" = 'content/first_video.json' ]; then manifest='build/first_video_manifest.json'; fi
           if [ "$manifest" = 'content/candidate_surah_al_ikhlas_112_1_4.json' ]; then echo 'Audio-probe-only run; video render intentionally skipped until audio and visual approvals.'; exit 0; fi
           args=(--manifest "$manifest" --output output/review.mp4)
+          if [ "$USE_PHOTO_BACKGROUNDS" = "true" ]; then args+=(--use-photo-backgrounds); fi
           if [ "$USE_BACKGROUND_ROTATION" = "true" ]; then
             key="${BACKGROUND_ROTATION_KEY:-run-${GITHUB_RUN_ID}}"
             args+=(--background-rotation --background-rotation-key "$key")
