@@ -23,6 +23,8 @@ on:
       - "src/quran_social_caption.py"
       - "tests/test_quran_social_caption.py"
       - "src/render_quran_review_previews.py"
+      - "data/background_photos_manifest.json"
+      - "assets/background_photos/**"
       - "src/send_telegram.py"
       - "src/record_quran_delivery.py"
       - "src/quran_delivery_attempt.py"
@@ -281,7 +283,8 @@ jobs:
             --batch output/quran_review_batch.json \
             --audio-report output/quran_batch_audio_report.json \
             --output-dir output/quran_review_previews \
-            --minimum-previews 1
+            --minimum-previews 1 \
+            --background-rotation-index "$GITHUB_RUN_ID"
           python - <<'PY'
           import json
           from pathlib import Path
