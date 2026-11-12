@@ -501,14 +501,51 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
 
 
 
-def photo_motion_filter() -> str:
-    """Return a slow, continuous Ken Burns move for still-photo backgrounds."""
+PHOTO_MOTION_EFFECTS = ("pan", "drift", "ken_burns", "parallax_style")
+
+
+def photo_motion_effect_for_background(background_id: str) -> str:
+    """Choose a repeatable, varied motion style for each approved photo."""
+    if not background_id:
+        raise ValueError("A photo background ID is required to select its motion effect.")
+    stable_index = sum(background_id.encode("utf-8")) % len(PHOTO_MOTION_EFFECTS)
+    return PHOTO_MOTION_EFFECTS[stable_index]
+
+
+def photo_motion_filter(effect: str = "ken_burns") -> str:
+    """Build a gentle, seamless camera move for one still-photo background.
+
+    parallax_style is a restrained 2.5D-like camera drift, not true depth
+    parallax; the source library contains flat photos without depth masks.
+    """
+    motions = {
+        "pan": (
+            "zoompan=z='1.10':"
+            "x='(iw-iw/zoom)*(0.5+0.28*sin(on/1500))':"
+            "y='(ih-ih/zoom)*0.5':"
+        ),
+        "drift": (
+            "zoompan=z='1.06+0.012*sin(on/1500)':"
+            "x='(iw-iw/zoom)*(0.5+0.18*sin(on/1200))':"
+            "y='(ih-ih/zoom)*(0.5+0.18*cos(on/1450))':"
+        ),
+        "ken_burns": (
+            "zoompan=z='1.045+0.025*sin(on/1000)':"
+            "x='(iw-iw/zoom)*(0.5+0.20*sin(on/850))':"
+            "y='(ih-ih/zoom)*(0.5+0.16*cos(on/1100))':"
+        ),
+        "parallax_style": (
+            "zoompan=z='1.08+0.008*sin(on/1600)':"
+            "x='(iw-iw/zoom)*(0.5+0.24*sin(on/1800))':"
+            "y='(ih-ih/zoom)*(0.5+0.12*sin(on/900))':"
+        ),
+    }
+    if effect not in motions:
+        raise ValueError(f"Unsupported photo motion effect: {effect}")
     return (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-        "zoompan=z='1.05+0.025*sin(on/900)':"
-        "x='(iw-iw/zoom)*(0.5+0.18*sin(on/700))':"
-        "y='(ih-ih/zoom)*(0.5+0.14*cos(on/850))':"
-        "d=1:s=1080x1920:fps=30,setsar=1[bg];"
+        + motions[effect]
+        + "d=1:s=1080x1920:fps=30,setsar=1[bg];"
     )
 
 
@@ -672,6 +709,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                         "source_page_url": background_candidate.get("source_page_url", ""),
                         "path": background_candidate["path"],
                         "background_type": "photo",
+                        "motion_effect": photo_motion_effect_for_background(background_candidate["id"]),
                         "width": None,
                         "height": None,
                     }
@@ -722,7 +760,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                                  background_frame=cover_background)
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 background_filter = (
-                    photo_motion_filter()
+                    photo_motion_filter(prepared_backgrounds[background_candidate["id"]]["motion_effect"])
                     if background_candidate.get("background_type") == "photo"
                     else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
@@ -738,7 +776,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 )
             else:
                 background_filter = (
-                    photo_motion_filter()
+                    photo_motion_filter(prepared_backgrounds[background_candidate["id"]]["motion_effect"])
                     if background_candidate.get("background_type") == "photo"
                     else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
