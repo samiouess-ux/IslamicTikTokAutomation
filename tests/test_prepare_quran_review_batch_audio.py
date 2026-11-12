@@ -32,8 +32,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             root = Path(tmp)
             source_zip = root / "source.zip"
             with ZipFile(source_zip, "w") as archive:
-                archive.writestr("audio/001.mp3", b"official-audio-1")
-                archive.writestr("audio/002.mp3", b"official-audio-2")
+                archive.writestr("audio/001.mp3", b"official-audio")
             def fake_download(url, destination):
                 module.shutil.copyfile(source_zip, destination)
                 return str(destination), None
@@ -57,7 +56,8 @@ class QuranBatchAudioTests(unittest.TestCase):
             root = Path(tmp)
             source_zip = root / "source.zip"
             with ZipFile(source_zip, "w") as archive:
-                archive.writestr("audio/001.mp3", b"official-audio")
+                archive.writestr("audio/001.mp3", b"official-audio-1")
+                archive.writestr("audio/002.mp3", b"official-audio-2")
             def fake_download(url, destination):
                 module.shutil.copyfile(source_zip, destination)
                 return str(destination), None
@@ -66,7 +66,11 @@ class QuranBatchAudioTests(unittest.TestCase):
                  patch.object(module.urllib.request, "urlretrieve", side_effect=fake_download):
                 with module.open_audio_archive({"source_url": "https://example.invalid/audio.zip"}) as archive:
                     with archive.open("audio/001.mp3") as source:
-                        self.assertEqual(source.read(), b"official-audio")
+                        self.assertEqual(source.read(), b"official-audio-1")
+                    # RemoteZip is closed after fallback; subsequent members
+                    # must continue to come from the verified local archive.
+                    with archive.open("audio/002.mp3") as source:
+                        self.assertEqual(source.read(), b"official-audio-2")
 
     def test_rejects_corrupt_fallback_archive(self):
         with tempfile.TemporaryDirectory() as tmp:
