@@ -156,6 +156,12 @@ class RangeFallbackArchive:
 
     @contextmanager
     def open(self, member):
+        # Once a range failure triggers a verified full download, use that local
+        # archive for every subsequent member; _open_local_archive closes remotezip.
+        if self.local_archive is not None:
+            with self.local_archive.open(member) as source:
+                yield source
+            return
         try:
             with self.remote_archive.open(member) as source:
                 data = source.read()
