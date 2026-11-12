@@ -50,7 +50,7 @@ on:
         default: ''
         type: string
       background_rotation_key:
-        description: Unique key for this video; defaults to the GitHub run ID
+        description: Optional seed; blank means a fresh random photo rotation
         required: false
         default: ''
         type: string
