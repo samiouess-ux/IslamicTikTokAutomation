@@ -356,7 +356,9 @@ def main() -> None:
     parser.add_argument("--use-photo-backgrounds", action="store_true", help="Use the downloaded Pexels photo library with gentle motion and crossfades.")
     parser.add_argument("--background-rotation-key", default="manual-review")
     parser.add_argument("--recent-background-id", action="append", default=[])
-    args = parser.parse_args()\n    if args.use_photo_backgrounds and not args.background_rotation_key.strip():\n        args.background_rotation_key = secrets.token_hex(16)
+    args = parser.parse_args()
+    if args.use_photo_backgrounds and not args.background_rotation_key.strip():
+        args.background_rotation_key = secrets.token_hex(16)
 
     manifest_path = Path(args.manifest)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
