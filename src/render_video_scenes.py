@@ -325,11 +325,12 @@ def build_photo_background_reel(
         frames = max(2, round(clip_duration * 30))
         inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.6f}",
                    "-i", item["local_path"]]
-        drift = "0.5+0.10*sin(on/75)" if index % 2 == 0 else "0.5-0.10*sin(on/75)"
+        # Keep the crop centered and use a very slow, monotonic zoom.
+        # Avoid frame-to-frame horizontal drift, which can look like image shake.
         filters.append(
             f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            f"crop=1080:1920,setsar=1,zoompan=z='min(1+0.00035*on,1.07)':"
-            f"x='(iw-iw/zoom)*({drift})':y='(ih-ih/zoom)*0.5':"
+            f"crop=1080:1920,setsar=1,zoompan=z='min(1+0.00012*on,1.035)':"
+            f"x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':"
             f"d={frames}:s=1080x1920:fps=30,format=yuv420p[p{index}]")
     current, elapsed = "p0", scene_durations[0]
     for index in range(1, len(chosen)):
