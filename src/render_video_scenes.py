@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import subprocess
@@ -254,11 +255,82 @@ def build_background_reel(
     raise SystemExit("No approved background has a usable positive duration.")
 
 
+
+def build_photo_background_reel(
+    candidates: list[dict], duration: float, work: Path, destination: Path, rotation_key: str
+) -> list[str]:
+    """Build a calm photo slideshow with gentle Ken Burns motion and soft crossfades."""
+    if not math.isfinite(duration) or duration <= 0:
+        raise SystemExit("Photo background duration must be a finite positive number.")
+    if not rotation_key.strip():
+        raise SystemExit("Photo background rotation key must not be empty.")
+    eligible = []
+    for item in candidates:
+        path = Path(item.get("local_path", ""))
+        if path.is_file() and path.stat().st_size >= 50_000:
+            eligible.append(item)
+    if not eligible:
+        raise SystemExit("No downloaded and verified photo backgrounds are available.")
+
+    # Stable per-video shuffle: different runs get a varied order, reruns stay reproducible.
+    eligible.sort(key=lambda item: hashlib.sha256(
+        f"{rotation_key}:{item['id']}".encode("utf-8")
+    ).digest())
+    transition = 0.8
+    clip_duration = 6.5
+    count = max(1, math.ceil(max(0.0, duration - transition) / (clip_duration - transition)))
+    chosen = [eligible[i % len(eligible)] for i in range(min(count, len(eligible)))]
+    inputs = []
+    filters = []
+    frame_count = max(2, round(clip_duration * 30))
+    for index, item in enumerate(chosen):
+        path = Path(item["local_path"])
+        inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.3f}", "-i", str(path)]
+        # Alternate a very slow horizontal drift direction; zoom remains restrained.
+        drift = "0.5+0.10*sin(on/75)" if index % 2 == 0 else "0.5-0.10*sin(on/75)"
+        filters.append(
+            f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            f"crop=1080:1920,setsar=1,zoompan=z='min(1+0.00035*on,1.07)':"
+            f"x='(iw-iw/zoom)*({drift})':y='(ih-ih/zoom)*0.5':"
+            f"d={frame_count}:s=1080x1920:fps=30,format=yuv420p[p{index}]"
+        )
+
+    current = "p0"
+    elapsed = clip_duration
+    for index in range(1, len(chosen)):
+        next_label = f"x{index}"
+        offset = elapsed - transition
+        filters.append(
+            f"[{current}][p{index}]xfade=transition=fade:duration={transition:.3f}:"
+            f"offset={offset:.3f}[{next_label}]"
+        )
+        current = next_label
+        elapsed += clip_duration - transition
+
+    filters.append(f"[{current}]trim=duration={duration:.6f},setpts=PTS-STARTPTS,format=yuv420p[outv]")
+    run([
+        "ffmpeg", "-hide_banner", "-y", *inputs,
+        "-filter_complex", ";".join(filters),
+        "-map", "[outv]", "-an", "-t", f"{duration:.6f}",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-pix_fmt", "yuv420p", "-r", "30", str(destination)
+    ])
+    actual_duration = probe_media_duration(destination)
+    if actual_duration + 0.10 < duration:
+        raise SystemExit(
+            f"Photo background reel is too short ({actual_duration:.3f}s for {duration:.3f}s)."
+        )
+    ids = [item["id"] for item in chosen]
+    print(f"Using {len(ids)} photo backgrounds with slow motion and {transition:.1f}s crossfades: {', '.join(ids)}")
+    return ids
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", default="output/review.mp4")
     parser.add_argument("--background-rotation", action="store_true", help="Select from the approved background catalog.")
+    parser.add_argument("--use-photo-backgrounds", action="store_true", help="Use the downloaded Pexels photo library with gentle motion and crossfades.")
     parser.add_argument("--background-rotation-key", default="manual-review")
     parser.add_argument("--recent-background-id", action="append", default=[])
     args = parser.parse_args()
@@ -364,9 +436,16 @@ def main() -> None:
     ], text=True).strip()
     duration = float(duration_result)
     validate_video_duration(duration)
-    build_background_reel(
-        background_sequence or [background], duration, work, bg_file
-    )
+    if args.use_photo_backgrounds:
+        photo_data = json.loads(Path("data/background_photos_manifest.json").read_text(encoding="utf-8"))
+        build_photo_background_reel(
+            photo_data.get("candidates", []), duration, work, bg_file,
+            args.background_rotation_key if args.background_rotation else "manual-photo-review"
+        )
+    else:
+        build_background_reel(
+            background_sequence or [background], duration, work, bg_file
+        )
 
     inputs = ["-i", str(bg_file), "-i", str(audio_file)]
     filters = [
