@@ -81,6 +81,8 @@ class BackgroundReelTests(unittest.TestCase):
             self.assertEqual(chosen, ["sea","mountain"])
             graph = run.call_args.args[0][run.call_args.args[0].index("-filter_complex") + 1]
             self.assertIn("zoompan=", graph)
+            self.assertIn("min(1.02+0.00042*on,1.12)", graph)
+            self.assertIn("d=1:s=1080x1920:fps=30", graph)
             self.assertIn("xfade=transition=fade", graph)
 
     def test_photo_reel_rejects_missing_local_assets(self):
