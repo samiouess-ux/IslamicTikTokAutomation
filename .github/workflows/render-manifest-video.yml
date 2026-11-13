@@ -11,7 +11,7 @@ on:
       use_rotation:
         description: Select an eligible reviewed manifest instead of the explicit path
         required: false
-        default: true
+        default: false
         type: boolean
       content_type:
         description: Content type for reviewed-manifest rotation
