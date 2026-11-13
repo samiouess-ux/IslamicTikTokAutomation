@@ -83,7 +83,8 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
 
     def test_test_now_description_promises_no_telegram_delivery(self):
         dispatch = self.text[self.text.index("  workflow_dispatch:"):self.text.index("\npermissions:")]
-        self.assertIn("TEST NOW: render a review-only preview; never send Telegram", dispatch)
+        self.assertIn("TEST ONLY: render a review-only preview; enable test_only_telegram only for a one-off Telegram test without history updates", dispatch)
+        self.assertIn("test_only_telegram:", dispatch)
 
 
 if __name__ == "__main__":
