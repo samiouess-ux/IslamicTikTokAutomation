@@ -82,6 +82,10 @@ class BackgroundReelTests(unittest.TestCase):
             graph = run.call_args.args[0][run.call_args.args[0].index("-filter_complex") + 1]
             self.assertIn("zoompan=", graph)
             self.assertIn("min(1.0+0.001*on,1.30)", graph)
+            self.assertIn("format=yuv444p", graph)
+            self.assertIn("x='(iw-iw/zoom)/2'", graph)
+            self.assertIn("y='(ih-ih/zoom)/2'", graph)
+            self.assertNotIn("trunc(", graph)
             self.assertIn("d=1:s=1080x1920:fps=30", graph)
             self.assertIn("xfade=transition=fade", graph)
 
