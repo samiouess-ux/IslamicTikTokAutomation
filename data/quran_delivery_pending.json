@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "sending_or_outcome_unknown",
+  "candidate_id": "quran_s029_001_069_part_001",
+  "source_candidate_id": "quran_s029_001_069",
+  "surah_number": 29,
+  "selected_verses": [
+    1,
+    2,
+    3
+  ],
+  "ayah_references": [
+    "29:1",
+    "29:2",
+    "29:3"
+  ],
+  "created_at_utc": "2026-11-13T23:39:16.554271+00:00",
+  "recovery_note": "Do not resend automatically. Reconcile against the Telegram chat before clearing this reservation."
+}
