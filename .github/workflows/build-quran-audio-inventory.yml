@@ -46,7 +46,7 @@ on:
   workflow_dispatch:
     inputs:
       test_only:
-        description: 'TEST NOW: render a review-only preview; never send Telegram'
+        description: 'TEST ONLY: render a review-only preview; enable test_only_telegram only for a one-off Telegram test without history updates'
         required: false
         default: false
         type: boolean
