@@ -502,13 +502,14 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
 
 
 def photo_motion_filter() -> str:
-    """Return a slow, continuous Ken Burns move for still-photo backgrounds."""
+    """Return the tested smooth 30% center zoom for still-photo backgrounds."""
     return (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-        "zoompan=z='1.05+0.025*sin(on/900)':"
-        "x='(iw-iw/zoom)*(0.5+0.18*sin(on/700))':"
-        "y='(ih-ih/zoom)*(0.5+0.14*cos(on/850))':"
-        "d=1:s=1080x1920:fps=30,setsar=1[bg];"
+        "format=yuv444p,"
+        "zoompan=z='min(1.0+0.001*on,1.30)':"
+        "x='(iw-iw/zoom)/2':"
+        "y='(ih-ih/zoom)/2':"
+        "d=1:s=1080x1920:fps=30,format=yuv420p,setsar=1[bg];"
     )
 
 
