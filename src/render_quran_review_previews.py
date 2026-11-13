@@ -502,11 +502,11 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
 
 
 def photo_motion_filter() -> str:
-    """Return the tested smooth 30% center zoom for still-photo backgrounds."""
+    """Return a smooth, continuous center zoom oscillating between 15% and 30%."""
     return (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
         "format=yuv444p,"
-        "zoompan=z='min(1.0+0.001*on,1.30)':"
+        "zoompan=z='1.225+0.075*sin(2*PI*on/(30*12))':"
         "x='(iw-iw/zoom)/2':"
         "y='(ih-ih/zoom)/2':"
         "d=1:s=1080x1920:fps=30,format=yuv420p,setsar=1[bg];"
