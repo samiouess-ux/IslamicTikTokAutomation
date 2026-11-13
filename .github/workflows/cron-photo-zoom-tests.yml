@@ -1,0 +1,37 @@
+name: Cron photo zoom isolated tests
+
+on:
+  push:
+    branches: [feat/cron-photo-zoom-30]
+    paths:
+      - "src/render_quran_review_previews.py"
+      - "tests/test_render_quran_review_previews.py"
+      - ".github/workflows/cron-photo-zoom-tests.yml"
+  pull_request:
+    branches: [feature/telegram-review-notifications]
+    paths:
+      - "src/render_quran_review_previews.py"
+      - "tests/test_render_quran_review_previews.py"
+      - ".github/workflows/cron-photo-zoom-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  photo-zoom-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install renderer test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
+          python -m pip install --disable-pip-version-check Pillow remotezip
+      - name: Compile scheduled renderer
+        run: python -m py_compile src/render_quran_review_previews.py
+      - name: Run scheduled renderer tests
+        run: python -m unittest -v tests/test_render_quran_review_previews.py
