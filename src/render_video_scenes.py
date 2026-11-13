@@ -335,11 +335,11 @@ def build_photo_background_reel(
         inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.6f}",
                    "-i", item["local_path"]]
         # Apply exactly one zoompan output frame per input frame. A centered,
-        # monotonic 10% push-in is visible over a typical verse scene and avoids
+        # monotonic 20% push-in gives a clearly visible camera move and avoids
         # horizontal drift, which previously looked like image shake.
         filters.append(
             f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            f"crop=1080:1920,setsar=1,zoompan=z='min(1.02+0.00042*on,1.12)':"
+            f"crop=1080:1920,setsar=1,zoompan=z='min(1.0+0.00067*on,1.20)':"
             f"x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':"
             f"d=1:s=1080x1920:fps=30,format=yuv420p[p{index}]")
     current, elapsed = "p0", scene_durations[0]
