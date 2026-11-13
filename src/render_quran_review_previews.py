@@ -513,31 +513,32 @@ def photo_motion_effect_for_background(background_id: str) -> str:
 
 
 def photo_motion_filter(effect: str = "ken_burns") -> str:
-    """Build a gentle, seamless camera move for one still-photo background.
+    """Build a clearly visible, smooth, one-direction camera move for a still photo.
 
-    parallax_style is a restrained 2.5D-like camera drift, not true depth
-    parallax; the source library contains flat photos without depth masks.
+    Use monotonic frame-based expressions rather than very slow sine oscillations:
+    the previous tiny reversals were quantized to whole pixels by zoompan and
+    looked like a shake instead of a deliberate camera move.
     """
     motions = {
         "pan": (
-            "zoompan=z='1.10':"
-            "x='(iw-iw/zoom)*(0.5+0.28*sin(on/1500))':"
+            "zoompan=z='1.14':"
+            "x='(iw-iw/zoom)*(0.12+0.76*min(on/900,1))':"
             "y='(ih-ih/zoom)*0.5':"
         ),
         "drift": (
-            "zoompan=z='1.06+0.012*sin(on/1500)':"
-            "x='(iw-iw/zoom)*(0.5+0.18*sin(on/1200))':"
-            "y='(ih-ih/zoom)*(0.5+0.18*cos(on/1450))':"
+            "zoompan=z='min(1.08+0.00011*on,1.18)':"
+            "x='(iw-iw/zoom)*(0.22+0.48*min(on/900,1))':"
+            "y='(ih-ih/zoom)*(0.72-0.40*min(on/900,1))':"
         ),
         "ken_burns": (
-            "zoompan=z='1.045+0.025*sin(on/1000)':"
-            "x='(iw-iw/zoom)*(0.5+0.20*sin(on/850))':"
-            "y='(ih-ih/zoom)*(0.5+0.16*cos(on/1100))':"
+            "zoompan=z='min(1.06+0.00014*on,1.18)':"
+            "x='(iw-iw/zoom)*(0.12+0.76*min(on/900,1))':"
+            "y='(ih-ih/zoom)*0.5':"
         ),
         "parallax_style": (
-            "zoompan=z='1.08+0.008*sin(on/1600)':"
-            "x='(iw-iw/zoom)*(0.5+0.24*sin(on/1800))':"
-            "y='(ih-ih/zoom)*(0.5+0.12*sin(on/900))':"
+            "zoompan=z='min(1.10+0.00009*on,1.18)':"
+            "x='(iw-iw/zoom)*(0.5+0.18*min(on/900,1))':"
+            "y='(ih-ih/zoom)*(0.18+0.64*min(on/900,1))':"
         ),
     }
     if effect not in motions:
