@@ -25,7 +25,10 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertIn("zoompan=", photo_filter)
             self.assertIn("fps=30", photo_filter)
             self.assertIn("s=1080x1920", photo_filter)
-            self.assertNotIn("min(zoom+", photo_filter)
+            self.assertIn("min(on/900,1)", photo_filter)
+            self.assertNotIn("sin(", photo_filter)
+        self.assertIn("z='1.14'", filters["pan"])
+        self.assertIn("0.00014*on", filters["ken_burns"])
 
     def test_photo_motion_style_is_stable_per_background_and_varies_across_library(self):
         first = renderer.photo_motion_effect_for_background("photo-garden-01")
