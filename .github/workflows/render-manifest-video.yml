@@ -103,6 +103,12 @@ jobs:
           else
             selected="${EXPLICIT_MANIFEST:-content/first_video.json}"
           fi
+          # GitHub workflow_dispatch string inputs may contain accidental whitespace.
+          selected="$(printf '%s' "$selected" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+          if [ -z "$selected" ]; then
+            echo "Manifest path is empty after trimming whitespace." >&2
+            exit 1
+          fi
           echo "manifest=$selected" >> "$GITHUB_OUTPUT"
           echo "Selected review manifest: $selected"
 
