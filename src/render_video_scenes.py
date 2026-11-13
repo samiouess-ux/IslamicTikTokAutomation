@@ -334,13 +334,14 @@ def build_photo_background_reel(
         clip_duration = scene_duration + (transition if index < len(chosen)-1 else 0)
         inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.6f}",
                    "-i", item["local_path"]]
-        # Apply exactly one zoompan output frame per input frame. A centered,
-        # monotonic 30% push-in gives a stronger camera move. Even-pixel crop
-        # coordinates prevent subpixel/chroma rounding from looking like shake.
+        # Keep crop coordinates continuous: quantizing them to even pixels
+        # creates visible stepping during a slow push-in. Use 4:4:4 while
+        # zooming so chroma subsampling cannot amplify that stepping into shimmer.
         filters.append(
             f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            f"crop=1080:1920,setsar=1,zoompan=z='min(1.0+0.001*on,1.30)':"
-            f"x='trunc((iw-iw/zoom)/4)*2':y='trunc((ih-ih/zoom)/4)*2':"
+            f"crop=1080:1920,setsar=1,format=yuv444p,"
+            f"zoompan=z='min(1.0+0.001*on,1.30)':"
+            f"x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':"
             f"d=1:s=1080x1920:fps=30,format=yuv420p[p{index}]")
     current, elapsed = "p0", scene_durations[0]
     for index in range(1, len(chosen)):
