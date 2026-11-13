@@ -118,7 +118,7 @@ jobs:
         shell: bash
         run: |
           manifest='${{ steps.selection.outputs.manifest }}'
-          if [ "$manifest" = 'content/second_video_ash_sharh_94_1_8_draft.json' ]; then
+          if [[ "$manifest" == 'content/second_video_ash_sharh_94_1_8_draft.json' || "$manifest" == 'content/review_surah_ash_sharh_94_1_4_draft.json' || "$manifest" == 'content/review_surah_ash_sharh_94_5_8_draft.json' ]]; then
             python src/validate_quran_text.py --manifest "$manifest" --reference data/reference/surah_ash_sharh_94_1_8_approved.json
           else
             python src/validate_quran_text.py --manifest "$manifest"
@@ -153,21 +153,28 @@ jobs:
           print('KFGQPC archive checksum verified.')
           PY
 
-      - name: Prepare review-only Ash-Sharh candidate audio and per-verse timing
-        if: steps.selection.outputs.manifest == 'content/second_video_ash_sharh_94_1_8_draft.json'
+      - name: Prepare private Ash-Sharh review audio for selected verse range
+        if: steps.selection.outputs.manifest == 'content/second_video_ash_sharh_94_1_8_draft.json' || steps.selection.outputs.manifest == 'content/review_surah_ash_sharh_94_1_4_draft.json' || steps.selection.outputs.manifest == 'content/review_surah_ash_sharh_94_5_8_draft.json'
         shell: bash
+        env:
+          SELECTED_MANIFEST: ${{ steps.selection.outputs.manifest }}
         run: |
           python - <<'PY'
           from zipfile import ZipFile
           from pathlib import Path
           import json, subprocess
 
+          manifest_path = Path(__import__('os').environ['SELECTED_MANIFEST'])
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          verses = manifest['source']['verses']
+          if not verses or verses != list(range(verses[0], verses[-1] + 1)):
+              raise SystemExit('Ash-Sharh review verses must be a non-empty contiguous range.')
           work = Path('build/audio/processed')
           work.mkdir(parents=True, exist_ok=True)
           durations = {}
           with ZipFile('build/cache/kfgqpc-ayat-12-1-2020.zip') as archive:
               names = archive.namelist()
-              for verse in range(1, 9):
+              for verse in verses:
                   suffix = f'10-094{verse:03d}-A08.mp3'
                   matches = [n for n in names if n.endswith(suffix)]
                   if len(matches) != 1:
@@ -179,22 +186,27 @@ jobs:
                   subprocess.run(['ffmpeg','-hide_banner','-y','-i',str(source),'-c:a','libmp3lame','-q:a','2',str(processed)],check=True)
                   duration = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(processed)],text=True).strip())
                   durations[str(verse)] = duration
-          concat = work / 'concat.txt'
-          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + ("file 'silence_020ms.mp3'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
           silence = work / 'silence_020ms.mp3'
           subprocess.run(['ffmpeg','-hide_banner','-y','-f','lavfi','-i','anullsrc=r=44100:cl=stereo','-t','0.02','-c:a','libmp3lame','-q:a','2',str(silence)],check=True)
-          # Rebuild concat list now that the inter-verse silence asset exists.
-          concat.write_text(''.join(f"file '{(work / f'verse_{n:02d}.mp3').resolve()}'\n" + (f"file '{silence.resolve()}'\n" if n < 8 else '') for n in range(1,9)), encoding='utf-8')
-          output = Path('output/ash_sharh_94_1_8_approved_audio.mp3')
+          concat = work / 'concat_selected_range.txt'
+          entries = []
+          for index, verse in enumerate(verses):
+              entries.append(f"file '{(work / f'verse_{verse:02d}.mp3').resolve()}'")
+              if index < len(verses) - 1:
+                  entries.append(f"file '{silence.resolve()}'")
+          concat.write_text('\\n'.join(entries) + '\\n', encoding='utf-8')
+          output = Path(manifest['audio']['production_audio_file'])
           output.parent.mkdir(parents=True, exist_ok=True)
           subprocess.run(['ffmpeg','-hide_banner','-y','-f','concat','-safe','0','-i',str(concat),'-c:a','libmp3lame','-q:a','2',str(output)],check=True)
-          manifest = json.loads(Path('content/second_video_ash_sharh_94_1_8_draft.json').read_text(encoding='utf-8'))
-          manifest['audio']['production_audio_file'] = str(output)
+          total = float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(output)],text=True).strip())
+          if total > 39.5:
+              raise SystemExit(f'Selected Ash-Sharh range is {total:.3f}s; refusing to exceed the 40-second review limit.')
           manifest['audio']['processed_verse_durations_seconds'] = durations
           manifest['audio']['inter_verse_silence_seconds'] = 0.02
           Path('build/manifest_for_render.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('Selected verses:', verses)
           print('Processed verse durations:', json.dumps(durations,sort_keys=True))
-          print('Production audio duration:', subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(output)],text=True).strip())
+          print(f'Private review audio duration: {total:.3f}s')
           PY
 
       - name: Extract Al-Ikhlas exact official recitation for listening review only
@@ -284,7 +296,7 @@ jobs:
           BACKGROUND_ROTATION_KEY: ${{ inputs.background_rotation_key }}
         run: |
           manifest='${{ steps.selection.outputs.manifest }}'
-          if [ "$manifest" = 'content/second_video_ash_sharh_94_1_8_draft.json' ]; then manifest='build/manifest_for_render.json'; fi
+          if [[ "$manifest" == 'content/second_video_ash_sharh_94_1_8_draft.json' || "$manifest" == 'content/review_surah_ash_sharh_94_1_4_draft.json' || "$manifest" == 'content/review_surah_ash_sharh_94_5_8_draft.json' ]]; then manifest='build/manifest_for_render.json'; fi
           if [ "$manifest" = 'content/first_video.json' ]; then manifest='build/first_video_manifest.json'; fi
           if [ "$manifest" = 'content/candidate_surah_al_ikhlas_112_1_4.json' ]; then echo 'Audio-probe-only run; video render intentionally skipped until audio and visual approvals.'; exit 0; fi
           args=(--manifest "$manifest" --output output/review.mp4)
