@@ -194,7 +194,7 @@ jobs:
               entries.append(f"file '{(work / f'verse_{verse:02d}.mp3').resolve()}'")
               if index < len(verses) - 1:
                   entries.append(f"file '{silence.resolve()}'")
-          concat.write_text('\\n'.join(entries) + '\\n', encoding='utf-8')
+          concat.write_text('\n'.join(entries) + '\n', encoding='utf-8')
           output = Path(manifest['audio']['production_audio_file'])
           output.parent.mkdir(parents=True, exist_ok=True)
           subprocess.run(['ffmpeg','-hide_banner','-y','-f','concat','-safe','0','-i',str(concat),'-c:a','libmp3lame','-q:a','2',str(output)],check=True)
