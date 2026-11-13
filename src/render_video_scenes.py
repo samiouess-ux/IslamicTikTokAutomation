@@ -332,16 +332,16 @@ def build_photo_background_reel(
     inputs, filters = [], []
     for index, (item, scene_duration) in enumerate(zip(chosen, scene_durations)):
         clip_duration = scene_duration + (transition if index < len(chosen)-1 else 0)
-        frames = max(2, round(clip_duration * 30))
         inputs += ["-loop", "1", "-framerate", "30", "-t", f"{clip_duration:.6f}",
                    "-i", item["local_path"]]
-        # Keep the crop centered and use a very slow, monotonic zoom.
-        # Avoid frame-to-frame horizontal drift, which can look like image shake.
+        # Apply exactly one zoompan output frame per input frame. A centered,
+        # monotonic 10% push-in is visible over a typical verse scene and avoids
+        # horizontal drift, which previously looked like image shake.
         filters.append(
             f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
-            f"crop=1080:1920,setsar=1,zoompan=z='min(1+0.00012*on,1.035)':"
+            f"crop=1080:1920,setsar=1,zoompan=z='min(1.02+0.00042*on,1.12)':"
             f"x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':"
-            f"d={frames}:s=1080x1920:fps=30,format=yuv420p[p{index}]")
+            f"d=1:s=1080x1920:fps=30,format=yuv420p[p{index}]")
     current, elapsed = "p0", scene_durations[0]
     for index in range(1, len(chosen)):
         label = f"x{index}"
