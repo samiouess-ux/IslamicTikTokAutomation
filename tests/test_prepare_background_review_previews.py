@@ -45,7 +45,7 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
                 self.assertNotEqual(result.getpixel((270, 480)), (20, 80, 120))
 
 
-    def test_prepare_accepts_eight_source_only_candidates_without_claiming_download(self):
+    def test_prepare_accepts_twelve_source_only_candidates_without_claiming_download(self):
         catalog = json.loads(Path("data/background_additions_review.json").read_text(encoding="utf-8"))
         # This test covers the source-only path; current production review catalog
         # also contains staged direct URLs, so remove them from this isolated fixture.
@@ -56,9 +56,9 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
             catalog_path = root / "catalog.json"
             catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
             report = prepare(catalog_path, root / "output")
-            self.assertEqual(report["source_candidate_count"], 8)
+            self.assertEqual(report["source_candidate_count"], 12)
             self.assertEqual(report["candidate_count"], 0)
-            self.assertEqual(report["unresolved_count"], 8)
+            self.assertEqual(report["unresolved_count"], 12)
             self.assertFalse(report["production_enabled"])
             self.assertIsNone(report["contact_sheet"])
 
