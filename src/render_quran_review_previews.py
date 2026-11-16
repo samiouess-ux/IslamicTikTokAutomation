@@ -6,6 +6,8 @@ text, and original processed MP3 ayah streams. It never approves or publishes.
 from __future__ import annotations
 
 import argparse
+import base64
+import io
 import json
 import subprocess
 from datetime import datetime, timezone
@@ -129,6 +131,40 @@ SURAH_NAMES = [
     "الفلق",
     "الناس"
 ]
+
+# Fully vocalized chapter names for the opening cover (Amiri Bold / RAQM).
+SURAH_NAMES_TASHKEEL = [
+    "الْفَاتِحَةِ", "الْبَقَرَةِ", "آلِ عِمْرَانَ", "النِّسَاءِ",
+    "الْمَائِدَةِ", "الْأَنْعَامِ", "الْأَعْرَافِ", "الْأَنْفَالِ",
+    "التَّوْبَةِ", "يُونُسَ", "هُودٍ", "يُوسُفَ", "الرَّعْدِ",
+    "إِبْرَاهِيمَ", "الْحِجْرِ", "النَّحْلِ", "الْإِسْرَاءِ",
+    "الْكَهْفِ", "مَرْيَمَ", "طٰهٰ", "الْأَنْبِيَاءِ", "الْحَجِّ",
+    "الْمُؤْمِنُونَ", "النُّورِ", "الْفُرْقَانِ", "الشُّعَرَاءِ",
+    "النَّمْلِ", "الْقَصَصِ", "الْعَنْكَبُوتِ", "الرُّومِ",
+    "لُقْمَانَ", "السَّجْدَةِ", "الْأَحْزَابِ", "سَبَأَ",
+    "فَاطِرٍ", "يسٓ", "الصَّافَّاتِ", "صٓ", "الزُّمَرِ",
+    "غَافِرٍ", "فُصِّلَتْ", "الشُّورَىٰ", "الزُّخْرُفِ",
+    "الدُّخَانِ", "الْجَاثِيَةِ", "الْأَحْقَافِ", "مُحَمَّدٍ",
+    "الْفَتْحِ", "الْحُجُرَاتِ", "قٓ", "الذَّارِيَاتِ",
+    "الطُّورِ", "النَّجْمِ", "الْقَمَرِ", "الرَّحْمَٰنِ",
+    "الْوَاقِعَةِ", "الْحَدِيدِ", "الْمُجَادِلَةِ", "الْحَشْرِ",
+    "الْمُمْتَحَنَةِ", "الصَّفِّ", "الْجُمُعَةِ", "الْمُنَافِقُونَ",
+    "التَّغَابُنِ", "الطَّلَاقِ", "التَّحْرِيمِ", "الْمُلْكِ",
+    "الْقَلَمِ", "الْحَاقَّةِ", "الْمَعَارِجِ", "نُوحٍ",
+    "الْجِنِّ", "الْمُزَّمِّلِ", "الْمُدَّثِّرِ", "الْقِيَامَةِ",
+    "الْإِنْسَانِ", "الْمُرْسَلَاتِ", "النَّبَإِ", "النَّازِعَاتِ",
+    "عَبَسَ", "التَّكْوِيرِ", "الْإِنْفِطَارِ", "الْمُطَفِّفِينَ",
+    "الْإِنْشِقَاقِ", "الْبُرُوجِ", "الطَّارِقِ", "الْأَعْلَىٰ",
+    "الْغَاشِيَةِ", "الْفَجْرِ", "الْبَلَدِ", "الشَّمْسِ",
+    "اللَّيْلِ", "الضُّحَىٰ", "الشَّرْحِ", "التِّينِ",
+    "الْعَلَقِ", "الْقَدْرِ", "الْبَيِّنَةِ", "الزَّلْزَلَةِ",
+    "الْعَادِيَاتِ", "الْقَارِعَةِ", "التَّكَاثُرِ", "الْعَصْرِ",
+    "الْهُمَزَةِ", "الْفِيلِ", "قُرَيْشٍ", "الْمَاعُونِ",
+    "الْكَوْثَرِ", "الْكَافِرُونَ", "النَّصْرِ", "الْمَسَدِ",
+    "الْإِخْلَاصِ", "الْفَلَقِ", "النَّاسِ",
+]
+COVER_TEMPLATE_IDS = ("blue_night", "emerald_green", "dark_marble", "sunset")
+COVER_TEMPLATE_CATALOG = Path("data/quran_cover_templates.json")
 
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
 BACKGROUND_PHOTO_MANIFEST = Path("data/background_photos_manifest.json")
@@ -361,49 +397,91 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     image.save(out)
 
 
+def load_cover_template(template_index: int) -> tuple[str, Image.Image]:
+    """Load one of the four exact user-supplied cover panels from the checked-in catalog."""
+    if not 0 <= template_index < len(COVER_TEMPLATE_IDS):
+        raise ValueError(f"Invalid cover template index: {template_index}")
+    if not COVER_TEMPLATE_CATALOG.is_file():
+        raise FileNotFoundError(f"User-approved four-cover catalog is missing: {COVER_TEMPLATE_CATALOG}")
+    catalog = json.loads(COVER_TEMPLATE_CATALOG.read_text(encoding="utf-8"))
+    template_id = COVER_TEMPLATE_IDS[template_index]
+    encoded = catalog.get("templates", {}).get(template_id, {}).get("webp_base64")
+    if not isinstance(encoded, str) or not encoded:
+        raise ValueError(f"Cover template {template_id} is missing from {COVER_TEMPLATE_CATALOG}")
+    try:
+        raw = base64.b64decode(encoded, validate=True)
+        with Image.open(io.BytesIO(raw)) as source:
+            return template_id, source.convert("RGBA").copy()
+    except Exception as exc:
+        raise ValueError(f"Cover template {template_id} is not a valid embedded image: {exc}") from exc
+
+
+def fit_cover_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
+                         center: tuple = (540, 780), max_width: int = 760,
+                         max_height: int = 160):
+    """Fit a fully vocalized Arabic surah title inside the original circular frame."""
+    for size in (118, 110, 102, 94, 86, 78, 70):
+        font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
+        bounds = draw.textbbox(center, text, font=font, anchor="mm",
+                               direction="rtl", language="ar")
+        if bounds[2] - bounds[0] <= max_width and bounds[3] - bounds[1] <= max_height:
+            return font
+    raise ValueError("Fully vocalized surah title cannot fit inside the original cover frame.")
+
+
 def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                      out: Path, font_path: str, surah_name: str,
-                     background_frame: Path | None = None) -> None:
-    """Render the approved original Quran cover; only its two blank plaques receive text."""
+                     background_frame: Path | None = None,
+                     cover_rotation_index: int = 0) -> str:
+    """Render one original user cover with a correctly vocalized Amiri surah title."""
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
         raise ValueError(f"Invalid surah number: {surah_number}")
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
+    if len(SURAH_NAMES_TASHKEEL) != len(SURAH_NAMES):
+        raise RuntimeError("The vocalized surah-name catalog must contain exactly 114 names.")
 
-    template_path = Path("file_000000005e3481f4996a7ee6217f56c6.png")
-    if not template_path.is_file():
-        raise FileNotFoundError(f"Approved Quran cover template is missing: {template_path}")
-    with Image.open(template_path) as source:
-        image = ImageOps.fit(source.convert("RGBA"), (1080, 1920),
-                             method=Image.Resampling.LANCZOS)
+    template_id, source = load_cover_template(cover_rotation_index)
+    # Preserve the complete square-ish original artwork. A blurred, darkened
+    # enlargement fills the 9:16 canvas while the untouched full panel remains
+    # centered and legible; no lantern, frame, Quran, or scenery is cropped.
+    background = ImageOps.fit(source, (1080, 1920),
+                              method=Image.Resampling.LANCZOS).filter(ImageFilter.GaussianBlur(28))
+    dim = Image.new("RGBA", (1080, 1920), (2, 7, 10, 112))
+    image = Image.alpha_composite(background, dim)
+    foreground_height = round(source.height * 1080 / source.width)
+    foreground = source.resize((1080, foreground_height), Image.Resampling.LANCZOS)
+    foreground_top = (1920 - foreground_height) // 2
+    image.alpha_composite(foreground, (0, foreground_top))
 
     draw = ImageDraw.Draw(image)
-    title_text = f"سورة {surah_name}"
-    title_font = ImageFont.truetype(font_path, 124, layout_engine=ImageFont.Layout.RAQM)
-    title_box = draw.textbbox((0, 0), title_text, font=title_font,
-                              direction="rtl", language="ar")
-    if title_box[2] - title_box[0] > 790:
-        title_font = ImageFont.truetype(font_path, 96, layout_engine=ImageFont.Layout.RAQM)
-    # Center the title within the large, intentionally blank green plaque.
-    draw.text((540, 918), title_text, font=title_font, fill=(255, 220, 137, 255),
-              anchor="mm", direction="rtl", language="ar")
+    vocalized_name = SURAH_NAMES_TASHKEEL[surah_number - 1]
+    title_text = f"سُورَةُ {vocalized_name}"
+    title_center = (540, foreground_top + round(foreground_height * 0.34))
+    title_font = fit_cover_title_font(draw, title_text, font_path, center=title_center)
+    draw.text(title_center, title_text, font=title_font, fill=(255, 226, 158, 255),
+              anchor="mm", direction="rtl", language="ar",
+              stroke_width=1, stroke_fill=(74, 43, 9, 220))
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     start_text = str(start_ayah).translate(digits)
     end_text = str(end_ayah).translate(digits)
-    range_text = (f"الآيات {start_text}" if start_ayah == end_ayah
-                  else f"الآيات {start_text} - {end_text}")
-    range_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
-    range_box = draw.textbbox((0, 0), range_text, font=range_font,
+    range_text = (f"الْآيَةُ {start_text}" if start_ayah == end_ayah
+                  else f"الْآيَاتُ {start_text} - {end_text}")
+    range_center = (540, foreground_top + round(foreground_height * 0.72))
+    range_font = ImageFont.truetype(font_path, 48, layout_engine=ImageFont.Layout.RAQM)
+    range_box = draw.textbbox(range_center, range_text, font=range_font, anchor="mm",
                               direction="rtl", language="ar")
-    if range_box[2] - range_box[0] > 480:
-        range_font = ImageFont.truetype(font_path, 46, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((540, 1148), range_text, font=range_font,
-              fill=(255, 225, 160, 255), anchor="mm",
-              direction="rtl", language="ar")
+    if range_box[2] - range_box[0] > 610:
+        range_font = ImageFont.truetype(font_path, 40, layout_engine=ImageFont.Layout.RAQM)
+    draw.text(range_center, range_text, font=range_font,
+              fill=(255, 229, 169, 255), anchor="mm",
+              direction="rtl", language="ar",
+              stroke_width=1, stroke_fill=(74, 43, 9, 220))
     image.save(out)
+    return template_id
 
 def probe(path: Path) -> dict:
     raw = subprocess.check_output([
@@ -717,9 +795,13 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                         "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
                         str(cover_background),
                     ], check=True)
-                make_intro_frame(surah_number, int(numbers[0]), int(numbers[-1]),
-                                 intro, font_path, SURAH_NAMES[surah_number - 1],
-                                 background_frame=cover_background)
+                cover_rotation_index = (background_rotation_index + len(previews)) % len(COVER_TEMPLATE_IDS)
+                cover_template_id = make_intro_frame(
+                    surah_number, int(numbers[0]), int(numbers[-1]),
+                    intro, font_path, SURAH_NAMES[surah_number - 1],
+                    background_frame=cover_background,
+                    cover_rotation_index=cover_rotation_index,
+                )
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 background_filter = (
                     photo_motion_filter()
@@ -770,6 +852,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "verses": numbers,
             "background": used_backgrounds[0],
             "background_sequence": used_backgrounds,
+            "cover_template_id": cover_template_id,
+            "cover_rotation_index": cover_rotation_index,
             "file": str(output),
             **info,
             "review_only": True,
@@ -797,8 +881,11 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "background_rotation": [prepared_backgrounds[k] for k in prepared_backgrounds],
         "background_rotation_enabled": True,
         "background_rotation_start_index": background_rotation_index % len(approved_backgrounds),
-        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0, "visible_only_at_start": True},
-        "note": "A brief opening cover appears alone for 0.6 seconds, then disappears completely before the ayah overlay; original recitation starts at t=0 and the video remains review-only.",
+        "cover_rotation_enabled": True,
+        "cover_rotation_count": len(COVER_TEMPLATE_IDS),
+        "cover_rotation_start_index": background_rotation_index % len(COVER_TEMPLATE_IDS),
+        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0, "visible_only_at_start": True, "template_count": len(COVER_TEMPLATE_IDS), "title_font": "Amiri Bold", "title_vocalization": "full_tashkeel"},
+        "note": "One of the four original user-supplied covers is selected by the monotonic GitHub run rotation; the surah name is fully vocalized and rendered with Amiri Bold. The brief opening cover appears alone for 0.6 seconds, then disappears before the ayah overlay; original recitation starts at t=0 and the video remains review-only.",
     }
     (output_dir / "preview_report.json").write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return result
