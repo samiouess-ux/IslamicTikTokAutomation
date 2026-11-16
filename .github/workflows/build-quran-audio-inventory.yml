@@ -94,8 +94,8 @@ jobs:
           import json
           from pathlib import Path
           report = json.loads(Path("output/background_additions_review/background_review_report.json").read_text(encoding="utf-8"))
-          if report["source_candidate_count"] != 8 or report["candidate_count"] != 7 or report["unresolved_count"] != 1:
-              raise SystemExit("Expected seven review-only Pexels downloads to pass ffprobe and one unresolved Pixabay source.")
+          if report["source_candidate_count"] != 12 or report["candidate_count"] != 7 or report["unresolved_count"] != 5:
+              raise SystemExit("Expected seven verified review-only Pexels downloads and five unresolved sources (four newly queued plus one Pixabay).")
           if report["production_enabled"] is not False:
               raise SystemExit("New background candidates must remain disabled in production.")
           if report["contact_sheet"] is None:
@@ -358,7 +358,7 @@ jobs:
               overlaid.append({**item, "preview_path": str(destination),
                                "description": item["description"] + " — Quran text overlay"})
           if len(overlaid) != 7 or report["unresolved_count"] != 1:
-              raise SystemExit("Expected seven overlay previews and one unresolved source.")
+              raise SystemExit("Expected seven overlay previews and five unresolved sources.")
           overlay_sheet = root / "background_quran_overlay_contact_sheet.jpg"
           build_contact_sheet(overlaid, overlay_sheet)
           report["quran_overlay_contact_sheet"] = str(overlay_sheet)
@@ -367,7 +367,7 @@ jobs:
           report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
           if not overlay_sheet.is_file():
               raise SystemExit("New-background Quran overlay contact sheet was not created.")
-          print("Created seven new-background Quran overlay previews; visual legibility review remains required and production stays disabled.")
+          print("Created seven verified new-background Quran overlay previews; four newly added leads remain unresolved, visual legibility review remains required, and production stays disabled.")
           PY
       - name: Reserve Telegram delivery attempt before sending
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true)
