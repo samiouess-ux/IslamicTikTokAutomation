@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "status": "sending_or_outcome_unknown",
+  "candidate_id": "quran_s091_001_015_part_001",
+  "source_candidate_id": "quran_s091_001_015",
+  "surah_number": 91,
+  "selected_verses": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "ayah_references": [
+    "91:1",
+    "91:2",
+    "91:3",
+    "91:4",
+    "91:5",
+    "91:6",
+    "91:7",
+    "91:8",
+    "91:9"
+  ],
+  "created_at_utc": "2026-11-16T11:13:42.529441+00:00",
+  "recovery_note": "Do not resend automatically. Reconcile against the Telegram chat before clearing this reservation."
+}
