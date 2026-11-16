@@ -6,7 +6,6 @@ text, and original processed MP3 ayah streams. It never approves or publishes.
 from __future__ import annotations
 
 import argparse
-import base64
 import io
 import json
 import subprocess
