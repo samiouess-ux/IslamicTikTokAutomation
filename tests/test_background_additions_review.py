@@ -5,9 +5,9 @@ from pathlib import Path
 
 
 class BackgroundAdditionReviewTests(unittest.TestCase):
-    def test_eight_new_candidates_are_separate_and_fail_closed(self):
+    def test_twelve_new_candidates_are_separate_and_fail_closed(self):
         catalog = json.loads(Path("data/background_additions_review.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(catalog["candidates"]), 8)
+        self.assertEqual(len(catalog["candidates"]), 12)
         self.assertIn("not production-enabled", catalog["purpose"])
         self.assertIn("not active in the renderer", catalog["activation_policy"])
         ids = [item["id"] for item in catalog["candidates"]]
@@ -16,11 +16,26 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
         unresolved = [item for item in catalog["candidates"] if not item["direct_video_url"]]
         self.assertEqual(len(resolved), 7)
         self.assertTrue(all(item["direct_video_url"].startswith("https://videos.pexels.com/") for item in resolved))
-        self.assertEqual(len(unresolved), 1)
-        self.assertEqual(unresolved[0]["id"], "pixabay-chain-dome-rock-131292")
+        self.assertEqual(len(unresolved), 5)
+        self.assertEqual(
+            {item["id"] for item in unresolved},
+            {
+                "pixabay-chain-dome-rock-131292",
+                "pexels-mosque-river-mostar-27529804",
+                "pexels-mosque-minaret-lush-trees-35447276",
+                "pexels-waterfall-forest-12110531",
+                "pexels-mosque-waterfront-12536108",
+            },
+        )
         for item in catalog["candidates"]:
             self.assertTrue(item["source_page_url"].startswith(("https://www.pexels.com/", "https://pixabay.com/")))
-            if item["id"] == "pixabay-chain-dome-rock-131292":
+            if item["id"] in {
+                "pixabay-chain-dome-rock-131292",
+                "pexels-mosque-river-mostar-27529804",
+                "pexels-mosque-minaret-lush-trees-35447276",
+                "pexels-waterfall-forest-12110531",
+                "pexels-mosque-waterfront-12536108",
+            }:
                 self.assertFalse(item["approved"])
                 self.assertFalse(item["user_approved"])
                 self.assertFalse(item["download_verified"])
