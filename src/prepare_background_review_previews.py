@@ -39,9 +39,9 @@ def resolve_pexels_direct_url(page_url: str) -> str:
     request = urllib.request.Request(page_url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(request, timeout=45) as response:
         html = response.read(12 * 1024 * 1024).decode("utf-8", errors="replace")
-    matches = re.findall(r'https?:\\?/\\?/videos\\.pexels\\.com\\?/video-files\\?/[^"\\\\<> ]+?\\.mp4', html)
+    matches = re.findall(r'https?:\\?/\\?/videos\.pexels\.com\\?/video-files\\?/[^"\\<> ]+?\.mp4', html)
     if matches:
-        cleaned = [item.replace("\\\\/", "/").replace("\\\\u0026", "&") for item in matches]
+        cleaned = [item.replace("\\/", "/").replace("\\u0026", "&") for item in matches]
         return max(cleaned, key=len)
     video_id = page_url.rstrip("/").split("-")[-1]
     if video_id.isdigit():
