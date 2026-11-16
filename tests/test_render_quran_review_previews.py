@@ -1,7 +1,9 @@
 import json
 import sys
+import io
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -150,18 +152,34 @@ class ReviewPreviewRendererTests(unittest.TestCase):
 
     def test_intro_frame_shows_surah_and_exact_ayah_range(self):
         with tempfile.TemporaryDirectory() as tmp:
-            output = Path(tmp) / "opening_cover.png"
-            make_intro_frame(93, 5, 8, output, font_file(), SURAH_NAMES[92])
+            root = Path(tmp)
+            archive_path = root / "quran_cover_templates.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                for template_id, color in zip(
+                    renderer.COVER_TEMPLATE_IDS,
+                    ((20, 45, 95), (10, 90, 65), (20, 25, 30), (220, 120, 35)),
+                ):
+                    buffer = io.BytesIO()
+                    Image.new("RGB", (698, 764), color).save(buffer, format="JPEG")
+                    archive.writestr(f"cover_{template_id}.jpg", buffer.getvalue())
+            output = root / "opening_cover.png"
+            with patch.object(renderer, "COVER_TEMPLATE_ARCHIVE", archive_path):
+                selected = make_intro_frame(
+                    93, 5, 8, output, font_file(), SURAH_NAMES[92],
+                    cover_rotation_index=2,
+                )
+            self.assertEqual(selected, "dark_marble")
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                # The cover is now a full-frame dark marble image, not a transparent panel.
                 self.assertEqual(frame.getpixel((10, 10))[3], 255)
-                # The circular medallion has a visible gold outline.
-                self.assertGreater(frame.getpixel((540, 430))[3], 200)
-                # The cover frame is opaque by itself; render() composites the first ayah above it.
                 self.assertEqual(frame.getpixel((540, 1000))[3], 255)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
+
+    def test_vocalized_surah_catalog_has_all_114_chapters(self):
+        self.assertEqual(len(renderer.SURAH_NAMES_TASHKEEL), 114)
+        self.assertEqual(renderer.SURAH_NAMES_TASHKEEL[0], "الْفَاتِحَةِ")
+        self.assertEqual(renderer.SURAH_NAMES_TASHKEEL[111], "الْإِخْلَاصِ")
 
     # Covers both scheduled multi-video batches and isolated user requests.
     def fixtures(self, root: Path):
@@ -233,6 +251,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 [5.0, 24.0, 14.0],
             )
             self.assertEqual(result["background_rotation_start_index"], 2)
+            self.assertEqual([x["cover_template_id"] for x in result["items"]], ["dark_marble", "sunset"])
             self.assertEqual({x["surah_number"] for x in result["items"]}, {19, 88})
             self.assertTrue(all(x["review_only"] for x in result["items"]))
             self.assertTrue(all(x["audio_codec"] == "mp3" for x in result["items"]))
