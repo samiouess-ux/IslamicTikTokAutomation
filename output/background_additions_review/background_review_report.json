@@ -1,10 +1,14 @@
 {
   "status": "downloaded_and_probe_verified_requires_user_visual_review",
-  "source_candidate_count": 8,
+  "source_candidate_count": 12,
   "candidate_count": 7,
-  "unresolved_count": 1,
+  "unresolved_count": 5,
   "unresolved_candidates": [
-    "pixabay-chain-dome-rock-131292"
+    "pixabay-chain-dome-rock-131292",
+    "pexels-mosque-river-mostar-27529804",
+    "pexels-mosque-minaret-lush-trees-35447276",
+    "pexels-waterfall-forest-12110531",
+    "pexels-mosque-waterfront-12536108"
   ],
   "contact_sheet": "output/background_additions_review/background_candidates_contact_sheet.jpg",
   "production_enabled": false,
@@ -131,6 +135,46 @@
       "visual_approval": true,
       "production_enabled": false,
       "user_approved": true
+    },
+    {
+      "id": "pexels-mosque-river-mostar-27529804",
+      "description": "Mosque beside a green river landscape in Mostar",
+      "creator": null,
+      "source_page_url": "https://www.pexels.com/video/a-river-with-a-church-in-the-background-27529804/",
+      "download_probe_verified": false,
+      "production_enabled": false,
+      "user_approved": false,
+      "review_status": "missing_direct_video_url"
+    },
+    {
+      "id": "pexels-mosque-minaret-lush-trees-35447276",
+      "description": "Mosque minaret rising through lush trees",
+      "creator": null,
+      "source_page_url": "https://www.pexels.com/video/majestic-mosque-minaret-through-lush-trees-35447276/",
+      "download_probe_verified": false,
+      "production_enabled": false,
+      "user_approved": false,
+      "review_status": "missing_direct_video_url"
+    },
+    {
+      "id": "pexels-waterfall-forest-12110531",
+      "description": "Vertical waterfall flowing through a forest",
+      "creator": null,
+      "source_page_url": "https://www.pexels.com/video/waterfall-in-forest-12110531/",
+      "download_probe_verified": false,
+      "production_enabled": false,
+      "user_approved": false,
+      "review_status": "missing_direct_video_url"
+    },
+    {
+      "id": "pexels-mosque-waterfront-12536108",
+      "description": "Distant mosque across a calm Istanbul waterfront",
+      "creator": null,
+      "source_page_url": "https://www.pexels.com/video/distant-mosque-across-water-12536108/",
+      "download_probe_verified": false,
+      "production_enabled": false,
+      "user_approved": false,
+      "review_status": "missing_direct_video_url"
     }
   ],
   "quran_overlay_contact_sheet": "output/background_additions_review/background_quran_overlay_contact_sheet.jpg",
