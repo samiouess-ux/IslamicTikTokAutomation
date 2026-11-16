@@ -145,9 +145,10 @@
       "license": "Pexels page previously surfaced as free; verify source terms during download",
       "direct_video_url": null,
       "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Added to review queue on 2026-11-17. Direct media URL and ffprobe must be verified; not production-enabled."
+      "approved": true,
+      "user_approved": true,
+      "notes": "User explicitly approved adding this source without a separate preview on 2026-11-17. Direct media URL, source license, download and ffprobe verification are still required before production rotation.",
+      "approval_date": "2026-11-17"
     },
     {
       "id": "pexels-mosque-minaret-lush-trees-35447276",
@@ -157,9 +158,10 @@
       "license": "Pexels page previously surfaced as free; verify source terms during download",
       "direct_video_url": null,
       "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Added to review queue on 2026-11-17. Direct media URL and ffprobe must be verified; not production-enabled."
+      "approved": true,
+      "user_approved": true,
+      "notes": "User explicitly approved adding this source without a separate preview on 2026-11-17. Direct media URL, source license, download and ffprobe verification are still required before production rotation.",
+      "approval_date": "2026-11-17"
     },
     {
       "id": "pexels-waterfall-forest-12110531",
@@ -169,9 +171,10 @@
       "license": "Pexels page previously surfaced as free; verify source terms during download",
       "direct_video_url": null,
       "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Added to review queue on 2026-11-17 as a calm nature background. Direct media URL and ffprobe must be verified; not production-enabled."
+      "approved": true,
+      "user_approved": true,
+      "notes": "User explicitly approved adding this source without a separate preview on 2026-11-17. Direct media URL, source license, download and ffprobe verification are still required before production rotation.",
+      "approval_date": "2026-11-17"
     },
     {
       "id": "pexels-mosque-waterfront-12536108",
@@ -181,9 +184,10 @@
       "license": "Pexels page previously surfaced as free; verify source terms during download",
       "direct_video_url": null,
       "download_verified": false,
-      "approved": false,
-      "user_approved": false,
-      "notes": "Added to review queue on 2026-11-17. Direct media URL and ffprobe must be verified; not production-enabled."
+      "approved": true,
+      "user_approved": true,
+      "notes": "User explicitly approved adding this source without a separate preview on 2026-11-17. Direct media URL, source license, download and ffprobe verification are still required before production rotation.",
+      "approval_date": "2026-11-17"
     }
   ]
 }
