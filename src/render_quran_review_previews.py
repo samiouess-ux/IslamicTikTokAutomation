@@ -459,7 +459,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     draw = ImageDraw.Draw(image)
     vocalized_name = SURAH_NAMES_TASHKEEL[surah_number - 1]
     title_text = f"سُورَةُ {vocalized_name}"
-    title_center = (540, foreground_top + round(foreground_height * 0.34))
+    title_center = (540, foreground_top + round(foreground_height * 0.41))
     title_font = fit_cover_title_font(draw, title_text, font_path, center=title_center)
     draw.text(title_center, title_text, font=title_font, fill=(255, 226, 158, 255),
               anchor="mm", direction="rtl", language="ar",
@@ -470,7 +470,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     end_text = str(end_ayah).translate(digits)
     range_text = (f"الْآيَةُ {start_text}" if start_ayah == end_ayah
                   else f"الْآيَاتُ {start_text} - {end_text}")
-    range_center = (540, foreground_top + round(foreground_height * 0.72))
+    range_center = (540, foreground_top + round(foreground_height * 0.66))
     range_font = ImageFont.truetype(font_path, 48, layout_engine=ImageFont.Layout.RAQM)
     range_box = draw.textbbox(range_center, range_text, font=range_font, anchor="mm",
                               direction="rtl", language="ar")
