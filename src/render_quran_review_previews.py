@@ -10,6 +10,7 @@ import base64
 import io
 import json
 import subprocess
+import zipfile
 from datetime import datetime, timezone
 import urllib.request
 from pathlib import Path
@@ -164,7 +165,7 @@ SURAH_NAMES_TASHKEEL = [
     "الْإِخْلَاصِ", "الْفَلَقِ", "النَّاسِ",
 ]
 COVER_TEMPLATE_IDS = ("blue_night", "emerald_green", "dark_marble", "sunset")
-COVER_TEMPLATE_CATALOG = Path("data/quran_cover_templates.json")
+COVER_TEMPLATE_ARCHIVE = Path("assets/quran_cover_templates.zip")
 
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
 BACKGROUND_PHOTO_MANIFEST = Path("data/background_photos_manifest.json")
@@ -398,22 +399,24 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
 
 
 def load_cover_template(template_index: int) -> tuple[str, Image.Image]:
-    """Load one of the four exact user-supplied cover panels from the checked-in catalog."""
+    """Load one exact user-supplied cover panel from the checked-in ZIP archive."""
     if not 0 <= template_index < len(COVER_TEMPLATE_IDS):
         raise ValueError(f"Invalid cover template index: {template_index}")
-    if not COVER_TEMPLATE_CATALOG.is_file():
-        raise FileNotFoundError(f"User-approved four-cover catalog is missing: {COVER_TEMPLATE_CATALOG}")
-    catalog = json.loads(COVER_TEMPLATE_CATALOG.read_text(encoding="utf-8"))
+    if not COVER_TEMPLATE_ARCHIVE.is_file():
+        raise FileNotFoundError(
+            f"User-approved four-cover archive is missing: {COVER_TEMPLATE_ARCHIVE}"
+        )
     template_id = COVER_TEMPLATE_IDS[template_index]
-    encoded = catalog.get("templates", {}).get(template_id, {}).get("webp_base64")
-    if not isinstance(encoded, str) or not encoded:
-        raise ValueError(f"Cover template {template_id} is missing from {COVER_TEMPLATE_CATALOG}")
+    archive_name = f"cover_{template_id}.jpg"
     try:
-        raw = base64.b64decode(encoded, validate=True)
+        with zipfile.ZipFile(COVER_TEMPLATE_ARCHIVE) as archive:
+            raw = archive.read(archive_name)
         with Image.open(io.BytesIO(raw)) as source:
             return template_id, source.convert("RGBA").copy()
+    except KeyError as exc:
+        raise ValueError(f"Cover template {archive_name} is missing from {COVER_TEMPLATE_ARCHIVE}") from exc
     except Exception as exc:
-        raise ValueError(f"Cover template {template_id} is not a valid embedded image: {exc}") from exc
+        raise ValueError(f"Cover template {template_id} is not a valid image: {exc}") from exc
 
 
 def fit_cover_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
@@ -796,7 +799,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                         str(cover_background),
                     ], check=True)
                 cover_rotation_index = (background_rotation_index + len(previews)) % len(COVER_TEMPLATE_IDS)
-                cover_template_id = make_intro_frame(
+                cover_template_id = COVER_TEMPLATE_IDS[cover_rotation_index]
+                make_intro_frame(
                     surah_number, int(numbers[0]), int(numbers[-1]),
                     intro, font_path, SURAH_NAMES[surah_number - 1],
                     background_frame=cover_background,
