@@ -164,7 +164,7 @@ SURAH_NAMES_TASHKEEL = [
     "الْإِخْلَاصِ", "الْفَلَقِ", "النَّاسِ",
 ]
 COVER_TEMPLATE_IDS = ("blue_night", "emerald_green", "dark_marble", "sunset")
-COVER_TEMPLATE_ARCHIVE = Path("assets/quran_cover_templates.zip")
+COVER_TEMPLATE_ARCHIVE = Path("assets/background_photos/quran_cover_templates.zip")
 
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
 BACKGROUND_PHOTO_MANIFEST = Path("data/background_photos_manifest.json")
