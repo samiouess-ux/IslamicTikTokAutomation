@@ -582,12 +582,11 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
 
 
 def photo_motion_filter() -> str:
-    """Return a slow, continuous Ken Burns move for still-photo backgrounds."""
+    """Apply a smooth centered 0–30% zoom cycle to every background type."""
     return (
         "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
-        "zoompan=z='1.05+0.025*sin(on/900)':"
-        "x='(iw-iw/zoom)*(0.5+0.18*sin(on/700))':"
-        "y='(ih-ih/zoom)*(0.5+0.14*cos(on/850))':"
+        "zoompan=z='1.15-0.15*cos(2*PI*on/360)':"
+        "x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':"
         "d=1:s=1080x1920:fps=30,setsar=1[bg];"
     )
 
@@ -808,8 +807,6 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
                 background_filter = (
                     photo_motion_filter()
-                    if background_candidate.get("background_type") == "photo"
-                    else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
                 filter_complex = background_filter + (
                     # The cover is a brief opening flash only. The still-image input loops,
@@ -824,8 +821,6 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             else:
                 background_filter = (
                     photo_motion_filter()
-                    if background_candidate.get("background_type") == "photo"
-                    else "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1,fps=30[bg];"
                 )
                 filter_complex = background_filter + "[bg][2:v]overlay=0:0:format=auto[v]"
             command.extend([
