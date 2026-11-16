@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "New Islamic and Arabic architectural video background leads for review. Separate from the existing four approved backgrounds; not production-enabled.",
+  "purpose": "New Islamic and Arabic architectural video background leads for review. Separate from the existing four approved backgrounds; not production-enabled. Four additional Islamic/nature leads were appended on 2026-11-17 for review only.",
   "activation_policy": "Seven Pexels candidates were explicitly visually approved by the user on 2026-11-08 after reviewing the Quran-overlay contact sheet. Their review-workflow download/ffprobe checks passed. They are approved for production integration but are not active in the renderer until integration and render/legibility tests pass. The Pixabay candidate remains unapproved and disabled because no direct video URL is verified.",
   "candidates": [
     {
@@ -136,6 +136,54 @@
       "user_approved": true,
       "approval_date": "2026-11-08",
       "notes": "User visually approved the Quran-overlay preview on 2026-11-08. Source download and ffprobe verification passed in the review workflow. Approved for production integration; not yet active in the renderer."
+    },
+    {
+      "id": "pexels-mosque-river-mostar-27529804",
+      "category": "mosque_exterior",
+      "description": "Mosque beside a green river landscape in Mostar",
+      "source_page_url": "https://www.pexels.com/video/a-river-with-a-church-in-the-background-27529804/",
+      "license": "Pexels page previously surfaced as free; verify source terms during download",
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Added to review queue on 2026-11-17. Direct media URL and ffprobe must be verified; not production-enabled."
+    },
+    {
+      "id": "pexels-mosque-minaret-lush-trees-35447276",
+      "category": "mosque_exterior",
+      "description": "Mosque minaret rising through lush trees",
+      "source_page_url": "https://www.pexels.com/video/majestic-mosque-minaret-through-lush-trees-35447276/",
+      "license": "Pexels page previously surfaced as free; verify source terms during download",
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Added to review queue on 2026-11-17. Direct media URL and ffprobe must be verified; not production-enabled."
+    },
+    {
+      "id": "pexels-waterfall-forest-12110531",
+      "category": "nature_landscape",
+      "description": "Vertical waterfall flowing through a forest",
+      "source_page_url": "https://www.pexels.com/video/waterfall-in-forest-12110531/",
+      "license": "Pexels page previously surfaced as free; verify source terms during download",
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Added to review queue on 2026-11-17 as a calm nature background. Direct media URL and ffprobe must be verified; not production-enabled."
+    },
+    {
+      "id": "pexels-mosque-waterfront-12536108",
+      "category": "mosque_exterior",
+      "description": "Distant mosque across a calm Istanbul waterfront",
+      "source_page_url": "https://www.pexels.com/video/distant-mosque-across-water-12536108/",
+      "license": "Pexels page previously surfaced as free; verify source terms during download",
+      "direct_video_url": null,
+      "download_verified": false,
+      "approved": false,
+      "user_approved": false,
+      "notes": "Added to review queue on 2026-11-17. Direct media URL and ffprobe must be verified; not production-enabled."
     }
   ]
 }
