@@ -25,7 +25,7 @@ on:
       - "src/render_quran_review_previews.py"
       - "data/background_photos_manifest.json"
       - "assets/background_photos/**"
-      - "assets/quran_cover_templates.zip"
+      - "assets/background_photos/quran_cover_templates.zip"
       - "src/send_telegram.py"
       - "src/record_quran_delivery.py"
       - "src/quran_delivery_attempt.py"
