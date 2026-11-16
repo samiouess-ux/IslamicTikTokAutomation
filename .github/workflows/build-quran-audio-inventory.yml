@@ -284,7 +284,7 @@ jobs:
             --audio-report output/quran_batch_audio_report.json \
             --output-dir output/quran_review_previews \
             --minimum-previews 1 \
-            --background-rotation-index "$GITHUB_RUN_ID"
+            --background-rotation-index "$GITHUB_RUN_NUMBER"
           python - <<'PY'
           import json
           from pathlib import Path
