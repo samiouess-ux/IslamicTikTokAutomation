@@ -335,3 +335,13 @@ These are the project's assigned work/review roles, not separately billed cloud 
 - Push validations do not send Telegram. No test send was made. External cron-job.org remains unchanged at the user-confirmed 04:10, 12:10, and 18:10 Africa/Tunis; this repository cannot independently verify the external job's live state. No new scheduler or infrastructure was added.
 - Background rendering uses the four explicitly user-approved, download-verified Pexels candidates in `data/background_candidates.json`; renderer rotation and real overlay readability still require the current full workflow artifact to pass and visual inspection.
 - TikTok publishing remains manual. Qur'an content remains Arabic + Saheeh International English, authentic recitation, no music, and no public reciter name.
+
+
+## Parallel cinematic mode — implementation checkpoint (2026-11-17)
+
+- Created isolated branch `feat/cinematic-mode` from the active production branch head `2bb4413ab25dc1e82abe1c71128bd440426d0cc1`. The active production branch and `main` were not modified.
+- Added `--visual-mode classic|cinematic` to the existing review renderer. Classic remains the default; the cinematic path creates a slow-motion 9:16 background reel with short crossfades, then overlays each complete ayah on its own timed scene.
+- The original MP3 recitation is concatenated using stream copy. Arabic/English source text, verse order, opening-cover timing, duration validation, and review-only gates are preserved.
+- Added a dedicated cinematic renderer regression suite, including a real FFmpeg render test. CI run `44085174198` passed the 101 existing/unit tests before the real-render test was added. Run `44085540950` is validating the FFmpeg integration test after correcting the concat playlist line ending.
+- Added an isolated-branch workflow option and compact review artifact upload. Selecting cinematic mode explicitly skips Telegram reservation, sending, delivery-history updates, and failure notifications. Push validation on `feat/cinematic-mode` is also non-delivery.
+- The full Quran review pipeline is being validated on the isolated branch only. Do not merge or change the active production branch until the rendered cinematic artifact has passed technical checks and has been visually reviewed.
