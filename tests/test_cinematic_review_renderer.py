@@ -4,6 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from PIL import Image, ImageDraw
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import render_quran_review_previews as renderer
 
@@ -69,6 +71,60 @@ class CinematicReviewRendererTests(unittest.TestCase):
             self.assertEqual(report["scene_count"], 2)
             audio_list = (root / "cinematic_audio.txt").read_text(encoding="utf-8")
             self.assertEqual(audio_list.count("file '"), 2)
+
+    def test_full_cinematic_preview_renders_vertical_video_and_preserves_mp3(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            photo = root / "photo.png"
+            video_still = root / "video_still.png"
+            Image.new("RGB", (720, 1280), (18, 62, 74)).save(photo)
+            Image.new("RGB", (720, 1280), (72, 58, 34)).save(video_still)
+            moving_video = root / "moving_background.mp4"
+            renderer.subprocess.run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-loop", "1", "-framerate", "30", "-t", "2.0", "-i", str(video_still),
+                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "30", str(moving_video),
+            ], check=True)
+
+            intro = root / "intro.png"
+            Image.new("RGB", (1080, 1920), (8, 18, 30)).save(intro)
+            scenes = []
+            for index, (background, background_type) in enumerate(
+                ((photo, "photo"), (moving_video, "moving_video"))
+            ):
+                audio = root / f"ayah_{index}.mp3"
+                renderer.subprocess.run([
+                    "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+                    "-t", "1.2", "-c:a", "libmp3lame", "-q:a", "9", str(audio),
+                ], check=True)
+                frame = root / f"ayah_{index}.png"
+                overlay = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+                draw = ImageDraw.Draw(overlay)
+                draw.rounded_rectangle((100, 650, 980, 1250), radius=40,
+                                       fill=(0, 0, 0, 150), outline=(220, 190, 125, 220), width=3)
+                draw.text((540, 950), f"TEST AYAH {index + 1}", fill=(255, 255, 255, 255), anchor="mm")
+                overlay.save(frame)
+                scenes.append({
+                    "background": str(background),
+                    "background_type": background_type,
+                    "audio": str(audio),
+                    "frame": str(frame),
+                    "duration": 1.2,
+                    "ayah": index + 1,
+                })
+
+            output = root / "cinematic_integration.mp4"
+            report = renderer.render_cinematic_preview(scenes, intro, output, root)
+            info = renderer.probe(output)
+            self.assertTrue(output.is_file())
+            self.assertEqual((info["width"], info["height"]), (1080, 1920))
+            self.assertEqual(info["video_codec"], "h264")
+            self.assertEqual(info["audio_codec"], "mp3")
+            self.assertGreater(info["duration_seconds"], 2.2)
+            self.assertLess(info["duration_seconds"], 2.7)
+            self.assertEqual(report["scene_count"], 2)
+            self.assertGreater(report["transition_seconds"], 0)
 
     def test_cinematic_background_rejects_invalid_scene_duration(self):
         with tempfile.TemporaryDirectory() as directory:
