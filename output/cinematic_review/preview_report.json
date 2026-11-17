@@ -36,7 +36,8 @@
     "duration_seconds": 15.919,
     "transition_seconds": 0.45,
     "scene_count": 2,
-    "motion": "slow_centered_zoom"
+    "motion": "slow_centered_zoom",
+    "renderer": "standalone_cinematic"
   },
   "media": {
     "duration_seconds": 15.859,
