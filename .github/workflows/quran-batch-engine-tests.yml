@@ -2,7 +2,7 @@ name: Quran batch engine tests
 
 on:
   push:
-    branches: [feature/telegram-review-notifications]
+    branches: [feature/telegram-review-notifications, feat/cinematic-mode]
     paths:
       - "src/build_quran_review_batch.py"
       - "src/prepare_quran_review_batch_audio.py"
@@ -32,6 +32,7 @@ on:
       - "tests/test_orchestrator.py"
       - "tests/test_content_rotation.py"
       - "tests/test_background_reel.py"
+      - "tests/test_cinematic_review_renderer.py"
       - ".github/workflows/quran-batch-engine-tests.yml"
   workflow_dispatch:
 
@@ -45,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/telegram-review-notifications
+          ref: ${{ github.ref }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -84,6 +85,7 @@ jobs:
             tests/test_quran_audio_parts.py \
             tests/test_build_quran_draft_manifests.py \
             tests/test_render_quran_review_previews.py \
+            tests/test_cinematic_review_renderer.py \
             tests/test_quran_delivery_attempt.py \
             tests/test_record_quran_delivery.py
       - name: Test Quran-only daily orchestrator
