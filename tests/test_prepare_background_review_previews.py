@@ -55,7 +55,8 @@ class BackgroundReviewPreviewTests(unittest.TestCase):
             root = Path(tmp)
             catalog_path = root / "catalog.json"
             catalog_path.write_text(json.dumps(catalog), encoding="utf-8")
-            report = prepare(catalog_path, root / "output")
+            with patch("src.prepare_background_review_previews.resolve_pexels_direct_url", return_value=""):
+                report = prepare(catalog_path, root / "output")
             self.assertEqual(report["source_candidate_count"], 12)
             self.assertEqual(report["candidate_count"], 0)
             self.assertEqual(report["unresolved_count"], 12)
