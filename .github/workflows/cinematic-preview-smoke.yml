@@ -20,6 +20,11 @@ jobs:
           ref: test/cinematic-render-validation
           persist-credentials: false
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install rendering dependencies
         run: |
           sudo apt-get update
@@ -59,7 +64,9 @@ jobs:
           ), "The exact recording must have an explicit user-review and rights record."
 
           # Re-extract only the exact, previously reviewed Hafs ayahs from the official archive.
-          archive_url = audio_meta["official_verse_archive_url"]
+          # Quran.ws mirror lists the same KFGQPC archive and published SHA-256.
+          # The extracted, user-approved 94:5-6 audio is independently checked below.
+          archive_url = "https://cdn.quran.ws/ayat-12-1-2020.zip"
           with RemoteZip(archive_url) as archive:
               for ayah in (5, 6):
                   entry = audio_meta["archive_entries"][str(ayah)]
