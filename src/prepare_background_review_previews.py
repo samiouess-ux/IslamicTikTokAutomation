@@ -15,7 +15,7 @@ USER_AGENT = "IslamicTikTokAutomation/1.0 (background-review-only)"
 
 
 def download_candidate(url: str, destination: Path) -> int:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Referer": "https://www.pexels.com/", "Accept": "video/mp4,application/octet-stream,*/*"})
     total = 0
     with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as target:
         content_type = response.headers.get("Content-Type", "").lower()
@@ -35,69 +35,22 @@ def download_candidate(url: str, destination: Path) -> int:
 
 
 def resolve_pexels_direct_url(page_url: str) -> str:
-    """Resolve Pexels' actual download asset ID (which can differ from the page slug ID)."""
-    request = urllib.request.Request(page_url, headers={
-        "User-Agent": USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml",
-    })
-    with urllib.request.urlopen(request, timeout=45) as response:
-        html = response.read(16 * 1024 * 1024).decode("utf-8", errors="replace")
-    html = html.replace("\\/", "/").replace("\\u0026", "&")
-
-    # Pexels page slugs can contain a different ID from the downloadable media.
-    # Extract the real IDs from its download controls before trying the slug ID.
-    download_ids = re.findall(
-        r"""(?:href|data-href)\s*=\s*["'](?:https?://(?:www\.)?pexels\.com)?/download/video/(\d+)/?["']""",
-        html,
-        flags=re.IGNORECASE,
-    )
-    download_ids += re.findall(
-        r"""https?://(?:www\.)?pexels\.com/download/video/(\d+)/?""",
-        html,
-        flags=re.IGNORECASE,
-    )
-    download_ids = list(dict.fromkeys(download_ids))
-
-    # Some pages expose the direct media URL in JSON-LD or embedded page state.
-    direct_matches = re.findall(
-        r"""https://videos\.pexels\.com/video-files/[^"'<> ]+?\.mp4(?:\?[^"'<> ]*)?""",
-        html,
-        flags=re.IGNORECASE,
-    )
-    for candidate in direct_matches:
-        if candidate.startswith("https://videos.pexels.com/video-files/"):
-            return candidate
-
-    for asset_id in download_ids:
-        download_url = f"https://www.pexels.com/download/video/{asset_id}/"
-        req = urllib.request.Request(download_url, headers={
-            "User-Agent": USER_AGENT,
-            "Referer": page_url,
-        })
-        with urllib.request.urlopen(req, timeout=45) as download_response:
-            final_url = download_response.geturl()
-        if (final_url.startswith("https://videos.pexels.com/video-files/")
-                and re.search(r"\.mp4(?:\?|$)", final_url)):
-            return final_url
-
-    # Fallback for older page formats where the page ID and asset ID match.
+    """Resolve the primary Pexels download for this page (not a related-video tile)."""
     video_id = page_url.rstrip("/").split("-")[-1]
-    if video_id.isdigit() and video_id not in download_ids:
-        download_url = f"https://www.pexels.com/download/video/{video_id}/"
-        req = urllib.request.Request(download_url, headers={
-            "User-Agent": USER_AGENT,
-            "Referer": page_url,
-        })
-        with urllib.request.urlopen(req, timeout=45) as download_response:
-            final_url = download_response.geturl()
-        if (final_url.startswith("https://videos.pexels.com/video-files/")
-                and re.search(r"\.mp4(?:\?|$)", final_url)):
-            return final_url
-
-    raise RuntimeError(
-        f"No direct Pexels MP4 URL found on {page_url}; "
-        f"download asset IDs discovered: {download_ids}"
-    )
+    if not video_id.isdigit():
+        raise RuntimeError(f"Could not read Pexels video ID from {page_url}")
+    download_url = f"https://www.pexels.com/download/video/{video_id}/"
+    req = urllib.request.Request(download_url, headers={
+        "User-Agent": USER_AGENT,
+        "Referer": page_url,
+        "Accept": "video/mp4,application/octet-stream,*/*",
+    })
+    with urllib.request.urlopen(req, timeout=45) as response:
+        final_url = response.geturl()
+    if (final_url.startswith("https://videos.pexels.com/video-files/")
+            and re.search(r"\.mp4(?:\?|$)", final_url)):
+        return final_url
+    raise RuntimeError(f"Pexels primary download did not redirect to an MP4: {final_url}")
 
 def probe_video(path: Path) -> dict:
     raw = subprocess.check_output([
