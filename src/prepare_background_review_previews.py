@@ -176,28 +176,18 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
         if candidate.get("download_verified") and not candidate.get("user_approved"):
             raise RuntimeError("A previously verified download without user approval is not eligible.")
         url = candidate.get("direct_video_url") or ""
-        if not url:
-            items.append({
-                "id": candidate["id"],
-                "description": candidate["description"],
-                "creator": candidate.get("creator"),
-                "source_page_url": candidate["source_page_url"],
-                "download_probe_verified": False,
-                "production_enabled": False,
-                "user_approved": candidate.get("user_approved", False),
-                "review_status": "missing_direct_video_url",
-            })
-            continue
-        if not url.startswith(("https://videos.pexels.com/video-files/", "https://cdn.pixabay.com/")):
-            raise RuntimeError(f"Untrusted candidate media URL: {candidate.get('id')}")
         video_path = output_dir / f'{candidate["id"]}.mp4'
         preview_path = output_dir / f'{candidate["id"]}_vertical_crop.jpg'
         try:
+            if not url:
+                url = resolve_pexels_direct_url(candidate["source_page_url"])
+            if not url.startswith(("https://videos.pexels.com/video-files/", "https://cdn.pixabay.com/")):
+                raise RuntimeError(f"Untrusted candidate media URL: {candidate.get('id')}")
             byte_count = download_candidate(url, video_path)
             metadata = probe_video(video_path)
             extract_vertical_crop(video_path, preview_path, metadata["duration_seconds"])
         except Exception as exc:
-            # A failed probe or crop must not leave a misleading partial review package.
+            # A failed resolver, probe or crop must not leave a misleading partial review package.
             video_path.unlink(missing_ok=True)
             preview_path.unlink(missing_ok=True)
             raise RuntimeError(f"Failed to prepare review candidate {candidate['id']}: {exc}") from exc
