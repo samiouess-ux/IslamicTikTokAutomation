@@ -6,7 +6,7 @@ concurrency:
 
 on:
   push:
-    branches: [feature/telegram-review-notifications]
+    branches: [feature/telegram-review-notifications, feat/cinematic-mode]
     paths:
       - "src/build_official_audio_inventory.py"
       - "tests/test_build_official_audio_inventory.py"
@@ -313,7 +313,7 @@ jobs:
             --output-dir output/quran_review_previews \
             --minimum-previews 1 \
             --background-rotation-index "$GITHUB_RUN_NUMBER" \
-             --visual-mode "${{ inputs.visual_mode || 'classic' }}"
+             --visual-mode "${{ inputs.visual_mode || (github.ref_name == 'feat/cinematic-mode' && 'cinematic') || 'classic' }}"
           python - <<'PY'
           import json
           from pathlib import Path
