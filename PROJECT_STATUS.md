@@ -984,3 +984,13 @@ Theme: hope and ease after hardship.
 - Fixed the overlay lookup to use `rglob("ayah_*.png")` so both steps locate the same nested frame.
 - No background was activated; the four original candidates remain unchanged, and the seven staged additions remain unapproved. No Telegram delivery was attempted on this push run.
 - Fix commit: `ae374fa666ff736cdf74e08fbb0959196d0a9ac4`.
+
+
+## Parallel cinematic mode — isolated implementation (2026-11-17)
+
+- Active production branch: unchanged. Cinematic work is isolated on `feat/cinematic-mode`, branched from the then-current active head `2bb4413ab25dc1e82abe1c71128bd440426d0cc1`.
+- Existing classic renderer remains the default. The optional cinematic path adds a slow 9:16 scene reel, a short dissolve between ayah scenes, and independently timed verse overlays.
+- The audio path keeps the original MP3 streams via concat stream copy. No Quran text, verse order, translation, reciter, background approval, or publication gate is weakened.
+- Cinematic workflow runs are preview-only and explicitly skip Telegram send/reservation/history operations. The existing active branch scheduler and Telegram workflow are not changed.
+- CI run `44085174198` passed the existing 101-test suite after the first renderer fixes. Real FFmpeg integration run `44085380592` exposed a literal newline-escape issue in the temporary audio concat list; corrected in commit `55d73cacfed621e7ea39e41011a068dd384bff86`. Follow-up run `44085540950` is in progress.
+- Acceptance still requires a successful full FFmpeg integration test, a successful review-only Quran pipeline run, and visual inspection of the actual generated MP4 before considering any production rollout.
