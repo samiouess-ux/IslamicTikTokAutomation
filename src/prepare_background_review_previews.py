@@ -42,17 +42,17 @@ def resolve_pexels_direct_url(page_url: str) -> str:
     })
     with urllib.request.urlopen(request, timeout=45) as response:
         html = response.read(16 * 1024 * 1024).decode("utf-8", errors="replace")
-    html = html.replace("\\\\/", "/").replace("\\\\u0026", "&")
+    html = html.replace("\\/", "/").replace("\\u0026", "&")
 
     # Pexels page slugs can contain a different ID from the downloadable media.
     # Extract the real IDs from its download controls before trying the slug ID.
     download_ids = re.findall(
-        r"""(?:href|data-href)\\s*=\\s*["'](?:https?://(?:www\\.)?pexels\\.com)?/download/video/(\\d+)/?["']""",
+        r"""(?:href|data-href)\s*=\s*["'](?:https?://(?:www\.)?pexels\.com)?/download/video/(\d+)/?["']""",
         html,
         flags=re.IGNORECASE,
     )
     download_ids += re.findall(
-        r"""https?://(?:www\\.)?pexels\\.com/download/video/(\\d+)/?""",
+        r"""https?://(?:www\.)?pexels\.com/download/video/(\d+)/?""",
         html,
         flags=re.IGNORECASE,
     )
@@ -60,13 +60,12 @@ def resolve_pexels_direct_url(page_url: str) -> str:
 
     # Some pages expose the direct media URL in JSON-LD or embedded page state.
     direct_matches = re.findall(
-        r"""https?:\\?/\\?/videos\\.pexels\\.com\\?/video-files\\?/[^"'< >\\\\]+?\\.mp4(?:\\?[^"'< >\\\\]*)?""",
+        r"""https://videos\.pexels\.com/video-files/[^\s"'<>\]+\.mp4(?:\?[^\s"'<>\]+)?""",
         html,
         flags=re.IGNORECASE,
     )
-    for value in direct_matches:
-        candidate = value.replace("\\\\/", "/").replace("\\\\u0026", "&")
-        if candidate.startswith("https://videos.pexels.com/video-files/") and ".mp4" in candidate:
+    for candidate in direct_matches:
+        if candidate.startswith("https://videos.pexels.com/video-files/"):
             return candidate
 
     for asset_id in download_ids:
@@ -78,7 +77,7 @@ def resolve_pexels_direct_url(page_url: str) -> str:
         with urllib.request.urlopen(req, timeout=45) as download_response:
             final_url = download_response.geturl()
         if (final_url.startswith("https://videos.pexels.com/video-files/")
-                and re.search(r"\\.mp4(?:\\?|$)", final_url)):
+                and re.search(r"\.mp4(?:\?|$)", final_url)):
             return final_url
 
     # Fallback for older page formats where the page ID and asset ID match.
@@ -92,7 +91,7 @@ def resolve_pexels_direct_url(page_url: str) -> str:
         with urllib.request.urlopen(req, timeout=45) as download_response:
             final_url = download_response.geturl()
         if (final_url.startswith("https://videos.pexels.com/video-files/")
-                and re.search(r"\\.mp4(?:\\?|$)", final_url)):
+                and re.search(r"\.mp4(?:\?|$)", final_url)):
             return final_url
 
     raise RuntimeError(
