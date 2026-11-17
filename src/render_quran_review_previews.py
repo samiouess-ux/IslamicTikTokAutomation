@@ -591,6 +591,117 @@ def photo_motion_filter() -> str:
     )
 
 
+
+
+def build_cinematic_background_reel(scenes: list[dict], destination: Path) -> dict:
+    """Build a 9:16 scene reel with slow motion and restrained verse-boundary dissolves."""
+    if not scenes:
+        raise ValueError("At least one cinematic scene is required.")
+    durations = [float(scene["duration"]) for scene in scenes]
+    if any(not math.isfinite(value) or value <= 0 for value in durations):
+        raise ValueError("Every cinematic scene must have a finite positive duration.")
+    total_duration = sum(durations)
+    transition = min(0.45, min(durations) * 0.16) if len(scenes) > 1 else 0.0
+    inputs: list[str] = []
+    filters: list[str] = []
+    for index, (scene, duration) in enumerate(zip(scenes, durations)):
+        clip_duration = duration + (transition if index < len(scenes) - 1 else 0.0)
+        source = Path(scene["background"])
+        if scene.get("background_type") == "photo":
+            inputs.extend(["-loop", "1", "-framerate", "30", "-t",
+                           f"{clip_duration:.6f}", "-i", str(source)])
+        else:
+            inputs.extend(["-stream_loop", "-1", "-i", str(source)])
+        filters.append(
+            f"[{index}:v]scale=1080:1920:force_original_aspect_ratio=increase,"
+            f"crop=1080:1920,zoompan=z='min(1+0.00009*on,1.04)':"
+            f"x='(iw-iw/zoom)/2':y='(ih-ih/zoom)/2':"
+            f"d=1:s=1080x1920:fps=30,trim=duration={clip_duration:.6f},"
+            f"setpts=PTS-STARTPTS,setsar=1,format=yuv420p,settb=AVTB[v{index}]"
+        )
+    current = "v0"
+    elapsed = durations[0]
+    for index in range(1, len(scenes)):
+        label = f"x{index}"
+        filters.append(
+            f"[{current}][v{index}]xfade=transition=fade:"
+            f"duration={transition:.6f}:offset={elapsed:.6f}[{label}]"
+        )
+        current = label
+        elapsed += durations[index]
+    filters.append(
+        f"[{current}]trim=duration={total_duration:.6f},"
+        f"setpts=PTS-STARTPTS,format=yuv420p[outv]"
+    )
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        *inputs, "-filter_complex", ";".join(filters), "-map", "[outv]",
+        "-an", "-t", f"{total_duration:.6f}", "-c:v", "libx264",
+        "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
+        "-r", "30", str(destination)
+    ], check=True)
+    return {
+        "duration_seconds": round(total_duration, 3),
+        "transition_seconds": round(transition, 3),
+        "scene_count": len(scenes),
+        "motion": "slow_centered_zoom",
+    }
+
+
+def render_cinematic_preview(scenes: list[dict], intro: Path, output: Path,
+                             work: Path) -> dict:
+    """Composite timed Quran overlays over cinematic scenes without re-encoding recitation."""
+    if not scenes or not intro.is_file():
+        raise ValueError("Cinematic preview requires scenes and an opening cover.")
+    durations = [float(scene["duration"]) for scene in scenes]
+    if any(not math.isfinite(value) or value <= 0 for value in durations):
+        raise ValueError("Cinematic scene timing is missing or invalid.")
+    total_duration = sum(durations)
+    background_reel = work / "cinematic_background_reel.mp4"
+    background_report = build_cinematic_background_reel(scenes, background_reel)
+
+    audio_list = work / "cinematic_audio.txt"
+    audio_list.write_text(
+        "".join(f"file '{Path(scene['audio']).resolve()}'\\n" for scene in scenes),
+        encoding="utf-8",
+    )
+    audio_file = work / "cinematic_audio.mp3"
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-f", "concat", "-safe", "0", "-i", str(audio_list),
+        "-c:a", "copy", str(audio_file),
+    ], check=True)
+
+    inputs = ["-i", str(background_reel), "-i", str(audio_file),
+              "-loop", "1", "-framerate", "30", "-i", str(intro)]
+    filters = ["[0:v]setpts=PTS-STARTPTS[v0]",
+               "[v0][2:v]overlay=0:0:format=auto:enable='lt(t,0.6)'[cover]"]
+    current = "cover"
+    elapsed = 0.0
+    for index, scene in enumerate(scenes):
+        inputs.extend(["-loop", "1", "-framerate", "30", "-i", str(scene["frame"])])
+        input_index = index + 3
+        start = max(elapsed, 0.6) if index == 0 else elapsed
+        end = elapsed + durations[index]
+        label = f"verse{index}"
+        filters.append(
+            f"[{current}][{input_index}:v]overlay=0:0:format=auto:"
+            f"enable='gte(t,{start:.6f})*lt(t,{end:.6f})'[{label}]"
+        )
+        current = label
+        elapsed = end
+
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        *inputs, "-filter_complex", ";".join(filters),
+        "-map", f"[{current}]", "-map", "1:a:0",
+        "-t", f"{total_duration:.6f}", "-c:v", "libx264",
+        "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p",
+        "-c:a", "copy", "-shortest", "-movflags", "+faststart", str(output),
+    ], check=True)
+    return background_report
+
+
 def audio_duration_seconds(path: Path) -> float:
     """Return the measured duration of one ayah audio file; zero means probe unavailable."""
     try:
@@ -634,7 +745,9 @@ def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
         return max(moving, key=lambda item: float(item.get("duration_seconds") or 0))
     return available[0]
 
-def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
+def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0, visual_mode: str = "classic") -> dict:
+    if visual_mode not in {"classic", "cinematic"}:
+        raise ValueError("visual_mode must be 'classic' or 'cinematic'.")
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if minimum_previews < 1:
@@ -731,6 +844,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         background_sequence = [first_background] + remaining_backgrounds
         used_backgrounds = []
         segments = []
+        cinematic_scenes = []
+        intro = None
         used_background_ids = set()
         for index, verse in enumerate(verses):
             processed_audio = item.get("processed_audio_files", {}).get(str(int(verse["ayah"])))
@@ -830,16 +945,32 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest",
                 "-movflags", "+faststart", str(segment)
             ])
-            subprocess.run(command, check=True)
-            segments.append(segment)
-        concat = work / "segments.txt"
-        concat.write_text("".join(f"file '{p.resolve()}'\n" for p in segments), encoding="utf-8")
+            if visual_mode == "cinematic":
+                if ayah_audio_duration <= 0:
+                    raise RuntimeError("Cinematic mode requires a verified duration for every complete ayah audio file.")
+                cinematic_scenes.append({
+                    "background": str(background),
+                    "background_type": background_candidate.get("background_type"),
+                    "audio": str(audio),
+                    "frame": str(frame),
+                    "duration": ayah_audio_duration,
+                    "ayah": int(verse["ayah"]),
+                })
+            else:
+                subprocess.run(command, check=True)
+                segments.append(segment)
         output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
-        subprocess.run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-f", "concat", "-safe", "0", "-i", str(concat),
-            "-c", "copy", "-movflags", "+faststart", str(output)
-        ], check=True)
+        if visual_mode == "cinematic":
+            cinematic_report = render_cinematic_preview(cinematic_scenes, intro, output, work)
+        else:
+            concat = work / "segments.txt"
+            concat.write_text("".join(f"file '{p.resolve()}'\\n" for p in segments), encoding="utf-8")
+            subprocess.run([
+                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-f", "concat", "-safe", "0", "-i", str(concat),
+                "-c", "copy", "-movflags", "+faststart", str(output)
+            ], check=True)
+            cinematic_report = None
         info = probe(output)
         previews.append({
             "candidate_id": part_id,
@@ -852,6 +983,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "background_sequence": used_backgrounds,
             "cover_template_id": cover_template_id,
             "cover_rotation_index": cover_rotation_index,
+            "visual_mode": visual_mode,
+            "cinematic_render": cinematic_report,
             "file": str(output),
             **info,
             "review_only": True,
@@ -864,6 +997,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         raise RuntimeError(f"At least {minimum_previews} review previews are required.")
     result = {
         "status": "review_only_previews_rendered",
+        "visual_mode": visual_mode,
         "preview_count": len(previews),
         "items": previews,
         "production_approved": False,
@@ -906,6 +1040,8 @@ def main() -> None:
                         help="Minimum number of distinct review previews required.")
     parser.add_argument("--background-rotation-index", type=int, default=None,
                         help="Starting index for the approved background rotation; defaults to a daily UTC schedule slot.")
+    parser.add_argument("--visual-mode", choices=("classic", "cinematic"), default="classic",
+                        help="Keep classic rendering as the default; cinematic adds scene dissolves and timed Quran overlays.")
     args = parser.parse_args()
     rotation_index = args.background_rotation_index
     if rotation_index is None:
@@ -914,7 +1050,8 @@ def main() -> None:
         rotation_index = scheduled_background_rotation_index(now, total_backgrounds)
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
                             minimum_previews=args.minimum_previews,
-                            background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
+                            background_rotation_index=rotation_index,
+                            visual_mode=args.visual_mode), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
