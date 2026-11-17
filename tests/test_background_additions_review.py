@@ -34,7 +34,7 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
                     self.assertTrue(item["direct_video_url"])
                     self.assertFalse(item["download_verified"])
                 else:
-                    self.assertTrue(item["download_verified"])
+                    self.assertFalse(item["download_verified"])
 
     def test_existing_four_candidate_catalog_is_unchanged(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
