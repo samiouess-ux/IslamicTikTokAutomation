@@ -1,0 +1,52 @@
+{
+  "status": "cinematic_review_preview_rendered",
+  "file": "/home/runner/work/IslamicTikTokAutomation/IslamicTikTokAutomation/output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4",
+  "visual_mode": "cinematic",
+  "surah": "Ash-Sharh",
+  "verses": [
+    5,
+    6
+  ],
+  "audio_source_sha256": "3e2a91674ce2ee604885e06fba0ee67c425e5dbece54cc3256803e3b5f02c5a0",
+  "audio_user_reviewed": true,
+  "audio_rights_verified": true,
+  "audio_music_added": false,
+  "cover_template": "blue_night",
+  "backgrounds": [
+    {
+      "id": "pexels-ocean-shore-35036280",
+      "duration_seconds": 5.874,
+      "description": "Peaceful ocean waves on a sandy shoreline",
+      "source_page_url": "https://www.pexels.com/video/peaceful-ocean-waves-crashing-on-shoreline-35036280/",
+      "codec": "h264",
+      "width": 2160,
+      "height": 3840
+    },
+    {
+      "id": "pexels-mountain-lake-37675265",
+      "duration_seconds": 10.11,
+      "description": "Serene mountain lake with pine forest",
+      "source_page_url": "https://www.pexels.com/video/serene-mountain-lake-with-pine-forest-37675265/",
+      "codec": "h264",
+      "width": 2160,
+      "height": 3840
+    }
+  ],
+  "cinematic_render": {
+    "duration_seconds": 15.919,
+    "transition_seconds": 0.45,
+    "scene_count": 2,
+    "motion": "slow_centered_zoom"
+  },
+  "media": {
+    "duration_seconds": 15.859,
+    "width": 1080,
+    "height": 1920,
+    "video_codec": "h264",
+    "audio_codec": "mp3"
+  },
+  "review_only": true,
+  "production_approved": false,
+  "telegram_delivery": false,
+  "auto_publish": false
+}
