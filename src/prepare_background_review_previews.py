@@ -206,6 +206,7 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
             "description": candidate["description"],
             "creator": candidate["creator"],
             "source_page_url": candidate["source_page_url"],
+            "direct_video_url": url,
             "license_note": candidate["license"],
             "download_bytes": byte_count,
             "preview_path": str(preview_path),
