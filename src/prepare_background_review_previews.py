@@ -170,9 +170,15 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
         raise RuntimeError("Background review catalog contains no candidates.")
     output_dir.mkdir(parents=True, exist_ok=True)
     items = []
+    production_catalog_path = catalog_path.with_name("background_candidates.json")
+    production_catalog = json.loads(production_catalog_path.read_text(encoding="utf-8")) if production_catalog_path.exists() else {"candidates": []}
+    production_verified_ids = {
+        item.get("id") for item in production_catalog.get("candidates", [])
+        if item.get("download_verified") is True and item.get("user_approved") is True
+    }
     for candidate in candidates:
-        # Previously verified and approved candidates are immutable; do not re-download them.
-        if candidate.get("download_verified") is True and candidate.get("user_approved") is True:
+        # Candidates already integrated in the verified production catalog are immutable.
+        if candidate.get("id") in production_verified_ids:
             continue
         if candidate.get("approved") and not candidate.get("user_approved"):
             raise RuntimeError("An approved background must carry explicit user approval.")
