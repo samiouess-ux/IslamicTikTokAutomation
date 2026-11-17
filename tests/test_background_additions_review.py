@@ -1,4 +1,4 @@
-"""Safety checks for the eight additional Islamic background leads."""
+"""Safety checks for staged Islamic background additions."""
 import json
 import unittest
 from pathlib import Path
@@ -14,35 +14,27 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
         resolved = [item for item in catalog["candidates"] if item["direct_video_url"]]
         unresolved = [item for item in catalog["candidates"] if not item["direct_video_url"]]
-        self.assertEqual(len(resolved), 7)
+        self.assertEqual(len(resolved), 11)
         self.assertTrue(all(item["direct_video_url"].startswith("https://videos.pexels.com/") for item in resolved))
-        self.assertEqual(len(unresolved), 5)
+        self.assertEqual(len(unresolved), 1)
         self.assertEqual(
             {item["id"] for item in unresolved},
-            {
-                "pixabay-chain-dome-rock-131292",
-                "pexels-mosque-river-mostar-27529804",
-                "pexels-mosque-minaret-lush-trees-35447276",
-                "pexels-waterfall-forest-12110531",
-                "pexels-mosque-waterfront-12536108",
-            },
+            {"pixabay-chain-dome-rock-131292"},
         )
         for item in catalog["candidates"]:
             self.assertTrue(item["source_page_url"].startswith(("https://www.pexels.com/", "https://pixabay.com/")))
-            if item["id"] in {
-                "pixabay-chain-dome-rock-131292",
-                "pexels-mosque-river-mostar-27529804",
-                "pexels-mosque-minaret-lush-trees-35447276",
-                "pexels-waterfall-forest-12110531",
-                "pexels-mosque-waterfront-12536108",
-            }:
+            if item["id"] == "pixabay-chain-dome-rock-131292":
                 self.assertFalse(item["approved"])
                 self.assertFalse(item["user_approved"])
                 self.assertFalse(item["download_verified"])
             else:
                 self.assertTrue(item["approved"])
                 self.assertTrue(item["user_approved"])
-                self.assertFalse(item["download_verified"])
+                if item["id"].startswith("pexels-mosque-") or item["id"] == "pexels-waterfall-forest-12110531":
+                    self.assertTrue(item["direct_video_url"])
+                    self.assertFalse(item["download_verified"])
+                else:
+                    self.assertTrue(item["download_verified"])
 
     def test_existing_four_candidate_catalog_is_unchanged(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
