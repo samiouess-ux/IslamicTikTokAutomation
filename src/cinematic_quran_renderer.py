@@ -82,8 +82,14 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int, out: Pat
     with zipfile.ZipFile(COVER_ARCHIVE) as archive:
         raw=archive.read(f"cover_{COVER_IDS[cover_rotation_index]}.jpg")
     source=Image.open(io.BytesIO(raw)).convert("RGBA")
-    bg=ImageOps.fit(source,(WIDTH,HEIGHT)).filter(ImageFilter.GaussianBlur(28))
-    image=Image.alpha_composite(bg,Image.new("RGBA",(WIDTH,HEIGHT),(2,7,10,112)))
+    if background_frame is not None and Path(background_frame).is_file():
+        moving_bg=ImageOps.fit(Image.open(background_frame).convert("RGBA"),(WIDTH,HEIGHT)).filter(ImageFilter.GaussianBlur(18))
+        bg=Image.alpha_composite(moving_bg,Image.new("RGBA",(WIDTH,HEIGHT),(2,7,10,150)))
+        template=ImageOps.fit(source,(WIDTH,HEIGHT))
+        image=Image.blend(bg,template,0.38)
+    else:
+        bg=ImageOps.fit(source,(WIDTH,HEIGHT)).filter(ImageFilter.GaussianBlur(28))
+        image=Image.alpha_composite(bg,Image.new("RGBA",(WIDTH,HEIGHT),(2,7,10,112)))
     fh=round(source.height*WIDTH/source.width); fg=source.resize((WIDTH,fh)); top=(HEIGHT-fh)//2
     image.alpha_composite(fg,(0,top)); draw=ImageDraw.Draw(image)
     title=f"سُورَةُ {SURAH_TASHKEEL[surah_number-1]}"
