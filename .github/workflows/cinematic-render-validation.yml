@@ -1,0 +1,42 @@
+name: Isolated cinematic renderer validation
+
+on:
+  push:
+    branches: [test/cinematic-render-validation]
+    paths:
+      - ".github/workflows/cinematic-render-validation.yml"
+      - "src/render_quran_review_previews.py"
+      - "tests/test_cinematic_review_renderer.py"
+      - "tests/test_render_quran_review_previews.py"
+
+permissions:
+  contents: read
+
+jobs:
+  cinematic-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: test/cinematic-render-validation
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install isolated render dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
+          python -m pip install --disable-pip-version-check Pillow remotezip
+      - name: Compile renderer
+        run: python -m py_compile src/render_quran_review_previews.py
+      - name: Run cinematic integration and Quran layout tests
+        run: |
+          python -m unittest -v tests/test_cinematic_review_renderer.py
+          python -m unittest -v tests/test_render_quran_review_previews.py
+      - name: Confirm review-only safety boundary
+        run: |
+          grep -q "review-only" src/render_quran_review_previews.py
+          ! grep -Eq "send_telegram|upload_to_tiktok|auto_publish" .github/workflows/cinematic-render-validation.yml
+          echo "Validation is isolated; it does not send, publish, or modify production workflows."
