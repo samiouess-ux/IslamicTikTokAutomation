@@ -663,7 +663,7 @@ def render_cinematic_preview(scenes: list[dict], intro: Path, output: Path,
 
     audio_list = work / "cinematic_audio.txt"
     audio_list.write_text(
-        "".join(f"file '{Path(scene['audio']).resolve()}'\\n" for scene in scenes),
+        "".join(f"file '{Path(scene['audio']).resolve()}'\n" for scene in scenes),
         encoding="utf-8",
     )
     audio_file = work / "cinematic_audio.mp3"
