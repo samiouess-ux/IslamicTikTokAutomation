@@ -8,12 +8,12 @@ from pathlib import Path
 class BackgroundCandidateTests(unittest.TestCase):
     def test_four_candidates_have_matching_pexels_direct_mp4_sources(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(catalog["candidates"]), 11)
+        self.assertEqual(len(catalog["candidates"]), 15)
         original_ids = {"pexels-ocean-shore-35036280", "pexels-mountain-lake-37675265", "pexels-sunset-sky-35477402", "pexels-mountain-bridge-5903759"}
         original = [item for item in catalog["candidates"] if item["id"] in original_ids]
         additions = [item for item in catalog["candidates"] if item["id"] not in original_ids]
         self.assertEqual(len(original), 4)
-        self.assertEqual(len(additions), 7)
+        self.assertEqual(len(additions), 11)
         for item in catalog["candidates"]:
             source_id = item["id"].rsplit("-", 1)[-1]
             url = item["direct_video_url"]
