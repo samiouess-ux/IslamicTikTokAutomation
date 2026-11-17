@@ -61,6 +61,14 @@ on:
         required: false
         default: false
         type: boolean
+      visual_mode:
+        description: 'Choose the review rendering style. Cinematic mode is always preview-only.'
+        required: false
+        default: classic
+        type: choice
+        options:
+          - classic
+          - cinematic
 
 permissions:
   contents: write
@@ -72,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Block automatic sends when a previous Telegram outcome is unresolved
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true)
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.visual_mode != 'cinematic' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true)
         run: python src/quran_delivery_attempt.py guard --pending data/quran_delivery_pending.json
       - uses: actions/setup-python@v5
         with:
@@ -297,13 +305,15 @@ jobs:
           print(f"Generated {report['manifest_count']} distinct-surah draft manifests; production gates remain closed.")
           PY
       - name: Render distinct-surah 9:16 review-only video previews
+        id: render_preview
         run: |
           python src/render_quran_review_previews.py \
             --batch output/quran_review_batch.json \
             --audio-report output/quran_batch_audio_report.json \
             --output-dir output/quran_review_previews \
             --minimum-previews 1 \
-            --background-rotation-index "$GITHUB_RUN_NUMBER"
+            --background-rotation-index "$GITHUB_RUN_NUMBER" \
+             --visual-mode "${{ inputs.visual_mode || 'classic' }}"
           python - <<'PY'
           import json
           from pathlib import Path
@@ -386,8 +396,20 @@ jobs:
               raise SystemExit("New-background Quran overlay contact sheet was not created.")
           print("Created four Quran-overlay previews for the newly integrated backgrounds; visual legibility review is retained without re-downloading older assets.")
           PY
+      - name: Upload compact review-only MP4 and renderer report
+        if: steps.render_preview.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-review-preview-${{ github.run_number }}
+          path: |
+            output/quran_review_previews/*_REVIEW_ONLY.mp4
+            output/quran_review_previews/preview_report.json
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Reserve Telegram delivery attempt before sending
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true)
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.visual_mode != 'cinematic' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true)
         run: |
           python src/quran_delivery_attempt.py reserve \
             --pending data/quran_delivery_pending.json \
@@ -405,7 +427,7 @@ jobs:
 
       - name: Send one review-only video to Telegram for manual approval
         id: telegram_send
-        if: (github.event_name == 'workflow_dispatch' && ((inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true) || inputs.test_only_telegram == true)) || github.event_name == 'schedule'
+        if: (github.event_name == 'workflow_dispatch' && inputs.visual_mode != 'cinematic' && ((inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true) || inputs.test_only_telegram == true)) || github.event_name == 'schedule'
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -446,7 +468,7 @@ jobs:
           PY
 
       - name: Record Telegram-confirmed Quran delivery history
-        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true))
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.visual_mode != 'cinematic' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true))
         run: |
           python - <<'PY'
           import json
@@ -473,14 +495,14 @@ jobs:
           git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery and clear reservation"
 
       - name: Sync confirmed Quran delivery history to active branch
-        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true))
+        if: steps.telegram_send.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.visual_mode != 'cinematic' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true))
         run: |
           git fetch origin feature/telegram-review-notifications
           git -c rebase.autoStash=true rebase origin/feature/telegram-review-notifications
           git push origin HEAD:refs/heads/feature/telegram-review-notifications
 
       - name: Notify Telegram if video preparation or delivery fails
-        if: failure() && steps.telegram_send.outcome != 'success' && ((github.event_name == 'workflow_dispatch' && ((inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true) || inputs.test_only_telegram == true)) || github.event_name == 'schedule')
+        if: failure() && steps.telegram_send.outcome != 'success' && ((github.event_name == 'workflow_dispatch' && inputs.visual_mode != 'cinematic' && ((inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true) || inputs.test_only_telegram == true)) || github.event_name == 'schedule')
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
