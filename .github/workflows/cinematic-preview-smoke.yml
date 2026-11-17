@@ -1,0 +1,183 @@
+name: Cinematic Quran preview render (isolated)
+
+on:
+  push:
+    branches: [test/cinematic-render-validation]
+    paths:
+      - ".github/workflows/cinematic-preview-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cinematic-review-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout isolated validation branch
+        uses: actions/checkout@v4
+        with:
+          ref: test/cinematic-render-validation
+          persist-credentials: false
+
+      - name: Install rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
+          python -m pip install --disable-pip-version-check Pillow remotezip
+
+      - name: Compile the existing cinematic renderer
+        run: python -m py_compile src/render_quran_review_previews.py
+
+      - name: Render a real review-only cinematic Quran preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/cinematic_review/audio build/cinematic_review/backgrounds build/cinematic_review/frames output/cinematic_review
+          python - <<'PY'
+          import hashlib
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+          from remotezip import RemoteZip
+
+          sys.path.insert(0, "src")
+          import render_quran_review_previews as renderer
+
+          work = Path("build/cinematic_review").resolve()
+          output = Path("output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4").resolve()
+          manifest = json.loads(Path("content/first_video.json").read_text(encoding="utf-8"))
+          audio_meta = manifest["audio"]
+          assert audio_meta["approved_for_first_test_video"] is True
+          assert audio_meta["exact_audio_file_listened_and_checked"] is True
+          assert audio_meta["extracted_verses"] == [5, 6]
+          assert any(
+              item.get("exact_recording_user_reviewed") is True
+              and item.get("status", "").startswith("approved_")
+              for item in audio_meta.get("license_research_candidates", [])
+          ), "The exact recording must have an explicit user-review and rights record."
+
+          # Re-extract only the exact, previously reviewed Hafs ayahs from the official archive.
+          archive_url = audio_meta["official_verse_archive_url"]
+          with RemoteZip(archive_url) as archive:
+              for ayah in (5, 6):
+                  entry = audio_meta["archive_entries"][str(ayah)]
+                  (work / "audio" / f"verse{ayah}.mp3").write_bytes(archive.read(entry))
+
+          audio_list = work / "audio" / "concat.txt"
+          audio_list.write_text(
+              "".join(f"file '{(work / 'audio' / f'verse{ayah}.mp3').as_posix()}'\n" for ayah in (5, 6)),
+              encoding="utf-8",
+          )
+          source_audio = work / "audio" / "approved-recitation.mp3"
+          subprocess.run([
+              "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+              "-f", "concat", "-safe", "0", "-i", str(audio_list),
+              "-c:a", "copy", str(source_audio),
+          ], check=True)
+          audio_sha256 = hashlib.sha256(source_audio.read_bytes()).hexdigest()
+          expected_sha256 = audio_meta["combined_audio_sha256"]
+          assert audio_sha256 == expected_sha256, (
+              f"Approved recitation checksum mismatch: {audio_sha256}"
+          )
+
+          def duration(path):
+              raw = subprocess.check_output([
+                  "ffprobe", "-v", "error", "-show_entries", "format=duration",
+                  "-of", "default=noprint_wrappers=1:nokey=1", str(path)
+              ], text=True).strip()
+              value = float(raw)
+              assert value > 0
+              return value
+
+          verses = {int(item["number"]): item for item in manifest["verses"]}
+          assert set(verses) == {5, 6}
+          catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
+          approved = [
+              item for item in catalog["candidates"]
+              if item.get("approved") is True
+              and item.get("user_approved") is True
+              and item.get("download_verified") is True
+              and item.get("direct_video_url", "").startswith("https://videos.pexels.com/video-files/")
+          ]
+          assert len(approved) >= 2, "At least two approved moving scenes are required."
+
+          chosen = [approved[0], approved[1]]
+          backgrounds = []
+          for index, candidate in enumerate(chosen):
+              destination = work / "backgrounds" / f"scene-{index + 1}.mp4"
+              metadata = renderer.prepare_moving_background(candidate, destination)
+              backgrounds.append((candidate, destination, metadata))
+
+          first_frame = work / "backgrounds" / "opening-background.jpg"
+          subprocess.run([
+              "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+              "-ss", "0", "-i", str(backgrounds[0][1]), "-frames:v", "1",
+              "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
+              str(first_frame),
+          ], check=True)
+
+          font_path = renderer.font_file()
+          intro = work / "opening-cover.png"
+          cover_template = renderer.make_intro_frame(
+              94, 5, 6, intro, font_path, renderer.SURAH_NAMES[93],
+              background_frame=first_frame, cover_rotation_index=0,
+          )
+
+          scenes = []
+          for index, ayah in enumerate((5, 6)):
+              verse = verses[ayah]
+              frame = work / "frames" / f"ayah-{ayah}.png"
+              renderer.make_frame(verse, 94, index, frame, font_path, renderer.SURAH_NAMES[93])
+              audio = work / "audio" / f"verse{ayah}.mp3"
+              scenes.append({
+                  "background": str(backgrounds[index][1]),
+                  "background_type": "moving_video",
+                  "audio": str(audio),
+                  "frame": str(frame),
+                  "duration": duration(audio),
+                  "ayah": ayah,
+              })
+
+          render_report = renderer.render_cinematic_preview(scenes, intro, output, work)
+          media_report = renderer.probe(output)
+          assert media_report["width"] == 1080 and media_report["height"] == 1920
+          assert media_report["audio_codec"] == "mp3"
+          assert 0 < media_report["duration_seconds"] <= 45
+          assert [scene["ayah"] for scene in scenes] == [5, 6]
+
+          report = {
+              "status": "cinematic_review_preview_rendered",
+              "file": str(output),
+              "visual_mode": "cinematic",
+              "surah": "Ash-Sharh",
+              "verses": [5, 6],
+              "audio_source_sha256": audio_sha256,
+              "audio_user_reviewed": True,
+              "audio_rights_verified": True,
+              "audio_music_added": False,
+              "cover_template": cover_template,
+              "backgrounds": [item[2] for item in backgrounds],
+              "cinematic_render": render_report,
+              "media": media_report,
+              "review_only": True,
+              "production_approved": False,
+              "telegram_delivery": False,
+              "auto_publish": False,
+          }
+          Path("output/cinematic_review/preview_report.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(report, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload private review artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ash-sharh-94-5-6-cinematic-review-only
+          path: |
+            output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4
+            output/cinematic_review/preview_report.json
+          retention-days: 7
