@@ -35,24 +35,70 @@ def download_candidate(url: str, destination: Path) -> int:
 
 
 def resolve_pexels_direct_url(page_url: str) -> str:
-    """Resolve the public MP4 URL embedded in a Pexels video page."""
-    request = urllib.request.Request(page_url, headers={"User-Agent": USER_AGENT})
+    """Resolve Pexels' actual download asset ID (which can differ from the page slug ID)."""
+    request = urllib.request.Request(page_url, headers={
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml",
+    })
     with urllib.request.urlopen(request, timeout=45) as response:
-        html = response.read(12 * 1024 * 1024).decode("utf-8", errors="replace")
-    matches = re.findall(r'https?:\\?/\\?/videos\.pexels\.com\\?/video-files\\?/[^"\\<> ]+?\.mp4', html)
-    if matches:
-        cleaned = [item.replace("\\/", "/").replace("\\u0026", "&") for item in matches]
-        return max(cleaned, key=len)
-    video_id = page_url.rstrip("/").split("-")[-1]
-    if video_id.isdigit():
-        download_url = f"https://www.pexels.com/download/video/{video_id}/"
-        req = urllib.request.Request(download_url, headers={"User-Agent": USER_AGENT})
+        html = response.read(16 * 1024 * 1024).decode("utf-8", errors="replace")
+    html = html.replace("\\\\/", "/").replace("\\\\u0026", "&")
+
+    # Pexels page slugs can contain a different ID from the downloadable media.
+    # Extract the real IDs from its download controls before trying the slug ID.
+    download_ids = re.findall(
+        r"""(?:href|data-href)\\s*=\\s*["'](?:https?://(?:www\\.)?pexels\\.com)?/download/video/(\\d+)/?["']""",
+        html,
+        flags=re.IGNORECASE,
+    )
+    download_ids += re.findall(
+        r"""https?://(?:www\\.)?pexels\\.com/download/video/(\\d+)/?""",
+        html,
+        flags=re.IGNORECASE,
+    )
+    download_ids = list(dict.fromkeys(download_ids))
+
+    # Some pages expose the direct media URL in JSON-LD or embedded page state.
+    direct_matches = re.findall(
+        r"""https?:\\?/\\?/videos\\.pexels\\.com\\?/video-files\\?/[^"'< >\\\\]+?\\.mp4(?:\\?[^"'< >\\\\]*)?""",
+        html,
+        flags=re.IGNORECASE,
+    )
+    for value in direct_matches:
+        candidate = value.replace("\\\\/", "/").replace("\\\\u0026", "&")
+        if candidate.startswith("https://videos.pexels.com/video-files/") and ".mp4" in candidate:
+            return candidate
+
+    for asset_id in download_ids:
+        download_url = f"https://www.pexels.com/download/video/{asset_id}/"
+        req = urllib.request.Request(download_url, headers={
+            "User-Agent": USER_AGENT,
+            "Referer": page_url,
+        })
         with urllib.request.urlopen(req, timeout=45) as download_response:
             final_url = download_response.geturl()
-        if final_url.startswith("https://videos.pexels.com/video-files/") and final_url.endswith(".mp4"):
+        if (final_url.startswith("https://videos.pexels.com/video-files/")
+                and re.search(r"\\.mp4(?:\\?|$)", final_url)):
             return final_url
-    raise RuntimeError(f"No direct Pexels MP4 URL found on {page_url}")
 
+    # Fallback for older page formats where the page ID and asset ID match.
+    video_id = page_url.rstrip("/").split("-")[-1]
+    if video_id.isdigit() and video_id not in download_ids:
+        download_url = f"https://www.pexels.com/download/video/{video_id}/"
+        req = urllib.request.Request(download_url, headers={
+            "User-Agent": USER_AGENT,
+            "Referer": page_url,
+        })
+        with urllib.request.urlopen(req, timeout=45) as download_response:
+            final_url = download_response.geturl()
+        if (final_url.startswith("https://videos.pexels.com/video-files/")
+                and re.search(r"\\.mp4(?:\\?|$)", final_url)):
+            return final_url
+
+    raise RuntimeError(
+        f"No direct Pexels MP4 URL found on {page_url}; "
+        f"download asset IDs discovered: {download_ids}"
+    )
 
 def probe_video(path: Path) -> dict:
     raw = subprocess.check_output([
