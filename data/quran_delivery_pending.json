@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "status": "sending_or_outcome_unknown",
+  "candidate_id": "quran_s074_001_056_part_001",
+  "source_candidate_id": "quran_s074_001_056",
+  "surah_number": 74,
+  "selected_verses": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "ayah_references": [
+    "74:1",
+    "74:2",
+    "74:3",
+    "74:4",
+    "74:5",
+    "74:6",
+    "74:7",
+    "74:8",
+    "74:9",
+    "74:10"
+  ],
+  "created_at_utc": "2026-11-17T00:25:02.568438+00:00",
+  "recovery_note": "Do not resend automatically. Reconcile against the Telegram chat before clearing this reservation."
+}
