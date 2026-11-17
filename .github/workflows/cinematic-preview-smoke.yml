@@ -29,7 +29,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
-          python -m pip install --disable-pip-version-check Pillow remotezip
+          python -m pip install --disable-pip-version-check Pillow requests
 
       - name: Compile the existing cinematic renderer
         run: python -m py_compile src/render_quran_review_previews.py
@@ -45,7 +45,9 @@ jobs:
           import subprocess
           import sys
           from pathlib import Path
-          from remotezip import RemoteZip
+          import io
+          import zipfile
+          import requests
 
           sys.path.insert(0, "src")
           import render_quran_review_previews as renderer
@@ -63,11 +65,12 @@ jobs:
               for item in audio_meta.get("license_research_candidates", [])
           ), "The exact recording must have an explicit user-review and rights record."
 
-          # Re-extract only the exact, previously reviewed Hafs ayahs from the official archive.
-          # Quran.ws mirror lists the same KFGQPC archive and published SHA-256.
-          # The extracted, user-approved 94:5-6 audio is independently checked below.
-          archive_url = audio_meta["official_verse_archive_url"]
-          with RemoteZip(archive_url) as archive:
+          # Fetch the published KFGQPC archive in one request: the mirror rejects
+          # HTTP range requests, and the official host currently redirects to a stale URL.
+          archive_url = "https://cdn.quran.ws/KFGQPC/resources/quran-audios/ayat-12-1-2020/ayat-12-1-2020.zip"
+          response = requests.get(archive_url, timeout=(30, 180))
+          response.raise_for_status()
+          with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
               for ayah in (5, 6):
                   entry = audio_meta["archive_entries"][str(ayah)]
                   (work / "audio" / f"verse{ayah}.mp3").write_bytes(archive.read(entry))
