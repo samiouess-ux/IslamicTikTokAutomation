@@ -38,7 +38,7 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
 
     def test_existing_four_candidate_catalog_is_unchanged(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(catalog["candidates"]), 11)
+        self.assertEqual(len(catalog["candidates"]), 15)
         self.assertTrue(all(item["user_approved"] and item["download_verified"] for item in catalog["candidates"]))
         original_ids = {
                 "pexels-ocean-shore-35036280",
