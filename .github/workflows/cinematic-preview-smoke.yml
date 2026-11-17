@@ -31,8 +31,8 @@ jobs:
           sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
           python -m pip install --disable-pip-version-check Pillow requests
 
-      - name: Compile the existing cinematic renderer
-        run: python -m py_compile src/render_quran_review_previews.py
+      - name: Compile the standalone cinematic renderer
+        run: python -m py_compile src/cinematic_quran_renderer.py
 
       - name: Render a real review-only cinematic Quran preview
         shell: bash
@@ -50,7 +50,7 @@ jobs:
           import requests
 
           sys.path.insert(0, "src")
-          import render_quran_review_previews as renderer
+          import cinematic_quran_renderer as renderer
 
           work = Path("build/cinematic_review").resolve()
           output = Path("output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4").resolve()
