@@ -7,7 +7,7 @@ on:
       - ".github/workflows/cinematic-preview-smoke.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   cinematic-review-preview:
@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: test/cinematic-render-validation
-          persist-credentials: false
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -180,11 +180,19 @@ jobs:
           print(json.dumps(report, ensure_ascii=False, indent=2))
           PY
 
-      - name: Upload private review artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ash-sharh-94-5-6-cinematic-review-only
-          path: |
-            output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4
-            output/cinematic_review/preview_report.json
-          retention-days: 7
+      - name: Store review-only preview on the isolated test branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4
+          test -s output/cinematic_review/preview_report.json
+          du -h output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f output/cinematic_review/ash-sharh-94-5-6-CINEMATIC-REVIEW.mp4 output/cinematic_review/preview_report.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Save isolated cinematic Quran review preview"
+            git push origin HEAD:test/cinematic-render-validation
+          else
+            echo "Review preview is already stored on the isolated test branch."
+          fi
