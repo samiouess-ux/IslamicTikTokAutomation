@@ -79,3 +79,12 @@ Rotate between reviewed surahs and verse selections (single ayahs or consecutive
 - Use the established gold cartouche and calm dark panel; preserve the existing ayah layout after the cover fades.
 - Target cover display: 1.6 seconds with a gentle 0.4-second alpha fade. The selected prepared recitation stream starts at video time 0; the cover must not insert silence or delay playback, and the renderer must not alter that stream.
 - The first frame is the TikTok cover candidate. TikTok publishing remains manual; the user chooses the cover in the TikTok app.
+
+
+## Parallel cinematic review mode (2026-11-17)
+
+- The existing renderer now supports an opt-in `--visual-mode cinematic`; `classic` remains the default and its rendering path is unchanged.
+- Cinematic mode uses the existing approved moving-video and photo background libraries, with a slow centered zoom and restrained crossfades (maximum 0.45 seconds) between ayah scenes.
+- Each complete ayah remains its own timed overlay. Arabic text and its paired Saheeh International English meaning are not rewritten or merged across scenes.
+- The opening cover remains visible only for the first 0.6 seconds. The original MP3 ayah files are concatenated by stream copy; recitation is not synthesized, sped up, or replaced.
+- Cinematic runs are review-only. They must never reserve or send Telegram deliveries, record delivery history, or enable auto-publishing. The existing production branch and scheduled classic mode remain unchanged until the user reviews and accepts the cinematic output.
