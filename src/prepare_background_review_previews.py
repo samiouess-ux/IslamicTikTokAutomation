@@ -171,6 +171,9 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     items = []
     for candidate in candidates:
+        # Previously verified and approved candidates are immutable; do not re-download them.
+        if candidate.get("download_verified") is True and candidate.get("user_approved") is True:
+            continue
         if candidate.get("approved") and not candidate.get("user_approved"):
             raise RuntimeError("An approved background must carry explicit user approval.")
         if candidate.get("download_verified") and not candidate.get("user_approved"):
@@ -179,8 +182,20 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
         video_path = output_dir / f'{candidate["id"]}.mp4'
         preview_path = output_dir / f'{candidate["id"]}_vertical_crop.jpg'
         try:
-            if not url:
+            if not url and candidate.get("source_page_url", "").startswith("https://www.pexels.com/video/"):
                 url = resolve_pexels_direct_url(candidate["source_page_url"])
+            if not url:
+                items.append({
+                    "id": candidate["id"],
+                    "description": candidate["description"],
+                    "creator": candidate.get("creator"),
+                    "source_page_url": candidate["source_page_url"],
+                    "download_probe_verified": False,
+                    "production_enabled": False,
+                    "user_approved": candidate.get("user_approved", False),
+                    "review_status": "missing_direct_video_url",
+                })
+                continue
             if not url.startswith(("https://videos.pexels.com/video-files/", "https://cdn.pixabay.com/")):
                 raise RuntimeError(f"Untrusted candidate media URL: {candidate.get('id')}")
             byte_count = download_candidate(url, video_path)
@@ -212,9 +227,9 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
         build_contact_sheet(verified_items, contact_sheet)
     report = {
         "status": "downloaded_and_probe_verified_requires_user_visual_review" if verified_items else "source_candidates_registered_media_urls_pending",
-        "source_candidate_count": len(candidates),
+        "source_candidate_count": len(items),
         "candidate_count": len(verified_items),
-        "unresolved_count": len(candidates) - len(verified_items),
+        "unresolved_count": len(items) - len(verified_items),
         "unresolved_candidates": [item["id"] for item in items if not item.get("download_probe_verified")],
         "contact_sheet": str(contact_sheet) if verified_items else None,
         "production_enabled": False,
