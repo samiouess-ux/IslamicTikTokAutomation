@@ -60,7 +60,7 @@ def resolve_pexels_direct_url(page_url: str) -> str:
 
     # Some pages expose the direct media URL in JSON-LD or embedded page state.
     direct_matches = re.findall(
-        r"""https://videos\.pexels\.com/video-files/[^\s"'<>\]+\.mp4(?:\?[^\s"'<>\]+)?""",
+        r"""https://videos\.pexels\.com/video-files/[^"'<> ]+?\.mp4(?:\?[^"'<> ]*)?""",
         html,
         flags=re.IGNORECASE,
     )
