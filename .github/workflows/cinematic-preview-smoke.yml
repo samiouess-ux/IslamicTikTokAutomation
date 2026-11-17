@@ -5,6 +5,7 @@ on:
     branches: [test/cinematic-render-validation]
     paths:
       - ".github/workflows/cinematic-preview-smoke.yml"
+      - "src/cinematic_quran_renderer.py"
 
 permissions:
   contents: write
@@ -31,8 +32,10 @@ jobs:
           sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
           python -m pip install --disable-pip-version-check Pillow requests
 
-      - name: Compile the standalone cinematic renderer
-        run: python -m py_compile src/cinematic_quran_renderer.py
+      - name: Verify renderer isolation and compile
+        run: |
+          ! grep -nE "import render_quran_review_previews|from render_quran_review_previews" src/cinematic_quran_renderer.py
+          python -m py_compile src/cinematic_quran_renderer.py
 
       - name: Render a real review-only cinematic Quran preview
         shell: bash
