@@ -71,9 +71,13 @@ jobs:
       - name: Download and prepare isolated Islamic background previews with Quran overlay
         run: |
           python src/prepare_background_review_previews.py \
-            --catalog data/background_additions_review.json \
+            --catalog data/background_candidates.json \
             --output-dir output/background_additions_review \
-            --overlay-frame output/background_additions_review/quran_overlay_ash_sharh_94_5.png
+            --overlay-frame output/background_additions_review/quran_overlay_ash_sharh_94_5.png \
+            --include-id pexels-mosque-river-mostar-27529804 \
+            --include-id pexels-mosque-minaret-lush-trees-35447276 \
+            --include-id pexels-waterfall-forest-12110531 \
+            --include-id pexels-mosque-waterfront-12536108
       - name: Activate only the four explicitly approved, downloaded, ffprobe-verified portrait clips
         run: |
           python - <<'PY'
