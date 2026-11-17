@@ -116,7 +116,7 @@ def composite_overlay_preview(background_crop: Path, overlay_frame: Path, destin
         base.convert("RGB").save(destination, quality=92)
 
 
-def prepare(catalog_path: Path, output_dir: Path) -> dict:
+def prepare(catalog_path: Path, output_dir: Path, include_ids: set[str] | None = None) -> dict:
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     candidates = catalog.get("candidates", [])
     if not candidates:
@@ -129,9 +129,13 @@ def prepare(catalog_path: Path, output_dir: Path) -> dict:
         item.get("id") for item in production_catalog.get("candidates", [])
         if item.get("download_verified") is True and item.get("user_approved") is True
     }
-    for candidate in candidates:
-        # Candidates already integrated in the verified production catalog are immutable.
-        if candidate.get("id") in production_verified_ids:
+    selected_candidates = [candidate for candidate in candidates if include_ids is None or candidate.get("id") in include_ids]
+    if include_ids is not None and {item.get("id") for item in selected_candidates} != include_ids:
+        raise RuntimeError("One or more requested background IDs are missing from the catalog.")
+    for candidate in selected_candidates:
+        # Skip already-integrated candidates when reviewing the staged additions list.
+        # An explicit include_ids list requests a fresh overlay preview.
+        if include_ids is None and candidate.get("id") in production_verified_ids:
             continue
         if candidate.get("approved") and not candidate.get("user_approved"):
             raise RuntimeError("An approved background must carry explicit user approval.")
@@ -206,8 +210,9 @@ def main() -> None:
     parser.add_argument("--catalog", default="data/background_candidates.json")
     parser.add_argument("--output-dir", default="output/background_review")
     parser.add_argument("--overlay-frame", type=Path, help="Actual transparent Quran PNG frame from the current review render.")
+    parser.add_argument("--include-id", action="append", dest="include_ids", help="Only prepare this candidate ID; may be repeated.")
     args = parser.parse_args()
-    report = prepare(Path(args.catalog), Path(args.output_dir))
+    report = prepare(Path(args.catalog), Path(args.output_dir), set(args.include_ids) if args.include_ids else None)
     if args.overlay_frame:
         if not report["candidate_count"]:
             raise RuntimeError("Cannot composite Quran overlays: no candidates have verified downloadable media URLs.")
