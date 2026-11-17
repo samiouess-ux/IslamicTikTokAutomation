@@ -20,9 +20,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     def test_photo_background_filter_has_continuous_zoom_and_pan(self):
         photo_filter = renderer.photo_motion_filter()
         self.assertIn("zoompan=", photo_filter)
-        self.assertIn("sin(on/900)", photo_filter)
-        self.assertIn("sin(on/700)", photo_filter)
-        self.assertIn("cos(on/850)", photo_filter)
+        self.assertIn("1.15-0.15*cos(2*PI*on/360)", photo_filter)
+        self.assertIn("x='iw/2-iw/zoom/2'", photo_filter)
+        self.assertIn("y='ih/2-ih/zoom/2'", photo_filter)
         self.assertIn("fps=30", photo_filter)
         self.assertNotIn("min(zoom+", photo_filter)
 
@@ -248,7 +248,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(first_sequence[0], "pexels-sunset-sky-35477402")
             self.assertEqual(
                 [x["duration_seconds"] for x in result["items"][0]["background_sequence"]],
-                [5.0, 24.0, 14.0],
+                [5.0, 40.725, 24.0],
             )
             self.assertEqual(result["background_rotation_start_index"], 2)
             self.assertEqual([x["cover_template_id"] for x in result["items"]], ["dark_marble", "sunset"])
