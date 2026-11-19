@@ -1037,3 +1037,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - The xfade function in `src/render_video_scenes.py` belongs to a separate renderer path and is not used by the active scheduled workflow. Do not assume it solves transitions in the active path.
 - No source, workflow, catalog, asset, Cron, Telegram, or production settings changed during this audit.
 - **Next:** propose the smallest isolated implementation for a separate, delivery-confirmed visual history plus controlled scene-transition rotation. Wait for explicit user approval before changing code.
+
+
+## 2026-11-19 — TikTok Growth phase 3 implementation status
+- Implemented persistent, delivery-confirmed visual history, recent background/category avoidance, recent cover rotation, and 0.35-second video-only scene crossfades on `feature/telegram-review-notifications`.
+- MP3 audio is concatenated and muxed using stream copy; no audio re-encoding. The video crossfade overlap is padded/trimmed to retain the total segment duration. Existing 50 approved backgrounds, captions, opening cover fade, Telegram bot, schedule, and manual TikTok publishing remain unchanged.
+- History writes are gated to successful Telegram delivery and are idempotent by candidate ID. History-only data commits are excluded from push triggers.
+- Passed: Quran batch engine tests run #200 (`44618085196`) and isolated Quran request pipeline run #134 (`44618085318`).
+- Pending: full actual FFmpeg render verification in inventory run #532 (`44618085215`); this is a push-triggered non-delivery run. Do not claim phase 3 complete until it passes. Next scheduled Telegram video still needs user visual review.
