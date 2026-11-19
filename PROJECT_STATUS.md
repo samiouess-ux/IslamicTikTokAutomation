@@ -984,3 +984,12 @@ Theme: hope and ease after hardship.
 - Fixed the overlay lookup to use `rglob("ayah_*.png")` so both steps locate the same nested frame.
 - No background was activated; the four original candidates remain unchanged, and the seven staged additions remain unapproved. No Telegram delivery was attempted on this push run.
 - Fix commit: `ae374fa666ff736cdf74e08fbb0959196d0a9ac4`.
+
+
+## Telegram caption sample review — 2026-11-19
+- Reviewed the user-shared Telegram message for Surah Al-Humazah 1–8.
+- Arabic and English caption sections are both present.
+- Confirmed hashtag format: exactly **5 per video**, split into **3 Arabic + 2 English**. The user confirmed this is the intended rule.
+- Sample passes the caption-language and hashtag-count check. Cross-video diversity still requires comparison across later delivered videos and the persistent social-content history.
+- No code or production configuration was changed during this review.
+- Detailed observation recorded in `PROJECT_MASTER_LOG.md`.
