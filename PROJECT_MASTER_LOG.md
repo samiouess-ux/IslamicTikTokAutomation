@@ -278,3 +278,11 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 **Open review item / next action**
 - Code and automated validation are complete. The first actual scheduled delivery using this version will create the initial `data/quran_social_history.json` entry only after Telegram confirms delivery. The user can then review the caption variety on a normal delivered video; no separate test delivery is needed.
 - Do not claim the new copy's TikTok performance is proven until actual post metrics are reviewed.
+
+
+### 2026-11-19 — First Telegram caption sample reviewed after copy-rotation update
+- The user shared the Telegram caption received for Surah Al-Humazah, verses 1–8.
+- Observed output contains an Arabic caption and an English caption.
+- Hashtag count and language split are exactly as required: **3 Arabic + 2 English = 5 total per video**. The user explicitly confirmed this is the intended per-video format.
+- This sample is a successful format/count check. It does not by itself prove cross-video rotation or absence of repetition; compare subsequent delivered captions against the persistent social-content history.
+- No code, hashtag pools, caption rules, scheduler, Telegram bot/settings, or delivery history were changed for this review.
