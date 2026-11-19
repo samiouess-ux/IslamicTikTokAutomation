@@ -286,3 +286,21 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Hashtag count and language split are exactly as required: **3 Arabic + 2 English = 5 total per video**. The user explicitly confirmed this is the intended per-video format.
 - This sample is a successful format/count check. It does not by itself prove cross-video rotation or absence of repetition; compare subsequent delivered captions against the persistent social-content history.
 - No code, hashtag pools, caption rules, scheduler, Telegram bot/settings, or delivery history were changed for this review.
+
+### 2026-11-19 — TikTok Growth roadmap order confirmed by user
+**Authoritative order — preserve this sequence; do not ask the user to repeat it**
+1. **Completed; do not redo without evidence of a defect:** bilingual captions and hooks/CTAs, exactly five hashtags per post (3 Arabic + 2 English), expanded rotating hashtag pools, persistent social-content rotation/history, and the associated tests from Growth phases 1–2. Phase 1 Arabic hashtag classification fix and Phase 2 copy/hashtag rotation are recorded above; final validation was GitHub Actions run #522 (`44601960747`), with 7 caption/rotation, 8 Telegram sender, and 9 workflow-safety tests passing.
+2. **Next priority — video-level growth/retention improvements:** inspect the existing video opening and first two seconds, then identify concrete improvements to the visual hook, pacing, and viewer retention. Audit the current renderer and design before changing anything; preserve Quran accuracy, approved visual rules, recitation-only audio, and manual Telegram review.
+3. **Following priority — visual variety and anti-repetition:** inspect scene/background/layout/transition rotation and its persistent history; improve only the gaps actually found. Do not reintroduce unapproved backgrounds or claim full variety without evidence.
+4. **Later, not now — TikTok analytics:** defer performance tracking/analytics until the preceding video-level and visual-variety work has been reviewed and completed. Do not jump to analytics as the next phase.
+
+**Permanent execution constraints**
+- Continue only in samiouess-ux/IslamicTikTokAutomation on feature/telegram-review-notifications; never modify main.
+- Do not redo completed caption/hashtag work unless a specific regression is demonstrated.
+- Do not change the user's working external Cron schedule (04:10, 12:10, 18:10 Africa/Tunis), Telegram bot/settings, or manual-only TikTok publishing.
+- Before each implementation phase, inspect current code and logs, state the exact verified gap, make the smallest scoped change, run only relevant safe tests, and record the evidence here and in PROJECT_STATUS.md.
+- No production test sends or schedule changes merely to validate growth work.
+
+**Status at this checkpoint**
+- This entry records the agreed roadmap and order only. No source code, workflow, Cron, Telegram, or production configuration was changed by this documentation update.
+- Next action: read-only audit of the video opening/first-two-second experience and current renderer path; report the specific gap before implementation. Do not revisit completed caption/hashtag phases.
