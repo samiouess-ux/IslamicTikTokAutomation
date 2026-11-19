@@ -145,3 +145,23 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 1. Finish checking any remaining repository-wide social-history/caption call sites where accessible on this branch.
 2. Present the minimal Unicode fix and a safe, separately scoped design for bilingual captions, hooks, CTAs, hashtag count/quality, and anti-repetition.
 3. Wait for explicit approval before changing source code or workflow.
+
+
+### 2026-11-19 — TikTok Growth phase 1: Arabic hashtag classification fix
+**Branch / commit**
+- Working branch: `feature/telegram-review-notifications` only.
+- Starting HEAD verified before this change: `b783b3e188a60ad336b1be7b2e24cc4489f44d8a`.
+- Change is limited to the caption classifier, its focused regression test, and this log.
+
+**Change**
+- Replaced the incorrectly escaped Unicode-string comparison with a numeric Arabic Unicode-block check (`0x0600 <= ord(ch) <= 0x06FF`).
+- Added a regression test proving Arabic tags are classified as Arabic and English tags contain no Arabic-block characters.
+- Hashtag count, caption wording, rotation, Telegram composition, workflow behavior, Cron, credentials, and delivery history are unchanged.
+
+**Validation status**
+- The regression test has been added but has not yet been run in the repository environment.
+- No production workflow was manually dispatched and no Telegram video was sent by this change.
+- Awaiting the push-triggered inventory workflow result; its push trigger is limited to the existing branch and this workflow's configured path filter.
+
+**Next action**
+- Inspect the resulting workflow run and its caption test result. If successful, close this phase; otherwise diagnose only the failing test without expanding scope.

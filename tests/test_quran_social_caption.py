@@ -37,5 +37,13 @@ class QuranSocialCaptionTests(unittest.TestCase):
         self.assertIn("تدعونا الآيات", result["arabic_caption"])
 
 
+    def test_arabic_and_english_hashtags_are_classified_correctly(self):
+        result = build_social_caption(self.manifest("A verse with uncommon wording."), "video-c")
+        self.assertIn("#القرآن_الكريم", result["hashtags_ar"])
+        self.assertTrue(all(any(0x0600 <= ord(ch) <= 0x06FF for ch in tag)
+                            for tag in result["hashtags_ar"]))
+        self.assertTrue(all(not any(0x0600 <= ord(ch) <= 0x06FF for ch in tag)
+                            for tag in result["hashtags_en"]))
+
 if __name__ == "__main__":
     unittest.main()

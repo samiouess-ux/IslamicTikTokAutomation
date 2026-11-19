@@ -90,7 +90,7 @@ def build_social_caption(manifest: dict[str, Any], video_id: str) -> dict[str, A
     return {
         "arabic_caption": f"سورة {name} | الآيات {first}-{last}\n{description_ar}. استمع وتدبّر.",
         "english_caption": f"Surah {english_name or name} | Verses {first}-{last}. {description_en.capitalize()}. Listen and reflect.",
-        "hashtags_ar": [tag for tag in unique if tag.startswith("#") and any("\\u0600" <= ch <= "\\u06ff" for ch in tag)],
-        "hashtags_en": [tag for tag in unique if tag.startswith("#") and not any("\\u0600" <= ch <= "\\u06ff" for ch in tag)],
+        "hashtags_ar": [tag for tag in unique if tag.startswith("#") and any(0x0600 <= ord(ch) <= 0x06FF for ch in tag)],
+        "hashtags_en": [tag for tag in unique if tag.startswith("#") and not any(0x0600 <= ord(ch) <= 0x06FF for ch in tag)],
         "theme": theme,
     }
