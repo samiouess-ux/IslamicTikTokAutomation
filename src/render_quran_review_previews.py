@@ -169,8 +169,8 @@ COVER_TEMPLATE_ARCHIVE = Path("assets/background_photos/quran_cover_templates.zi
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
 BACKGROUND_PHOTO_MANIFEST = Path("data/background_photos_manifest.json")
 
-INTRO_DURATION_SECONDS = 0.6
-INTRO_FADE_SECONDS = 0.0
+INTRO_DURATION_SECONDS = 1.2
+INTRO_FADE_SECONDS = 0.8
 
 PALETTES = [
     ((12, 31, 46), (25, 68, 75), (220, 190, 125)),
@@ -808,15 +808,17 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 background_filter = (
                     photo_motion_filter()
                 )
+                fade_start = INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS
+                fade_start_text = f"{fade_start:g}"
+                fade_duration_text = f"{INTRO_FADE_SECONDS:g}"
                 filter_complex = background_filter + (
-                    # The cover is a brief opening flash only. The still-image input loops,
-                    # so explicitly disable its overlay after 0.6 seconds; otherwise it
-                    # remains visible underneath the ayah artwork for the rest of the video.
-                    # Recitation still starts at t=0 and the ayah appears as soon as the
-                    # cover has completely disappeared.
-                    "[3:v]format=rgba[intro];"
-                    "[bg][intro]overlay=0:0:format=auto:enable='lt(t,0.6)'[covered];"
-                    "[covered][2:v]overlay=0:0:format=auto:enable='gte(t,0.6)'[v]"
+                    # Composite the first ayah from t=0 beneath the full-screen cover.
+                    # Fade only the cover's alpha channel to reveal the live background
+                    # and first ayah smoothly; the original recitation remains untouched.
+                    "[bg][2:v]overlay=0:0:format=auto[ayah];"
+                    f"[3:v]format=rgba,fade=t=out:st={fade_start_text}:"
+                    f"d={fade_duration_text}:alpha=1[intro];"
+                    "[ayah][intro]overlay=0:0:format=auto[v]"
                 )
             else:
                 background_filter = (
@@ -882,8 +884,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "cover_rotation_enabled": True,
         "cover_rotation_count": len(COVER_TEMPLATE_IDS),
         "cover_rotation_start_index": background_rotation_index % len(COVER_TEMPLATE_IDS),
-        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "audio_starts_at_seconds": 0, "visible_only_at_start": True, "template_count": len(COVER_TEMPLATE_IDS), "title_font": "Amiri Bold", "title_vocalization": "full_tashkeel"},
-        "note": "One of the four original user-supplied covers is selected by the monotonic GitHub run rotation; the surah name is fully vocalized and rendered with Amiri Bold. The brief opening cover appears alone for 0.6 seconds, then disappears before the ayah overlay; original recitation starts at t=0 and the video remains review-only.",
+        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "fade_start_seconds": INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS, "ayah_visible_from_seconds": 0, "audio_starts_at_seconds": 0, "visible_only_at_start": True, "transition": "alpha_fade_to_first_ayah", "template_count": len(COVER_TEMPLATE_IDS), "title_font": "Amiri Bold", "title_vocalization": "full_tashkeel"},
+        "note": "One of the four original user-supplied covers is selected by the monotonic GitHub run rotation; the surah name is fully vocalized and rendered with Amiri Bold. The first ayah is composited from t=0 beneath the cover; the cover fades out over 0.8 seconds beginning at 0.4 seconds, revealing the ayah and moving background smoothly. Original recitation starts at t=0 and the video remains review-only.",
     }
     (output_dir / "preview_report.json").write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return result
