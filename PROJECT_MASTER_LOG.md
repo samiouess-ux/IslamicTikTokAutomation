@@ -207,3 +207,36 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 **Outcome**
 - The targeted `test_quran_social_caption.py` suite is now verified: 4/4 passing.
 - TikTok Growth phase 1 (Arabic hashtag language classification fix) is test-complete. Any next growth improvements remain a separate phase and require the user's approval.
+
+
+### 2026-11-19 — TikTok Growth phase 2: read-only implementation audit
+**Branch**
+- Active branch verified: `feature/telegram-review-notifications`.
+- HEAD before this audit record: `0266fc86f440e3d2fb9fa59e23db235b70d16e78`.
+- Audit only; no source, workflow, Cron, Telegram, credential, or delivery-history changes.
+
+**Verified current behavior**
+- `src/quran_social_caption.py` is the active caption builder invoked in the Telegram-send step of `.github/workflows/build-quran-audio-inventory.yml`.
+- It builds Arabic and English captions, chooses one of a small set of themes by keyword counts in the English translation, and returns exactly five deterministic hashtags.
+- The caption wording currently has only fixed generic endings ("استمع وتدبّر" / "Listen and reflect"); no dedicated opening-hook selection or CTA rotation was found in this builder.
+- The workflow's regression-test step runs `test_quran_social_caption.py` and `test_send_telegram.py`.
+- `src/send_telegram.py` composes the Arabic caption, Arabic tags, English caption, English tags, and manual-review notice; it rejects a caption longer than 1,024 characters before sending.
+- The existing caption tests explicitly enforce exactly five unique hashtags. Any count increase therefore requires updating that contract and its tests.
+- `src/hashtag_strategy.py` is present and defines a separate multilingual deterministic hashtag strategy, including French, Turkish, and Indonesian fields. The active inventory workflow does not call it in the inspected send path, and no corresponding test file appears in the repository tree. It must not be integrated blindly: the current project requirement is Arabic + English, not additional languages.
+- `data/quran_delivery_history.json` is the Quran ayah reuse ledger. It is not an appropriate store for social caption/tag repetition history.
+
+**Gaps and risks**
+- No persistent global history for used captions, hooks, CTAs, or hashtag combinations was identified in the inspected active path.
+- Theme matching is a lightweight English-keyword heuristic, not tafsir. New copy must avoid presenting inferred meanings as authoritative religious interpretation.
+- More hashtags and bilingual copy must remain within Telegram's 1,024-character caption limit.
+- A social-history store must be separate from the ayah ledger and must not mark content as delivered on test-only, failed, or ambiguous Telegram outcomes. The safe integration point needs an explicit idempotent design around confirmed Telegram delivery.
+
+**Smallest proposed implementation plan — not yet approved**
+1. Extend the active caption builder with a curated bilingual opening-hook library and respectful Arabic/English CTA variants, without changing Quran text or claiming tafsir.
+2. Increase the hashtag set from five to a user-approved count above five; keep tags relevant and Arabic/English only. Validate the complete composed Telegram caption against 1,024 characters.
+3. Add a dedicated social-content history file/module, separate from Quran ayah history, with deterministic candidate selection and duplicate avoidance. Record use only after confirmed Telegram delivery, with safe retry/idempotency handling.
+4. Add focused unit tests and a test-only validation path that never sends Telegram or mutates production delivery history.
+
+**Decision**
+- This is a read-only audit and proposal only. No implementation has started.
+- Wait for the user's explicit approval of the scope and hashtag target before changing code.
