@@ -35,8 +35,8 @@ def record_post(history: dict[str, Any], candidate_id: str, caption: dict[str, A
     if (
         not isinstance(ar_tags, list) or len(ar_tags) != 3
         or not isinstance(en_tags, list) or len(en_tags) != 2
-        or len(set(ar_tags + en_tags)) != 5
         or not all(isinstance(tag, str) and tag.startswith("#") for tag in ar_tags + en_tags)
+        or len(set(ar_tags + en_tags)) != 5
         or not isinstance(hook_id, str) or not hook_id
         or not isinstance(cta_id, str) or not cta_id
     ):
