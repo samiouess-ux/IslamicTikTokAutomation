@@ -183,3 +183,27 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - The Unicode fix is committed and the focused predicate behavior passed an isolated check.
 - Phase 1 is not marked fully test-complete until `tests/test_quran_social_caption.py` is executed as a repository test.
 - Next action: obtain a safe way to run that exact test file without invoking the production video/Telegram workflow; then record its exact result. Do not ask the user to use external Cron for testing.
+
+
+### 2026-11-19 — TikTok Growth phase 1: caption unit test execution
+**Branch / source**
+- Tested the exact contents fetched from `feature/telegram-review-notifications` at the time of validation.
+- Source blob: `e1f0ea30d4e4d293b90ce5c5fcf11af534bdffe6`.
+- Test blob: `fd0a163d9b4717a239ed7054d1e19617367053bc`.
+
+**Test result**
+- Executed `python -m unittest discover -s tests -v` in an isolated temporary Python directory populated with those fetched source and test file contents.
+- Result: **PASS — 4 tests, 0 failures, 0 errors**:
+  - exactly five hashtags and thematic caption
+  - rotation between video IDs
+  - general fallback for unknown topic
+  - Arabic/English hashtag classification regression
+- This verifies the fetched module and test file together. It was not a checkout of the full repository, and it does not replace the separate GitHub Actions workflow result.
+
+**Safety**
+- No source or test files were changed in this validation step.
+- No Cron test, production workflow dispatch, Telegram send, credential change, or delivery-history write occurred.
+
+**Outcome**
+- The targeted `test_quran_social_caption.py` suite is now verified: 4/4 passing.
+- TikTok Growth phase 1 (Arabic hashtag language classification fix) is test-complete. Any next growth improvements remain a separate phase and require the user's approval.
