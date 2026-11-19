@@ -1027,3 +1027,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 - User reviewed the delivered video and confirmed it was very good. This closes the visual acceptance check for the opening-transition phase.
 - No Cron schedule, bot, credentials, TikTok publishing policy, or `main` changes. TikTok upload remains manual.
 - **Current next action:** begin the next approved roadmap phase with a read-only audit of background/scene/layout/transition variety and anti-repetition. Do not modify production assets or workflow until a concrete gap is demonstrated and separately scoped.
+
+
+## 2026-11-19 — TikTok Growth phase 3: visual variety audit
+- Read-only audit completed on `feature/telegram-review-notifications`; HEAD before this status update: `a2b1648e9b3f79637c9910c9f0c85e4314752a3c`.
+- Active renderer currently has 50 verified/available backgrounds in the latest Cron run: 15 moving videos + 35 photos. The actual delivered preview used a mountain-sunset photo followed by a moving mosque-waterfront clip; user approved the video as very good.
+- Within one video, used background IDs are tracked so the same asset is avoided until the pool is exhausted. Four cover templates also rotate.
+- Concrete gaps: no persistent cross-video background/cover usage ledger; current index is based on GitHub workflow run number, so unrelated runs can advance rotation; active renderer concatenates per-ayah segments without a dedicated transition effect between scenes. Opening cover fade is already implemented and approved; it is not a scene transition.
+- The xfade function in `src/render_video_scenes.py` belongs to a separate renderer path and is not used by the active scheduled workflow. Do not assume it solves transitions in the active path.
+- No source, workflow, catalog, asset, Cron, Telegram, or production settings changed during this audit.
+- **Next:** propose the smallest isolated implementation for a separate, delivery-confirmed visual history plus controlled scene-transition rotation. Wait for explicit user approval before changing code.
