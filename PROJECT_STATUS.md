@@ -1010,3 +1010,10 @@ Follow this sequence. The user should not need to repeat these decisions.
 - No production test sends or schedule changes for growth validation.
 
 **Current next action:** read-only audit of the first two seconds/opening and renderer implementation. No source code or production behavior is changed by recording this roadmap.
+
+## TikTok Growth — opening hook implementation (2026-11-19)
+- On `feature/telegram-review-notifications`, changed the opening cover from a 0.6s hard cut to a 1.2s opening that fades out from 0.4s to 1.2s.
+- First ayah is composited from video time 0 beneath the cover; original recitation still starts at time 0. Quran text/audio and the approved cover artwork are not rewritten.
+- Focused regression assertions updated. CI/render validation is pending; no success is claimed yet.
+- No Telegram send, Cron change, TikTok auto-publishing, or production workflow dispatch was performed.
+- Next: verify the push-triggered CI result, then review the generated review-only preview.
