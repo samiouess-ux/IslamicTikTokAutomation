@@ -740,7 +740,7 @@ def assemble_review_segments(segments: list[Path], audio_files: list[Path],
     durations = [probe(segment)["duration_seconds"] for segment in segments]
     audio_concat_path = work_dir / "audio_segments.txt"
     audio_concat_path.write_text(
-        "".join(f"file '{audio.resolve()}'\\n" for audio in audio_files),
+        "".join(f"file '{audio.resolve()}'\n" for audio in audio_files),
         encoding="utf-8",
     )
     audio_path = work_dir / "joined_original_audio.mp3"
