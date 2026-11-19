@@ -29,7 +29,10 @@ class TelegramWorkflowSafetyContractTests(unittest.TestCase):
         finalize_block = self.text[finalize:sync]
         self.assertIn("quran_delivery_attempt.py", finalize_block)
         self.assertIn("finalize", finalize_block)
-        self.assertIn("git add -A data/quran_delivery_history.json data/quran_delivery_pending.json", finalize_block)
+        self.assertIn("git add -A data/quran_delivery_history.json data/quran_delivery_pending.json data/quran_social_history.json", finalize_block)
+        self.assertIn("quran_social_history.py", finalize_block)
+        self.assertIn("steps.telegram_send.outcome == 'success'", self.text[finalize:sync])
+        self.assertIn("load_history(Path(\"data/quran_social_history.json\"))", self.text[send:finalize])
 
     def test_unresolved_reservation_guard_runs_before_automatic_send(self):
         guard = self.text.index("- name: Block automatic sends when a previous Telegram outcome is unresolved")
