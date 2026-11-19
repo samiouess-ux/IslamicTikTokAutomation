@@ -102,3 +102,46 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - TikTok Growth audit: in progress, read-only.
 - Source changes: none in this phase.
 - Production schedule / Telegram / publishing behavior: unchanged.
+
+
+### 2026-11-19 — TikTok Growth audit: workflow and safety-path inspection
+**Branch / repository state**
+- Branch: `feature/telegram-review-notifications`
+- Latest observed branch HEAD before this documentation update: `2a77d4d9c9d33b182f0f276a4ec6dc4a670db905` (the master-log creation commit).
+- Branch existence was rechecked. The recent-commit listing identifies the same commit as the latest observed branch commit at inspection time.
+- No source, test, workflow, Cron, Telegram, credential, or production configuration files were changed.
+
+**Additional files and paths inspected**
+- `src/record_quran_delivery.py`
+- `src/quran_delivery_attempt.py`
+- `src/send_telegram.py`
+- `tests/test_send_telegram.py`
+- `tests/test_telegram_workflow_safety.py`
+- Relevant workflow sections covering candidate generation, caption creation, Telegram reservation, send, and confirmed-delivery finalization.
+
+**Confirmed integration and safety observations**
+- The active workflow creates each caption JSON by calling `build_social_caption(manifest, candidate_id)` immediately before calling `src/send_telegram.py`.
+- `send_telegram.py` composes Arabic caption + Arabic hashtags + English caption + English hashtags, then appends the manual-review notice. It enforces Telegram's 1,024-character caption limit.
+- The workflow reserves Quran delivery before Telegram send and records ayah history only after the send step succeeds. Existing safety tests assert this ordering and the test-only skip conditions.
+- `data/quran_delivery_history.json` is specifically an ayah-reference/delivery ledger. It is not a safe substitute for a social-content repetition ledger.
+- The workflow's test-only render path is designed not to send Telegram and not to reserve/finalize production ayah history. No workflow was dispatched during this audit.
+- No separate caption/hashtag history file or social-performance feedback integration was established by the files inspected so far. This remains a scoped audit result, not a claim that every repository path has been exhaustively enumerated.
+
+**Focused Unicode reproduction**
+- Reproduced the exact current predicate from `src/quran_social_caption.py` against `#القرآن_الكريم` and `#Quran`.
+- Current predicate result: Arabic field = empty; English field incorrectly contains both tags.
+- Correct Unicode range predicate result: Arabic field contains `#القرآن_الكريم`; English field contains `#Quran`.
+- This was an isolated Python reproduction of the fetched source expression, NOT execution of the repository's unittest suite and NOT a committed regression test.
+- Existing `tests/test_quran_social_caption.py` does not currently assert Arabic/English classification directly.
+
+**Current audit conclusion**
+- The Unicode classification defect is now demonstrated with a minimal reproduction and is ready for a small regression test/fix proposal.
+- The Telegram integration point is localized to caption generation before send; the sender already accepts the bilingual field structure.
+- Any persistent social-content history should be a separate store/module, with an explicit rule for when an item is marked used. It must not mutate the Quran ayah ledger and must not interfere with Telegram's pending reservation/finalization protocol.
+- Caption/hashtag growth must also account for the sender's 1,024-character Telegram caption cap; a larger hashtag count cannot be added blindly.
+- No final hashtag count or persistent-history schema has been approved by the user.
+
+**Next action**
+1. Finish checking any remaining repository-wide social-history/caption call sites where accessible on this branch.
+2. Present the minimal Unicode fix and a safe, separately scoped design for bilingual captions, hooks, CTAs, hashtag count/quality, and anti-repetition.
+3. Wait for explicit approval before changing source code or workflow.
