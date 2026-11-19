@@ -993,3 +993,20 @@ Theme: hope and ease after hardship.
 - Sample passes the caption-language and hashtag-count check. Cross-video diversity still requires comparison across later delivered videos and the persistent social-content history.
 - No code or production configuration was changed during this review.
 - Detailed observation recorded in `PROJECT_MASTER_LOG.md`.
+
+## TikTok Growth roadmap — authoritative next-step order (2026-11-19)
+Follow this sequence. The user should not need to repeat these decisions.
+
+1. **Completed — captions and hashtags (do not redo without a demonstrated defect):** bilingual captions and hooks/CTAs; exactly five hashtags per post (3 Arabic + 2 English); expanded rotating Arabic/English pools; persistent social-content rotation/history; phase 1 Arabic hashtag classification fix; phase 2 implementation and validation. GitHub Actions run #522 (`44601960747`) passed: 7 caption/rotation tests, 8 Telegram sender tests, 9 workflow-safety tests.
+2. **NEXT — video-level growth and retention:** read-only audit of the opening, especially the first two seconds, visual hook, pacing, and viewer retention; then propose the smallest evidence-based improvements. Preserve Quran correctness, approved visual rules, recitation-only audio, and Telegram manual review.
+3. **AFTER THAT — visual variety / anti-repetition:** audit and improve scene, background, layout, and transition rotation/history only where a verified gap exists. Do not activate unapproved assets.
+4. **LATER — TikTok analytics:** explicitly deferred; not the next phase. Start only after the preceding video-level and visual-variety work.
+
+### Continuity and safety rules
+- Repository: samiouess-ux/IslamicTikTokAutomation; work only on feature/telegram-review-notifications; never touch main.
+- Do not repeat completed caption/hashtag work without a specific demonstrated regression.
+- Keep external Cron unchanged at the user-confirmed 04:10, 12:10, 18:10 Africa/Tunis. Do not change Telegram bot/settings. TikTok publishing stays manual.
+- Inspect existing code and records before each phase. Report the concrete gap before making the smallest scoped implementation. Run only relevant safe tests and document actual evidence; never claim unverified work.
+- No production test sends or schedule changes for growth validation.
+
+**Current next action:** read-only audit of the first two seconds/opening and renderer implementation. No source code or production behavior is changed by recording this roadmap.
