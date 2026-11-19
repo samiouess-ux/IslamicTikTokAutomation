@@ -673,13 +673,16 @@ def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
 
 
 def build_scene_transition_filter(segment_durations: list[float],
-                                  transition_seconds: float = 0.35) -> tuple[str, float]:
-    """Build video-only crossfades and pad their overlap so total video duration is preserved."""
+                                  transition_seconds: float = 0.35,
+                                  target_duration: float | None = None) -> tuple[str, float]:
+    """Build video-only crossfades and pad/trim video to the exact original audio duration."""
     if len(segment_durations) < 2:
         raise ValueError("At least two segments are required for scene transitions.")
     if transition_seconds <= 0 or any(duration <= transition_seconds for duration in segment_durations):
         raise ValueError("Every segment must be longer than the positive transition duration.")
-    total_duration = sum(segment_durations)
+    total_duration = sum(segment_durations) if target_duration is None else float(target_duration)
+    if total_duration <= 0:
+        raise ValueError("Target duration must be positive.")
     filters = [
         f"[{index}:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,format=yuv420p[v{index}]"
         for index in range(len(segment_durations))
@@ -695,7 +698,9 @@ def build_scene_transition_filter(segment_durations: list[float],
         )
         current = next_label
         cumulative_duration += segment_durations[index] - transition_seconds
-    padding = transition_seconds * (len(segment_durations) - 1)
+    overlap = transition_seconds * (len(segment_durations) - 1)
+    crossfaded_duration = sum(segment_durations) - overlap
+    padding = max(0.0, total_duration - crossfaded_duration)
     filters.append(
         f"[{current}]tpad=stop_mode=clone:stop_duration={padding:g},"
         f"trim=duration={total_duration:.6f},setpts=PTS-STARTPTS[vout]"
@@ -703,9 +708,22 @@ def build_scene_transition_filter(segment_durations: list[float],
     return ";".join(filters), total_duration
 
 
-def assemble_review_segments(segments: list[Path], concat_path: Path,
-                             output_path: Path, work_dir: Path) -> dict:
-    """Crossfade video scenes only; concatenate and stream-copy the original MP3 audio."""
+def media_duration_seconds(path: Path) -> float:
+    """Measure the muxed audio-only MP3 duration; zero means ffprobe could not verify it."""
+    try:
+        raw = subprocess.check_output([
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(path),
+        ], text=True)
+        duration = float(raw.strip())
+        return duration if duration > 0 else 0.0
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return 0.0
+
+
+def assemble_review_segments(segments: list[Path], audio_files: list[Path],
+                             concat_path: Path, output_path: Path, work_dir: Path) -> dict:
+    """Crossfade video only; concatenate the source MP3 files directly with stream copy."""
     concat_path.write_text(
         "".join(f"file '{segment.resolve()}'\n" for segment in segments),
         encoding="utf-8",
@@ -717,15 +735,26 @@ def assemble_review_segments(segments: list[Path], concat_path: Path,
             "-c", "copy", "-movflags", "+faststart", str(output_path),
         ], check=True)
         return {"transition": "none_single_scene", "transition_seconds": 0.0, "scene_count": 1}
+    if len(audio_files) != len(segments) or not audio_files:
+        raise ValueError("Every rendered scene must have its matching original MP3 audio file.")
     durations = [probe(segment)["duration_seconds"] for segment in segments]
-    filter_complex, total_duration = build_scene_transition_filter(durations)
+    audio_concat_path = work_dir / "audio_segments.txt"
+    audio_concat_path.write_text(
+        "".join(f"file '{audio.resolve()}'\\n" for audio in audio_files),
+        encoding="utf-8",
+    )
     audio_path = work_dir / "joined_original_audio.mp3"
     silent_video_path = work_dir / "crossfaded_video_only.mp4"
     subprocess.run([
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-        "-f", "concat", "-safe", "0", "-i", str(concat_path),
-        "-vn", "-c:a", "copy", str(audio_path),
+        "-f", "concat", "-safe", "0", "-i", str(audio_concat_path),
+        "-c:a", "copy", str(audio_path),
     ], check=True)
+    measured_audio_duration = media_duration_seconds(audio_path)
+    target_duration = measured_audio_duration or sum(durations)
+    filter_complex, total_duration = build_scene_transition_filter(
+        durations, target_duration=target_duration,
+    )
     video_command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"]
     for segment in segments:
         video_command.extend(["-i", str(segment)])
@@ -751,7 +780,7 @@ def assemble_review_segments(segments: list[Path], concat_path: Path,
         "audio_stream": "original_mp3_stream_copy",
         "audio_reencoded": False,
         "duration_target_seconds": round(total_duration, 3),
-        "video_overlap_padding_seconds": round(0.35 * (len(segments) - 1), 3),
+        "video_overlap_padding_seconds": round(max(0.0, total_duration - (sum(durations) - 0.35 * (len(segments) - 1))), 3),
     }
 
 def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0, visual_history_path: Path | None = None) -> dict:
@@ -856,6 +885,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         background_sequence = [first_background] + remaining_backgrounds
         used_backgrounds = []
         segments = []
+        audio_files = []
         used_background_ids = set()
         used_background_categories = set()
         for index, verse in enumerate(verses):
@@ -966,9 +996,10 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             ])
             subprocess.run(command, check=True)
             segments.append(segment)
+            audio_files.append(audio)
         concat = work / "segments.txt"
         output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
-        transition_info = assemble_review_segments(segments, concat, output, work)
+        transition_info = assemble_review_segments(segments, audio_files, concat, output, work)
         info = probe(output)
         previews.append({
             "candidate_id": part_id,

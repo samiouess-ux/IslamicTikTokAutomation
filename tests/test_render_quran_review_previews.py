@@ -409,24 +409,26 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 probe(path)
 
 
+    @patch("render_quran_review_previews.media_duration_seconds", return_value=12.1)
     @patch("render_quran_review_previews.probe", side_effect=[
         {"duration_seconds": 5.0}, {"duration_seconds": 7.0}
     ])
     @patch("render_quran_review_previews.subprocess.run")
-    def test_scene_assembly_crossfades_video_but_stream_copies_original_audio(self, run, _probe):
+    def test_scene_assembly_crossfades_video_but_stream_copies_original_audio(self, run, _probe, _audio_duration):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             segments = [root / "ayah-1.mp4", root / "ayah-2.mp4"]
-            for segment in segments:
-                segment.write_bytes(b"segment")
+            audio_files = [root / "ayah-1.mp3", root / "ayah-2.mp3"]
+            for path in segments + audio_files:
+                path.write_bytes(b"media")
             concat = root / "segments.txt"
             output = root / "review.mp4"
-            result = renderer.assemble_review_segments(segments, concat, output, root)
+            result = renderer.assemble_review_segments(segments, audio_files, concat, output, root)
             commands = [call.args[0] for call in run.call_args_list]
-            audio_command = next(command for command in commands if "-vn" in command)
+            audio_command = next(command for command in commands if "-c:a" in command and str(root / "joined_original_audio.mp3") in command)
             video_command = next(command for command in commands if "-filter_complex" in command)
             mux_command = commands[-1]
-            self.assertIn("-c:a", audio_command)
+            self.assertIn(str(root / "audio_segments.txt"), audio_command)
             self.assertIn("copy", audio_command)
             self.assertIn("xfade=transition=fade", video_command[video_command.index("-filter_complex") + 1])
             self.assertIn("-an", video_command)
@@ -434,8 +436,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertIn("copy", mux_command)
             self.assertFalse(result["audio_reencoded"])
             self.assertEqual(result["transition"], "video_only_crossfade")
-            self.assertEqual(result["duration_target_seconds"], 12.0)
-            self.assertTrue(concat.read_text(encoding="utf-8").endswith("\n"))
+            self.assertEqual(result["duration_target_seconds"], 12.1)
+            self.assertEqual(result["video_overlap_padding_seconds"], 0.45)
+            self.assertTrue((root / "audio_segments.txt").read_text(encoding="utf-8").endswith("\n"))
 
     def test_scene_crossfade_filter_preserves_total_video_duration_and_offsets(self):
         filter_text, total = renderer.build_scene_transition_filter([5.0, 7.0, 8.0], 0.35)
