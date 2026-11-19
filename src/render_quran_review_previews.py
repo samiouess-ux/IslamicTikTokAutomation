@@ -707,7 +707,7 @@ def assemble_review_segments(segments: list[Path], concat_path: Path,
                              output_path: Path, work_dir: Path) -> dict:
     """Crossfade video scenes only; concatenate and stream-copy the original MP3 audio."""
     concat_path.write_text(
-        "".join(f"file '{segment.resolve()}'\\n" for segment in segments),
+        "".join(f"file '{segment.resolve()}'\n" for segment in segments),
         encoding="utf-8",
     )
     if len(segments) == 1:
