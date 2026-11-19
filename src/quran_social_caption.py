@@ -1,4 +1,4 @@
-"""Content-aware Arabic/English captions and exactly-five hashtag sets."""
+"""Varied, content-aware Arabic/English captions and exactly-five hashtag sets."""
 from __future__ import annotations
 
 import hashlib
@@ -35,14 +35,77 @@ THEMES = (
      "#توحيد_الله", "#Tawheed"),
 )
 
-AR_CORE = (
-    ("#القرآن_الكريم", "#تلاوة_قرآنية"),
-    ("#آيات_قرآنية", "#تدبر_القرآن"),
-    ("#ذكر_الله", "#نور_القرآن"),
-    ("#القرآن", "#تذكير_إيماني"),
-    ("#كلام_الله", "#تلاوة_خاشعة"),
+# Broad, Quran-relevant pools. Selection balances least-used tags over confirmed posts.
+AR_HASHTAGS = (
+    "#القرآن_الكريم", "#تلاوة_قرآنية", "#آيات_قرآنية", "#تدبر_القرآن",
+    "#ذكر_الله", "#نور_القرآن", "#القرآن", "#تذكير_إيماني",
+    "#كلام_الله", "#تلاوة_خاشعة", "#آيات_من_القرآن", "#مع_القرآن",
+    "#رسالة_قرآنية", "#آيات_للتدبر", "#هداية", "#الذكر_الحكيم",
+    "#تدبر_وعمل", "#طمأنينة_القلب", "#تذكير_بالله", "#آيات_الله",
 )
-EN_CORE = ("#Quran", "#QuranVerses", "#QuranRecitation", "#IslamicReminder", "#ReflectOnQuran")
+EN_HASHTAGS = (
+    "#Quran", "#QuranVerses", "#QuranRecitation", "#IslamicReminder",
+    "#ReflectOnQuran", "#QuranReflection", "#DailyQuran", "#WordsOfAllah",
+    "#ListenToQuran", "#QuranDaily", "#FaithReminder", "#AyahOfTheDay",
+    "#QuranInspiration", "#IslamicContent", "#QuranReminder", "#QuranTime",
+    "#Islam", "#ReminderForTheSoul", "#QuranAndSunnah", "#ReadQuran",
+)
+
+HOOKS = (
+    ("reflection", "وقفة قصيرة للتدبّر في آيات من كتاب الله", "A quiet moment to reflect on verses from the Quran"),
+    ("listen", "أنصت بقلبك إلى كلام الله", "Listen closely and reflect on the words of Allah"),
+    ("reminder", "تذكير قرآني نحتاجه في كل يوم", "A Quran reminder for every day"),
+    ("heart", "امنح قلبك لحظة مع القرآن الكريم", "Give your heart a moment with the Quran"),
+    ("pause", "توقّف قليلاً واستمع إلى هذه الآيات", "Pause for a moment and listen to these verses"),
+    ("light", "مع آيات من القرآن، نجدد صلتنا بكتاب الله", "Reconnect with the Quran through these verses"),
+    ("daily", "آيات نتلوها ونتدبّرها", "Verses to listen to and reflect upon"),
+    ("calm", "لحظات من السكينة مع تلاوة القرآن", "A moment of calm with Quran recitation"),
+    ("meaning", "افتح قلبك للتلاوة والتدبّر", "Open your heart to recitation and reflection"),
+    ("share", "اجعل للقرآن نصيباً من وقتك اليوم", "Make time for the Quran today"),
+)
+
+CTAS = (
+    ("reflect", "استمع وتدبّر، وارجع إلى الآيات بتأنٍ", "Listen, reflect, and revisit the verses"),
+    ("save", "احفظ المقطع لتعود إلى التلاوة لاحقاً", "Save this recitation to revisit it later"),
+    ("share", "شارك التذكير مع من تحب", "Share this reminder with someone you care about"),
+    ("follow", "تابعنا لمزيد من التلاوات والتذكير بالقرآن", "Follow for more Quran recitations and reminders"),
+    ("daily", "اجعل تلاوة القرآن جزءاً من يومك", "Make Quran recitation part of your day"),
+    ("listen", "أنصت للتلاوة كاملة، بارك الله فيك", "Take a moment to listen to the full recitation"),
+    ("return", "عود نفسك الرجوع إلى كتاب الله", "Keep returning to the Book of Allah"),
+    ("remind", "أرسلها لمن قد ينتفع بهذا التذكير", "Send this reminder to someone who may appreciate it"),
+    ("reflect2", "تدبّر الآيات من المصحف", "Reflect on the verses while reading the Quran"),
+    ("support", "إن نفعك المقطع، ساهم في نشره", "If this benefited you, help share the reminder"),
+)
+
+
+def empty_social_history() -> dict[str, Any]:
+    return {"schema_version": 1, "posts": []}
+
+
+def _history_counts(history: dict[str, Any] | None, field: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    if not history:
+        return counts
+    if history.get("schema_version") != 1 or not isinstance(history.get("posts"), list):
+        raise ValueError("Social-content history is malformed or unsupported.")
+    for post in history["posts"]:
+        values = post.get(field, [])
+        if isinstance(values, list):
+            for value in values:
+                if isinstance(value, str):
+                    counts[value] = counts.get(value, 0) + 1
+    return counts
+
+
+def _choose(pool: tuple, counts: dict[str, int], seed: str, count: int = 1) -> list:
+    ranked = sorted(
+        pool,
+        key=lambda value: (
+            counts.get(value, 0),
+            hashlib.sha256(f"{seed}:{value}".encode("utf-8")).hexdigest(),
+        ),
+    )
+    return ranked[:count]
 
 
 def detect_theme(verses: list[dict[str, Any]]) -> tuple[str, str, str, str, str]:
@@ -60,7 +123,11 @@ def detect_theme(verses: list[dict[str, Any]]) -> tuple[str, str, str, str, str]
     return selected[0], selected[2], selected[3], selected[4], selected[5]
 
 
-def build_social_caption(manifest: dict[str, Any], video_id: str) -> dict[str, Any]:
+def build_social_caption(
+    manifest: dict[str, Any],
+    video_id: str,
+    history: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if not isinstance(manifest, dict) or not isinstance(video_id, str) or not video_id.strip():
         raise ValueError("A manifest and stable non-empty video id are required.")
     source = manifest.get("source", {})
@@ -74,23 +141,26 @@ def build_social_caption(manifest: dict[str, Any], video_id: str) -> dict[str, A
         raise ValueError("Caption requires the surah name and selected ayah numbers.")
     first, last = int(numbers[0]), int(numbers[-1])
     theme, description_ar, description_en, topic_ar, topic_en = detect_theme(verses)
-    digest = hashlib.sha256(video_id.encode("utf-8")).digest()
-    rotation = int.from_bytes(digest[:4], "big")
-    ar_pair = AR_CORE[rotation % len(AR_CORE)]
-    en_tag = EN_CORE[(rotation // len(AR_CORE)) % len(EN_CORE)]
-    tags = [ar_pair[0], ar_pair[1], en_tag, topic_ar, topic_en]
-    # Stable de-duplication and exact five-tag contract.
-    unique = list(dict.fromkeys(tags))
-    fallback = [tag for pair in AR_CORE for tag in pair] + list(EN_CORE)
-    for tag in fallback:
-        if len(unique) == 5:
-            break
-        if tag not in unique:
-            unique.append(tag)
+
+    ar_counts = _history_counts(history, "hashtags_ar")
+    en_counts = _history_counts(history, "hashtags_en")
+    hook_counts = _history_counts(history, "hook_ids")
+    cta_counts = _history_counts(history, "cta_ids")
+    ar_tags = _choose(tuple(tag for tag in AR_HASHTAGS if tag != topic_ar), ar_counts, video_id, 2)
+    en_tags = _choose(tuple(tag for tag in EN_HASHTAGS if tag != topic_en), en_counts, video_id, 1)
+    hashtags_ar = ar_tags + [topic_ar]
+    hashtags_en = en_tags + [topic_en]
+    hook_id = _choose(tuple(item[0] for item in HOOKS), hook_counts, video_id)[0]
+    cta_id = _choose(tuple(item[0] for item in CTAS), cta_counts, video_id)[0]
+    hook_ar, hook_en = next((item[1], item[2]) for item in HOOKS if item[0] == hook_id)
+    cta_ar, cta_en = next((item[1], item[2]) for item in CTAS if item[0] == cta_id)
+
     return {
-        "arabic_caption": f"سورة {name} | الآيات {first}-{last}\n{description_ar}. استمع وتدبّر.",
-        "english_caption": f"Surah {english_name or name} | Verses {first}-{last}. {description_en.capitalize()}. Listen and reflect.",
-        "hashtags_ar": [tag for tag in unique if tag.startswith("#") and any(0x0600 <= ord(ch) <= 0x06FF for ch in tag)],
-        "hashtags_en": [tag for tag in unique if tag.startswith("#") and not any(0x0600 <= ord(ch) <= 0x06FF for ch in tag)],
+        "arabic_caption": f"سورة {name} | الآيات {first}-{last}\n{hook_ar}. {description_ar}. {cta_ar}.",
+        "english_caption": f"Surah {english_name or name} | Verses {first}-{last}. {hook_en}. {description_en.capitalize()}. {cta_en}.",
+        "hashtags_ar": hashtags_ar,
+        "hashtags_en": hashtags_en,
         "theme": theme,
+        "hook_id": hook_id,
+        "cta_id": cta_id,
     }
