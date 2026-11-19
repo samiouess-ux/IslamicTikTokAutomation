@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "posts": [
+    {
+      "candidate_id": "quran_s104_001_009_part_001",
+      "hashtags_ar": [
+        "#تدبر_وعمل",
+        "#القرآن",
+        "#الآخرة_والحساب"
+      ],
+      "hashtags_en": [
+        "#QuranReflection",
+        "#HereafterReminder"
+      ],
+      "hook_ids": [
+        "share"
+      ],
+      "cta_ids": [
+        "support"
+      ],
+      "confirmed_at_utc": "2026-11-19T19:56:23.149151+00:00"
+    }
+  ]
+}
