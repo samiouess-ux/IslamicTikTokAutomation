@@ -1017,3 +1017,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Focused regression assertions updated. CI/render validation is pending; no success is claimed yet.
 - No Telegram send, Cron change, TikTok auto-publishing, or production workflow dispatch was performed.
 - Next: verify the push-triggered CI result, then review the generated review-only preview.
+
+
+## 2026-11-19 — TikTok Growth phase 2: opening transition verified
+- Active branch: `feature/telegram-review-notifications`; HEAD before this status update: `57aa4f178e629e4d60281ee0d5be272d68f7b658`.
+- Opening transition change is now validated end-to-end. First ayah is present from t=0 beneath the cover; the 1.2-second cover fades out from 0.4s to 1.2s; recitation still starts at t=0.
+- Regression-test correction commit: `0a0fe1c0337a67febf0985c64bd12b316db63667`. All three related push-triggered workflows passed: `44612696387`, `44612696062`, and `44612696031`.
+- Cron-triggered production workflow run #527 (`44613610568`) completed successfully. It rendered the review video, prepared/composited the background previews, sent one review-only video to the original Telegram bot, recorded confirmed delivery history, and synced the history to this branch.
+- User reviewed the delivered video and confirmed it was very good. This closes the visual acceptance check for the opening-transition phase.
+- No Cron schedule, bot, credentials, TikTok publishing policy, or `main` changes. TikTok upload remains manual.
+- **Current next action:** begin the next approved roadmap phase with a read-only audit of background/scene/layout/transition variety and anti-repetition. Do not modify production assets or workflow until a concrete gap is demonstrated and separately scoped.
