@@ -304,3 +304,11 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 **Status at this checkpoint**
 - This entry records the agreed roadmap and order only. No source code, workflow, Cron, Telegram, or production configuration was changed by this documentation update.
 - Next action: read-only audit of the video opening/first-two-second experience and current renderer path; report the specific gap before implementation. Do not revisit completed caption/hashtag phases.
+
+## TikTok Growth phase 2 — opening hook / retention implementation (2026-11-19)
+- Active branch: `feature/telegram-review-notifications`; implementation commits: `e1510679bd6c1bc8a4e4107e8f2b2cd3a33dafda` (renderer) and `029a5ed55ac3f2147f4977b7c3714caf40d2763e` (regression test).
+- Read-only audit evidence: `src/render_quran_review_previews.py` showed a 0.6-second opaque cover with a hard cut; the first ayah overlay was disabled until 0.6 seconds. `tests/test_render_quran_review_previews.py` explicitly asserted this no-fade behavior.
+- Scoped change: the first ayah is now composited from t=0 beneath the opening cover; the cover fades out from 0.4s to 1.2s (0.8-second alpha fade), revealing the first ayah and live background smoothly. The original recitation still starts at t=0 and is not modified. Cover artwork, Quran text, translation, recitation, duration limits, background selection, Telegram, Cron, and TikTok publishing settings are unchanged.
+- Updated the focused renderer regression test to assert the overlay order, exact fade timings, first-ayah visibility from t=0, and audio start at t=0.
+- Validation status at documentation time: GitHub commit status returned no checks yet; tests and workflow render are **pending**. Do not call this verified until the relevant workflow completes successfully. The push-triggered workflow's Telegram reserve/send/history steps are guarded to run only for schedule or qualifying workflow_dispatch events; this change did not dispatch a send or alter Cron.
+- Next action: inspect the CI result for commit `029a5ed55ac3f2147f4977b7c3714caf40d2763e`; if green, inspect the generated review-only preview before considering the retention step complete.
