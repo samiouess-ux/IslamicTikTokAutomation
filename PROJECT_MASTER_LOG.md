@@ -240,3 +240,41 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 **Decision**
 - This is a read-only audit and proposal only. No implementation has started.
 - Wait for the user's explicit approval of the scope and hashtag target before changing code.
+
+
+### 2026-11-19 — TikTok Growth phase 2: bilingual copy and hashtag rotation implemented
+**Approval and confirmed requirements**
+- The user approved implementation after the read-only audit.
+- Corrected hashtag requirement: **exactly five hashtags per TikTok post**, not more than five.
+- Use Arabic and English only; current implementation emits three Arabic and two English tags per post.
+- The user clarified that the desired variety comes from a broad rotating library across posts, not a larger number of hashtags on one post.
+
+**Implementation**
+- Expanded the active hashtag pools to 20 Arabic and 20 English relevant tags. Two generic Arabic tags, one generic English tag, and the theme-matched Arabic/English pair make exactly five.
+- Added ten curated bilingual opening hooks and ten bilingual CTA variants. Copy is selected with deterministic tie-breaking and least-used-first counts.
+- Added a separate persistent social-content history. It tracks confirmed post hashtag use, hook IDs, and CTA IDs; it is not mixed with Quran ayah delivery history.
+- The workflow reads this social history when preparing the caption and records the selected social content only after the Telegram sender step reports success. Test-only runs and push-triggered builds skip recording. Recording is idempotent for a repeated candidate ID and rejects conflicting content.
+- Existing Telegram sender remains unchanged and continues to reject a complete caption longer than 1,024 characters.
+- TikTok publishing remains manual. No Cron, Telegram credentials, bot, daily schedule, Quran text, translation, recitation, or Quran ayah history behavior was intentionally changed.
+
+**Exact files changed**
+1. `src/quran_social_caption.py`
+2. `src/quran_social_history.py` (new)
+3. `tests/test_quran_social_caption.py`
+4. `tests/test_telegram_workflow_safety.py`
+5. `.github/workflows/build-quran-audio-inventory.yml`
+
+**Validation**
+- First push run #521 (`44601646099`) exposed one outdated assertion that expected the old fixed hashtag to appear in every generated post. The implementation's new rotation correctly selected a different Arabic tag; the test was corrected to assert language classification and pool membership rather than a fixed per-post tag.
+- Final push run #522: **PASS**, run ID `44601960747`, commit `c19b9f3d76ccebfc47e9be20a2c28d7aa8d60383`.
+  - Link: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/44601960747
+  - Caption/rotation tests: 7 passed.
+  - Telegram sender tests: 8 passed.
+  - Telegram workflow safety tests: 9 passed.
+  - The complete workflow completed successfully.
+  - Because this was a `push` event, the Telegram reservation, Telegram send, confirmed-delivery history write, and history-sync steps were all skipped. No real Telegram video was sent.
+- Branch HEAD verified after the implementation: `c19b9f3d76ccebfc47e9be20a2c28d7aa8d60383`.
+
+**Open review item / next action**
+- Code and automated validation are complete. The first actual scheduled delivery using this version will create the initial `data/quran_social_history.json` entry only after Telegram confirms delivery. The user can then review the caption variety on a normal delivered video; no separate test delivery is needed.
+- Do not claim the new copy's TikTok performance is proven until actual post metrics are reviewed.
