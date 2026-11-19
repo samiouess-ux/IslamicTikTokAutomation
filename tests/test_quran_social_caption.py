@@ -3,7 +3,8 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from quran_social_caption import build_social_caption, detect_theme
+from quran_social_caption import AR_HASHTAGS, EN_HASHTAGS, build_social_caption, detect_theme
+from quran_social_history import EMPTY, record_post
 
 
 class QuranSocialCaptionTests(unittest.TestCase):
@@ -36,6 +37,40 @@ class QuranSocialCaptionTests(unittest.TestCase):
         self.assertEqual(result["theme"], "general")
         self.assertIn("تدعونا الآيات", result["arabic_caption"])
 
+
+    def test_large_bilingual_pools_still_emit_exactly_five_tags_and_varied_copy(self):
+        self.assertGreaterEqual(len(AR_HASHTAGS), 15)
+        self.assertGreaterEqual(len(EN_HASHTAGS), 15)
+        first = build_social_caption(self.manifest("For indeed, with hardship will be ease."), "video-first")
+        second = build_social_caption(self.manifest("For indeed, with hardship will be ease."), "video-second")
+        for result in (first, second):
+            tags = result["hashtags_ar"] + result["hashtags_en"]
+            self.assertEqual(len(tags), 5)
+            self.assertEqual(len(result["hashtags_ar"]), 3)
+            self.assertEqual(len(result["hashtags_en"]), 2)
+            self.assertIn("hook_id", result)
+            self.assertIn("cta_id", result)
+        self.assertTrue(
+            first["hook_id"] != second["hook_id"] or first["cta_id"] != second["cta_id"]
+            or first["hashtags_ar"] != second["hashtags_ar"] or first["hashtags_en"] != second["hashtags_en"]
+        )
+
+    def test_confirmed_social_history_balances_tag_hook_and_cta_reuse(self):
+        history = {"schema_version": 1, "posts": []}
+        first = build_social_caption(self.manifest("A verse with uncommon wording."), "video-one", history)
+        record_post(history, "video-one", first)
+        second = build_social_caption(self.manifest("A verse with uncommon wording."), "video-two", history)
+        self.assertNotEqual(first["hook_id"], second["hook_id"])
+        self.assertNotEqual(first["cta_id"], second["cta_id"])
+        self.assertFalse(set(first["hashtags_ar"][:2]).intersection(second["hashtags_ar"][:2]))
+        self.assertFalse(set(first["hashtags_en"][:1]).intersection(second["hashtags_en"][:1]))
+
+    def test_social_history_record_is_idempotent_for_same_confirmed_candidate(self):
+        history = {"schema_version": 1, "posts": []}
+        caption = build_social_caption(self.manifest("A verse with uncommon wording."), "video-id", history)
+        record_post(history, "candidate-id", caption)
+        record_post(history, "candidate-id", caption)
+        self.assertEqual(len(history["posts"]), 1)
 
     def test_arabic_and_english_hashtags_are_classified_correctly(self):
         result = build_social_caption(self.manifest("A verse with uncommon wording."), "video-c")
