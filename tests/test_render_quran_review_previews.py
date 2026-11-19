@@ -409,6 +409,36 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 probe(path)
 
 
+    def test_scene_crossfade_filter_preserves_total_video_duration_and_offsets(self):
+        filter_text, total = renderer.build_scene_transition_filter([5.0, 7.0, 8.0], 0.35)
+        self.assertEqual(total, 20.0)
+        self.assertIn("offset=4.650000", filter_text)
+        self.assertIn("offset=11.300000", filter_text)
+        self.assertIn("stop_duration=0.7", filter_text)
+        self.assertIn("trim=duration=20.000000", filter_text)
+        self.assertIn("[xfade2]tpad=", filter_text)
+
+    def test_scene_crossfade_rejects_segments_shorter_than_transition(self):
+        with self.assertRaisesRegex(ValueError, "longer than the positive transition"):
+            renderer.build_scene_transition_filter([0.2, 5.0], 0.35)
+
+    def test_recent_visual_selection_avoids_recent_assets_and_categories(self):
+        backgrounds = [
+            {"id": "recent", "tags": ["sea"]},
+            {"id": "same-category", "tags": ["sea", "nature"]},
+            {"id": "fresh", "tags": ["forest"]},
+        ]
+        chosen = renderer.choose_first_background(backgrounds, 0, {"recent"}, {"sea"})
+        self.assertEqual(chosen["id"], "fresh")
+
+    def test_category_aware_ayah_selection_prefers_a_different_scene_family(self):
+        backgrounds = [
+            {"id": "mosque", "tags": ["mosque"], "duration_seconds": 30.0},
+            {"id": "forest", "tags": ["forest"], "duration_seconds": 30.0},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 10.0, set(), {"mosque"})
+        self.assertEqual(chosen["id"], "forest")
+
     def test_background_selection_preserves_rotation_when_clip_is_long_enough(self):
         backgrounds = [
             {"id": "scheduled", "duration_seconds": 12.0},

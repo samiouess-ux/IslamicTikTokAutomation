@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import urllib.request
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, features
+from quran_visual_history import load_history as load_visual_history, recent_usage as recent_visual_usage
 
 SURAH_NAMES = [
     "الفاتحة",
@@ -606,35 +607,154 @@ def audio_duration_seconds(path: Path) -> float:
         return 0.0
 
 
+def background_categories(item: dict) -> set[str]:
+    """Return normalized visual categories for one approved background."""
+    tags = item.get("tags", [])
+    if not isinstance(tags, list):
+        return set()
+    return {str(tag).strip().lower() for tag in tags if isinstance(tag, str) and tag.strip()}
+
+
+def choose_first_background(backgrounds: list[dict], start_index: int,
+                            recent_ids: set[str], recent_categories: set[str]) -> dict:
+    """Rotate deterministically while preferring assets and categories absent from recent posts."""
+    if not backgrounds:
+        raise ValueError("At least one approved background is required.")
+    start = start_index % len(backgrounds)
+    rotated = backgrounds[start:] + backgrounds[:start]
+    return min(
+        rotated,
+        key=lambda item: (
+            item["id"] in recent_ids,
+            len(background_categories(item) & recent_categories),
+            rotated.index(item),
+        ),
+    )
+
+
+def choose_cover_template(rotation_index: int, recent_cover_ids: set[str]) -> tuple[str, int]:
+    """Choose the next cover template not used by the recent delivered posts."""
+    for offset in range(len(COVER_TEMPLATE_IDS)):
+        index = (rotation_index + offset) % len(COVER_TEMPLATE_IDS)
+        template_id = COVER_TEMPLATE_IDS[index]
+        if template_id not in recent_cover_ids:
+            return template_id, index
+    index = rotation_index % len(COVER_TEMPLATE_IDS)
+    return COVER_TEMPLATE_IDS[index], index
+
+
 def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
-                                used_ids: set[str] | None = None) -> dict:
-    """Choose an unused clip long enough for this ayah, else the longest safe fallback."""
+                                used_ids: set[str] | None = None,
+                                avoid_categories: set[str] | None = None) -> dict:
+    """Choose an unused, category-diverse asset long enough for this ayah when possible."""
     if not backgrounds:
         raise ValueError("At least one approved background is required.")
     used_ids = used_ids or set()
+    avoid_categories = avoid_categories or set()
     available = [item for item in backgrounds if item["id"] not in used_ids]
     if not available:
         available = list(backgrounds)
     if audio_duration > 0:
-        long_enough = [
+        suitable = [
             item for item in available
             if item.get("background_type") == "photo"
             or float(item.get("duration_seconds") or 0) >= audio_duration
         ]
-        if long_enough:
-            # A still photo can cover the full ayah; moving clips must be long
-            # enough to avoid restarting a short clip behind a longer recitation.
-            return long_enough[0]
-    if audio_duration <= 0:
-        # If probing is unavailable, retain the scheduled rotation rather than
-        # making an unsupported duration-based choice.
-        return available[0]
-    moving = [item for item in available if item.get("background_type") != "photo"]
-    if moving:
-        return max(moving, key=lambda item: float(item.get("duration_seconds") or 0))
-    return available[0]
+        pool = suitable or [item for item in available if item.get("background_type") != "photo"]
+        if not pool:
+            pool = available
+        if not suitable:
+            best_duration = max(float(item.get("duration_seconds") or 0) for item in pool)
+            pool = [item for item in pool if float(item.get("duration_seconds") or 0) == best_duration]
+    else:
+        pool = available
+    diverse = [item for item in pool if not (background_categories(item) & avoid_categories)]
+    return (diverse or pool)[0]
 
-def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0) -> dict:
+
+def build_scene_transition_filter(segment_durations: list[float],
+                                  transition_seconds: float = 0.35) -> tuple[str, float]:
+    """Build video-only crossfades and pad their overlap so total video duration is preserved."""
+    if len(segment_durations) < 2:
+        raise ValueError("At least two segments are required for scene transitions.")
+    if transition_seconds <= 0 or any(duration <= transition_seconds for duration in segment_durations):
+        raise ValueError("Every segment must be longer than the positive transition duration.")
+    total_duration = sum(segment_durations)
+    filters = [
+        f"[{index}:v]settb=AVTB,setpts=PTS-STARTPTS,fps=30,format=yuv420p[v{index}]"
+        for index in range(len(segment_durations))
+    ]
+    current = "v0"
+    cumulative_duration = segment_durations[0]
+    for index in range(1, len(segment_durations)):
+        next_label = f"xfade{index}"
+        offset = cumulative_duration - transition_seconds
+        filters.append(
+            f"[{current}][v{index}]xfade=transition=fade:duration={transition_seconds:g}:"
+            f"offset={offset:.6f}[{next_label}]"
+        )
+        current = next_label
+        cumulative_duration += segment_durations[index] - transition_seconds
+    padding = transition_seconds * (len(segment_durations) - 1)
+    filters.append(
+        f"[{current}]tpad=stop_mode=clone:stop_duration={padding:g},"
+        f"trim=duration={total_duration:.6f},setpts=PTS-STARTPTS[vout]"
+    )
+    return ";".join(filters), total_duration
+
+
+def assemble_review_segments(segments: list[Path], concat_path: Path,
+                             output_path: Path, work_dir: Path) -> dict:
+    """Crossfade video scenes only; concatenate and stream-copy the original MP3 audio."""
+    concat_path.write_text(
+        "".join(f"file '{segment.resolve()}'\\n" for segment in segments),
+        encoding="utf-8",
+    )
+    if len(segments) == 1:
+        subprocess.run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-f", "concat", "-safe", "0", "-i", str(concat_path),
+            "-c", "copy", "-movflags", "+faststart", str(output_path),
+        ], check=True)
+        return {"transition": "none_single_scene", "transition_seconds": 0.0, "scene_count": 1}
+    durations = [probe(segment)["duration_seconds"] for segment in segments]
+    filter_complex, total_duration = build_scene_transition_filter(durations)
+    audio_path = work_dir / "joined_original_audio.mp3"
+    silent_video_path = work_dir / "crossfaded_video_only.mp4"
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-f", "concat", "-safe", "0", "-i", str(concat_path),
+        "-vn", "-c:a", "copy", str(audio_path),
+    ], check=True)
+    video_command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y"]
+    for segment in segments:
+        video_command.extend(["-i", str(segment)])
+    video_command.extend([
+        "-filter_complex", filter_complex,
+        "-map", "[vout]", "-an",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+        "-pix_fmt", "yuv420p", "-t", f"{total_duration:.6f}",
+        str(silent_video_path),
+    ])
+    subprocess.run(video_command, check=True)
+    subprocess.run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-i", str(silent_video_path), "-i", str(audio_path),
+        "-map", "0:v:0", "-map", "1:a:0",
+        "-c:v", "copy", "-c:a", "copy",
+        "-movflags", "+faststart", str(output_path),
+    ], check=True)
+    return {
+        "transition": "video_only_crossfade",
+        "transition_seconds": 0.35,
+        "scene_count": len(segments),
+        "audio_stream": "original_mp3_stream_copy",
+        "audio_reencoded": False,
+        "duration_target_seconds": round(total_duration, 3),
+        "video_overlap_padding_seconds": round(0.35 * (len(segments) - 1), 3),
+    }
+
+def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previews: int = 2, background_rotation_index: int = 0, visual_history_path: Path | None = None) -> dict:
     batch = json.loads(batch_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if minimum_previews < 1:
@@ -670,6 +790,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
     font_path = font_file()
     moving_backgrounds = load_approved_backgrounds()
     photo_backgrounds = load_approved_photo_backgrounds()
+    visual_history_path = visual_history_path or Path("data/quran_visual_history.json")
+    visual_history = load_visual_history(visual_history_path)
+    recent_background_ids, recent_background_categories, recent_cover_ids = recent_visual_usage(visual_history)
     # Interleave the two libraries so a multi-ayah preview naturally uses
     # both moving footage and still photography instead of exhausting one pool.
     approved_backgrounds = []
@@ -698,9 +821,11 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         # Rotate across the combined video+photo pool. The run-specific index
         # is supplied by GitHub Actions so consecutive Cron dispatches do not
         # keep starting at the same daily time slot.
-        first_background = approved_backgrounds[
-            (background_rotation_index + len(previews)) % len(approved_backgrounds)
-        ]
+        rotation_start = (background_rotation_index + len(previews)) % len(approved_backgrounds)
+        first_background = choose_first_background(
+            approved_backgrounds, rotation_start,
+            recent_background_ids, recent_background_categories,
+        )
         remaining_videos = sorted(
             (
                 candidate for candidate in approved_backgrounds
@@ -732,6 +857,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         used_backgrounds = []
         segments = []
         used_background_ids = set()
+        used_background_categories = set()
         for index, verse in enumerate(verses):
             processed_audio = item.get("processed_audio_files", {}).get(str(int(verse["ayah"])))
             audio = (Path(processed_audio) if processed_audio else
@@ -740,15 +866,18 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
             ayah_audio_duration = audio_duration_seconds(audio)
             background_candidate = choose_background_for_ayah(
-                background_sequence, ayah_audio_duration, used_background_ids
+                background_sequence, ayah_audio_duration, used_background_ids,
+                recent_background_categories | used_background_categories,
             )
             used_background_ids.add(background_candidate["id"])
+            used_background_categories.update(background_categories(background_candidate))
             if background_candidate["id"] not in prepared_backgrounds:
                 if background_candidate.get("background_type") == "photo":
                     prepared_backgrounds[background_candidate["id"]] = {
                         "id": background_candidate["id"],
                         "description": background_candidate.get("description", background_candidate["id"]),
                         "source_page_url": background_candidate.get("source_page_url", ""),
+                        "tags": background_candidate.get("tags", []),
                         "path": background_candidate["path"],
                         "background_type": "photo",
                         "width": None,
@@ -762,6 +891,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     )
                     prepared_backgrounds[background_candidate["id"]]["path"] = str(bg_path)
                     prepared_backgrounds[background_candidate["id"]]["background_type"] = "moving_video"
+                    prepared_backgrounds[background_candidate["id"]]["tags"] = background_candidate.get("tags", [])
             background = Path(prepared_backgrounds[background_candidate["id"]]["path"])
             used_backgrounds.append(prepared_backgrounds[background_candidate["id"]])
             frame = work / f"ayah_{int(verse['ayah']):03d}.png"
@@ -796,8 +926,10 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                         "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
                         str(cover_background),
                     ], check=True)
-                cover_rotation_index = (background_rotation_index + len(previews)) % len(COVER_TEMPLATE_IDS)
-                cover_template_id = COVER_TEMPLATE_IDS[cover_rotation_index]
+                scheduled_cover_index = (background_rotation_index + len(previews)) % len(COVER_TEMPLATE_IDS)
+                cover_template_id, cover_rotation_index = choose_cover_template(
+                    scheduled_cover_index, recent_cover_ids,
+                )
                 make_intro_frame(
                     surah_number, int(numbers[0]), int(numbers[-1]),
                     intro, font_path, SURAH_NAMES[surah_number - 1],
@@ -835,13 +967,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             subprocess.run(command, check=True)
             segments.append(segment)
         concat = work / "segments.txt"
-        concat.write_text("".join(f"file '{p.resolve()}'\n" for p in segments), encoding="utf-8")
         output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
-        subprocess.run([
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-f", "concat", "-safe", "0", "-i", str(concat),
-            "-c", "copy", "-movflags", "+faststart", str(output)
-        ], check=True)
+        transition_info = assemble_review_segments(segments, concat, output, work)
         info = probe(output)
         previews.append({
             "candidate_id": part_id,
@@ -852,7 +979,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "verses": numbers,
             "background": used_backgrounds[0],
             "background_sequence": used_backgrounds,
+            "background_categories": sorted(set().union(*(background_categories(x) for x in used_backgrounds))),
             "cover_template_id": cover_template_id,
+            "visual_transition": transition_info,
             "cover_rotation_index": cover_rotation_index,
             "file": str(output),
             **info,
@@ -884,6 +1013,11 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "cover_rotation_enabled": True,
         "cover_rotation_count": len(COVER_TEMPLATE_IDS),
         "cover_rotation_start_index": background_rotation_index % len(COVER_TEMPLATE_IDS),
+        "visual_history_source": str(visual_history_path),
+        "cross_video_background_history_enabled": True,
+        "recent_background_history_window": 6,
+        "recent_cover_history_window": 3,
+        "scene_transition": {"type": "video_only_crossfade", "duration_seconds": 0.35, "audio_reencoded": False},
         "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "fade_start_seconds": INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS, "ayah_visible_from_seconds": 0, "audio_starts_at_seconds": 0, "visible_only_at_start": True, "transition": "alpha_fade_to_first_ayah", "template_count": len(COVER_TEMPLATE_IDS), "title_font": "Amiri Bold", "title_vocalization": "full_tashkeel"},
         "note": "One of the four original user-supplied covers is selected by the monotonic GitHub run rotation; the surah name is fully vocalized and rendered with Amiri Bold. The first ayah is composited from t=0 beneath the cover; the cover fades out over 0.8 seconds beginning at 0.4 seconds, revealing the ayah and moving background smoothly. Original recitation starts at t=0 and the video remains review-only.",
     }
@@ -908,6 +1042,8 @@ def main() -> None:
                         help="Minimum number of distinct review previews required.")
     parser.add_argument("--background-rotation-index", type=int, default=None,
                         help="Starting index for the approved background rotation; defaults to a daily UTC schedule slot.")
+    parser.add_argument("--visual-history", type=Path, default=Path("data/quran_visual_history.json"),
+                        help="Persistent visual history updated only after confirmed Telegram delivery.")
     args = parser.parse_args()
     rotation_index = args.background_rotation_index
     if rotation_index is None:
@@ -916,7 +1052,8 @@ def main() -> None:
         rotation_index = scheduled_background_rotation_index(now, total_backgrounds)
     print(json.dumps(render(args.batch, args.audio_report, args.output_dir,
                             minimum_previews=args.minimum_previews,
-                            background_rotation_index=rotation_index), ensure_ascii=False, indent=2))
+                            background_rotation_index=rotation_index,
+                            visual_history_path=args.visual_history), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

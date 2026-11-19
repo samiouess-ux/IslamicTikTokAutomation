@@ -22,8 +22,14 @@ on:
       - "src/build_quran_draft_manifests.py"
       - "src/quran_social_caption.py"
       - "src/quran_social_history.py"
+      - "src/quran_visual_history.py"
+      - "data/quran_visual_history.json"
+      - "tests/test_quran_visual_history.py"
       - "tests/test_quran_social_caption.py"
       - "src/render_quran_review_previews.py"
+      - "src/quran_visual_history.py"
+      - "data/quran_visual_history.json"
+      - "tests/test_quran_visual_history.py"
       - "data/background_photos_manifest.json"
       - "assets/background_photos/**"
       - "assets/background_photos/quran_cover_templates.zip"
@@ -190,6 +196,7 @@ jobs:
       - name: Run Quran catalog regression tests
         run: |
           python -m unittest discover -s tests -p 'test_quran_social_caption.py' -v
+          python -m unittest discover -s tests -p 'test_quran_visual_history.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_*catalog.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_review_batch.py' -v
           python -m unittest discover -s tests -p 'test_build_quran_tunisian_day_status.py' -v
@@ -304,7 +311,8 @@ jobs:
             --audio-report output/quran_batch_audio_report.json \
             --output-dir output/quran_review_previews \
             --minimum-previews 1 \
-            --background-rotation-index "$GITHUB_RUN_NUMBER"
+            --background-rotation-index "$GITHUB_RUN_NUMBER" \
+            --visual-history data/quran_visual_history.json
           python - <<'PY'
           import json
           from pathlib import Path
@@ -476,10 +484,16 @@ jobs:
               "--caption", str(caption_path),
               "--candidate-id", candidate_id,
           ], check=True)
+          subprocess.run([
+              sys.executable, "src/quran_visual_history.py", "record",
+              "--history", "data/quran_visual_history.json",
+              "--report", "output/quran_review_previews/preview_report.json",
+              "--telegram-confirmed",
+          ], check=True)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/quran_delivery_history.json data/quran_delivery_pending.json data/quran_social_history.json
+          git add -A data/quran_delivery_history.json data/quran_delivery_pending.json data/quran_social_history.json data/quran_visual_history.json
           git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery and clear reservation"
 
       - name: Sync confirmed Quran delivery history to active branch
