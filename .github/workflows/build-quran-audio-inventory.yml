@@ -21,6 +21,7 @@ on:
       - "src/build_quran_review_batch.py"
       - "src/build_quran_draft_manifests.py"
       - "src/quran_social_caption.py"
+      - "src/quran_social_history.py"
       - "tests/test_quran_social_caption.py"
       - "src/render_quran_review_previews.py"
       - "data/background_photos_manifest.json"
@@ -418,9 +419,11 @@ jobs:
 
           sys.path.insert(0, "src")
           from quran_social_caption import build_social_caption
+          from quran_social_history import load_history
 
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
+          social_history = load_history(Path("data/quran_social_history.json"))
           if report.get("preview_count") != 1 or report.get("auto_publish") is not False:
               raise SystemExit("Telegram delivery requires exactly one review-only video and disabled auto-publishing.")
           if len({item["surah_number"] for item in report["items"]}) != 1 or len(report["items"]) != 1:
@@ -435,7 +438,7 @@ jobs:
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
               caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
               caption_path.parent.mkdir(parents=True, exist_ok=True)
-              caption = build_social_caption(manifest, item["candidate_id"])
+              caption = build_social_caption(manifest, item["candidate_id"], social_history)
               caption_path.write_text(json.dumps(caption, ensure_ascii=False, indent=2), encoding="utf-8")
               subprocess.run([
                   sys.executable, "src/send_telegram.py",
@@ -458,6 +461,7 @@ jobs:
           if report.get("preview_count") != 1 or len(report.get("items", [])) != 1:
               raise SystemExit("Expected exactly one Telegram-confirmed review candidate.")
           candidate_id = report["items"][0]["candidate_id"]
+          caption_path = Path("output/telegram_captions") / f"{candidate_id}.json"
           subprocess.run([
               sys.executable, "src/quran_delivery_attempt.py", "finalize",
               "--pending", "data/quran_delivery_pending.json",
@@ -466,10 +470,16 @@ jobs:
               "--audio-report", "output/quran_batch_audio_report.json",
               "--candidate-id", candidate_id,
           ], check=True)
+          subprocess.run([
+              sys.executable, "src/quran_social_history.py", "record",
+              "--history", "data/quran_social_history.json",
+              "--caption", str(caption_path),
+              "--candidate-id", candidate_id,
+          ], check=True)
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data/quran_delivery_history.json data/quran_delivery_pending.json
+          git add -A data/quran_delivery_history.json data/quran_delivery_pending.json data/quran_social_history.json
           git diff --cached --quiet || git commit -m "Record Telegram-confirmed Quran review delivery and clear reservation"
 
       - name: Sync confirmed Quran delivery history to active branch
