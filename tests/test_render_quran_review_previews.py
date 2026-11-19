@@ -435,7 +435,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["audio_reencoded"])
             self.assertEqual(result["transition"], "video_only_crossfade")
             self.assertEqual(result["duration_target_seconds"], 12.0)
-            self.assertTrue(concat.read_text(encoding="utf-8").endswith("\\n"))
+            self.assertTrue(concat.read_text(encoding="utf-8").endswith("\n"))
 
     def test_scene_crossfade_filter_preserves_total_video_duration_and_offsets(self):
         filter_text, total = renderer.build_scene_transition_filter([5.0, 7.0, 8.0], 0.35)
