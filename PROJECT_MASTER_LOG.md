@@ -165,3 +165,21 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 
 **Next action**
 - Inspect the resulting workflow run and its caption test result. If successful, close this phase; otherwise diagnose only the failing test without expanding scope.
+
+
+### 2026-11-19 — TikTok Growth phase 1: isolated validation result
+**Branch / commit**
+- Branch HEAD confirmed before this documentation update: `e5257ba4ae4990bcc8c391ba00088c6cad5dca17`.
+- No source, test, workflow, Cron, Telegram, credential, or production behavior was changed during this validation step.
+
+**Validation**
+- The push-triggered GitHub Actions run #516 (`44577566460`) completed with conclusion `success`: https://github.com/samiouess-ux/IslamicTikTokAutomation/actions/runs/44577566460
+- This workflow did NOT execute `tests/test_quran_social_caption.py`; the caption test is not listed among its job steps. Therefore its green conclusion is not evidence that the new caption regression test passed.
+- Ran a local isolated Python check using the exact corrected Unicode predicate and the same representative Arabic/English tags. Result: PASS — Arabic tags were classified as Arabic, English tags as English, and the five-tag total was preserved.
+- Limitation: this was a focused predicate-level check, not execution of the repository's full unittest file. The committed regression test remains unverified in the repository test environment.
+- No Telegram send, production workflow dispatch, Cron test, or delivery-history write occurred.
+
+**Outcome / next action**
+- The Unicode fix is committed and the focused predicate behavior passed an isolated check.
+- Phase 1 is not marked fully test-complete until `tests/test_quran_social_caption.py` is executed as a repository test.
+- Next action: obtain a safe way to run that exact test file without invoking the production video/Telegram workflow; then record its exact result. Do not ask the user to use external Cron for testing.
