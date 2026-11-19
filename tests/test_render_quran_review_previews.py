@@ -274,7 +274,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             opening = result["opening_cover"]
             self.assertEqual(opening["duration_seconds"], 1.2)
             self.assertEqual(opening["fade_seconds"], 0.8)
-            self.assertEqual(opening["fade_start_seconds"], 0.4)
+            self.assertAlmostEqual(opening["fade_start_seconds"], 0.4)
             self.assertEqual(opening["ayah_visible_from_seconds"], 0)
             self.assertEqual(opening["audio_starts_at_seconds"], 0)
             self.assertEqual(opening["transition"], "alpha_fade_to_first_ayah")
