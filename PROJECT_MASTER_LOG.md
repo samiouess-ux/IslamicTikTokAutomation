@@ -413,3 +413,11 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Added regression assertions for panel-free transparency and the new ornament/layout. CI validation is pending; do not ask for a production Cron run until green.
 
 - CI follow-up: the initial isolated renderer suite passed all rendering/layout cases except one assertion that sampled a pixel beside (rather than on) the new bracket stroke. Corrected the test sample to the stroke coordinate `(178, 438)` in commit `ed54333992f6c678f58b00894c40807de9c5d87e`; rerun workflows are pending. No production send was triggered by these push events.
+
+
+### 2026-11-20 — Opening-cover mismatch corrected after actual visual review
+- Inspected the actual MP4 and contact sheet from render-only workflow run #548 (44725233631). The ayah overlay matched the approved open-bracket reference: mirrored gold ornaments, standalone divider, white Arabic, gold circular ayah number, English Saheeh International text, and no filled reading panel.
+- Found the opening cover still used an old closed-frame cover archive, creating a visible double-title/double-frame overlap during its fade.
+- Replaced that intro composition with the same first-scene full-bleed background and exact open-bracket title/divider geometry used by the ayah overlay. Preserved the existing 1.2-second intro, 0.8-second alpha fade, and audio start at zero. Added a regression test to guard against reintroducing the old enclosed cover.
+- The reviewed sample was 33.332 seconds, 1080x1920, MP3 audio. Telegram reservation/send/history/sync were skipped; no Telegram video was sent. No Cron or TikTok action occurred.
+- CI and a new render-only preview are required before visual approval.
