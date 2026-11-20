@@ -416,7 +416,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
 
     body_font, lines, line_height = fit_arabic_lines(
-        draw, arabic, font_path, max_width=850, max_lines=7, max_height=390
+        draw, arabic, font_path, max_width=780, max_lines=7, max_height=390
     )
     block_height = (len(lines) - 1) * line_height
     # Reserve a distinct lower-middle zone below the title divider.
@@ -662,12 +662,16 @@ def choose_first_background(backgrounds: list[dict], start_index: int,
         raise ValueError("At least one approved background is required.")
     start = start_index % len(backgrounds)
     rotated = backgrounds[start:] + backgrounds[:start]
+    # Moving footage is the default visual format. Keep still photos as a
+    # fallback only when the approved moving-video library is unavailable.
+    moving = [item for item in rotated if item.get("background_type") != "photo"]
+    pool = moving or rotated
     return min(
-        rotated,
+        pool,
         key=lambda item: (
             item["id"] in recent_ids,
             len(background_categories(item) & recent_categories),
-            rotated.index(item),
+            pool.index(item),
         ),
     )
 
@@ -694,20 +698,25 @@ def choose_background_for_ayah(backgrounds: list[dict], audio_duration: float,
     available = [item for item in backgrounds if item["id"] not in used_ids]
     if not available:
         available = list(backgrounds)
+    moving = [item for item in available if item.get("background_type") != "photo"]
+    photos = [item for item in available if item.get("background_type") == "photo"]
     if audio_duration > 0:
-        suitable = [
-            item for item in available
-            if item.get("background_type") == "photo"
-            or float(item.get("duration_seconds") or 0) >= audio_duration
+        suitable_moving = [
+            item for item in moving
+            if float(item.get("duration_seconds") or 0) >= audio_duration
         ]
-        pool = suitable or [item for item in available if item.get("background_type") != "photo"]
-        if not pool:
-            pool = available
-        if not suitable:
+        if suitable_moving:
+            pool = suitable_moving
+        elif photos:
+            # A still may cover an unusually long ayah, but only when no
+            # approved moving clip can cover the complete original audio.
+            pool = photos
+        else:
+            pool = moving or available
             best_duration = max(float(item.get("duration_seconds") or 0) for item in pool)
             pool = [item for item in pool if float(item.get("duration_seconds") or 0) == best_duration]
     else:
-        pool = available
+        pool = moving or available
     diverse = [item for item in pool if not (background_categories(item) & avoid_categories)]
     return (diverse or pool)[0]
 
