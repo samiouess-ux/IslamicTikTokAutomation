@@ -33,6 +33,7 @@ def build_review_batch(
     only_surahs: Iterable[int] | None = None,
     sequential_unused: bool = True,
     used_surahs: Iterable[int] | None = None,
+    deferred_ayah_references: Iterable[str] = (),
 ) -> dict[str, Any]:
     if joined.get("rendering_allowed") is not False:
         raise ValueError("Input catalog must remain blocked from rendering.")
@@ -73,6 +74,11 @@ def build_review_batch(
     slots = sorted({min(len(ordered)-1, (i * len(ordered)) // count) for i in range(count)})
     passages = []
     used_refs = {str(reference) for reference in used_ayah_references}
+    deferred_refs = {str(reference) for reference in deferred_ayah_references}
+    for reference in deferred_refs:
+        parts = reference.split(":")
+        if len(parts) != 2 or not parts[0].isdigit() or not parts[1].isdigit() or not (1 <= int(parts[0]) <= 114 and int(parts[1]) >= 1):
+            raise ValueError(f"Invalid deferred ayah reference: {reference}")
 
     # Legacy callers may continue a partially delivered surah. Production passes
     # used_surahs, enforcing one delivered video per surah per rotation.
@@ -230,10 +236,15 @@ def main() -> None:
     parser.add_argument("--only-surah", type=int, action="append", default=None, help="Restrict candidates to the specified surah(s).")
     parser.add_argument("--seeded-unused", action="store_true", help="Legacy option: choose a seeded random unused suffix instead of the first unused ayah.")
     parser.add_argument("--history", type=Path, help="JSON delivery history of previously delivered ayah references.")
+    parser.add_argument("--deferred-ayahs", type=Path, help="JSON ledger of complete ayahs deferred for exceeding the hard duration ceiling.")
     args = parser.parse_args()
     joined = json.loads(args.catalog.read_text(encoding="utf-8"))
     history = json.loads(args.history.read_text(encoding="utf-8")) if args.history and args.history.exists() else {}
     used_refs = history.get("ayah_references", [])
+    deferred_data = json.loads(args.deferred_ayahs.read_text(encoding="utf-8")) if args.deferred_ayahs and args.deferred_ayahs.exists() else {"ayah_references": []}
+    deferred_refs = deferred_data.get("ayah_references", [])
+    if not isinstance(deferred_refs, list) or not all(isinstance(item, str) for item in deferred_refs):
+        raise ValueError("Deferred ayah ledger ayah_references must be a list of strings.")
     if not isinstance(used_refs, list) or not all(isinstance(item, str) for item in used_refs):
         raise ValueError("Delivery history ayah_references must be a list of strings.")
     excluded_surahs = list(args.exclude_surah)
@@ -260,7 +271,7 @@ def main() -> None:
         args.count = min(args.count, len(remaining))
     result = build_review_batch(
         joined, args.count, args.verses_per_passage, args.seed, excluded_surahs,
-        used_refs, args.only_surah, not args.seeded_unused, used_surahs
+        used_refs, args.only_surah, not args.seeded_unused, used_surahs, deferred_refs
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
