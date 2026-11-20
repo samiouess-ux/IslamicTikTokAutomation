@@ -416,7 +416,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw_reference_ayah_medallion(image, verse["number"], bold_font_file())
 
     english_font, en_lines, english_line_height = fit_translation_lines(
-        draw, english, font_path, max_width=700, max_lines=8
+        draw, english, font_path, max_width=680, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
     # Match the reference's centered translation zone while keeping long Arabic
