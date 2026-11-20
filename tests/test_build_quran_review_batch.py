@@ -53,10 +53,11 @@ class BatchTests(unittest.TestCase):
         self.assertEqual(result["candidate_count"], 1)
         self.assertEqual(result["passages"][0]["surah_number"], 18)
         self.assertEqual(result["passages"][0]["verse_numbers"], [3, 4, 5, 6])
-        self.assertEqual(result["passage_selection"], "first_unused_contiguous_suffix_then_40_second_duration_limit")
+        self.assertEqual(result["passage_selection"], "first_unused_non_deferred_contiguous_suffix_then_duration_limit")
         self.assertFalse(result["rendering_allowed"])
         self.assertFalse(result["telegram_delivery"])
         self.assertFalse(result["auto_publish"])
+
     def test_default_starts_at_first_unused_ayah(self):
         verses = {}
         for ayah in range(1, 7):
@@ -169,7 +170,6 @@ class BatchTests(unittest.TestCase):
         for passage in result["passages"]:
             nums = passage["verse_numbers"]
             self.assertEqual(nums, list(range(nums[0], nums[0] + 2)))
-
 
     def test_rotation_excludes_every_previously_delivered_surah(self):
         verses = {}
