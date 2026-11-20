@@ -310,7 +310,10 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
         # above it are sunset scenery, which otherwise becomes a hard-edged
         # orange rectangle when composited over a different video background.
         mask = Image.new("L", crop.size, 255)
-        ImageDraw.Draw(mask).rectangle((0, 0, crop.width - 1, 56), fill=0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.rectangle((0, 0, crop.width - 1, 56), fill=0)
+        # Remove a detached warm pixel cluster beside the bracket's upper tip.
+        mask_draw.rectangle((0, 57, 28, 88), fill=0)
         alpha = ImageChops.multiply(alpha, mask)
     if clear_center:
         left, top, right, bottom = box
