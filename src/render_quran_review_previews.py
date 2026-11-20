@@ -401,7 +401,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw = ImageDraw.Draw(image)
 
     title_text = f"سورة {surah_name}"
-    title_center = (540, 500)
+    title_center = (540, 460)
     title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
                                       center=title_center)
     draw_reference_surah_ornaments(image)
@@ -426,7 +426,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     # Center the complete Arabic ayah on the video canvas and lower it
     # beneath the surah title, leaving clear vertical space after the divider.
     # The narrower centered text area also stays clear of the left ayah medallion.
-    start_y = 1000 - block_height / 2
+    start_y = 1060 - block_height / 2
     for line_index, line in enumerate(lines):
         draw.text((540, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
