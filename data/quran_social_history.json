@@ -57,6 +57,25 @@
         "follow"
       ],
       "confirmed_at_utc": "2026-11-20T10:39:14.697092+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_018_110_part_001",
+      "hashtags_ar": [
+        "#هداية",
+        "#آيات_الله",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#DailyQuran",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "listen"
+      ],
+      "cta_ids": [
+        "listen"
+      ],
+      "confirmed_at_utc": "2026-11-20T11:12:10.655648+00:00"
     }
   ]
 }

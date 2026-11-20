@@ -16,6 +16,23 @@
       ],
       "cover_template_id": "blue_night",
       "confirmed_at_utc": "2026-11-20T10:39:14.732211+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_018_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-36521625",
+          "categories": [
+            "lantern",
+            "ramadan",
+            "still_life",
+            "tea"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "emerald_green",
+      "confirmed_at_utc": "2026-11-20T11:12:10.679444+00:00"
     }
   ]
 }
