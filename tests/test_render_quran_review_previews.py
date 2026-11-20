@@ -151,7 +151,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 # Open bracket flourishes, title divider, and left-side ayah medallion.
                 self.assertGreater(frame.getpixel((178, 438))[3], 0)
                 self.assertGreater(frame.getpixel((540, 690))[3], 0)
-                self.assertGreater(frame.getpixel((207, 905))[3], 200)
+                self.assertGreater(frame.getpixel((207, 990))[3], 200)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
     def test_intro_frame_uses_same_open_reference_without_old_closed_cover(self):
