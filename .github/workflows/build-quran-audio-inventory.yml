@@ -391,6 +391,18 @@ jobs:
               raise SystemExit("New-background Quran overlay contact sheet was not created.")
           print("Created four Quran-overlay previews for the newly integrated backgrounds; visual legibility review is retained without re-downloading older assets.")
           PY
+      - name: Upload render-only visual review samples
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.test_only == true)
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-visual-review-samples
+          path: |
+            output/quran_review_previews/
+            output/background_review/*_quran_overlay.jpg
+            output/background_review/background_quran_overlay_contact_sheet.jpg
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Reserve Telegram delivery attempt before sending
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_only != true && inputs.test_only_telegram != true && inputs.send_to_telegram == true)
         run: |
