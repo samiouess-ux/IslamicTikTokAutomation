@@ -1154,3 +1154,16 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Applied a narrow spacing correction only: moved the Arabic ayah block and its gold number medallion lower to a dedicated middle zone (center y=990), and moved the English translation to a separate lower zone (center y=1450). Updated the medallion regression probe accordingly. This is a candidate fix pending CI and visual inspection, not yet verified.
 - Do not further improvise or redesign the gold ornament. Exact reconstruction requires the original approved reference image to be available to the implementation/review step. Keep the current ornament marked as a placeholder until it can be directly compared and reproduced.
 - No Telegram delivery, Cron run, or TikTok publishing. Work remains on feature/telegram-review-notifications only.
+
+
+## Deferred-ayah continuation implementation — 2026-11-20 (validation pending)
+
+- User approved explicitly deferring Al-Kahf 18:19 and continuing with the next ayah, without cutting or speeding up recitation.
+- Added `data/quran_deferred_ayahs.json` with exact reference `18:19`, measured processed duration `66.116s`, hard single-ayah ceiling `60s`, and the reason/status. This reference is not added to confirmed delivery history.
+- Updated `src/build_quran_review_batch.py` to accept a separate deferred-reference ledger and exclude deferred ayahs when selecting the first unused contiguous suffix. Delivery history remains separate and unchanged.
+- Updated Friday workflow invocation and its first-unused-ayah assertion to honor the deferred ledger; regular selection also receives the ledger. Added the data file to workflow path filters.
+- Added regression coverage that a deferred Al-Kahf 18:19 is skipped and candidate selection resumes at 18:20. Existing Friday-selection expectations were updated to the new explicit selection-policy label.
+- Relevant commits: builder `33d3a086e3bcfe79b28d2a768ea481adf1f73f27`; test `3b14d5694baae565692770eab615925761afe47a`; workflow `eae10c8161be4df3809a5270a35aa2ecc743700a`; ledger `5b5f2481ac23d7638a40ad583732ad31ae556066`. All on `feature/telegram-review-notifications`; `main` untouched.
+- CI runs for the new changes were still in progress at the time of this update: Quran batch tests run `44770357208` (latest test commit) and inventory/render validation run `44770351393` (workflow change). No passing result is claimed yet.
+- No Cron run, production Telegram send, delivery-history mutation, or TikTok publishing was triggered. Push-triggered validation is test-only; keep production scheduling untouched.
+- Next: wait for the focused test run, inspect its result, then inspect the render-only inventory workflow to confirm it starts Al-Kahf at 18:20 and still respects the duration guard before any production execution.
