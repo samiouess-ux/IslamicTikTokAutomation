@@ -1,4 +1,5 @@
 name: Build Quran-wide official verse audio inventory
+# Push-triggered validation is render-only; Telegram reservation and send remain disabled.
 
 concurrency:
   group: quran-review-inventory-v2-${{ github.ref }}
