@@ -421,3 +421,6 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Replaced that intro composition with the same first-scene full-bleed background and exact open-bracket title/divider geometry used by the ayah overlay. Preserved the existing 1.2-second intro, 0.8-second alpha fade, and audio start at zero. Added a regression test to guard against reintroducing the old enclosed cover.
 - The reviewed sample was 33.332 seconds, 1080x1920, MP3 audio. Telegram reservation/send/history/sync were skipped; no Telegram video was sent. No Cron or TikTok action occurred.
 - CI and a new render-only preview are required before visual approval.
+
+
+- CI follow-up: the first run after the intro-cover change failed only because the regression test compared a JPEG-resampled background pixel for exact RGB equality; observed rounding was one level per channel (19,45,94 vs. (20,45,95)). Updated the assertion to allow a maximum two-level JPEG rounding tolerance. Renderer tests had otherwise passed. A fresh push-triggered validation/render-only run is pending.
