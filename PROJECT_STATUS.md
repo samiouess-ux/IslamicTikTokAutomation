@@ -1066,3 +1066,9 @@ Follow this sequence. The user should not need to repeat these decisions.
 - The active renderer produced `quran_s018_017_110_part_001_REVIEW_ONLY.mp4`, duration 46.733 seconds, 1080x1920, preserving the MP3 audio stream. This directly validates the new 45–60-second single-ayah exception against the previously blocked ayah.
 - Quran engine test workflow #205 (`44688267334`) and isolated request-pipeline workflow #139 (`44688267567`) both passed on the same code commit.
 - This was a push-triggered render-only validation. Telegram reservation, Telegram send, delivery-history recording, and sync were all skipped; no Telegram video was sent and no production Cron was run. The regular 45-second limit for multi-ayah videos and the 60-second absolute cap for one complete ayah remain enforced.
+
+
+### 2026-11-20 — Surah-title ornament refinement
+- On `feature/telegram-review-notifications`, refined only the active renderer's surah-title cartouche: a symmetrical pointed manuscript-style outline, fine inner contour, paired eight-point rosette terminals, and small mirrored arabesque leaf details.
+- Preserved the Arabic surah title text, gold palette, title position, and the separate gold divider/diamond beneath the title. No Quran text, translation, audio, cover intro, verse-number medallion, background selection, duration policy, transition, Telegram, Cron, or TikTok publishing behavior was changed.
+- Added renderer regression assertions for both side rosettes and the title outline. Validation is pending GitHub Actions; this visual change is not considered accepted until a rendered preview is inspected.
