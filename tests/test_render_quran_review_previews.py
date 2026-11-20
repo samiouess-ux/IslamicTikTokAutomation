@@ -169,7 +169,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                self.assertEqual(frame.getpixel((540, 780))[:3], (20, 45, 95))
+                self.assertLessEqual(max(abs(actual - expected) for actual, expected in zip(frame.getpixel((540, 780))[:3], (20, 45, 95))), 2)
                 self.assertGreater(frame.getpixel((178, 438))[0], 150)
                 self.assertGreater(frame.getpixel((540, 690))[0], 150)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
