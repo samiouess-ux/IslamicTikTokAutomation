@@ -403,3 +403,11 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - No changes to Cron, schedule, bot, credentials, TikTok publishing, or `main`.
 - Await the push-triggered test/render-only workflow result. Push-event conditions keep Telegram reservation/send/history disabled.
 - Do not rerun Cron or manually dispatch a production Telegram send until CI is green and the user asks to test.
+
+
+### 2026-11-20 — Approved reference composition implemented
+- Applied the user's approved visual reference to `src/render_quran_review_previews.py` on `feature/telegram-review-notifications` only.
+- Removed the dark translucent rounded reading panel, its gold outlines, and the overlay tint. The approved moving/photo background is now unobstructed behind the typography.
+- Replaced the enclosed pointed cartouche with open, mirrored gold arabesque brackets around the surah title, and retained a separate gold floral divider beneath it. Repositioned the Arabic ayah, left-side gold circular ayah number, and centered English translation to match the approved reference's hierarchy.
+- Kept the original Quran Arabic/English content, font family, audio streams, scene/background selection, transition, cover behavior, duration limits, Telegram bot, Cron, and manual TikTok publishing unchanged. Only the active ayah-frame visual overlay was changed.
+- Added regression assertions for panel-free transparency and the new ornament/layout. CI validation is pending; do not ask for a production Cron run until green.

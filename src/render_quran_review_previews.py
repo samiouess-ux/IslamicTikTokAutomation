@@ -283,110 +283,111 @@ def bold_font_file() -> str:
 
 
 def draw_surah_cartouche(draw: ImageDraw.ImageDraw, accent: tuple,
-                         center_x: int = 540, center_y: int = 465) -> None:
-    """Draw a refined, symmetrical Islamic title cartouche with rosette terminals.
+                         center_x: int = 540, center_y: int = 540) -> None:
+    """Draw the open, mirrored gold arabesque brackets from the approved reference.
 
-    The design combines a pointed manuscript-style cartouche, a fine inner
-    contour, and restrained eight-point rosettes with small arabesque leaves.
-    It frames only the surah title; the separate divider/diamond beneath it
-    remains an independent ornament.
+    The title is deliberately not enclosed by a plaque or closed frame. Each
+    side is an independent ornamental parenthesis with a curled floral center.
     """
-    outer = [
-        (center_x, center_y - 78), (center_x + 24, center_y - 62),
-        (center_x + 210, center_y - 62), (center_x + 246, center_y - 48),
-        (center_x + 276, center_y - 22), (center_x + 302, center_y),
-        (center_x + 276, center_y + 22), (center_x + 246, center_y + 48),
-        (center_x + 210, center_y + 62), (center_x + 24, center_y + 62),
-        (center_x, center_y + 78), (center_x - 24, center_y + 62),
-        (center_x - 210, center_y + 62), (center_x - 246, center_y + 48),
-        (center_x - 276, center_y + 22), (center_x - 302, center_y),
-        (center_x - 276, center_y - 22), (center_x - 246, center_y - 48),
-        (center_x - 210, center_y - 62), (center_x - 24, center_y - 62),
-    ]
-    inner = [
-        (center_x, center_y - 64), (center_x + 20, center_y - 50),
-        (center_x + 205, center_y - 50), (center_x + 237, center_y - 38),
-        (center_x + 263, center_y - 17), (center_x + 282, center_y),
-        (center_x + 263, center_y + 17), (center_x + 237, center_y + 38),
-        (center_x + 205, center_y + 50), (center_x + 20, center_y + 50),
-        (center_x, center_y + 64), (center_x - 20, center_y + 50),
-        (center_x - 205, center_y + 50), (center_x - 237, center_y + 38),
-        (center_x - 263, center_y + 17), (center_x - 282, center_y),
-        (center_x - 263, center_y - 17), (center_x - 237, center_y - 38),
-        (center_x - 205, center_y - 50), (center_x - 20, center_y - 50),
-    ]
-    draw.line(outer + [outer[0]], fill=(*accent, 235), width=3, joint="curve")
-    draw.line(inner + [inner[0]], fill=(*accent, 125), width=2, joint="curve")
+    gold = (245, 184, 55, 255)
+    shadow = (76, 43, 12, 210)
 
-    # Small eight-point rosettes finish both ends without crowding the title.
-    for x in (center_x - 276, center_x + 276):
-        star = [
-            (x, center_y - 17), (x + 5, center_y - 5),
-            (x + 17, center_y), (x + 5, center_y + 5),
-            (x, center_y + 17), (x - 5, center_y + 5),
-            (x - 17, center_y), (x - 5, center_y - 5),
-        ]
-        draw.line(star + [star[0]], fill=(*accent, 225), width=2, joint="curve")
-        draw.ellipse((x - 4, center_y - 4, x + 4, center_y + 4),
-                     fill=(*accent, 220))
+    def mirror(points, direction):
+        return [(center_x + direction * (x - center_x), y) for x, y in points]
 
-    # Mirrored leaf-and-dot details create a light arabesque rhythm at the shoulders.
+    left_outer = [
+        (266, 426), (246, 411), (225, 399), (205, 401), (188, 416),
+        (178, 438), (181, 458), (194, 472), (211, 473), (222, 462),
+        (219, 448), (207, 443), (198, 451), (201, 461),
+    ]
+    left_inner = [
+        (263, 438), (246, 425), (228, 416), (211, 417), (198, 430),
+        (191, 445), (195, 459), (205, 466),
+    ]
+    lower_flourish = [
+        (205, 477), (190, 486), (181, 502), (183, 520), (195, 536),
+        (214, 546), (229, 560), (233, 579), (224, 596), (207, 605),
+    ]
+    upper_leaf = [(225, 416), (215, 395), (222, 378), (238, 397), (242, 416)]
+    lower_leaf = [(226, 568), (211, 586), (214, 606), (235, 591), (238, 575)]
+
     for direction in (-1, 1):
-        anchor_x = center_x + direction * 214
-        leaf = [
-            (anchor_x, center_y),
-            (anchor_x + direction * 13, center_y - 10),
-            (anchor_x + direction * 28, center_y - 8),
-            (anchor_x + direction * 17, center_y + 1),
-            (anchor_x + direction * 28, center_y + 10),
-            (anchor_x + direction * 13, center_y + 10),
-            (anchor_x, center_y),
-        ]
-        draw.line(leaf, fill=(*accent, 175), width=2, joint="curve")
-        dot_x = center_x + direction * 188
-        draw.ellipse((dot_x - 2, center_y - 2, dot_x + 2, center_y + 2),
-                     fill=(*accent, 190))
+        for points, width, color in (
+            (left_outer, 6, shadow), (left_outer, 4, gold),
+            (left_inner, 2, gold), (lower_flourish, 5, shadow),
+            (lower_flourish, 3, gold),
+        ):
+            draw.line(mirror(points, direction), fill=color, width=width, joint="curve")
+        draw.line(mirror(upper_leaf, direction), fill=gold, width=3, joint="curve")
+        draw.line(mirror(lower_leaf, direction), fill=gold, width=3, joint="curve")
 
+        # Small curled rosette and bead at the outer midpoint.
+        cx = center_x + direction * 188
+        draw.arc((cx - 15, 456, cx + 15, 486), 35 if direction < 0 else 145,
+                 315 if direction < 0 else 425, fill=shadow, width=6)
+        draw.arc((cx - 15, 456, cx + 15, 486), 35 if direction < 0 else 145,
+                 315 if direction < 0 else 425, fill=gold, width=3)
+        draw.ellipse((cx - 4, 468, cx + 4, 476), fill=gold)
+        draw.ellipse((center_x + direction * 258 - 3, 536 - 3,
+                      center_x + direction * 258 + 3, 536 + 3), fill=gold)
+
+
+def draw_title_divider(draw: ImageDraw.ImageDraw, accent: tuple,
+                       center_x: int = 540, center_y: int = 690) -> None:
+    """Draw the thin gold line and floral diamond divider from the reference."""
+    gold = (245, 184, 55, 255)
+    draw.line((300, center_y, 780, center_y), fill=gold, width=3)
+    draw.line((335, center_y - 3, 745, center_y - 3),
+              fill=(255, 222, 142, 190), width=1)
+    # Central interlaced rosette: four petals, a small diamond, and side beads.
+    draw.ellipse((center_x - 34, center_y - 12, center_x + 34, center_y + 12),
+                 outline=gold, width=3)
+    draw.ellipse((center_x - 19, center_y - 22, center_x + 19, center_y + 22),
+                 outline=gold, width=3)
+    draw.polygon([(center_x, center_y - 34), (center_x + 12, center_y),
+                  (center_x, center_y + 34), (center_x - 12, center_y)],
+                 outline=gold, fill=(0, 0, 0, 0))
+    draw.ellipse((center_x - 5, center_y - 5, center_x + 5, center_y + 5),
+                 fill=gold)
+    for x in (center_x - 52, center_x + 52):
+        draw.ellipse((x - 5, center_y - 5, x + 5, center_y + 5), fill=gold)
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                          center: tuple = (540, 465), max_width: int = 500,
-                          max_height: int = 64):
-    """Keep the complete surah title inside the cartouche's clear inner area."""
-    for size in (68, 64, 60, 56, 52, 48, 44, 40):
+                          center: tuple = (540, 540), max_width: int = 620,
+                          max_height: int = 112):
+    """Fit the complete surah title between the open ornamental brackets."""
+    for size in (112, 104, 96, 88, 80, 72, 64, 56, 48):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         bounds = draw.textbbox(center, text, font=font, anchor="mm",
                                direction="rtl", language="ar")
         if bounds[2] - bounds[0] <= max_width and bounds[3] - bounds[1] <= max_height:
             return font
-    raise ValueError("Surah title cannot fit inside its cartouche without clipping.")
+    raise ValueError("Surah title cannot fit safely between its ornamental brackets.")
 
 
 def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
-    palette_index = (surah * 7 + int(verse.get("number", index + 1)) * 3 + index) % len(PALETTES)
-    _top, _bottom, accent = PALETTES[palette_index]
+    if not isinstance(verse.get("number"), int):
+        raise ValueError("Every preview ayah needs an integer verse number.")
+
+    # Approved reference: unobstructed full-bleed scenery, bright gold title
+    # between open arabesque brackets, white Quran text, gold ayah medallion,
+    # and centered English translation. No panel, border, or dark overlay.
+    accent = (245, 184, 55)
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    # Calm the approved moving footage while leaving the scenery visible.
-    draw.rectangle((0, 0, 1080, 1920), fill=(*_top, 30))
-    # A slimmer, lighter reading panel gives the footage more room and avoids
-    # the oversized opaque-card appearance of the first preview.
-    draw.rounded_rectangle((82, 320, 998, 1600), radius=48,
-                           fill=(3, 12, 18, 148), outline=(*accent, 175), width=2)
-    draw.rounded_rectangle((94, 332, 986, 1588), radius=40,
-                           outline=(*accent, 55), width=1)
-
     title_text = f"سورة {surah_name}"
-    title_font = fit_surah_title_font(draw, title_text, bold_font_file())
-    draw_surah_cartouche(draw, accent)
-    draw.text((540, 465), title_text, font=title_font, fill=accent,
-              anchor="mm", direction="rtl", language="ar")
-    draw.line((210, 575, 870, 575), fill=(*accent, 155), width=2)
-    draw.polygon([(540, 568), (547, 575), (540, 582), (533, 575)],
-                 fill=(*accent, 190))
+    title_center = (540, 540)
+    title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
+                                      center=title_center)
+    draw_surah_cartouche(draw, accent, center_y=540)
+    draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
+              anchor="mm", direction="rtl", language="ar",
+              stroke_width=2, stroke_fill=(55, 34, 12, 190))
+    draw_title_divider(draw, accent, center_y=690)
 
     arabic = verse.get("arabic")
     english = verse.get("english")
@@ -394,41 +395,43 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
             or not isinstance(english, str) or not english.strip()):
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
 
-    body_font, lines, line_height = fit_arabic_lines(draw, arabic, font_path)
+    body_font, lines, line_height = fit_arabic_lines(
+        draw, arabic, font_path, max_width=850, max_lines=7, max_height=390
+    )
     block_height = (len(lines) - 1) * line_height
-    # Center the verse inside its reserved band; its top can never enter the title area.
-    start_y = 865 - block_height / 2
+    start_y = 900 - block_height / 2
     for line_index, line in enumerate(lines):
-        draw.text((540, start_y + line_index * line_height), line,
+        draw.text((600, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
-                  direction="rtl", language="ar")
+                  direction="rtl", language="ar",
+                  stroke_width=2, stroke_fill=(0, 0, 0, 150))
 
-    # The verse number remains a separate gold circular medallion.
-    badge_y, badge_radius = 1135, 49
-    draw.ellipse((540 - badge_radius, badge_y - badge_radius,
-                  540 + badge_radius, badge_y + badge_radius),
-                 fill=(*accent, 25), outline=(*accent, 245), width=4)
-    draw.ellipse((540 - badge_radius + 8, badge_y - badge_radius + 8,
-                  540 + badge_radius - 8, badge_y + badge_radius - 8),
-                 outline=(*accent, 115), width=2)
+    # Gold circular verse marker sits to the left of the Arabic text block.
+    badge_x, badge_y, badge_radius = 160, 905, 47
+    draw.ellipse((badge_x - badge_radius, badge_y - badge_radius,
+                  badge_x + badge_radius, badge_y + badge_radius),
+                 outline=(*accent, 255), width=4)
+    draw.ellipse((badge_x - badge_radius + 8, badge_y - badge_radius + 8,
+                  badge_x + badge_radius - 8, badge_y + badge_radius - 8),
+                 outline=(255, 222, 142, 210), width=2)
     number_font = ImageFont.truetype(bold_font_file(), 40, layout_engine=ImageFont.Layout.RAQM)
     ayah_no = str(verse["number"]).translate(
         str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     )
-    draw.text((540, badge_y), ayah_no, font=number_font, fill=accent,
-              anchor="mm", direction="rtl", language="ar")
+    draw.text((badge_x, badge_y), ayah_no, font=number_font, fill=(*accent, 255),
+              anchor="mm", direction="rtl", language="ar",
+              stroke_width=1, stroke_fill=(55, 34, 12, 170))
 
-    draw.line((210, 1220, 870, 1220), fill=(*accent, 135), width=2)
     english_font, en_lines, english_line_height = fit_translation_lines(
-        draw, english, font_path, max_width=820, max_lines=8
+        draw, english, font_path, max_width=850, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
-    english_start_y = 1390 - english_block_height / 2
+    english_start_y = 1215 - english_block_height / 2
     for line_index, line in enumerate(en_lines):
         draw.text((540, english_start_y + line_index * english_line_height),
-                  line, font=english_font, fill=(248, 249, 246, 255),
-                  anchor="mm")
-    draw.line((330, 1535, 750, 1535), fill=(*accent, 105), width=2)
+                  line, font=english_font, fill=(255, 255, 245, 255),
+                  anchor="mm", stroke_width=2,
+                  stroke_fill=(0, 0, 0, 155))
     image.save(out)
 
 

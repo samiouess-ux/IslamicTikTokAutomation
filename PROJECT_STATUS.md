@@ -1082,3 +1082,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Cleared `data/quran_delivery_pending.json` only after confirming from run #540 logs that the send subprocess was never called. No Quran delivery history was recorded and no video was sent.
 - Commits: shared policy `eb78d36b71869acf60c3fb88cd92f66cdf102041`; tests `f5604c1788f3565f34505bef36f0810fb7379b34`; workflow guard `6dfbc396cd2330b2288e49320ab47917e8cf01c1`; failed pre-send reservation cleanup `20c077653b949c535b43996938145bc0b657d0a8`.
 - Validation is pending for the push-triggered, non-delivery CI run. Do not rerun Cron or manually dispatch a Telegram send until the automated checks pass and the user explicitly requests the next test.
+
+
+### 2026-11-20 — User-approved visual reference applied to active Quran frame
+- User explicitly approved the generated full-bleed cinematic reference and requested the same composition without substitutions.
+- Active ayah overlay updated to remove the dark translucent reading panel, its borders, and the full-frame tint. The live approved background remains visible edge-to-edge.
+- Replaced the closed surah-title cartouche with mirrored open gold arabesque brackets; retained the title and added the fine gold floral divider beneath it. Repositioned the white Arabic ayah, left-side gold circular ayah number, and centered English Saheeh International translation to follow the reference composition.
+- Text uses only a restrained dark stroke for legibility; no filled backing or panel is drawn. Quran text, translation source, audio, recitation, duration policy, background assets/rotation, transitions, Telegram delivery, Cron, and manual-only TikTok publishing are unchanged.
+- Automated regression tests now assert transparent areas where panels previously appeared and the new open-bracket/divider/ayah-marker geometry. Await CI before any new Cron test; this push itself does not send Telegram.

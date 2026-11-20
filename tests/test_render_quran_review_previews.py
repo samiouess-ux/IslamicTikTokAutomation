@@ -120,20 +120,20 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertGreaterEqual(line_height, 30)
         self.assertLessEqual((len(lines) - 1) * line_height, 300)
 
-    def test_every_surah_title_fits_inside_the_cartouche_safe_area(self):
-        image = Image.new("RGB", (1080, 1920))
+    def test_every_surah_title_fits_between_open_reference_brackets(self):
+        image = Image.new("RGBA", (1080, 1920))
         draw = ImageDraw.Draw(image)
         path = font_file()
         for surah_name in SURAH_NAMES:
             title = f"سورة {surah_name}"
             font = renderer.fit_surah_title_font(draw, title, path)
-            bounds = draw.textbbox((540, 465), title, font=font, anchor="mm",
+            bounds = draw.textbbox((540, 540), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
-            self.assertLessEqual(bounds[2] - bounds[0], 500, title)
-            self.assertLessEqual(bounds[3] - bounds[1], 64, title)
-            self.assertGreaterEqual(font.size, 40, title)
+            self.assertLessEqual(bounds[2] - bounds[0], 620, title)
+            self.assertLessEqual(bounds[3] - bounds[1], 112, title)
+            self.assertGreaterEqual(font.size, 48, title)
 
-    def test_make_frame_has_refined_cartouche_and_gold_ayah_medallion(self):
+    def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "frame.png"
             make_frame(
@@ -144,12 +144,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                # The refined pointed title cartouche, side rosettes, and separate
-                # circular ayah medallion must all remain visibly drawn.
-                self.assertGreater(frame.getpixel((540, 387))[3], 200)
-                self.assertGreater(frame.getpixel((264, 465))[3], 150)
-                self.assertGreater(frame.getpixel((816, 465))[3], 150)
-                self.assertGreater(frame.getpixel((540, 1086))[3], 200)
+                # Outside text and ornament strokes, the overlay stays transparent:
+                # no full-screen tint, rounded panel, or dark text backing is allowed.
+                self.assertEqual(frame.getpixel((50, 350))[3], 0)
+                self.assertEqual(frame.getpixel((500, 800))[3], 0)
+                # Open bracket flourishes, title divider, and left-side ayah medallion.
+                self.assertGreater(frame.getpixel((188, 438))[3], 0)
+                self.assertGreater(frame.getpixel((540, 690))[3], 0)
+                self.assertGreater(frame.getpixel((160, 905))[3], 200)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
     def test_intro_frame_shows_surah_and_exact_ayah_range(self):
