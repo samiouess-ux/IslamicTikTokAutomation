@@ -167,7 +167,12 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertIsNotNone(alpha.crop((138, 448, 270, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((298, 650, 784, 730)).getbbox())
-                self.assertIsNotNone(alpha.crop((103, 846, 207, 954)).getbbox())
+                # The reference medallion moves down with the Arabic block.
+                self.assertIsNotNone(alpha.crop((103, 1006, 207, 1114)).getbbox())
+                arabic_alpha = alpha.crop((210, 760, 900, 1300))
+                english_alpha = alpha.crop((180, 1300, 900, 1780))
+                self.assertIsNotNone(arabic_alpha.getbbox())
+                self.assertIsNotNone(english_alpha.getbbox())
                 self.assertEqual(renderer.APPROVED_DESIGN_REFERENCE,
                                  Path("references/approved_quran_design.png"))
                 self.assertIsNotNone(alpha.getbbox())
@@ -576,3 +581,4 @@ class ReviewPreviewRendererTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
