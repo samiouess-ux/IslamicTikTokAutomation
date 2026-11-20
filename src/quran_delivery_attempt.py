@@ -23,6 +23,13 @@ def _write_json(path: Path, value: Any) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def delivery_duration_limit_seconds(selected_verses: list[int]) -> float:
+    """Return the shared delivery limit: 60s for one whole ayah, otherwise 45s."""
+    if not isinstance(selected_verses, list) or not selected_verses:
+        raise ValueError("Delivery duration requires at least one selected ayah.")
+    return 60.0 if len(selected_verses) == 1 else 45.0
+
+
 def guard_no_pending(pending_path: Path) -> None:
     if pending_path.exists():
         pending = _read_json(pending_path, {})
@@ -80,7 +87,7 @@ def reserve_attempt(
         or selected != list(range(selected[0], selected[0] + len(selected)))
     ):
         raise ValueError("Reserved ayahs must be a non-empty contiguous prefix of the source passage.")
-    allowed_seconds = 60.0 if len(selected) == 1 else 45.0
+    allowed_seconds = delivery_duration_limit_seconds(selected)
     if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > allowed_seconds:
         raise ValueError(f"Preview duration must be positive and no longer than {allowed_seconds:g} seconds for the selected ayah count.")
     if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > allowed_seconds:
