@@ -170,7 +170,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 # The reference medallion moves down with the Arabic block.
                 self.assertIsNotNone(alpha.crop((103, 1006, 207, 1114)).getbbox())
                 arabic_alpha = alpha.crop((210, 760, 900, 1300))
-                english_alpha = alpha.crop((180, 1300, 900, 1780))
+                english_alpha = alpha.crop((180, 1100, 900, 1780))
                 self.assertIsNotNone(arabic_alpha.getbbox())
                 self.assertIsNotNone(english_alpha.getbbox())
                 self.assertEqual(renderer.APPROVED_DESIGN_REFERENCE,
