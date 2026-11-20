@@ -1,3 +1,16 @@
+## Approved reference implementation — 2026-11-20
+
+- The user-confirmed source image is stored at `references/approved_quran_design.png` (the original uploaded PNG, unchanged).
+- The image was retrieved and visually inspected from the conversation file library. It is the binding visual reference; no substitute ornament or redesigned layout is approved.
+- Replaced the hand-drawn title brackets/divider in `src/render_quran_review_previews.py` with gold-pixel extraction from the original reference image. The renderer now fails closed if the reference PNG is missing.
+- Replaced the simple circular ayah marker with the ornament pixels extracted from the reference medallion; the ayah number remains dynamic.
+- Repositioned the Arabic and English text zones toward the reference composition while preserving full-ayah/full-translation fitting safeguards.
+- Updated `tests/test_render_quran_review_previews.py` to assert that both title brackets, divider, and medallion are sourced from the checked-in reference. Added the reference image to the inventory workflow's push path filters.
+- Validation: Quran batch engine tests run `44737796585` passed; isolated Quran request pipeline run `44737796430` passed. Full inventory/render/artifact workflow run `44737801914` was still in progress at the last check. A prior run on the renderer-only commit failed because tests still asserted the old hand-drawn ornament pixels; those assertions were updated in the next commit and the two test workflows then passed.
+- Human visual inspection of a newly rendered preview is still pending; automated tests do not prove pixel-perfect visual match. Do not call the final video design approved until the actual preview artifact is inspected against the reference.
+- No Cron job was triggered or changed. No Telegram send was performed. TikTok publishing remains manual. All changes are confined to `feature/telegram-review-notifications`; `main` is untouched.
+- Next action: inspect the new render-only artifact from run `44737801914`, compare it with the reference, and correct any mismatch before approval.
+
 ## Official Quran archive preflight guard (2026-11-04)
 - Created isolated branch `fix/official-archive-preflight` from `feature/telegram-review-notifications`; the active production branch and `main` were not changed.
 - Added a preflight check before `RemoteZip` inspects the existing official King Fahd Complex archive URL. It uses HEAD first and falls back to a one-byte ranged GET only when HEAD is unsupported (HTTP 405/501).
