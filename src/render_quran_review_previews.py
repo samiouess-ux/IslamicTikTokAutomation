@@ -335,16 +335,19 @@ def draw_reference_surah_ornaments(image: Image.Image) -> None:
             method=Image.Resampling.LANCZOS
         )
     # Coordinates are on the 1080x1920 fitted reference itself.
-    crops = (
-        ((138, 448, 270, 665), False),  # left open arabesque bracket
-        ((810, 448, 942, 665), True),   # right bracket, exclude sunset bleed
-        ((298, 650, 784, 730), False),  # original gold floral divider
-    )
-    for box, exclude_corner in crops:
-        ornament = _gold_reference_crop(
-            reference, box, exclude_right_corner=exclude_corner
-        )
-        image.alpha_composite(ornament, (box[0], box[1]))
+    # The two title brackets are mirrored counterparts in the approved artwork.
+    # Reuse the left bracket's original pixels, mirrored for the right side:
+    # this preserves every fine gold stroke while avoiding the bright sunset
+    # behind the right bracket being mistaken for ornament by the color key.
+    left_box = (138, 448, 270, 665)
+    left_ornament = _gold_reference_crop(reference, left_box)
+    image.alpha_composite(left_ornament, (left_box[0], left_box[1]))
+    right_box = (810, 448, 942, 665)
+    right_ornament = left_ornament.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+    image.alpha_composite(right_ornament, (right_box[0], right_box[1]))
+    divider_box = (298, 650, 784, 730)
+    divider = _gold_reference_crop(reference, divider_box)
+    image.alpha_composite(divider, (divider_box[0], divider_box[1]))
 
 
 def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
