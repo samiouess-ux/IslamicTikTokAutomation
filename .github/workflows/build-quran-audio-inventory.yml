@@ -424,9 +424,11 @@ jobs:
           sys.path.insert(0, "src")
           from quran_social_caption import build_social_caption
           from quran_social_history import load_history
+          from quran_delivery_attempt import delivery_duration_limit_seconds
 
           report = json.loads(Path("output/quran_review_previews/preview_report.json").read_text(encoding="utf-8"))
           batch = json.loads(Path("output/quran_review_batch.json").read_text(encoding="utf-8"))
+          audio_report = json.loads(Path("output/quran_batch_audio_report.json").read_text(encoding="utf-8"))
           social_history = load_history(Path("data/quran_social_history.json"))
           if report.get("preview_count") != 1 or report.get("auto_publish") is not False:
               raise SystemExit("Telegram delivery requires exactly one review-only video and disabled auto-publishing.")
@@ -436,8 +438,14 @@ jobs:
           for index, item in enumerate(report["items"], start=1):
               if item.get("source_candidate_id") not in batch_ids:
                   raise SystemExit("Preview source candidate is not present in the source batch.")
-              if item.get("duration_seconds", 999) > 45:
-                  raise SystemExit("Refusing to send a preview longer than 45 seconds.")
+              matching_audio = [entry for entry in audio_report.get("items", []) if entry.get("candidate_id") == item["candidate_id"]]
+              if len(matching_audio) != 1:
+                  raise SystemExit("Could not match exactly one prepared audio item for Telegram duration validation.")
+              selected_verses = matching_audio[0].get("selected_verses")
+              allowed_seconds = delivery_duration_limit_seconds(selected_verses)
+              duration = item.get("duration_seconds", 999)
+              if not isinstance(duration, (int, float)) or duration <= 0 or duration > allowed_seconds:
+                  raise SystemExit(f"Refusing to send a preview longer than {allowed_seconds:g} seconds for the selected ayah count.")
               manifest_path = Path("output/quran_draft_manifests") / f"{item['candidate_id']}.json"
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
               caption_path = Path("output/telegram_captions") / f"{item['candidate_id']}.json"
