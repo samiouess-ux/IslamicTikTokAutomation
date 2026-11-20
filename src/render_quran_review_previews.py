@@ -424,28 +424,33 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         draw, arabic, font_path, max_width=620, max_lines=7, max_height=390
     )
     block_height = (len(lines) - 1) * line_height
-    # Center the complete Arabic ayah on the video canvas and lower it
-    # beneath the surah title, leaving clear vertical space after the divider.
-    # The narrower centered text area also stays clear of the left ayah medallion.
-    start_y = 1060 - block_height / 2
+    # Center the full Arabic ayah in its own zone below the surah heading.
+    ayah_center_y = 1060
+    start_y = ayah_center_y - block_height / 2
     for line_index, line in enumerate(lines):
         draw.text((540, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
                   direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(0, 0, 0, 150))
 
-    # Exact ornate gold ayah medallion extracted from the approved reference.
-    draw_reference_ayah_medallion(image, verse["number"], bold_font_file())
+    # Keep the original gold medallion artwork, aligned with the ayah block.
+    draw_reference_ayah_medallion(
+        image, verse["number"], bold_font_file(), center_y=ayah_center_y
+    )
 
     english_font, en_lines, english_line_height = fit_translation_lines(
         draw, english, font_path, max_width=680, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
-    # Match the reference's centered translation zone while keeping long Arabic
-    # passages and long English translations from colliding.
-    arabic_bottom = start_y + block_height / 2
-    english_center_y = max(1200, arabic_bottom + 105 + english_block_height / 2)
-    english_start_y = english_center_y - english_block_height / 2
+    # Include glyph descent in the Arabic bounds and preserve a visible gap.
+    arabic_bottom = start_y + block_height + int(body_font.size * 0.65)
+    english_start_y = arabic_bottom + 92
+    english_bottom = english_start_y + english_block_height + int(english_font.size * 0.65)
+    if english_bottom > 1780:
+        raise ValueError(
+            "Arabic ayah and complete English translation cannot fit without overlap; "
+            "refusing to render a clipped preview."
+        )
     for line_index, line in enumerate(en_lines):
         draw.text((540, english_start_y + line_index * english_line_height),
                   line, font=english_font, fill=(255, 255, 245, 255),
