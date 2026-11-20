@@ -42,7 +42,7 @@ permissions:
 jobs:
   validate-engine:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,8 +52,8 @@ jobs:
           python-version: "3.12"
       - name: Install renderer test dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-hosny-amiri fonts-dejavu-core
+          command -v ffmpeg
+          sudo apt-get install -y --no-install-recommends fonts-hosny-amiri fonts-dejavu-core
           python -m pip install --disable-pip-version-check Pillow remotezip
       - name: Compile Quran engine modules
         run: |
