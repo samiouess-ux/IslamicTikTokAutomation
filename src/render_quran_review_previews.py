@@ -286,27 +286,40 @@ APPROVED_DESIGN_REFERENCE = Path("references/approved_quran_design.png")
 
 
 def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
-                         *, clear_center: bool = False) -> Image.Image:
-    """Extract the original gold linework while rejecting smooth background glow."""
+                         *, clear_center: bool = False,
+                         exclude_right_corner: bool = False) -> Image.Image:
+    """Extract only saturated gold ornament pixels, not scenery or its glow."""
     crop = reference.crop(box).convert("RGB")
-    # Gold ornament strokes have sharp local detail; sunset/sky gradients do not.
-    edge = ImageChops.difference(
-        crop, crop.filter(ImageFilter.GaussianBlur(10))
-    ).convert("L").point(lambda value: min(255, max(0, (value - 6) * 8)))
+    # The approved reference uses bright, saturated gold. A color-key isolates
+    # those strokes far more cleanly than edge detection, which also catches
+    # branches, water highlights, and sunset reflections.
     gold = Image.new("L", crop.size, 0)
     gold.putdata([
-        255 if r - g > 10 and g - b > 25 and b < 150 else 0
+        255 if (r > 180 and g > 100 and r > g * 1.05
+                and g > b * 1.2 and r - b > 60) else 0
         for r, g, b in crop.getdata()
     ])
-    alpha = ImageChops.multiply(edge, gold)
+    # Remove isolated scenery specks, then soften the binary edge slightly so
+    # the original antialiased gold linework composites naturally.
+    alpha = gold.filter(ImageFilter.MedianFilter(3)).filter(
+        ImageFilter.GaussianBlur(0.45)
+    )
+    if exclude_right_corner:
+        # A warm sunset highlight enters the extreme upper-right of this crop;
+        # it is scenery, not part of the open arabesque bracket.
+        mask = Image.new("L", crop.size, 255)
+        ImageDraw.Draw(mask).rectangle(
+            (crop.width - 29, 0, crop.width - 1, 24), fill=0
+        )
+        alpha = ImageChops.multiply(alpha, mask)
     if clear_center:
         left, top, right, bottom = box
         center_x, center_y = (left + right) // 2, (top + bottom) // 2
         mask = Image.new("L", crop.size, 255)
         mask_draw = ImageDraw.Draw(mask)
-        # Remove only the original verse digit, retaining the top/bottom filigree.
-        mask_draw.ellipse((center_x - 16 - left, center_y - 22 - top,
-                           center_x + 16 - left, center_y + 22 - top), fill=0)
+        # Clear the original numeral completely while preserving the medallion.
+        mask_draw.ellipse((center_x - 23 - left, center_y - 27 - top,
+                           center_x + 23 - left, center_y + 27 - top), fill=0)
         alpha = ImageChops.multiply(alpha, mask)
     result = crop.convert("RGBA")
     result.putalpha(alpha)
@@ -325,12 +338,16 @@ def draw_reference_surah_ornaments(image: Image.Image) -> None:
             method=Image.Resampling.LANCZOS
         )
     # Coordinates are on the 1080x1920 fitted reference itself.
-    for box in (
-        (138, 448, 270, 665),   # left open arabesque bracket
-        (810, 448, 942, 665),   # right open arabesque bracket
-        (298, 650, 784, 730),   # original gold floral divider
-    ):
-        image.alpha_composite(_gold_reference_crop(reference, box), (box[0], box[1]))
+    crops = (
+        ((138, 448, 270, 665), False),  # left open arabesque bracket
+        ((810, 448, 942, 665), True),   # right bracket, exclude sunset bleed
+        ((298, 650, 784, 730), False),  # original gold floral divider
+    )
+    for box, exclude_corner in crops:
+        ornament = _gold_reference_crop(
+            reference, box, exclude_right_corner=exclude_corner
+        )
+        image.alpha_composite(ornament, (box[0], box[1]))
 
 
 def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
