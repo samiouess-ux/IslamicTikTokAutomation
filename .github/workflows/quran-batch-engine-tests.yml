@@ -9,6 +9,7 @@ on:
       - "src/quran_audio_parts.py"
       - "src/build_quran_draft_manifests.py"
       - "src/render_quran_review_previews.py"
+      - "references/approved_quran_design.png"
       - "src/quran_delivery_attempt.py"
       - "src/record_quran_delivery.py"
       - "tests/test_prepare_quran_review_batch_audio.py"
@@ -86,6 +87,52 @@ jobs:
             tests/test_render_quran_review_previews.py \
             tests/test_quran_delivery_attempt.py \
             tests/test_record_quran_delivery.py
+      - name: Render a reference-driven Quran layout sample (no delivery)
+        run: |
+          mkdir -p output/quran-reference-layout-preview
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          from PIL import Image, ImageDraw
+          sys.path.insert(0, str(Path("src").resolve()))
+          from render_quran_review_previews import (
+              SURAH_NAMES, font_file, make_frame, make_intro_frame
+          )
+
+          output = Path("output/quran-reference-layout-preview")
+          background = Image.new("RGB", (1080, 1920))
+          pixels = background.load()
+          for y in range(1920):
+              ratio = y / 1919
+              color = (
+                  int(22 + 18 * ratio),
+                  int(43 + 20 * ratio),
+                  int(57 + 24 * ratio),
+              )
+              for x in range(1080):
+                  pixels[x, y] = color
+          background_path = output / "sample_background.png"
+          background.save(background_path)
+          font = font_file()
+          surah_name = SURAH_NAMES[17]
+          verse = {
+              "number": 7,
+              "arabic": "إِنَّا جَعَلْنَا مَا عَلَى الْأَرْضِ زِينَةً لَّهَا لِنَبْلُوَهُمْ أَيُّهُمْ أَحْسَنُ عَمَلًا",
+              "english": "Indeed, We have made whatever is on the earth adornment for it, that We may test them as to which of them is best in deeds.",
+          }
+          make_frame(verse, 18, 0, output / "reference_layout_ayah_7.png",
+                     font, surah_name)
+          make_intro_frame(18, 7, 7, output / "reference_layout_intro.png",
+                           font, surah_name, background_frame=background_path)
+          print("Rendered reference-driven still previews only; no audio, Telegram, Cron, or TikTok action.")
+          PY
+      - name: Upload reference-driven Quran layout previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-reference-layout-preview
+          path: output/quran-reference-layout-preview/
+          if-no-files-found: error
+          retention-days: 7
       - name: Test Quran-only daily orchestrator
         run: python -m unittest discover -s tests -p 'test_orchestrator.py' -v
       - name: Confirm workflow is test-only
