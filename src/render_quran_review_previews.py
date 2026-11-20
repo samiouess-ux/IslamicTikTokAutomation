@@ -282,75 +282,80 @@ def bold_font_file() -> str:
     return result
 
 
-def draw_surah_cartouche(draw: ImageDraw.ImageDraw, accent: tuple,
-                         center_x: int = 540, center_y: int = 540) -> None:
-    """Draw the open, mirrored gold arabesque brackets from the approved reference.
+APPROVED_DESIGN_REFERENCE = Path("references/approved_quran_design.png")
 
-    The title is deliberately not enclosed by a plaque or closed frame. Each
-    side is an independent ornamental parenthesis with a curled floral center.
+
+def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
+                         *, clear_center: bool = False) -> Image.Image:
+    """Extract only the original gold ornament pixels from the approved reference.
+
+    The source image is resized to the renderer's exact 9:16 canvas first, so
+    the extracted artwork keeps the reference's original proportions/placement.
+    Background pixels are made transparent; no ornament is redrawn or guessed.
     """
-    gold = (245, 184, 55, 255)
-    shadow = (76, 43, 12, 210)
-
-    def mirror(points, direction):
-        return [(center_x + direction * (x - center_x), y) for x, y in points]
-
-    left_outer = [
-        (266, 426), (246, 411), (225, 399), (205, 401), (188, 416),
-        (178, 438), (181, 458), (194, 472), (211, 473), (222, 462),
-        (219, 448), (207, 443), (198, 451), (201, 461),
-    ]
-    left_inner = [
-        (263, 438), (246, 425), (228, 416), (211, 417), (198, 430),
-        (191, 445), (195, 459), (205, 466),
-    ]
-    lower_flourish = [
-        (205, 477), (190, 486), (181, 502), (183, 520), (195, 536),
-        (214, 546), (229, 560), (233, 579), (224, 596), (207, 605),
-    ]
-    upper_leaf = [(225, 416), (215, 395), (222, 378), (238, 397), (242, 416)]
-    lower_leaf = [(226, 568), (211, 586), (214, 606), (235, 591), (238, 575)]
-
-    for direction in (-1, 1):
-        for points, width, color in (
-            (left_outer, 6, shadow), (left_outer, 4, gold),
-            (left_inner, 2, gold), (lower_flourish, 5, shadow),
-            (lower_flourish, 3, gold),
-        ):
-            draw.line(mirror(points, direction), fill=color, width=width, joint="curve")
-        draw.line(mirror(upper_leaf, direction), fill=gold, width=3, joint="curve")
-        draw.line(mirror(lower_leaf, direction), fill=gold, width=3, joint="curve")
-
-        # Small curled rosette and bead at the outer midpoint.
-        cx = center_x + direction * 188
-        draw.arc((cx - 15, 456, cx + 15, 486), 35 if direction < 0 else 145,
-                 315 if direction < 0 else 425, fill=shadow, width=6)
-        draw.arc((cx - 15, 456, cx + 15, 486), 35 if direction < 0 else 145,
-                 315 if direction < 0 else 425, fill=gold, width=3)
-        draw.ellipse((cx - 4, 468, cx + 4, 476), fill=gold)
-        draw.ellipse((center_x + direction * 258 - 3, 536 - 3,
-                      center_x + direction * 258 + 3, 536 + 3), fill=gold)
+    crop = reference.crop(box).convert("RGB")
+    left, top, right, bottom = box
+    pixels = []
+    center_x, center_y = (left + right) // 2, (top + bottom) // 2
+    for y in range(top, bottom):
+        for x in range(left, right):
+            r, g, b = crop.getpixel((x - left, y - top))
+            gold_alpha = min(
+                255,
+                max(0, (r - g - 18) * 8),
+                max(0, (g - b - 20) * 8),
+                max(0, (150 - b) * 5),
+            )
+            if clear_center and abs(x - center_x) < 18 and abs(y - center_y) < 22:
+                gold_alpha = 0
+            pixels.append((r, g, b, gold_alpha))
+    result = Image.new("RGBA", crop.size, (0, 0, 0, 0))
+    result.putdata(pixels)
+    return result
 
 
-def draw_title_divider(draw: ImageDraw.ImageDraw, accent: tuple,
-                       center_x: int = 540, center_y: int = 690) -> None:
-    """Draw the thin gold line and floral diamond divider from the reference."""
-    gold = (245, 184, 55, 255)
-    draw.line((300, center_y, 780, center_y), fill=gold, width=3)
-    draw.line((335, center_y - 3, 745, center_y - 3),
-              fill=(255, 222, 142, 190), width=1)
-    # Central interlaced rosette: four petals, a small diamond, and side beads.
-    draw.ellipse((center_x - 34, center_y - 12, center_x + 34, center_y + 12),
-                 outline=gold, width=3)
-    draw.ellipse((center_x - 19, center_y - 22, center_x + 19, center_y + 22),
-                 outline=gold, width=3)
-    draw.polygon([(center_x, center_y - 34), (center_x + 12, center_y),
-                  (center_x, center_y + 34), (center_x - 12, center_y)],
-                 outline=gold, fill=(0, 0, 0, 0))
-    draw.ellipse((center_x - 5, center_y - 5, center_x + 5, center_y + 5),
-                 fill=gold)
-    for x in (center_x - 52, center_x + 52):
-        draw.ellipse((x - 5, center_y - 5, x + 5, center_y + 5), fill=gold)
+def draw_reference_surah_ornaments(image: Image.Image) -> None:
+    """Composite the exact title brackets and divider pixels from the reference."""
+    if not APPROVED_DESIGN_REFERENCE.is_file():
+        raise FileNotFoundError(
+            f"Approved Quran design reference is missing: {APPROVED_DESIGN_REFERENCE}"
+        )
+    with Image.open(APPROVED_DESIGN_REFERENCE) as source:
+        reference = ImageOps.fit(
+            source.convert("RGB"), (1080, 1920),
+            method=Image.Resampling.LANCZOS
+        )
+    # Coordinates are on the 1080x1920 fitted reference itself.
+    for box in (
+        (138, 448, 270, 665),   # left open arabesque bracket
+        (810, 448, 942, 665),   # right open arabesque bracket
+        (298, 650, 784, 730),   # original gold floral divider
+    ):
+        image.alpha_composite(_gold_reference_crop(reference, box), (box[0], box[1]))
+
+
+def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
+                                  font_path: str) -> None:
+    """Use the exact ornate medallion from the reference, with a dynamic number."""
+    if not APPROVED_DESIGN_REFERENCE.is_file():
+        raise FileNotFoundError(
+            f"Approved Quran design reference is missing: {APPROVED_DESIGN_REFERENCE}"
+        )
+    with Image.open(APPROVED_DESIGN_REFERENCE) as source:
+        reference = ImageOps.fit(
+            source.convert("RGB"), (1080, 1920),
+            method=Image.Resampling.LANCZOS
+        )
+    box = (103, 846, 207, 954)
+    medallion = _gold_reference_crop(reference, box, clear_center=True)
+    image.alpha_composite(medallion, (box[0], box[1]))
+    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
+    digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
+    draw = ImageDraw.Draw(image)
+    draw.text((155, 900), digits, font=number_font, fill=(255, 196, 54, 255),
+              anchor="mm", direction="rtl", language="ar",
+              stroke_width=1, stroke_fill=(55, 34, 12, 170))
+
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                           center: tuple = (540, 540), max_width: int = 620,
@@ -383,12 +388,11 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     title_center = (540, 540)
     title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
                                       center=title_center)
-    draw_surah_cartouche(draw, accent, center_y=540)
+    draw_reference_surah_ornaments(image)
     draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
-    draw_title_divider(draw, accent, center_y=690)
-
+    
     arabic = verse.get("arabic")
     english = verse.get("english")
     if (not isinstance(arabic, str) or not arabic.strip()
@@ -402,35 +406,25 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     # Reserve a distinct lower-middle zone below the title divider.
     # Center the complete ayah block lower so even the longest wrapped ayah
     # cannot collide with the title, ornament, or English translation.
-    start_y = 990 - block_height / 2
+    start_y = 900 - block_height / 2
     for line_index, line in enumerate(lines):
         draw.text((600, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
                   direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(0, 0, 0, 150))
 
-    # Gold circular verse marker sits to the left of the Arabic text block.
-    badge_x, badge_y, badge_radius = 160, 990, 47
-    draw.ellipse((badge_x - badge_radius, badge_y - badge_radius,
-                  badge_x + badge_radius, badge_y + badge_radius),
-                 outline=(*accent, 255), width=4)
-    draw.ellipse((badge_x - badge_radius + 8, badge_y - badge_radius + 8,
-                  badge_x + badge_radius - 8, badge_y + badge_radius - 8),
-                 outline=(255, 222, 142, 210), width=2)
-    number_font = ImageFont.truetype(bold_font_file(), 40, layout_engine=ImageFont.Layout.RAQM)
-    ayah_no = str(verse["number"]).translate(
-        str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
-    )
-    draw.text((badge_x, badge_y), ayah_no, font=number_font, fill=(*accent, 255),
-              anchor="mm", direction="rtl", language="ar",
-              stroke_width=1, stroke_fill=(55, 34, 12, 170))
+    # Exact ornate gold ayah medallion extracted from the approved reference.
+    draw_reference_ayah_medallion(image, verse["number"], bold_font_file())
 
     english_font, en_lines, english_line_height = fit_translation_lines(
         draw, english, font_path, max_width=850, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
-    # Keep the English translation in its own lower zone, separated from Arabic.
-    english_start_y = 1450 - english_block_height / 2
+    # Match the reference's centered translation zone while keeping long Arabic
+    # passages and long English translations from colliding.
+    arabic_bottom = start_y + block_height / 2
+    english_center_y = max(1200, arabic_bottom + 105 + english_block_height / 2)
+    english_start_y = english_center_y - english_block_height / 2
     for line_index, line in enumerate(en_lines):
         draw.text((540, english_start_y + line_index * english_line_height),
                   line, font=english_font, fill=(255, 255, 245, 255),
@@ -498,12 +492,11 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     title_text = f"سورة {surah_name}"
     title_center = (540, 540)
     title_font = fit_surah_title_font(draw, title_text, font_path, center=title_center)
-    draw_surah_cartouche(draw, accent, center_y=540)
+    draw_reference_surah_ornaments(image)
     draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
-    draw_title_divider(draw, accent, center_y=690)
-
+    
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     start_text = str(start_ayah).translate(digits)
     end_text = str(end_ayah).translate(digits)
