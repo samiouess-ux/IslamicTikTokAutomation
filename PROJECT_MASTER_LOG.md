@@ -379,3 +379,27 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Refined the title cartouche on `feature/telegram-review-notifications` using a restrained manuscript-inspired composition: pointed double contour, symmetrical eight-point rosette terminals, and mirrored leaf-like arabesque details.
 - Kept the existing title text and placement, gold accent treatment, and the independent divider/diamond ornament beneath the title. This change is isolated to the surah-title decoration; it does not alter Quran text/translation, audio timing, cover fade, ayah layout, verse medallions, backgrounds, transitions, duration limits, Telegram delivery, Cron, or TikTok publishing.
 - Added regression checks for the cartouche top and both rosette terminals. Awaiting automated tests and visual preview review before acceptance.
+
+
+### 2026-11-20 — Run #540 send-gate diagnosis, correction, and safe recovery
+**Evidence**
+- Run #540 (`44719548618`) completed with failure on the correct branch. Its render and background-preview preparation steps succeeded; the 46.733-second single-ayah Al-Kahf 18:17 preview was prepared.
+- The reservation step committed `data/quran_delivery_pending.json`. The Telegram send step then rejected the preview at a stale inline `duration_seconds > 45` check. The log shows this happened before `subprocess.run(... src/send_telegram.py ...)`; therefore the MP4 send was never attempted. The separate failure notification was accepted by Telegram.
+- Delivery-history recording and sync were skipped. The failure did not represent a Telegram API rejection.
+
+**Changes on `feature/telegram-review-notifications`**
+- `src/quran_delivery_attempt.py`: added `delivery_duration_limit_seconds(selected_verses)`, the shared rule of 60 seconds for one complete selected ayah and 45 seconds for multiple ayahs; reservation validation now calls this helper.
+- `.github/workflows/build-quran-audio-inventory.yml`: send guard now matches the preview to exactly one prepared audio-report item, reads its selected ayahs, and calls the same helper. It no longer has a separate hard-coded 45-second limit.
+- `tests/test_quran_delivery_attempt.py`: added focused tests for the shared 60/45-second policy and invalid empty selection. Existing integration tests retain the 46.733-second one-ayah acceptance and multi-ayah-over-45 rejection cases.
+- `data/quran_delivery_pending.json`: removed the stale pending reservation only after confirming the send subprocess had not run. No delivery history was written; no ayah was marked as delivered.
+
+**Commits**
+- Shared policy: `eb78d36b71869acf60c3fb88cd92f66cdf102041`
+- Tests: `f5604c1788f3565f34505bef36f0810fb7379b34`
+- Workflow send gate: `6dfbc396cd2330b2288e49320ab47917e8cf01c1`
+- Pending reservation cleanup: `20c077653b949c535b43996938145bc0b657d0a8`
+
+**Safety and next step**
+- No changes to Cron, schedule, bot, credentials, TikTok publishing, or `main`.
+- Await the push-triggered test/render-only workflow result. Push-event conditions keep Telegram reservation/send/history disabled.
+- Do not rerun Cron or manually dispatch a production Telegram send until CI is green and the user asks to test.
