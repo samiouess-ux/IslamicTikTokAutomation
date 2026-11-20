@@ -94,6 +94,20 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertLess(long_font.size, short_font.size)
         self.assertLessEqual((len(lines) - 1) * line_height, 390)
 
+    def test_reference_translation_wraps_into_four_centered_lines(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        original = (
+            "Indeed, We have made whatever is on the earth adornment for it, "
+            "that We may test them as to which of them is best in deeds."
+        )
+        _, lines, _ = fit_translation_lines(
+            draw, original, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            max_width=700, max_lines=8
+        )
+        self.assertEqual(len(lines), 4)
+        self.assertEqual(" ".join(lines), original)
+
     def test_long_translation_is_fitted_without_dropping_words(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
