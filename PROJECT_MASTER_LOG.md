@@ -424,3 +424,10 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 
 
 - CI follow-up: the first run after the intro-cover change failed only because the regression test compared a JPEG-resampled background pixel for exact RGB equality; observed rounding was one level per channel (19,45,94 vs. (20,45,95)). Updated the assertion to allow a maximum two-level JPEG rounding tolerance. Renderer tests had otherwise passed. A fresh push-triggered validation/render-only run is pending.
+
+
+### 2026-11-20 — User rejected current ornament and text spacing; reference match is on hold
+- User reported that Arabic/English text appeared crowded/touching and the gold ornament did not match the approved reference. Treat this feedback as authoritative: the current hand-drawn ornament is NOT approved and must not be described as an exact match.
+- Applied a narrow spacing correction only: moved the Arabic ayah block and its gold number medallion lower to a dedicated middle zone (center y=990), and moved the English translation to a separate lower zone (center y=1450). Updated the medallion regression probe accordingly. This is a candidate fix pending CI and visual inspection, not yet verified.
+- Do not further improvise or redesign the gold ornament. Exact reconstruction requires the original approved reference image to be available to the implementation/review step. Keep the current ornament marked as a placeholder until it can be directly compared and reproduced.
+- No Telegram delivery, Cron run, or TikTok publishing. Work remains on feature/telegram-review-notifications only.
