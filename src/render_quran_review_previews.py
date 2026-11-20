@@ -362,13 +362,13 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
             source.convert("RGB"), (1080, 1920),
             method=Image.Resampling.LANCZOS
         )
-    box = (103, 846, 207, 954)
+    box = (103, 906, 207, 1014)
     medallion = _gold_reference_crop(reference, box, clear_center=True)
     image.alpha_composite(medallion, (box[0], box[1]))
     number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
     digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw = ImageDraw.Draw(image)
-    draw.text((155, 900), digits, font=number_font, fill=(255, 196, 54, 255),
+    draw.text((155, 960), digits, font=number_font, fill=(255, 196, 54, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=1, stroke_fill=(55, 34, 12, 170))
 
@@ -401,10 +401,14 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw = ImageDraw.Draw(image)
 
     title_text = f"سورة {surah_name}"
-    title_center = (540, 540)
+    title_center = (540, 500)
     title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
                                       center=title_center)
     draw_reference_surah_ornaments(image)
+    # Shift the complete title ornament group upward by 40px, preserving its artwork.
+    title_group = image.crop((0, 400, 1080, 760))
+    image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
+    image.alpha_composite(title_group, (0, 360))
     draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
