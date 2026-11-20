@@ -306,9 +306,12 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
     # median filter erases precisely these narrow strokes in the approved art.
     alpha = gold.filter(ImageFilter.GaussianBlur(0.35))
     if exclude_right_corner:
-        # The scenery bleed is at the upper-left of the fitted right-bracket crop.
+        # Exclude the warm scenery fragment entering the upper-right edge
+        # while retaining the actual open arabesque strokes below it.
         mask = Image.new("L", crop.size, 255)
-        ImageDraw.Draw(mask).rectangle((0, 0, 58, 34), fill=0)
+        ImageDraw.Draw(mask).rectangle(
+            (crop.width - 72, 0, crop.width - 1, 55), fill=0
+        )
         alpha = ImageChops.multiply(alpha, mask)
     if clear_center:
         left, top, right, bottom = box
