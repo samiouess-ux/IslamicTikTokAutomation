@@ -1052,3 +1052,10 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Updated audio preparation, active renderer validation, Telegram reservation validation, and regression tests. The low-level renderer probe accepts at most 60 seconds, while render and reservation gates enforce the single-ayah-only exception.
 - Cron schedule, Telegram bot/credentials, Telegram send behavior, TikTok publishing, and `main` were not changed. No manual workflow dispatch or production Telegram test was initiated. Push-triggered CI may run on this branch; push-event delivery gates remain in force.
 - Validation status: implementation committed; await the resulting GitHub Actions test/render-only workflow conclusions before calling the change verified.
+
+### 2026-11-20 — Duration-policy validation checkpoint
+- Latest code commit: `efb6f710e8a6fafd47e82f350f82a180aabfad8b`.
+- Quran engine test workflow run #205 (`44688267334`) passed on that commit.
+- Isolated request-pipeline test workflow run #139 (`44688267567`) passed on that commit.
+- Full inventory/render-only workflow run #537 (`44688267390`) is still in progress at the distinct-surah audio-preparation step. It was triggered by push; Telegram reservation/send/history steps are gated off for push events. No production Telegram delivery or Cron test was initiated by this change.
+- Do not mark end-to-end rendering verified until run #537 completes successfully.
