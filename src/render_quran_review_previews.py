@@ -416,15 +416,15 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
 
     body_font, lines, line_height = fit_arabic_lines(
-        draw, arabic, font_path, max_width=780, max_lines=7, max_height=390
+        draw, arabic, font_path, max_width=620, max_lines=7, max_height=390
     )
     block_height = (len(lines) - 1) * line_height
-    # Reserve a distinct lower-middle zone below the title divider.
-    # Center the complete ayah block lower so even the longest wrapped ayah
-    # cannot collide with the title, ornament, or English translation.
-    start_y = 900 - block_height / 2
+    # Center the complete Arabic ayah on the video canvas and lower it
+    # beneath the surah title, leaving clear vertical space after the divider.
+    # The narrower centered text area also stays clear of the left ayah medallion.
+    start_y = 1000 - block_height / 2
     for line_index, line in enumerate(lines):
-        draw.text((620, start_y + line_index * line_height), line,
+        draw.text((540, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
                   direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(0, 0, 0, 150))
