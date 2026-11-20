@@ -1,3 +1,15 @@
+## Approved reference renderer — visual sample and validation update (2026-11-20)
+
+- Source image: `references/approved_quran_design.png`; original PNG remains unchanged.
+- Renderer now extracts the reference's title brackets, floral divider, and ornate ayah medallion directly from the image using a gold/detail mask. The former hand-drawn bracket/divider implementation has been removed.
+- The Arabic text zone is centered below the divider, the verse marker is placed at the reference's left position, and the English translation is constrained to the four-line reference width for the Al-Kahf 18:7 sample. Text fitting still preserves complete Arabic/English content.
+- A dedicated test-only workflow step renders still previews and uploads artifact `quran-reference-layout-preview`. Artifact from run `44739340182` (artifact ID `14630530123`) was downloaded and visually inspected. It is a still-layout sample composited over a neutral gradient, not a final moving-background MP4.
+- Validation: Quran batch engine tests run `44739340182` passed; isolated Quran request pipeline run `44739340187` passed. The test workflow also verified it does not send Telegram or publish to TikTok. Earlier failures were corrected: the old-font-size assertion and the four-line width expectation were updated to the reference layout.
+- The separate full inventory/render workflow run `44739340225` failed before rendering because Friday Al-Kahf ayah 18:19 measured 66.116 seconds, above the existing 60-second single-ayah ceiling. It was correctly deferred; this is an audio-duration/candidate-selection blocker, not a visual renderer failure. No Telegram send occurred.
+- Visual review confirms the reference-derived ornament shapes are now used, but this sample is not yet final human approval of every surah title/verse layout. The dynamic title text remains typeset with Amiri Bold; do not claim pixel-identical calligraphy for every surah.
+- No Cron, Telegram, or TikTok action was triggered. `main` remains untouched. All work is on `feature/telegram-review-notifications`.
+- Next: continue visual refinement against the same reference and separately investigate the existing Friday long-ayah candidate-selection blocker without relaxing the duration guard.
+
 ## Approved reference implementation — 2026-11-20
 
 - The user-confirmed source image is stored at `references/approved_quran_design.png` (the original uploaded PNG, unchanged).
