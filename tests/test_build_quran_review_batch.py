@@ -53,7 +53,7 @@ class BatchTests(unittest.TestCase):
         self.assertEqual(result["candidate_count"], 1)
         self.assertEqual(result["passages"][0]["surah_number"], 18)
         self.assertEqual(result["passages"][0]["verse_numbers"], [3, 4, 5, 6])
-        self.assertEqual(result["passage_selection"], "first_unused_non_deferred_contiguous_suffix_then_duration_limit")
+        self.assertEqual(result["passage_selection"], "first_unused_contiguous_suffix_then_40_second_duration_limit")
         self.assertFalse(result["rendering_allowed"])
         self.assertFalse(result["telegram_delivery"])
         self.assertFalse(result["auto_publish"])
