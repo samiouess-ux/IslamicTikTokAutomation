@@ -6,7 +6,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from quran_delivery_attempt import guard_no_pending, reserve_attempt, finalize_attempt
+from quran_delivery_attempt import (
+    delivery_duration_limit_seconds,
+    guard_no_pending,
+    reserve_attempt,
+    finalize_attempt,
+)
 
 
 class QuranDeliveryAttemptTests(unittest.TestCase):
@@ -48,6 +53,16 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
 
     def reserve(self):
         return reserve_attempt(self.pending, self.history, self.batch, self.audio, self.preview)
+
+    def test_shared_delivery_limit_is_60_seconds_for_one_ayah(self):
+        self.assertEqual(delivery_duration_limit_seconds([17]), 60.0)
+
+    def test_shared_delivery_limit_is_45_seconds_for_multiple_ayahs(self):
+        self.assertEqual(delivery_duration_limit_seconds([17, 18]), 45.0)
+
+    def test_shared_delivery_limit_rejects_empty_selection(self):
+        with self.assertRaisesRegex(ValueError, "at least one selected ayah"):
+            delivery_duration_limit_seconds([])
 
     def test_reserves_exact_selected_ayahs_before_send(self):
         pending = self.reserve()
