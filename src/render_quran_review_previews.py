@@ -315,8 +315,10 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
         mask = Image.new("L", crop.size, 255)
         mask_draw = ImageDraw.Draw(mask)
         # Clear the original numeral completely while preserving the medallion.
-        mask_draw.ellipse((center_x - 23 - left, center_y - 27 - top,
-                           center_x + 23 - left, center_y + 27 - top), fill=0)
+        # Clear only the old numeral's compact center area. The wider
+        # previous mask erased the inner gold ring and left only broken arcs.
+        mask_draw.ellipse((center_x - 14 - left, center_y - 18 - top,
+                           center_x + 14 - left, center_y + 18 - top), fill=0)
         alpha = ImageChops.multiply(alpha, mask)
     result = crop.convert("RGBA")
     result.putalpha(alpha)
@@ -366,7 +368,7 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
     medallion = _gold_reference_crop(reference, box, clear_center=True)
     destination_y = int(center_y) - (box[3] - box[1]) // 2
     image.alpha_composite(medallion, (box[0], destination_y))
-    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
+    number_font = ImageFont.truetype(font_path, 32, layout_engine=ImageFont.Layout.RAQM)
     digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw = ImageDraw.Draw(image)
     draw.text((155, int(center_y)), digits, font=number_font, fill=(255, 196, 54, 255),
