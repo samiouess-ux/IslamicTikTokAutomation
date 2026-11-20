@@ -127,7 +127,7 @@ def build_review_batch(
             starts = [
                 i for i, ayah in enumerate(available)
                 if available[i:] == list(range(ayah, available[-1] + 1))
-                and not any(f"{surah}:{n}" in used_refs for n in available[i:])
+                and not any(f"{surah}:{n}" in (used_refs | deferred_refs) for n in available[i:])
             ]
             if not starts:
                 raise ValueError(f"Surah {surah} has no unused contiguous ayah suffix.")
@@ -144,7 +144,7 @@ def build_review_batch(
                 raise ValueError(f"Surah {surah} has fewer than {window_size} catalogued verses.")
             windows = [available[i:i + window_size] for i in range(len(available) - window_size + 1)
                        if available[i:i + window_size] == list(range(available[i], available[i] + window_size))
-                       and not any(f"{surah}:{ayah}" in used_refs for ayah in available[i:i + window_size])]
+                       and not any(f"{surah}:{ayah}" in (used_refs | deferred_refs) for ayah in available[i:i + window_size])]
             if not windows:
                 raise ValueError(f"Surah {surah} has no unused contiguous window of {window_size} verses.")
             local_digest = hashlib.sha256(f"{seed}:{surah}".encode("utf-8")).digest()
