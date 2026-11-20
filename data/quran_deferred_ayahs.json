@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "description": "Explicitly deferred complete Quran ayahs that exceed the hard single-ayah delivery ceiling. Deferred references are not marked as delivered and remain excluded from automatic candidate selection until manually reviewed.",
+  "ayah_references": [
+    "18:19"
+  ],
+  "items": [
+    {
+      "reference": "18:19",
+      "surah_number": 18,
+      "ayah_number": 19,
+      "duration_seconds": 66.116,
+      "maximum_allowed_seconds": 60,
+      "status": "deferred_duration_exceeds_hard_limit",
+      "deferred_on": "2026-11-20",
+      "reason": "The complete official Maher Al-Muaiqly Hafs recording is 66.116 seconds after permitted edge-silence handling; do not cut or speed up."
+    }
+  ]
+}
