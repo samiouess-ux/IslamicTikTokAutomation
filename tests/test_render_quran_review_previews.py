@@ -498,6 +498,22 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         chosen = renderer.choose_first_background(backgrounds, 0, {"recent"}, {"sea"})
         self.assertEqual(chosen["id"], "fresh")
 
+    def test_first_background_prefers_moving_video_over_photo(self):
+        backgrounds = [
+            {"id": "photo", "background_type": "photo", "tags": ["nature"]},
+            {"id": "moving", "background_type": "moving_video", "tags": ["mosque"]},
+        ]
+        chosen = renderer.choose_first_background(backgrounds, 0, set(), set())
+        self.assertEqual(chosen["id"], "moving")
+
+    def test_ayah_background_prefers_suitable_moving_video_over_photo(self):
+        backgrounds = [
+            {"id": "photo", "background_type": "photo", "duration_seconds": None},
+            {"id": "moving", "background_type": "moving_video", "duration_seconds": 25.0},
+        ]
+        chosen = renderer.choose_background_for_ayah(backgrounds, 16.98, set())
+        self.assertEqual(chosen["id"], "moving")
+
     def test_category_aware_ayah_selection_prefers_a_different_scene_family(self):
         backgrounds = [
             {"id": "mosque", "tags": ["mosque"], "duration_seconds": 30.0},
