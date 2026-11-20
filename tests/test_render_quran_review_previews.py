@@ -103,7 +103,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         )
         _, lines, _ = fit_translation_lines(
             draw, original, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            max_width=700, max_lines=8
+            max_width=680, max_lines=8
         )
         self.assertEqual(len(lines), 4)
         self.assertEqual(" ".join(lines), original)
