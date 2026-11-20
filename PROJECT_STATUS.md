@@ -1059,3 +1059,10 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Isolated request-pipeline test workflow run #139 (`44688267567`) passed on that commit.
 - Full inventory/render-only workflow run #537 (`44688267390`) is still in progress at the distinct-surah audio-preparation step. It was triggered by push; Telegram reservation/send/history steps are gated off for push events. No production Telegram delivery or Cron test was initiated by this change.
 - Do not mark end-to-end rendering verified until run #537 completes successfully.
+
+### 2026-11-20 — Exceptional 46.733-second Al-Kahf ayah verified end-to-end (review-only)
+- Full inventory/render workflow run #537 (`44688267390`) completed with conclusion `success` on code commit `efb6f710e8a6fafd47e82f350f82a180aabfad8b`.
+- The Friday candidate was Surah Al-Kahf (18), ayah 17. Original ayah duration: 49.050 seconds; after the existing edge-silence-only processing: 46.733 seconds. The complete ayah was selected alone; next ayah 18 remained unselected for continuation.
+- The active renderer produced `quran_s018_017_110_part_001_REVIEW_ONLY.mp4`, duration 46.733 seconds, 1080x1920, preserving the MP3 audio stream. This directly validates the new 45–60-second single-ayah exception against the previously blocked ayah.
+- Quran engine test workflow #205 (`44688267334`) and isolated request-pipeline workflow #139 (`44688267567`) both passed on the same code commit.
+- This was a push-triggered render-only validation. Telegram reservation, Telegram send, delivery-history recording, and sync were all skipped; no Telegram video was sent and no production Cron was run. The regular 45-second limit for multi-ayah videos and the 60-second absolute cap for one complete ayah remain enforced.
