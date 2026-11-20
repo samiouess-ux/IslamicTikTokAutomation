@@ -291,11 +291,11 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
     crop = reference.crop(box).convert("RGB")
     # Gold ornament strokes have sharp local detail; sunset/sky gradients do not.
     edge = ImageChops.difference(
-        crop, crop.filter(ImageFilter.GaussianBlur(3))
-    ).convert("L").point(lambda value: min(255, max(0, (value - 6) * 20)))
+        crop, crop.filter(ImageFilter.GaussianBlur(10))
+    ).convert("L").point(lambda value: min(255, max(0, (value - 6) * 8)))
     gold = Image.new("L", crop.size, 0)
     gold.putdata([
-        255 if r - g > 25 and g - b > 25 and b < 125 else 0
+        255 if r - g > 10 and g - b > 25 and b < 150 else 0
         for r, g, b in crop.getdata()
     ])
     alpha = ImageChops.multiply(edge, gold)
@@ -305,8 +305,8 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
         mask = Image.new("L", crop.size, 255)
         mask_draw = ImageDraw.Draw(mask)
         # Remove only the original verse digit, retaining the top/bottom filigree.
-        mask_draw.ellipse((center_x - 12 - left, center_y - 17 - top,
-                           center_x + 12 - left, center_y + 17 - top), fill=0)
+        mask_draw.ellipse((center_x - 16 - left, center_y - 22 - top,
+                           center_x + 16 - left, center_y + 22 - top), fill=0)
         alpha = ImageChops.multiply(alpha, mask)
     result = crop.convert("RGBA")
     result.putalpha(alpha)
@@ -416,7 +416,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw_reference_ayah_medallion(image, verse["number"], bold_font_file())
 
     english_font, en_lines, english_line_height = fit_translation_lines(
-        draw, english, font_path, max_width=760, max_lines=8
+        draw, english, font_path, max_width=700, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
     # Match the reference's centered translation zone while keeping long Arabic
