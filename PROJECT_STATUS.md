@@ -1072,3 +1072,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 - On `feature/telegram-review-notifications`, refined only the active renderer's surah-title cartouche: a symmetrical pointed manuscript-style outline, fine inner contour, paired eight-point rosette terminals, and small mirrored arabesque leaf details.
 - Preserved the Arabic surah title text, gold palette, title position, and the separate gold divider/diamond beneath the title. No Quran text, translation, audio, cover intro, verse-number medallion, background selection, duration policy, transition, Telegram, Cron, or TikTok publishing behavior was changed.
 - Added renderer regression assertions for both side rosettes and the title outline. Validation is pending GitHub Actions; this visual change is not considered accepted until a rendered preview is inspected.
+
+
+### 2026-11-20 — Telegram send-gate duration mismatch fixed
+- Investigated scheduled/manual workflow run #540 (`44719548618`) on `feature/telegram-review-notifications`. Rendering completed for Surah Al-Kahf 18:17 as a complete single-ayah preview at 46.733 seconds. The send step then failed before invoking `src/send_telegram.py` because its inline guard still imposed a blanket 45-second cap.
+- The log proves Telegram video send was not attempted: the failure occurred at the duration guard before the subprocess call. The failure-notification message was accepted by Telegram.
+- Fixed the mismatch by centralizing the delivery duration rule in `src/quran_delivery_attempt.py`: 60 seconds for exactly one selected ayah, 45 seconds for multiple ayahs. The workflow send step now loads the matching prepared audio report and applies that same tested helper instead of a separate hard-coded 45-second check.
+- Added unit tests for the shared 60/45-second policy and empty selections; existing reservation integration tests continue to cover acceptance of a 46.733-second single ayah and rejection of multi-ayah content over 45 seconds.
+- Cleared `data/quran_delivery_pending.json` only after confirming from run #540 logs that the send subprocess was never called. No Quran delivery history was recorded and no video was sent.
+- Commits: shared policy `eb78d36b71869acf60c3fb88cd92f66cdf102041`; tests `f5604c1788f3565f34505bef36f0810fb7379b34`; workflow guard `6dfbc396cd2330b2288e49320ab47917e8cf01c1`; failed pre-send reservation cleanup `20c077653b949c535b43996938145bc0b657d0a8`.
+- Validation is pending for the push-triggered, non-delivery CI run. Do not rerun Cron or manually dispatch a Telegram send until the automated checks pass and the user explicitly requests the next test.
