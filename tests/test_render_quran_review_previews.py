@@ -148,11 +148,15 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 # no full-screen tint, rounded panel, or dark text backing is allowed.
                 self.assertEqual(frame.getpixel((50, 350))[3], 0)
                 self.assertEqual(frame.getpixel((500, 800))[3], 0)
-                # Open bracket flourishes, title divider, and left-side ayah medallion.
-                self.assertGreater(frame.getpixel((178, 438))[3], 0)
-                self.assertGreater(frame.getpixel((540, 690))[3], 0)
-                self.assertGreater(frame.getpixel((207, 990))[3], 200)
-                self.assertIsNotNone(frame.getchannel("A").getbbox())
+                # The exact gold ornaments are extracted from the checked-in reference.
+                alpha = frame.getchannel("A")
+                self.assertIsNotNone(alpha.crop((138, 448, 270, 665)).getbbox())
+                self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
+                self.assertIsNotNone(alpha.crop((298, 650, 784, 730)).getbbox())
+                self.assertIsNotNone(alpha.crop((103, 846, 207, 954)).getbbox())
+                self.assertEqual(renderer.APPROVED_DESIGN_REFERENCE,
+                                 Path("references/approved_quran_design.png"))
+                self.assertIsNotNone(alpha.getbbox())
 
     def test_intro_frame_uses_same_open_reference_without_old_closed_cover(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -170,9 +174,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
                 self.assertLessEqual(max(abs(actual - expected) for actual, expected in zip(frame.getpixel((540, 780))[:3], (20, 45, 95))), 2)
-                self.assertGreater(frame.getpixel((178, 438))[0], 150)
-                self.assertGreater(frame.getpixel((540, 690))[0], 150)
-                self.assertIsNotNone(frame.getchannel("A").getbbox())
+                alpha = frame.getchannel("A")
+                self.assertIsNotNone(alpha.crop((138, 448, 270, 665)).getbbox())
+                self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
+                self.assertIsNotNone(alpha.crop((298, 650, 784, 730)).getbbox())
+                self.assertIsNotNone(alpha.getbbox())
 
     def test_vocalized_surah_catalog_has_all_114_chapters(self):
         self.assertEqual(len(renderer.SURAH_NAMES_TASHKEEL), 114)
