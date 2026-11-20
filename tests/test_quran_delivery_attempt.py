@@ -63,6 +63,29 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
             self.reserve()
         self.assertFalse(self.pending.exists())
 
+    def test_reservation_accepts_single_complete_ayah_up_to_60_seconds(self):
+        audio = json.loads(self.audio.read_text(encoding="utf-8"))
+        audio["items"][0]["selected_verses"] = [1]
+        audio["items"][0]["duration_seconds"] = 46.733
+        self.audio.write_text(json.dumps(audio), encoding="utf-8")
+        preview = json.loads(self.preview.read_text(encoding="utf-8"))
+        preview["items"][0]["duration_seconds"] = 46.733
+        self.preview.write_text(json.dumps(preview), encoding="utf-8")
+        pending = self.reserve()
+        self.assertEqual(pending["selected_verses"], [1])
+        self.assertEqual(pending["ayah_references"], ["11:1"])
+
+    def test_reservation_rejects_multi_ayah_audio_over_45_seconds(self):
+        audio = json.loads(self.audio.read_text(encoding="utf-8"))
+        audio["items"][0]["duration_seconds"] = 46.0
+        self.audio.write_text(json.dumps(audio), encoding="utf-8")
+        preview = json.loads(self.preview.read_text(encoding="utf-8"))
+        preview["items"][0]["duration_seconds"] = 46.0
+        self.preview.write_text(json.dumps(preview), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "no longer than 45 seconds"):
+            self.reserve()
+        self.assertFalse(self.pending.exists())
+
     def test_existing_pending_attempt_blocks_another_send(self):
         self.reserve()
         with self.assertRaisesRegex(RuntimeError, "Unresolved Telegram"):

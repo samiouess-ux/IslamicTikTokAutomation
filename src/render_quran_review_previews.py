@@ -501,8 +501,8 @@ def probe(path: Path) -> dict:
         raise RuntimeError(f"Original MP3 audio stream was not preserved: {path}")
     if duration <= 0:
         raise RuntimeError(f"Preview has invalid duration: {duration}")
-    if duration > 45.0:
-        raise RuntimeError(f"Preview exceeds the 45-second maximum: {duration:.3f}s")
+    if duration > 60.0:
+        raise RuntimeError(f"Preview exceeds the absolute 60-second maximum: {duration:.3f}s")
     return {"duration_seconds": round(duration, 3), "width": 1080, "height": 1920,
             "video_codec": video["codec_name"], "audio_codec": audio["codec_name"]}
 
@@ -794,8 +794,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
-    # Validate all selected ayahs before rendering. Every prepared passage must
-    # contain the complete requested sequence; final previews are capped at 45 seconds.
+    # Validate all selected ayahs before rendering. Ordinary videos remain <=45s;
+    # only one complete ayah may use the exceptional <=60s allowance.
     candidates = {x["candidate_id"]: x for x in batch.get("passages", [])}
     report_items = report.get("items", [])
     for item in report_items:
@@ -815,6 +815,11 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             raise ValueError("Audio-selected ayahs do not match a contiguous requested slice.")
         if start != 0:
             raise ValueError("Preview must select the opening contiguous prefix of the requested ayahs.")
+        audio_duration = item.get("duration_seconds")
+        exceptional_single_ayah = len(selected) == 1 and isinstance(audio_duration, (int, float)) and 45.0 < audio_duration <= 60.0
+        allowed_seconds = 60.0 if exceptional_single_ayah else 45.0
+        if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > allowed_seconds:
+            raise ValueError(f"Prepared audio exceeds the {allowed_seconds:g}-second duration policy for its selected ayah count.")
     output_dir.mkdir(parents=True, exist_ok=True)
     font_path = font_file()
     moving_backgrounds = load_approved_backgrounds()
@@ -1001,6 +1006,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
         transition_info = assemble_review_segments(segments, audio_files, concat, output, work)
         info = probe(output)
+        preview_limit = 60.0 if len(verses) == 1 and float(item.get("duration_seconds", 0)) > 45.0 else 45.0
+        if info["duration_seconds"] > preview_limit:
+            raise RuntimeError(f"Rendered preview exceeds the {preview_limit:g}-second duration policy for its selected ayah count: {info['duration_seconds']:.3f}s")
         previews.append({
             "candidate_id": part_id,
             "source_candidate_id": source_candidate_id,

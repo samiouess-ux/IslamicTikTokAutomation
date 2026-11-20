@@ -56,8 +56,6 @@ def reserve_attempt(
     if preview_item.get("review_only") is not True:
         raise ValueError("Reservation requires a review-only preview.")
     preview_duration = preview_item.get("duration_seconds")
-    if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > 45.0:
-        raise ValueError("Preview duration must be positive and no longer than 45 seconds.")
     audio_items = [p for p in audio_report.get("items", []) if p.get("candidate_id") == candidate_id]
     if len(audio_items) != 1:
         raise ValueError("Could not match exactly one preview and audio report item.")
@@ -72,8 +70,6 @@ def reserve_attempt(
     if not str(audio_item.get("status", "")).startswith("audio_prepared"):
         raise ValueError("Cannot reserve a passage without prepared audio.")
     audio_duration = audio_item.get("duration_seconds")
-    if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > 45.0:
-        raise ValueError("Prepared audio duration must be positive and no longer than 45 seconds.")
 
     source_verses = passage.get("verses", [])
     selected = audio_item.get("selected_verses")
@@ -84,6 +80,11 @@ def reserve_attempt(
         or selected != list(range(selected[0], selected[0] + len(selected)))
     ):
         raise ValueError("Reserved ayahs must be a non-empty contiguous prefix of the source passage.")
+    allowed_seconds = 60.0 if len(selected) == 1 else 45.0
+    if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > allowed_seconds:
+        raise ValueError(f"Preview duration must be positive and no longer than {allowed_seconds:g} seconds for the selected ayah count.")
+    if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > allowed_seconds:
+        raise ValueError(f"Prepared audio duration must be positive and no longer than {allowed_seconds:g} seconds for the selected ayah count.")
     refs = [str(v.get("reference", "")) for v in source_verses[:len(selected)]]
     if len(refs) != len(selected) or any(not ref or ":" not in ref for ref in refs):
         raise ValueError("Every reserved ayah must have an exact surah:ayah reference.")

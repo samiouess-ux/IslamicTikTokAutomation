@@ -24,7 +24,8 @@ from quran_audio_parts import partition_contiguous_ayahs
 
 DEFAULT_ARCHIVE = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 MIN_SECONDS = 0.0
-MAX_SECONDS = 45.0  # User-approved maximum; keep every preview at or below 45 seconds.
+MAX_SECONDS = 45.0  # Normal maximum for multi-ayah videos.
+EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS = 60.0  # Only one complete ayah may use this exception.
 
 
 def probe(path: Path) -> float:
@@ -243,14 +244,15 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 processed_audio_files[str(number)] = str(processed_target)
 
             parts, remaining = partition_contiguous_ayahs(
-                candidate["verses"], processed_durations, MAX_SECONDS
+                candidate["verses"], processed_durations, MAX_SECONDS,
+                exceptional_single_ayah_seconds=EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS,
             )
             if not parts:
                 results.append({
                     "candidate_id": candidate["candidate_id"],
                     "source_candidate_id": candidate["candidate_id"],
                     "surah_number": surah,
-                    "status": "deferred_single_ayah_exceeds_45_seconds" if remaining and len(remaining) == len(requested_verses) else "deferred_no_next_complete_ayah_fits_45_seconds",
+                    "status": "deferred_single_ayah_exceeds_60_seconds" if remaining and len(remaining) == len(requested_verses) else "deferred_no_next_complete_ayah_fits_duration_policy",
                     "requested_verses": requested_verses,
                     "selected_verses": [],
                     "remaining_verses": requested_verses,
@@ -287,8 +289,10 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
                 "-c", "copy", str(combined.resolve())
             ], check=True)
             actual = probe(combined)
-            if actual <= 0 or actual > MAX_SECONDS:
-                raise ValueError(f"Concatenated part exceeds the {MAX_SECONDS:g}-second limit or has invalid duration: {part_id} ({actual:.3f}s)")
+            exceptional_single_ayah = len(selected) == 1 and processed_durations[selected[0]] > MAX_SECONDS
+            allowed_seconds = EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS if exceptional_single_ayah else MAX_SECONDS
+            if actual <= 0 or actual > allowed_seconds:
+                raise ValueError(f"Concatenated part exceeds its {allowed_seconds:g}-second duration limit or has invalid duration: {part_id} ({actual:.3f}s)")
             last_position = requested_verses.index(selected[-1]) + 1
             results.append({
                 "candidate_id": part_id,
@@ -328,7 +332,8 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "preview_part_count": len(ready),
         "minimum_seconds": MIN_SECONDS,
         "maximum_seconds": MAX_SECONDS,
-        "audio_processing": "complete_ordered_whole_ayah_parts_max_45_seconds_with_edge_only_silence_detection_and_mp3_stream_copy",
+        "exceptional_single_ayah_maximum_seconds": EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS,
+        "audio_processing": "complete_ordered_whole_ayah_parts_max_45_seconds_with_isolated_single_ayah_exception_up_to_60_seconds_edge_only_silence_detection_and_mp3_stream_copy",
         "continuation_policy": "Unselected ayahs remain explicitly listed and are not marked used. The next batch starts again at the first ayah absent from confirmed delivery history; only confirmed delivery advances the sequence.",
         "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",
         "items": results,

@@ -381,7 +381,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(info["duration_seconds"], 45.0)
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
-        "format": {"duration": "45.001"},
+        "format": {"duration": "60.001"},
         "streams": [
             {"codec_name": "h264", "width": 1080, "height": 1920},
             {"codec_name": "mp3"}
@@ -391,8 +391,22 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "preview.mp4"
             path.write_bytes(b"video")
-            with self.assertRaisesRegex(RuntimeError, "exceeds the 45-second maximum"):
+            with self.assertRaisesRegex(RuntimeError, "exceeds the absolute 60-second maximum"):
                 probe(path)
+
+    @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
+        "format": {"duration": "46.733"},
+        "streams": [
+            {"codec_name": "h264", "width": 1080, "height": 1920},
+            {"codec_name": "mp3"}
+        ],
+    }))
+    def test_probe_accepts_exceptional_single_ayah_length_below_60_seconds(self, _check):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "preview.mp4"
+            path.write_bytes(b"video")
+            info = probe(path)
+            self.assertEqual(info["duration_seconds"], 46.733)
 
     @patch("render_quran_review_previews.subprocess.check_output", return_value=json.dumps({
         "format": {"duration": "24.5"},

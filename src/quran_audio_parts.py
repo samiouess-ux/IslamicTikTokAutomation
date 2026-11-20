@@ -4,10 +4,18 @@ from collections.abc import Sequence
 from typing import TypeVar
 T = TypeVar("T")
 
-def partition_contiguous_ayahs(ayahs: Sequence[T], durations_seconds: dict[int, float], maximum_seconds: float | None = None) -> tuple[list[list[T]], list[T]]:
-    """Return whole-ayah parts capped by duration; leave overflow ayahs unselected."""
+def partition_contiguous_ayahs(
+    ayahs: Sequence[T],
+    durations_seconds: dict[int, float],
+    maximum_seconds: float | None = None,
+    exceptional_single_ayah_seconds: float | None = None,
+) -> tuple[list[list[T]], list[T]]:
+    """Keep ordinary parts within the normal cap; isolate a longer whole ayah if allowed."""
     if maximum_seconds is not None and maximum_seconds <= 0:
         raise ValueError("maximum_seconds must be positive.")
+    if exceptional_single_ayah_seconds is not None:
+        if maximum_seconds is None or exceptional_single_ayah_seconds < maximum_seconds:
+            raise ValueError("exceptional_single_ayah_seconds must be at least the normal maximum.")
     numbers = [int(item["ayah"]) for item in ayahs]  # type: ignore[index]
     if not numbers:
         return [], []
@@ -23,7 +31,15 @@ def partition_contiguous_ayahs(ayahs: Sequence[T], durations_seconds: dict[int, 
         if duration <= 0:
             raise ValueError(f"Invalid processed duration for ayah {number}.")
         if maximum_seconds is not None and duration > maximum_seconds:
-            break
+            if exceptional_single_ayah_seconds is None or duration > exceptional_single_ayah_seconds:
+                break
+            if current:
+                parts.append(current)
+                current = []
+                current_duration = 0.0
+            # Exceptional long ayahs are always their own part.
+            parts.append([item])
+            continue
         if maximum_seconds is not None and current and current_duration + duration > maximum_seconds:
             parts.append(current)
             current = []

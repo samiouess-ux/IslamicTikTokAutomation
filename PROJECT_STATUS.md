@@ -1045,3 +1045,10 @@ Follow this sequence. The user should not need to repeat these decisions.
 - History writes are gated to successful Telegram delivery and are idempotent by candidate ID. History-only data commits are excluded from push triggers.
 - Passed: Quran batch engine tests run #200 (`44618085196`) and isolated Quran request pipeline run #134 (`44618085318`).
 - Pending: full actual FFmpeg render verification in inventory run #532 (`44618085215`); this is a push-triggered non-delivery run. Do not claim phase 3 complete until it passes. Next scheduled Telegram video still needs user visual review.
+
+### 2026-11-20 — Exceptional whole-ayah duration allowance (45s normal / 60s single-ayah exception)
+- User approved a 60-second maximum only as an exception for one complete ayah; the ordinary maximum remains 45 seconds. This supersedes the blanket 45-second cap only for a single ayah whose processed duration is greater than 45.0 and no greater than 60.0 seconds.
+- Audio partitioning isolates any 45–60 second ayah into its own video part. It is never combined with neighboring ayahs, cut, or speed-adjusted. Multi-ayah videos remain capped at 45 seconds; a single ayah over 60 seconds remains deferred intact.
+- Updated audio preparation, active renderer validation, Telegram reservation validation, and regression tests. The low-level renderer probe accepts at most 60 seconds, while render and reservation gates enforce the single-ayah-only exception.
+- Cron schedule, Telegram bot/credentials, Telegram send behavior, TikTok publishing, and `main` were not changed. No manual workflow dispatch or production Telegram test was initiated. Push-triggered CI may run on this branch; push-event delivery gates remain in force.
+- Validation status: implementation committed; await the resulting GitHub Actions test/render-only workflow conclusions before calling the change verified.
