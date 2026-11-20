@@ -13,7 +13,7 @@ import zipfile
 from datetime import datetime, timezone
 import urllib.request
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, features
+from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageFilter, ImageOps, features
 from quran_visual_history import load_history as load_visual_history, recent_usage as recent_visual_usage
 
 SURAH_NAMES = [
@@ -244,7 +244,7 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
     block height are checked, so a wrapped ayah cannot grow upward into the
     title cartouche. No Quran words are removed or rewritten.
     """
-    for size in (96, 90, 84, 78, 72, 66, 60, 56, 52, 48, 44, 40, 36, 32, 28):
+    for size in (84, 80, 76, 72, 68, 64, 60, 56, 52, 48, 44, 40, 36, 32, 28):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         lines, current = [], ""
         for word in text.split():
@@ -287,30 +287,29 @@ APPROVED_DESIGN_REFERENCE = Path("references/approved_quran_design.png")
 
 def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
                          *, clear_center: bool = False) -> Image.Image:
-    """Extract only the original gold ornament pixels from the approved reference.
-
-    The source image is resized to the renderer's exact 9:16 canvas first, so
-    the extracted artwork keeps the reference's original proportions/placement.
-    Background pixels are made transparent; no ornament is redrawn or guessed.
-    """
+    """Extract the original gold linework while rejecting smooth background glow."""
     crop = reference.crop(box).convert("RGB")
-    left, top, right, bottom = box
-    pixels = []
-    center_x, center_y = (left + right) // 2, (top + bottom) // 2
-    for y in range(top, bottom):
-        for x in range(left, right):
-            r, g, b = crop.getpixel((x - left, y - top))
-            gold_alpha = min(
-                255,
-                max(0, (r - g - 18) * 8),
-                max(0, (g - b - 20) * 8),
-                max(0, (150 - b) * 5),
-            )
-            if clear_center and abs(x - center_x) < 18 and abs(y - center_y) < 22:
-                gold_alpha = 0
-            pixels.append((r, g, b, gold_alpha))
-    result = Image.new("RGBA", crop.size, (0, 0, 0, 0))
-    result.putdata(pixels)
+    # Gold ornament strokes have sharp local detail; sunset/sky gradients do not.
+    edge = ImageChops.difference(
+        crop, crop.filter(ImageFilter.GaussianBlur(3))
+    ).convert("L").point(lambda value: min(255, max(0, (value - 6) * 20)))
+    gold = Image.new("L", crop.size, 0)
+    gold.putdata([
+        255 if r - g > 25 and g - b > 25 and b < 125 else 0
+        for r, g, b in crop.getdata()
+    ])
+    alpha = ImageChops.multiply(edge, gold)
+    if clear_center:
+        left, top, right, bottom = box
+        center_x, center_y = (left + right) // 2, (top + bottom) // 2
+        mask = Image.new("L", crop.size, 255)
+        mask_draw = ImageDraw.Draw(mask)
+        # Remove only the original verse digit, retaining the top/bottom filigree.
+        mask_draw.ellipse((center_x - 12 - left, center_y - 17 - top,
+                           center_x + 12 - left, center_y + 17 - top), fill=0)
+        alpha = ImageChops.multiply(alpha, mask)
+    result = crop.convert("RGBA")
+    result.putalpha(alpha)
     return result
 
 
@@ -408,7 +407,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     # cannot collide with the title, ornament, or English translation.
     start_y = 900 - block_height / 2
     for line_index, line in enumerate(lines):
-        draw.text((600, start_y + line_index * line_height), line,
+        draw.text((620, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
                   direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(0, 0, 0, 150))
@@ -417,7 +416,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw_reference_ayah_medallion(image, verse["number"], bold_font_file())
 
     english_font, en_lines, english_line_height = fit_translation_lines(
-        draw, english, font_path, max_width=850, max_lines=8
+        draw, english, font_path, max_width=760, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
     # Match the reference's centered translation zone while keeping long Arabic
