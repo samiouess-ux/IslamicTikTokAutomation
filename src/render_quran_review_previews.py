@@ -399,7 +399,10 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         draw, arabic, font_path, max_width=850, max_lines=7, max_height=390
     )
     block_height = (len(lines) - 1) * line_height
-    start_y = 900 - block_height / 2
+    # Reserve a distinct lower-middle zone below the title divider.
+    # Center the complete ayah block lower so even the longest wrapped ayah
+    # cannot collide with the title, ornament, or English translation.
+    start_y = 990 - block_height / 2
     for line_index, line in enumerate(lines):
         draw.text((600, start_y + line_index * line_height), line,
                   font=body_font, fill=(255, 255, 250, 255), anchor="mm",
@@ -407,7 +410,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
                   stroke_width=2, stroke_fill=(0, 0, 0, 150))
 
     # Gold circular verse marker sits to the left of the Arabic text block.
-    badge_x, badge_y, badge_radius = 160, 905, 47
+    badge_x, badge_y, badge_radius = 160, 990, 47
     draw.ellipse((badge_x - badge_radius, badge_y - badge_radius,
                   badge_x + badge_radius, badge_y + badge_radius),
                  outline=(*accent, 255), width=4)
@@ -426,7 +429,8 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         draw, english, font_path, max_width=850, max_lines=8
     )
     english_block_height = (len(en_lines) - 1) * english_line_height
-    english_start_y = 1215 - english_block_height / 2
+    # Keep the English translation in its own lower zone, separated from Arabic.
+    english_start_y = 1450 - english_block_height / 2
     for line_index, line in enumerate(en_lines):
         draw.text((540, english_start_y + line_index * english_line_height),
                   line, font=english_font, fill=(255, 255, 245, 255),
