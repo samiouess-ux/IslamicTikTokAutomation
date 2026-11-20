@@ -284,34 +284,68 @@ def bold_font_file() -> str:
 
 def draw_surah_cartouche(draw: ImageDraw.ImageDraw, accent: tuple,
                          center_x: int = 540, center_y: int = 465) -> None:
-    """Draw a restrained double-line Islamic cartouche around the surah title."""
+    """Draw a refined, symmetrical Islamic title cartouche with rosette terminals.
+
+    The design combines a pointed manuscript-style cartouche, a fine inner
+    contour, and restrained eight-point rosettes with small arabesque leaves.
+    It frames only the surah title; the separate divider/diamond beneath it
+    remains an independent ornament.
+    """
     outer = [
-        (center_x, center_y - 72), (center_x + 28, center_y - 54),
-        (center_x + 238, center_y - 54), (center_x + 270, center_y - 34),
-        (center_x + 292, center_y), (center_x + 270, center_y + 34),
-        (center_x + 238, center_y + 54), (center_x + 28, center_y + 54),
-        (center_x, center_y + 72), (center_x - 28, center_y + 54),
-        (center_x - 238, center_y + 54), (center_x - 270, center_y + 34),
-        (center_x - 292, center_y), (center_x - 270, center_y - 34),
-        (center_x - 238, center_y - 54), (center_x - 28, center_y - 54),
+        (center_x, center_y - 78), (center_x + 24, center_y - 62),
+        (center_x + 210, center_y - 62), (center_x + 246, center_y - 48),
+        (center_x + 276, center_y - 22), (center_x + 302, center_y),
+        (center_x + 276, center_y + 22), (center_x + 246, center_y + 48),
+        (center_x + 210, center_y + 62), (center_x + 24, center_y + 62),
+        (center_x, center_y + 78), (center_x - 24, center_y + 62),
+        (center_x - 210, center_y + 62), (center_x - 246, center_y + 48),
+        (center_x - 276, center_y + 22), (center_x - 302, center_y),
+        (center_x - 276, center_y - 22), (center_x - 246, center_y - 48),
+        (center_x - 210, center_y - 62), (center_x - 24, center_y - 62),
     ]
     inner = [
-        (center_x, center_y - 59), (center_x + 24, center_y - 43),
-        (center_x + 232, center_y - 43), (center_x + 255, center_y - 28),
-        (center_x + 273, center_y), (center_x + 255, center_y + 28),
-        (center_x + 232, center_y + 43), (center_x + 24, center_y + 43),
-        (center_x, center_y + 59), (center_x - 24, center_y + 43),
-        (center_x - 232, center_y + 43), (center_x - 255, center_y + 28),
-        (center_x - 273, center_y), (center_x - 255, center_y - 28),
-        (center_x - 232, center_y - 43), (center_x - 24, center_y - 43),
+        (center_x, center_y - 64), (center_x + 20, center_y - 50),
+        (center_x + 205, center_y - 50), (center_x + 237, center_y - 38),
+        (center_x + 263, center_y - 17), (center_x + 282, center_y),
+        (center_x + 263, center_y + 17), (center_x + 237, center_y + 38),
+        (center_x + 205, center_y + 50), (center_x + 20, center_y + 50),
+        (center_x, center_y + 64), (center_x - 20, center_y + 50),
+        (center_x - 205, center_y + 50), (center_x - 237, center_y + 38),
+        (center_x - 263, center_y + 17), (center_x - 282, center_y),
+        (center_x - 263, center_y - 17), (center_x - 237, center_y - 38),
+        (center_x - 205, center_y - 50), (center_x - 20, center_y - 50),
     ]
-    draw.line(outer + [outer[0]], fill=(*accent, 230), width=3, joint="curve")
-    draw.line(inner + [inner[0]], fill=(*accent, 115), width=2, joint="curve")
-    for x in (center_x - 292, center_x + 292):
-        draw.ellipse((x - 8, center_y - 8, x + 8, center_y + 8),
-                     outline=(*accent, 220), width=2)
-        draw.ellipse((x - 2, center_y - 2, x + 2, center_y + 2),
+    draw.line(outer + [outer[0]], fill=(*accent, 235), width=3, joint="curve")
+    draw.line(inner + [inner[0]], fill=(*accent, 125), width=2, joint="curve")
+
+    # Small eight-point rosettes finish both ends without crowding the title.
+    for x in (center_x - 276, center_x + 276):
+        star = [
+            (x, center_y - 17), (x + 5, center_y - 5),
+            (x + 17, center_y), (x + 5, center_y + 5),
+            (x, center_y + 17), (x - 5, center_y + 5),
+            (x - 17, center_y), (x - 5, center_y - 5),
+        ]
+        draw.line(star + [star[0]], fill=(*accent, 225), width=2, joint="curve")
+        draw.ellipse((x - 4, center_y - 4, x + 4, center_y + 4),
                      fill=(*accent, 220))
+
+    # Mirrored leaf-and-dot details create a light arabesque rhythm at the shoulders.
+    for direction in (-1, 1):
+        anchor_x = center_x + direction * 214
+        leaf = [
+            (anchor_x, center_y),
+            (anchor_x + direction * 13, center_y - 10),
+            (anchor_x + direction * 28, center_y - 8),
+            (anchor_x + direction * 17, center_y + 1),
+            (anchor_x + direction * 28, center_y + 10),
+            (anchor_x + direction * 13, center_y + 10),
+            (anchor_x, center_y),
+        ]
+        draw.line(leaf, fill=(*accent, 175), width=2, joint="curve")
+        dot_x = center_x + direction * 188
+        draw.ellipse((dot_x - 2, center_y - 2, dot_x + 2, center_y + 2),
+                     fill=(*accent, 190))
 
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
