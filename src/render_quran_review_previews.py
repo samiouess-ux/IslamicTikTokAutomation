@@ -301,9 +301,9 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
     ])
     # Remove isolated scenery specks, then soften the binary edge slightly so
     # the original antialiased gold linework composites naturally.
-    alpha = gold.filter(ImageFilter.MedianFilter(3)).filter(
-        ImageFilter.GaussianBlur(0.45)
-    )
+    # Keep fine ornamental curls and the thin medallion ring intact; a
+    # median filter erases precisely these narrow strokes in the approved art.
+    alpha = gold.filter(ImageFilter.GaussianBlur(0.35))
     if exclude_right_corner:
         # A warm sunset highlight enters the extreme upper-right of this crop;
         # it is scenery, not part of the open arabesque bracket.
