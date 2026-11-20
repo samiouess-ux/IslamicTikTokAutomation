@@ -149,7 +149,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertEqual(frame.getpixel((50, 350))[3], 0)
                 self.assertEqual(frame.getpixel((500, 800))[3], 0)
                 # Open bracket flourishes, title divider, and left-side ayah medallion.
-                self.assertGreater(frame.getpixel((188, 438))[3], 0)
+                self.assertGreater(frame.getpixel((178, 438))[3], 0)
                 self.assertGreater(frame.getpixel((540, 690))[3], 0)
                 self.assertGreater(frame.getpixel((160, 905))[3], 200)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
