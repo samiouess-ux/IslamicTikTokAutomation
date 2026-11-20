@@ -26,6 +26,7 @@ on:
       - "tests/test_quran_visual_history.py"
       - "tests/test_quran_social_caption.py"
       - "src/render_quran_review_previews.py"
+      - "references/approved_quran_design.png"
       - "data/background_photos_manifest.json"
       - "assets/background_photos/**"
       - "assets/background_photos/quran_cover_templates.zip"
