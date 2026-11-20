@@ -168,7 +168,12 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((298, 650, 784, 730)).getbbox())
                 # The reference medallion moves down with the Arabic block.
-                self.assertIsNotNone(alpha.crop((103, 1006, 207, 1114)).getbbox())
+                # Its extracted ornament must retain a near-full circular span;
+                # a couple of surviving arcs are not an acceptable medallion.
+                medallion_bounds = alpha.crop((103, 1006, 207, 1114)).getbbox()
+                self.assertIsNotNone(medallion_bounds)
+                self.assertGreaterEqual(medallion_bounds[2] - medallion_bounds[0], 70)
+                self.assertGreaterEqual(medallion_bounds[3] - medallion_bounds[1], 70)
                 arabic_alpha = alpha.crop((210, 760, 900, 1300))
                 english_alpha = alpha.crop((180, 1100, 900, 1780))
                 self.assertIsNotNone(arabic_alpha.getbbox())
