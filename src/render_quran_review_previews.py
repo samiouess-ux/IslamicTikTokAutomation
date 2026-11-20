@@ -290,16 +290,23 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
                          exclude_right_corner: bool = False) -> Image.Image:
     """Extract only saturated gold ornament pixels, not scenery or its glow."""
     crop = reference.crop(box).convert("RGB")
-    # The approved reference uses bright, saturated gold. A color-key isolates
-    # those strokes far more cleanly than edge detection, which also catches
-    # branches, water highlights, and sunset reflections.
+    # The approved title ornaments use a strict gold key to avoid scenery.
+    # The medallion is different: its fine circular stroke contains pale,
+    # antialiased highlights that the strict key fragmented into two arcs.
+    # Use a softer gold key only for that tightly bounded medallion crop.
     gold = Image.new("L", crop.size, 0)
-    # Preserve pale antialiased gold along the thin ring and curls.
-    gold.putdata([
-        255 if (r > 130 and g > 75 and r > g * 1.01
-                and g > b * 1.05 and r - b > 25) else 0
-        for r, g, b in crop.getdata()
-    ])
+    if clear_center:
+        gold.putdata([
+            255 if (r > 105 and g > 58 and r > g * 0.88
+                    and g > b * 1.015 and r - b > 12) else 0
+            for r, g, b in crop.getdata()
+        ])
+    else:
+        gold.putdata([
+            255 if (r > 130 and g > 75 and r > g * 1.01
+                    and g > b * 1.05 and r - b > 25) else 0
+            for r, g, b in crop.getdata()
+        ])
     # Remove isolated scenery specks, then soften the binary edge slightly so
     # the original antialiased gold linework composites naturally.
     # Keep fine ornamental curls and the thin medallion ring intact; a
