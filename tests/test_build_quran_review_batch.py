@@ -7,9 +7,18 @@ from build_quran_review_batch import build_review_batch, most_recent_delivered_s
 class BatchTests(unittest.TestCase):
 
     def test_skips_explicitly_deferred_ayah_and_continues_at_next_unused_ayah(self):
-        joined = self.make_joined_catalog(18, 5)
+        verses = {}
+        for ayah in range(1, 23):
+            key = f"18:{ayah}"
+            verses[key] = {"arabic_uthmani": f"AR {key}", "english_saheeh_international": f"EN {key}", "audio_archive_member": f"{key}.mp3"}
+        source = {
+            "status": "complete_join_candidate_requires_human_review_and_recording_approval",
+            "rendering_allowed": False,
+            "expected_verse_count": len(verses),
+            "verses": verses,
+        }
         result = build_review_batch(
-            joined, count=1, only_surahs=[18], sequential_unused=True,
+            source, count=1, only_surahs=[18], sequential_unused=True,
             deferred_ayah_references=["18:19"],
         )
         self.assertEqual(result["passages"][0]["verse_numbers"][0], 20)
@@ -44,7 +53,7 @@ class BatchTests(unittest.TestCase):
         self.assertEqual(result["candidate_count"], 1)
         self.assertEqual(result["passages"][0]["surah_number"], 18)
         self.assertEqual(result["passages"][0]["verse_numbers"], [3, 4, 5, 6])
-        self.assertEqual(result["passage_selection"], "first_unused_contiguous_suffix_then_40_second_duration_limit")
+        self.assertEqual(result["passage_selection"], "first_unused_non_deferred_contiguous_suffix_then_duration_limit")
         self.assertFalse(result["rendering_allowed"])
         self.assertFalse(result["telegram_delivery"])
         self.assertFalse(result["auto_publish"])
