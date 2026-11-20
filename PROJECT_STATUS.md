@@ -1,3 +1,13 @@
+## Reference-renderer follow-up — 2026-11-20
+
+- Refined the reference ornament extraction to reject smooth background glow using local edge detail plus gold-color masking.
+- Cleared only the central digit area of the reference ayah medallion before drawing the dynamic Arabic-Indic ayah number.
+- Adjusted Arabic title/ayah font sizing and increased spacing from the medallion; narrowed the English translation line width to reduce crowding.
+- Render-only validation run `44738115227` completed successfully, including module compilation, Quran catalog/batch/visual tests, sample still rendering, artifact upload, orchestrator test, and test-only safety check. Its artifact was `quran-reference-layout-preview`.
+- A subsequent renderer refinement is on branch head `0741c38ea1231b92ec93b857cc17b573185b3a52`; a fresh CI run for that exact head has not yet been confirmed. The sample artifact from the earlier successful run is not proof that this latest refinement is visually correct.
+- No Telegram delivery, Cron execution, TikTok publishing, or production scheduling was performed. `main` remains untouched.
+- Next: run/verify tests against the latest branch head and inspect the resulting sample against `references/approved_quran_design.png` before calling the design approved.
+
 ## Approved reference renderer — visual sample and validation update (2026-11-20)
 
 - Source image: `references/approved_quran_design.png`; original PNG remains unchanged.
