@@ -154,30 +154,24 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertGreater(frame.getpixel((207, 905))[3], 200)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
-    def test_intro_frame_shows_surah_and_exact_ayah_range(self):
+    def test_intro_frame_uses_same_open_reference_without_old_closed_cover(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            archive_path = root / "quran_cover_templates.zip"
-            with zipfile.ZipFile(archive_path, "w") as archive:
-                for template_id, color in zip(
-                    renderer.COVER_TEMPLATE_IDS,
-                    ((20, 45, 95), (10, 90, 65), (20, 25, 30), (220, 120, 35)),
-                ):
-                    buffer = io.BytesIO()
-                    Image.new("RGB", (698, 764), color).save(buffer, format="JPEG")
-                    archive.writestr(f"cover_{template_id}.jpg", buffer.getvalue())
+            background = root / "first_scene.jpg"
+            Image.new("RGB", (1080, 1920), (20, 45, 95)).save(background)
             output = root / "opening_cover.png"
-            with patch.object(renderer, "COVER_TEMPLATE_ARCHIVE", archive_path):
-                selected = make_intro_frame(
-                    93, 5, 8, output, font_file(), SURAH_NAMES[92],
-                    cover_rotation_index=2,
-                )
-            self.assertEqual(selected, "dark_marble")
+            selected = make_intro_frame(
+                93, 5, 8, output, font_file(), SURAH_NAMES[92],
+                background_frame=background,
+                cover_rotation_index=2,
+            )
+            self.assertEqual(selected, "open_gold_brackets")
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                self.assertEqual(frame.getpixel((10, 10))[3], 255)
-                self.assertEqual(frame.getpixel((540, 1000))[3], 255)
+                self.assertEqual(frame.getpixel((540, 780))[:3], (20, 45, 95))
+                self.assertGreater(frame.getpixel((178, 438))[0], 150)
+                self.assertGreater(frame.getpixel((540, 690))[0], 150)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
     def test_vocalized_surah_catalog_has_all_114_chapters(self):
@@ -256,7 +250,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 [5.0, 40.725, 24.0],
             )
             self.assertEqual(result["background_rotation_start_index"], 2)
-            self.assertEqual([x["cover_template_id"] for x in result["items"]], ["dark_marble", "sunset"])
+            self.assertEqual([x["cover_template_id"] for x in result["items"]], ["open_gold_brackets", "open_gold_brackets"])
             self.assertEqual({x["surah_number"] for x in result["items"]}, {19, 88})
             self.assertTrue(all(x["review_only"] for x in result["items"]))
             self.assertTrue(all(x["audio_codec"] == "mp3" for x in result["items"]))
