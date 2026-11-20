@@ -1099,3 +1099,6 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Confirmed the preview duration was 33.332 seconds at 1080x1920 with MP3 audio. Telegram reservation, send, history, and sync steps were skipped; no video was sent and no Cron was run.
 - Updated the opening-cover renderer to use the same first-scene full-bleed background, open gold brackets, title position, and divider as the ayah frame. The existing intro/fade timing and audio timing are preserved. Added a regression test for the new intro composition.
 - Changes are on feature/telegram-review-notifications only. CI and a fresh render-only visual review are still pending; do not run Cron or send to Telegram before the sample is checked.
+
+
+- CI follow-up: the first run after the intro-cover change failed only because the regression test compared a JPEG-resampled background pixel for exact RGB equality; observed rounding was one level per channel (19,45,94 vs. (20,45,95)). Updated the assertion to allow a maximum two-level JPEG rounding tolerance. Renderer tests had otherwise passed. A fresh push-triggered validation/render-only run is pending.
