@@ -1092,3 +1092,10 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Automated regression tests now assert transparent areas where panels previously appeared and the new open-bracket/divider/ayah-marker geometry. Await CI before any new Cron test; this push itself does not send Telegram.
 
 - CI follow-up: the initial isolated renderer suite passed all rendering/layout cases except one assertion that sampled a pixel beside (rather than on) the new bracket stroke. Corrected the test sample to the stroke coordinate `(178, 438)` in commit `ed54333992f6c678f58b00894c40807de9c5d87e`; rerun workflows are pending. No production send was triggered by these push events.
+
+
+### 2026-11-20 — Opening-cover mismatch found and corrected
+- Reviewed the actual render-only artifact from workflow run #548 (44725233631): the ayah frame used the approved open gold brackets and transparent text overlay, but the 1.2-second opening cover still used an old user-supplied closed-frame design. During the 0.8-second fade, both title treatments were visible together.
+- Confirmed the preview duration was 33.332 seconds at 1080x1920 with MP3 audio. Telegram reservation, send, history, and sync steps were skipped; no video was sent and no Cron was run.
+- Updated the opening-cover renderer to use the same first-scene full-bleed background, open gold brackets, title position, and divider as the ayah frame. The existing intro/fade timing and audio timing are preserved. Added a regression test for the new intro composition.
+- Changes are on feature/telegram-review-notifications only. CI and a fresh render-only visual review are still pending; do not run Cron or send to Telegram before the sample is checked.
