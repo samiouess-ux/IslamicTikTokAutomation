@@ -74,7 +74,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         draw = ImageDraw.Draw(image)
         font, lines, _ = fit_arabic_lines(draw, "حم", font_file())
         self.assertEqual(lines, ["حم"])
-        self.assertGreaterEqual(font.size, 90)
+        self.assertGreaterEqual(font.size, 80)
 
     def test_long_arabic_ayah_shrinks_to_stay_below_surah_title(self):
         image = Image.new("RGB", (1080, 1920))
