@@ -305,16 +305,10 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
     # Keep fine ornamental curls and the thin medallion ring intact; a
     # median filter erases precisely these narrow strokes in the approved art.
     alpha = gold.filter(ImageFilter.GaussianBlur(0.35))
-    if exclude_right_corner:
-        # The right bracket's upper tip starts below this band. The pixels
-        # above it are sunset scenery, which otherwise becomes a hard-edged
-        # orange rectangle when composited over a different video background.
-        mask = Image.new("L", crop.size, 255)
-        mask_draw = ImageDraw.Draw(mask)
-        mask_draw.rectangle((0, 0, crop.width - 1, 56), fill=0)
-        # Remove a detached warm pixel cluster beside the bracket's upper tip.
-        mask_draw.rectangle((0, 57, 28, 88), fill=0)
-        alpha = ImageChops.multiply(alpha, mask)
+    # Preserve the complete right ornament, including its pointed upper finial.
+    # The previous rectangular scenery mask cut through the finial and made
+    # the bracket look shorter and misaligned. The gold color key already
+    # separates the ornament from most of the surrounding scenery.
     if clear_center:
         left, top, right, bottom = box
         center_x, center_y = (left + right) // 2, (top + bottom) // 2
