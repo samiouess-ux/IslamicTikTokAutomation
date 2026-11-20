@@ -164,7 +164,7 @@ SURAH_NAMES_TASHKEEL = [
     "الْكَوْثَرِ", "الْكَافِرُونَ", "النَّصْرِ", "الْمَسَدِ",
     "الْإِخْلَاصِ", "الْفَلَقِ", "النَّاسِ",
 ]
-COVER_TEMPLATE_IDS = ("blue_night", "emerald_green", "dark_marble", "sunset")
+COVER_TEMPLATE_IDS = ("open_gold_brackets",)
 COVER_TEMPLATE_ARCHIVE = Path("assets/background_photos/quran_cover_templates.zip")
 
 BACKGROUND_CATALOG = Path("data/background_candidates.json")
@@ -473,55 +473,45 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
                      out: Path, font_path: str, surah_name: str,
                      background_frame: Path | None = None,
                      cover_rotation_index: int = 0) -> str:
-    """Render one original user cover with a correctly vocalized Amiri surah title."""
+    """Render the approved open-bracket title over the same first scene."""
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not 1 <= surah_number <= len(SURAH_NAMES):
         raise ValueError(f"Invalid surah number: {surah_number}")
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
-    if len(SURAH_NAMES_TASHKEEL) != len(SURAH_NAMES):
-        raise RuntimeError("The vocalized surah-name catalog must contain exactly 114 names.")
+    if background_frame is None or not Path(background_frame).is_file():
+        raise FileNotFoundError("The opening cover requires the first full-bleed background frame.")
 
-    template_id, source = load_cover_template(cover_rotation_index)
-    # Preserve the complete square-ish original artwork. A blurred, darkened
-    # enlargement fills the 9:16 canvas while the untouched full panel remains
-    # centered and legible; no lantern, frame, Quran, or scenery is cropped.
-    background = ImageOps.fit(source, (1080, 1920),
-                              method=Image.Resampling.LANCZOS).filter(ImageFilter.GaussianBlur(28))
-    dim = Image.new("RGBA", (1080, 1920), (2, 7, 10, 112))
-    image = Image.alpha_composite(background, dim)
-    foreground_height = round(source.height * 1080 / source.width)
-    foreground = source.resize((1080, foreground_height), Image.Resampling.LANCZOS)
-    foreground_top = (1920 - foreground_height) // 2
-    image.alpha_composite(foreground, (0, foreground_top))
+    with Image.open(background_frame) as source:
+        image = ImageOps.fit(
+            source.convert("RGB"), (1080, 1920),
+            method=Image.Resampling.LANCZOS
+        ).convert("RGBA")
 
     draw = ImageDraw.Draw(image)
-    vocalized_name = SURAH_NAMES_TASHKEEL[surah_number - 1]
-    title_text = f"سُورَةُ {vocalized_name}"
-    title_center = (540, foreground_top + round(foreground_height * 0.41))
-    title_font = fit_cover_title_font(draw, title_text, font_path, center=title_center)
-    draw.text(title_center, title_text, font=title_font, fill=(255, 226, 158, 255),
+    accent = (245, 184, 55)
+    title_text = f"سورة {surah_name}"
+    title_center = (540, 540)
+    title_font = fit_surah_title_font(draw, title_text, font_path, center=title_center)
+    draw_surah_cartouche(draw, accent, center_y=540)
+    draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
-              stroke_width=1, stroke_fill=(74, 43, 9, 220))
+              stroke_width=2, stroke_fill=(55, 34, 12, 190))
+    draw_title_divider(draw, accent, center_y=690)
 
     digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
     start_text = str(start_ayah).translate(digits)
     end_text = str(end_ayah).translate(digits)
     range_text = (f"الْآيَةُ {start_text}" if start_ayah == end_ayah
                   else f"الْآيَاتُ {start_text} - {end_text}")
-    range_center = (540, foreground_top + round(foreground_height * 0.66))
-    range_font = ImageFont.truetype(font_path, 48, layout_engine=ImageFont.Layout.RAQM)
-    range_box = draw.textbbox(range_center, range_text, font=range_font, anchor="mm",
-                              direction="rtl", language="ar")
-    if range_box[2] - range_box[0] > 610:
-        range_font = ImageFont.truetype(font_path, 40, layout_engine=ImageFont.Layout.RAQM)
-    draw.text(range_center, range_text, font=range_font,
-              fill=(255, 229, 169, 255), anchor="mm",
+    range_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
+    draw.text((540, 840), range_text, font=range_font,
+              fill=(255, 222, 142, 255), anchor="mm",
               direction="rtl", language="ar",
-              stroke_width=1, stroke_fill=(74, 43, 9, 220))
+              stroke_width=2, stroke_fill=(35, 24, 12, 190))
     image.save(out)
-    return template_id
+    return "open_gold_brackets"
 
 def probe(path: Path) -> dict:
     raw = subprocess.check_output([
