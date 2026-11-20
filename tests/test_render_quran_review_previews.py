@@ -207,6 +207,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             })
             items.append({
                 "candidate_id": cid, "status": "audio_prepared_requires_review",
+                "duration_seconds": 28.0,
                 "requested_verses": list(range(start, start + 3)),
                 "selected_verses": list(range(start, start + 3)),
                 "audio_file": str(audio_dir / "passage.mp3"),
@@ -295,7 +296,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
     @patch("render_quran_review_previews.probe", return_value={
-        "duration_seconds": 28.0, "width": 1080, "height": 1920,
+        "duration_seconds": 46.733, "width": 1080, "height": 1920,
         "video_codec": "h264", "audio_codec": "mp3",
     })
     @patch("render_quran_review_previews.make_frame")
@@ -303,7 +304,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
-    def test_allows_one_requested_passage_when_explicitly_configured(
+    def test_allows_one_complete_ayah_exception_up_to_60_seconds(
         self, _photos, _font, _run, _intro, _frame, _probe, _check, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
@@ -313,10 +314,13 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             report_data = json.loads(report.read_text(encoding="utf-8"))
             batch_data["passages"] = batch_data["passages"][:1]
             report_data["items"] = report_data["items"][:1]
+            report_data["items"][0]["selected_verses"] = [81]
+            report_data["items"][0]["duration_seconds"] = 46.733
             batch.write_text(json.dumps(batch_data), encoding="utf-8")
             report.write_text(json.dumps(report_data), encoding="utf-8")
             result = render(batch, report, root / "out", minimum_previews=1)
             self.assertEqual(result["preview_count"], 1)
+            self.assertEqual(result["items"][0]["duration_seconds"], 46.733)
             self.assertFalse(result["production_approved"])
             self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
@@ -387,7 +391,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             {"codec_name": "mp3"}
         ],
     }))
-    def test_probe_rejects_video_over_45_seconds(self, _check):
+    def test_probe_rejects_video_over_60_seconds(self, _check):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "preview.mp4"
             path.write_bytes(b"video")
