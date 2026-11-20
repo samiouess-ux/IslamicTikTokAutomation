@@ -1,3 +1,13 @@
+## Reference-renderer verification checkpoint — 2026-11-20
+
+- Active branch HEAD for the renderer change: `1fc2653e959127dcb662fe5da21800a52f761bd3`; `main` was not touched.
+- Latest change mirrors the original left title ornament pixels horizontally to form the right ornament, avoiding the previous right-side color-key contamination from the reference sunset background.
+- Quran batch engine tests run `44767324280` completed successfully; its artifact `quran-reference-layout-preview` (artifact ID `14646337091`) was downloaded and visually inspected. Isolated request pipeline run `44767324293` passed. Background review run `44767324368` passed.
+- The new preview shows both title ornaments complete and symmetrical, the original floral divider, dynamic gold ayah medallion, white Arabic, and English Saheeh International translation. The artifact uses a neutral dark test background; it is not a final moving-background MP4 and does not prove pixel-identical typography for every surah. Human approval of the exact reference match remains pending.
+- Full inventory workflow run `44767324340` stopped safely before rendering: the first candidate, Al-Kahf 18:19, measured `66.116` seconds as one complete ayah, exceeding the hard 60-second single-ayah ceiling. Rendering, Telegram delivery, history update, and TikTok publishing were skipped. No Quran text/audio was cut or sped up.
+- No Cron execution, production Telegram send, TikTok publishing, schedule/credential change, or modification to `main` occurred.
+- Next: inspect the candidate-selection handling for a whole ayah that exceeds 60 seconds so one exceptional ayah cannot block the entire daily candidate, while preserving the complete-ayah rule, 60-second ceiling, no-repeat history, and explicit deferred tracking. Do not relax the duration guard or trigger production delivery. Keep visual approval pending until the user confirms the preview matches the reference.
+ 
 ## Reference-renderer follow-up — 2026-11-20
 
 - Refined the reference ornament extraction to reject smooth background glow using local edge detail plus gold-color masking.
