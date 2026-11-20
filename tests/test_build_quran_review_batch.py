@@ -5,6 +5,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from build_quran_review_batch import build_review_batch, most_recent_delivered_surah
 
 class BatchTests(unittest.TestCase):
+
+    def test_skips_explicitly_deferred_ayah_and_continues_at_next_unused_ayah(self):
+        joined = self.make_joined_catalog(18, 5)
+        result = build_review_batch(
+            joined, count=1, only_surahs=[18], sequential_unused=True,
+            deferred_ayah_references=["18:19"],
+        )
+        self.assertEqual(result["passages"][0]["verse_numbers"][0], 20)
+
     def test_never_reuses_previously_delivered_ayahs(self):
         verses = {}
         for surah in range(1, 7):
