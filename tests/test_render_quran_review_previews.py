@@ -144,9 +144,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                # The top point of the double-line title cartouche and the
-                # separate circular ayah medallion must both be visibly drawn.
-                self.assertGreater(frame.getpixel((540, 393))[3], 200)
+                # The refined pointed title cartouche, side rosettes, and separate
+                # circular ayah medallion must all remain visibly drawn.
+                self.assertGreater(frame.getpixel((540, 387))[3], 200)
+                self.assertGreater(frame.getpixel((264, 465))[3], 150)
+                self.assertGreater(frame.getpixel((816, 465))[3], 150)
                 self.assertGreater(frame.getpixel((540, 1086))[3], 200)
                 self.assertIsNotNone(frame.getchannel("A").getbbox())
 
