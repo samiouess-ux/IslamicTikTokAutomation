@@ -1,4 +1,21 @@
 {
   "schema_version": 1,
-  "deliveries": []
+  "deliveries": [
+    {
+      "candidate_id": "quran_s018_017_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-35720587",
+          "categories": [
+            "architecture",
+            "courtyard",
+            "mosque"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "blue_night",
+      "confirmed_at_utc": "2026-11-20T10:39:14.732211+00:00"
+    }
+  ]
 }

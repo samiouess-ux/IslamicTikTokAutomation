@@ -38,6 +38,25 @@
         "return"
       ],
       "confirmed_at_utc": "2026-11-19T20:57:52.920421+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_017_110_part_001",
+      "hashtags_ar": [
+        "#نور_القرآن",
+        "#آيات_للتدبر",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#AyahOfTheDay",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "light"
+      ],
+      "cta_ids": [
+        "follow"
+      ],
+      "confirmed_at_utc": "2026-11-20T10:39:14.697092+00:00"
     }
   ]
 }
