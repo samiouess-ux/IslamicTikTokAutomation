@@ -306,12 +306,11 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
     # median filter erases precisely these narrow strokes in the approved art.
     alpha = gold.filter(ImageFilter.GaussianBlur(0.35))
     if exclude_right_corner:
-        # Exclude the warm scenery fragment entering the upper-right edge
-        # while retaining the actual open arabesque strokes below it.
+        # The right bracket's upper tip starts below this band. The pixels
+        # above it are sunset scenery, which otherwise becomes a hard-edged
+        # orange rectangle when composited over a different video background.
         mask = Image.new("L", crop.size, 255)
-        ImageDraw.Draw(mask).rectangle(
-            (crop.width - 72, 0, crop.width - 1, 55), fill=0
-        )
+        ImageDraw.Draw(mask).rectangle((0, 0, crop.width - 1, 56), fill=0)
         alpha = ImageChops.multiply(alpha, mask)
     if clear_center:
         left, top, right, bottom = box
