@@ -120,8 +120,12 @@ jobs:
               "arabic": "إِنَّا جَعَلْنَا مَا عَلَى الْأَرْضِ زِينَةً لَّهَا لِنَبْلُوَهُمْ أَيُّهُمْ أَحْسَنُ عَمَلًا",
               "english": "Indeed, We have made whatever is on the earth adornment for it, that We may test them as to which of them is best in deeds.",
           }
-          make_frame(verse, 18, 0, output / "reference_layout_ayah_7.png",
-                     font, surah_name)
+          overlay_path = output / "reference_layout_ayah_7.png"
+          make_frame(verse, 18, 0, overlay_path, font, surah_name)
+          with Image.open(overlay_path) as overlay:
+              composed = background.convert("RGBA")
+              composed.alpha_composite(overlay.convert("RGBA"))
+              composed.convert("RGB").save(output / "reference_layout_ayah_7_composited.jpg", quality=94)
           make_intro_frame(18, 7, 7, output / "reference_layout_intro.png",
                            font, surah_name, background_frame=background_path)
           print("Rendered reference-driven still previews only; no audio, Telegram, Cron, or TikTok action.")
