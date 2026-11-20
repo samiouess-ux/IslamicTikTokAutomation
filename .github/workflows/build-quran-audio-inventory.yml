@@ -19,6 +19,7 @@ on:
       - "src/prepare_official_quran_passage.py"
       - "src/prepare_quran_review_batch_audio.py"
       - "src/build_quran_review_batch.py"
+      - "data/quran_deferred_ayahs.json"
       - "src/build_quran_draft_manifests.py"
       - "src/quran_social_caption.py"
       - "src/quran_social_history.py"
@@ -218,6 +219,7 @@ jobs:
               --count 1 \
               --only-surah 18 \
               --history data/quran_delivery_history.json \
+              --deferred-ayahs data/quran_deferred_ayahs.json \
               --seed "quran-friday-$(date -u +%F-%H)" \
               --output output/quran_review_batch.json
           else
@@ -228,6 +230,7 @@ jobs:
               --exclude-surah 18 \
               --exclude-surah 94 \
               --history data/quran_delivery_history.json \
+              --deferred-ayahs data/quran_deferred_ayahs.json \
               --seed "quran-daily-$(date -u +%F-%H)" \
               --output output/quran_review_batch.json
           fi
@@ -244,7 +247,10 @@ jobs:
               history_path = Path("data/quran_delivery_history.json")
               history = json.loads(history_path.read_text(encoding="utf-8")) if history_path.exists() else {}
               used = set(history.get("ayah_references", []))
-              first_unused = next((n for n in range(1, 111) if f"18:{n}" not in used), None)
+              deferred_path = Path("data/quran_deferred_ayahs.json")
+              deferred = json.loads(deferred_path.read_text(encoding="utf-8")) if deferred_path.exists() else {"ayah_references": []}
+              deferred_refs = set(deferred.get("ayah_references", []))
+              first_unused = next((n for n in range(1, 111) if f"18:{n}" not in used and f"18:{n}" not in deferred_refs), None)
               if first_unused is None or batch["passages"][0]["verse_numbers"][0] != first_unused:
                   raise SystemExit("Friday Al-Kahf must continue from the first unused ayah.")
           else:
