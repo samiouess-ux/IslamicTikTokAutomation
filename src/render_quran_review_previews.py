@@ -351,7 +351,7 @@ def draw_reference_surah_ornaments(image: Image.Image) -> None:
 
 
 def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
-                                  font_path: str) -> None:
+                                  font_path: str, center_y: int = 960) -> None:
     """Use the exact ornate medallion from the reference, with a dynamic number."""
     if not APPROVED_DESIGN_REFERENCE.is_file():
         raise FileNotFoundError(
@@ -364,11 +364,12 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
         )
     box = (103, 906, 207, 1014)
     medallion = _gold_reference_crop(reference, box, clear_center=True)
-    image.alpha_composite(medallion, (box[0], box[1]))
+    destination_y = int(center_y) - (box[3] - box[1]) // 2
+    image.alpha_composite(medallion, (box[0], destination_y))
     number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
     digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw = ImageDraw.Draw(image)
-    draw.text((155, 960), digits, font=number_font, fill=(255, 196, 54, 255),
+    draw.text((155, int(center_y)), digits, font=number_font, fill=(255, 196, 54, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=1, stroke_fill=(55, 34, 12, 170))
 
