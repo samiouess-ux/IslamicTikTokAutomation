@@ -24,10 +24,10 @@ def _write_json(path: Path, value: Any) -> None:
 
 
 def delivery_duration_limit_seconds(selected_verses: list[int]) -> float:
-    """Return the shared delivery limit: 60s for one whole ayah, otherwise 45s."""
+    """Return the hard delivery ceiling: 60 seconds for any complete-ayah part."""
     if not isinstance(selected_verses, list) or not selected_verses:
         raise ValueError("Delivery duration requires at least one selected ayah.")
-    return 60.0 if len(selected_verses) == 1 else 45.0
+    return 60.0
 
 
 def guard_no_pending(pending_path: Path) -> None:
@@ -89,9 +89,9 @@ def reserve_attempt(
         raise ValueError("Reserved ayahs must be a non-empty contiguous prefix of the source passage.")
     allowed_seconds = delivery_duration_limit_seconds(selected)
     if not isinstance(preview_duration, (int, float)) or preview_duration <= 0 or preview_duration > allowed_seconds:
-        raise ValueError(f"Preview duration must be positive and no longer than {allowed_seconds:g} seconds for the selected ayah count.")
+        raise ValueError(f"Preview duration must be positive and no longer than {allowed_seconds:g} seconds.")
     if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > allowed_seconds:
-        raise ValueError(f"Prepared audio duration must be positive and no longer than {allowed_seconds:g} seconds for the selected ayah count.")
+        raise ValueError(f"Prepared audio duration must be positive and no longer than {allowed_seconds:g} seconds.")
     refs = [str(v.get("reference", "")) for v in source_verses[:len(selected)]]
     if len(refs) != len(selected) or any(not ref or ":" not in ref for ref in refs):
         raise ValueError("Every reserved ayah must have an exact surah:ayah reference.")
