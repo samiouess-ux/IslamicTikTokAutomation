@@ -384,10 +384,10 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
 
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                          center: tuple = (540, 540), max_width: int = 620,
-                          max_height: int = 112):
+                          center: tuple = (540, 520), max_width: int = 520,
+                          max_height: int = 90):
     """Fit the complete surah title between the open ornamental brackets."""
-    for size in (112, 104, 96, 88, 80, 72, 64, 56, 48):
+    for size in (88, 80, 72, 64, 56, 48):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         bounds = draw.textbbox(center, text, font=font, anchor="mm",
                                direction="rtl", language="ar")
@@ -411,9 +411,12 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     draw = ImageDraw.Draw(image)
 
     title_text = f"سورة {surah_name}"
-    title_center = (540, 460)
+    # Keep the title visually centered in the raised original gold brackets.
+    # Use a deliberately smaller cap so short names (such as An-Nas) do not look oversized.
+    title_center = (540, 520)
     title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
-                                      center=title_center)
+                                      center=title_center, max_width=520,
+                                      max_height=90)
     draw_reference_surah_ornaments(image)
     # Shift the complete title ornament group upward by 40px, preserving its artwork.
     title_group = image.crop((0, 400, 1080, 760))
