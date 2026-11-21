@@ -1,4 +1,5 @@
 import json
+import math
 import sys
 import io
 import tempfile
@@ -178,6 +179,18 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertIsNotNone(medallion_bounds)
                 self.assertGreaterEqual(medallion_bounds[2] - medallion_bounds[0], 70)
                 self.assertGreaterEqual(medallion_bounds[3] - medallion_bounds[1], 70)
+                # A complete ring must contribute gold pixels in every angular
+                # sector; a crescent or two isolated arcs must fail this probe.
+                medallion_alpha = alpha.crop((103, 1006, 207, 1114))
+                ring_coverage = [0] * 16
+                for y in range(medallion_alpha.height):
+                    for x in range(medallion_alpha.width):
+                        dx, dy = x - 52, y - 54
+                        radius = math.hypot(dx, dy)
+                        if 32 <= radius <= 53 and medallion_alpha.getpixel((x, y)) > 50:
+                            angle = (math.atan2(dy, dx) + 2 * math.pi) % (2 * math.pi)
+                            ring_coverage[int(angle * 16 / (2 * math.pi))] += 1
+                self.assertTrue(all(count > 0 for count in ring_coverage), ring_coverage)
                 arabic_alpha = alpha.crop((210, 760, 900, 1300))
                 english_alpha = alpha.crop((180, 1100, 900, 1780))
                 self.assertIsNotNone(arabic_alpha.getbbox())
@@ -214,8 +227,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 source.convert("RGB"), (1080, 1920),
                 method=Image.Resampling.LANCZOS
             )
-            crop = reference.crop((103, 906, 207, 1014))
+            crop = reference.crop(renderer.REFERENCE_AYAH_MEDALLION_BOX)
         self.assertEqual(crop.size, (104, 108))
+        self.assertEqual(renderer.REFERENCE_AYAH_MEDALLION_BOX, (103, 860, 207, 968))
         self.assertEqual(renderer.APPROVED_DESIGN_REFERENCE,
                          Path("references/approved_quran_design.png"))
 
