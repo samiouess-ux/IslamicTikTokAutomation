@@ -154,6 +154,59 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T17:11:59.748734+00:00"
+    },
+    {
+      "candidate_id": "quran_s073_001_020_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-28975736",
+          "categories": [
+            "architecture",
+            "calligraphy",
+            "islamic_art"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-ocean-shore-35036280",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-islamic-dome-geometric-40564360",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-moroccan-courtyard-tiles-34527220",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-minaret-lush-trees-35447276",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-33406291",
+          "categories": [
+            "forest",
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-3832482",
+          "categories": [
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T21:38:20.383031+00:00"
     }
   ]
 }
