@@ -325,8 +325,8 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
         # Clear the original numeral completely while preserving the medallion.
         # Clear only the old numeral's compact center area. The wider
         # previous mask erased the inner gold ring and left only broken arcs.
-        mask_draw.ellipse((center_x - 14 - left, center_y - 18 - top,
-                           center_x + 14 - left, center_y + 18 - top), fill=0)
+        mask_draw.ellipse((center_x - 22 - left, center_y - 22 - top,
+                           center_x + 22 - left, center_y + 22 - top), fill=0)
         alpha = ImageChops.multiply(alpha, mask)
     result = crop.convert("RGBA")
     result.putalpha(alpha)
