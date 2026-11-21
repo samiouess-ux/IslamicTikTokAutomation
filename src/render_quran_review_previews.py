@@ -283,6 +283,7 @@ def bold_font_file() -> str:
 
 
 APPROVED_DESIGN_REFERENCE = Path("references/approved_quran_design.png")
+REFERENCE_AYAH_MEDALLION_BOX = (103, 860, 207, 968)
 
 
 def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
@@ -371,7 +372,9 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
             source.convert("RGB"), (1080, 1920),
             method=Image.Resampling.LANCZOS
         )
-    box = (103, 906, 207, 1014)
+    # The reference medallion is centered near y=914. The old crop began at
+    # y=906 and removed its upper half, leaving only a lower crescent.
+    box = REFERENCE_AYAH_MEDALLION_BOX
     medallion = _gold_reference_crop(reference, box, clear_center=True)
     destination_y = int(center_y) - (box[3] - box[1]) // 2
     image.alpha_composite(medallion, (box[0], destination_y))
