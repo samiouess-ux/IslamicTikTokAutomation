@@ -290,7 +290,12 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
             ], check=True)
             actual = probe(combined)
             exceptional_single_ayah = len(selected) == 1 and processed_durations[selected[0]] > MAX_SECONDS
-            allowed_seconds = EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS if exceptional_single_ayah else MAX_SECONDS
+            selected_processed_duration = sum(processed_durations[number] for number in selected)
+            allowed_seconds = (
+                EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS
+                if selected_processed_duration > MAX_SECONDS
+                else MAX_SECONDS
+            )
             if actual <= 0 or actual > allowed_seconds:
                 raise ValueError(f"Concatenated part exceeds its {allowed_seconds:g}-second duration limit or has invalid duration: {part_id} ({actual:.3f}s)")
             last_position = requested_verses.index(selected[-1]) + 1
@@ -332,7 +337,7 @@ def prepare_batch(batch_path: Path, inventory_path: Path, output_dir: Path, targ
         "preview_part_count": len(ready),
         "minimum_seconds": MIN_SECONDS,
         "maximum_seconds": MAX_SECONDS,
-        "exceptional_single_ayah_maximum_seconds": EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS,
+        "maximum_complete_ayah_part_seconds": EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS,
         "audio_processing": "complete_ordered_whole_ayah_parts_max_45_seconds_with_isolated_single_ayah_exception_up_to_60_seconds_edge_only_silence_detection_and_mp3_stream_copy",
         "continuation_policy": "Unselected ayahs remain explicitly listed and are not marked used. The next batch starts again at the first ayah absent from confirmed delivery history; only confirmed delivery advances the sequence.",
         "edge_silence_policy": "silencedetect at -50dB for 0.25s; retain 0.12s guard at each detected file edge; never remove internal silence or trim recitation",

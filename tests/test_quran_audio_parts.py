@@ -23,16 +23,16 @@ class PartsTests(unittest.TestCase):
         parts, rest = partition_contiguous_ayahs(
             verses, {1: 26.2, 2: 22.465, 3: 10}, 45, 60
         )
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2]])
-        self.assertEqual([v['ayah'] for v in rest], [3])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2], [3]])
+        self.assertEqual(rest, [])
 
     def test_complete_next_ayah_can_extend_part_to_55_129_seconds(self):
         verses = [{'ayah': 1}, {'ayah': 2}, {'ayah': 3}]
         parts, rest = partition_contiguous_ayahs(
             verses, {1: 43.4, 2: 11.729, 3: 10}, 45, 60
         )
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2]])
-        self.assertEqual([v['ayah'] for v in rest], [3])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2], [3]])
+        self.assertEqual(rest, [])
 
     def test_extension_is_not_allowed_above_60_seconds(self):
         verses = [{'ayah': 1}, {'ayah': 2}]

@@ -147,7 +147,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertFalse(report["auto_publish"])
             self.assertTrue(all(not item.get("audio_approved", True) for item in report["items"]))
 
-    def test_selects_longest_contiguous_processed_ayah_prefix_up_to_45_seconds(self):
+    def test_adds_one_complete_next_ayah_when_it_extends_part_above_45_but_within_60_seconds(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch = {
@@ -179,16 +179,16 @@ class QuranBatchAudioTests(unittest.TestCase):
                 return next(trimmed)
 
             with patch.object(module, "RemoteZip", return_value=FakeArchive()), \
-                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 35.0]), \
+                 patch.object(module, "probe", side_effect=[20.0, 18.0, 10.0, 46.0]), \
                  patch.object(module, "trim_edge_silence", side_effect=fake_trim), \
                  patch.object(module.subprocess, "run", side_effect=fake_run):
                 report = module.prepare_batch(batch_path, inventory_path, root / "out", target_count=1)
 
             item = report["items"][0]
-            self.assertEqual(item["selected_verses"], [1, 2])
-            self.assertEqual(item["duration_seconds"], 35.0)
-            self.assertEqual(item["processed_verse_durations_seconds"], {1: 18.0, 2: 17.0})
-            self.assertEqual(set(item["processed_audio_files"]), {"1", "2"})
+            self.assertEqual(item["selected_verses"], [1, 2, 3])
+            self.assertEqual(item["duration_seconds"], 46.0)
+            self.assertEqual(item["processed_verse_durations_seconds"], {1: 18.0, 2: 17.0, 3: 11.0})
+            self.assertEqual(set(item["processed_audio_files"]), {"1", "2", "3"})
 
     def test_accepts_short_complete_surah_without_artificial_30_second_minimum(self):
         with tempfile.TemporaryDirectory() as tmp:
