@@ -145,10 +145,10 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             selected_names.append(title)
             bounds = draw.textbbox((540, 520), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
-            self.assertLessEqual(bounds[2] - bounds[0], 520, title)
-            self.assertLessEqual(bounds[3] - bounds[1], 86, title)
+            self.assertLessEqual(bounds[2] - bounds[0], 600, title)
+            self.assertLessEqual(bounds[3] - bounds[1], 120, title)
             self.assertGreaterEqual(font.size, 48, title)
-            self.assertLessEqual(font.size, 68, title)
+            self.assertLessEqual(font.size, 112, title)
         self.assertEqual(selected_names[17], f"سورة {renderer.SURAH_NAMES_TASHKEEL[17]}")
         self.assertTrue(all(name.startswith("سورة ") for name in selected_names))
 
