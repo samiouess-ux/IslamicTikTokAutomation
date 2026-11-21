@@ -152,6 +152,21 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertEqual(selected_names[17], f"سورة {renderer.SURAH_NAMES_TASHKEEL[17]}")
         self.assertTrue(all(name.startswith("سورة ") for name in selected_names))
 
+    def test_surah_brackets_are_reduced_and_centered_to_balance_title(self):
+        image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        renderer.draw_reference_surah_ornaments(image)
+        alpha = image.getchannel("A")
+        left = alpha.crop((138, 448, 270, 665)).getbbox()
+        right = alpha.crop((810, 448, 942, 665)).getbbox()
+        self.assertIsNotNone(left)
+        self.assertIsNotNone(right)
+        self.assertLessEqual(left[2] - left[0], 110)
+        self.assertLessEqual(left[3] - left[1], 180)
+        self.assertLessEqual(right[2] - right[0], 110)
+        self.assertLessEqual(right[3] - right[1], 180)
+        self.assertLessEqual(abs((left[0] + left[2]) / 2 - 66), 2)
+        self.assertLessEqual(abs((right[0] + right[2]) / 2 - 66), 2)
+
     def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "frame.png"
