@@ -396,6 +396,21 @@ def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
     raise ValueError("Surah title cannot fit safely between its ornamental brackets.")
 
 
+def fit_surah_title(draw: ImageDraw.ImageDraw, surah_number: int,
+                     font_path: str, center: tuple = (540, 520)):
+    """Prefer a fully vocalized chapter name, but fall back when it will look cramped."""
+    if not 1 <= surah_number <= len(SURAH_NAMES):
+        raise ValueError(f"Invalid surah number: {surah_number}")
+    for name in (SURAH_NAMES_TASHKEEL[surah_number - 1], SURAH_NAMES[surah_number - 1]):
+        title = f"سورة {name}"
+        try:
+            font = fit_surah_title_font(draw, title, font_path, center=center)
+            return title, font
+        except ValueError:
+            continue
+    raise ValueError(f"Surah {surah_number} title cannot fit safely between its ornamental brackets.")
+
+
 def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str) -> None:
     if not features.check("raqm"):
@@ -410,13 +425,11 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    title_text = f"سورة {surah_name}"
-    # Keep the title visually centered in the raised original gold brackets.
-    # Use a deliberately smaller cap so short names (such as An-Nas) do not look oversized.
+    # Prefer correct tashkeel when it fits; otherwise keep the plain name readable.
     title_center = (540, 520)
-    title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
-                                      center=title_center, max_width=520,
-                                      max_height=86)
+    title_text, title_font = fit_surah_title(
+        draw, surah, bold_font_file(), center=title_center
+    )
     draw_reference_surah_ornaments(image)
     # Shift the complete title ornament group upward by 40px, preserving its artwork.
     title_group = image.crop((0, 400, 1080, 760))
@@ -527,9 +540,10 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
 
     draw = ImageDraw.Draw(image)
     accent = (245, 184, 55)
-    title_text = f"سورة {surah_name}"
     title_center = (540, 520)
-    title_font = fit_surah_title_font(draw, title_text, font_path, center=title_center)
+    title_text, title_font = fit_surah_title(
+        draw, surah_number, font_path, center=title_center
+    )
     draw_reference_surah_ornaments(image)
     # Keep the opening title ornaments and title aligned exactly like ayah frames.
     title_group = image.crop((0, 400, 1080, 760))
