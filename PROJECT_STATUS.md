@@ -1228,3 +1228,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Added regression tests for the two observed examples: 26.2 + 22.465 = 48.665 seconds, and 43.4 + 11.729 = 55.129 seconds. Added tests for refusing a combined part above 60 seconds and preserving a standalone 46.733-second ayah. Updated reservation tests to accept multi-ayah previews up to 60 seconds and reject 60.001 seconds.
 - Code/test commits on `feature/telegram-review-notifications`: `e8beab6639428928365fb646c957b157a1ad6c89`, `63ea2eda25192e33b8b7bbd809fe01c877431568`, `d8f463d370777383a7d07f81ae053bf9aad4c1ef`, `a9620da5e73f91c28c9739457c25691785d0cdf5`, `5e25e1026ab27ebb6848385e19e8697242323544`.
 - No Telegram send, Cron run, manual workflow dispatch, TikTok publishing, schedule/credential change, or `main` branch modification was performed. CI validation is pending; do not treat the change as verified until the relevant push-triggered checks pass.
+
+
+## Duration policy renderer guard completion — 2026-11-21 (verified)
+
+- Completed the renderer-side duration checks for the approved policy: the 45-second target with at most one additional complete contiguous ayah extending a part to a hard maximum of 60 seconds. Both the initial selected-ayah validation and final rendered-MP4 duration guard now permit validated complete-ayah parts up to 60 seconds; the audio partitioner remains responsible for the 45-second target and single-next-ayah extension rule.
+- Added/updated regression coverage for a multi-ayah part at 49.737 seconds, and repaired the final-output guard that had still rejected multi-ayah parts above 45 seconds.
+- Latest renderer-fix commits: `c78daf930093f777720633d277d342baa6aca7f8`, `8aa7e444a7baa44319fd4dd7ff9f5ad0b65f1aa6`, `c42d3d69aad686eae3cce31559d0ef6a6081a0c6`, `51813e6b01fddfe648992f53f198907c591a7c3d`, `6ec43f2422cdb150177fb4060acabea893c9c070`.
+- Push-triggered validation at final code commit `6ec43f2422cdb150177fb4060acabea893c9c070` passed: Quran batch engine tests run `44951564144`, isolated Quran request pipeline run `44951564208`, staged-background review run `44951564173`, and Quran-wide official verse audio inventory/render run `44951564467`.
+- These are code/test and render-validation checks only. No Telegram send, Cron execution, manual production workflow dispatch, TikTok publishing, schedule/credential change, or `main` branch modification was performed. All changes remain on `feature/telegram-review-notifications`.
