@@ -1216,3 +1216,5 @@ Follow this sequence. The user should not need to repeat these decisions.
 - No Cron configuration, Telegram send, workflow dispatch, TikTok publishing, credentials, or `main` branch changes were made by this code edit. CI validation is pending; do not treat the fixes as production-verified until the push-triggered test/render workflow completes successfully.
 
 - First push-triggered CI exposed two test-fixture issues in the new rotation path: the mocked ffprobe response omitted a valid duration for a newly eligible catalog item, and the concat-list fixture used a literal escaped newline. Corrected the fixture to provide verified media duration, isolated the renderer test from the repository's persistent production history, and corrected concat-list newline encoding. The first CI attempt is recorded as failed; rerun validation is required before declaring the change verified.
+
+- Corrected the concat manifest writer to emit real line breaks between FFmpeg concat entries; the prior version emitted literal backslash-n characters, which the regression test caught. Re-run CI is pending.
