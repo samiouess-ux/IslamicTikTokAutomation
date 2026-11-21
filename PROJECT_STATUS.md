@@ -1,3 +1,14 @@
+## First ayah visible from the opening frame — 2026-11-21
+
+- User reviewed the actual Telegram MP4 and confirmed the requested adjustment: keep the approved surah title/ornament and ayah-range intro, but make the first Arabic ayah and its English Saheeh International translation visible immediately from frame 0.
+- Updated `src/render_quran_review_previews.py` so the opening title/range is rendered as a transparent overlay instead of an opaque full-screen image of the background. The first ayah scene and original audio therefore remain visible/playing underneath from the first frame; only the transparent title/range layer fades out using the existing timing.
+- Preserved the approved background, ornament pixels, Amiri Bold title, Arabic/English ayah layout, medallion, audio stream, scene cuts, duration policy, review-only behavior, and delivery/scheduling configuration.
+- Added regression assertions in `tests/test_render_quran_review_previews.py` for transparent intro pixels, first-ayah visibility from time zero, and the existing overlay fade.
+- Source commit: `55b81aad77487fc631a97731d0504342f63a7dab`; test commit: `5908275dc6f536f5315d0272593beef89b11aa08`.
+- Validation runs for the exact test commit are in progress: Quran batch engine `44954137105`, isolated request pipeline `44954137203`, and full inventory/render `44954137121`. Do not claim validation passed until these finish.
+- No Cron run, production workflow dispatch, Telegram send, TikTok publishing, or change to `main` was performed. All changes are on `feature/telegram-review-notifications`.
+- Next: verify the exact-commit workflow results and inspect the generated render artifact before asking the user to test the next normal delivery.
+
 ## Reference-renderer verification checkpoint — 2026-11-20
 
 - Active branch HEAD for the renderer change: `1fc2653e959127dcb662fe5da21800a52f761bd3`; `main` was not touched.
