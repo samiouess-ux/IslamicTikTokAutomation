@@ -1270,3 +1270,15 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Latest renderer-fix commits: `c78daf930093f777720633d277d342baa6aca7f8`, `8aa7e444a7baa44319fd4dd7ff9f5ad0b65f1aa6`, `c42d3d69aad686eae3cce31559d0ef6a6081a0c6`, `51813e6b01fddfe648992f53f198907c591a7c3d`, `6ec43f2422cdb150177fb4060acabea893c9c070`.
 - Push-triggered validation at final code commit `6ec43f2422cdb150177fb4060acabea893c9c070` passed: Quran batch engine tests run `44951564144`, isolated Quran request pipeline run `44951564208`, staged-background review run `44951564173`, and Quran-wide official verse audio inventory/render run `44951564467`.
 - These are code/test and render-validation checks only. No Telegram send, Cron execution, manual production workflow dispatch, TikTok publishing, schedule/credential change, or `main` branch modification was performed. All changes remain on `feature/telegram-review-notifications`.
+
+
+
+## Smooth zoom jitter correction — 2026-11-21
+
+- User reported a slight visible shake during the background zoom in the latest Cron-delivered video and explicitly asked to remove the shake while preserving the zoom.
+- Root cause targeted: the existing FFmpeg `zoompan` calculated centered crop positions at the final 1080x1920 working resolution, where integer crop-coordinate stepping can appear as micro-jitter during smooth zoom.
+- Updated `photo_motion_filter()` to preserve the exact existing centered zoom curve (`1.15-0.15*cos(2*PI*on/360)`, same 12-second cycle, same 0–30% zoom range, same 30 fps) but render the zoom/pan at 2160x3840 (2x supersampling) and downsample to 1080x1920 with Lanczos. The zoom is retained; only sampling precision is improved.
+- Added a regression assertion that verifies the 2x zoom render and Lanczos downsample while retaining the existing zoom curve and centered pan.
+- Code commit: `912e40a92b74c8264694831918e77384c9060022`; focused test commit: `769067aadb2d84220241091bd6e0d8a8cf9ba268`.
+- Changes are on `feature/telegram-review-notifications` only. No Cron settings, schedule, Telegram credentials, delivery history, bot, or TikTok publishing behavior was intentionally changed. `main` was not touched.
+- Validation is pending. Do not claim the jitter is fixed in a delivered video until the relevant tests pass and a new video is visually checked by the user. The next scheduled/Cron delivery should be used to evaluate the motion; do not trigger an extra production send without the user's explicit approval.
