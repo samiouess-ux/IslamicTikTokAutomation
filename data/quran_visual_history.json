@@ -138,6 +138,22 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T11:11:51.668711+00:00"
+    },
+    {
+      "candidate_id": "quran_s063_001_011_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-5722258",
+          "categories": [
+            "mosque",
+            "nature",
+            "rural"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T17:11:59.748734+00:00"
     }
   ]
 }
