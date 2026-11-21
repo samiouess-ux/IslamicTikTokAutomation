@@ -218,6 +218,20 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                                  Path("references/approved_quran_design.png"))
                 self.assertIsNotNone(alpha.getbbox())
 
+    def test_video_ayah_layer_can_omit_surah_header_so_opening_fade_is_real(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "ayah_without_header.png"
+            make_frame(
+                {"number": 1, "arabic": "الٓرۚ تِلْكَ آيَاتُ الْكِتَابِ",
+                 "english": "These are the verses of the Book."},
+                15, 0, output, font_file(), renderer.SURAH_NAMES_TASHKEEL[14],
+                include_surah_header=False,
+            )
+            with Image.open(output) as frame:
+                self.assertEqual(frame.mode, "RGBA")
+                self.assertIsNone(frame.getchannel("A").crop((0, 360, 1080, 760)).getbbox())
+                self.assertIsNotNone(frame.getchannel("A").crop((180, 900, 900, 1780)).getbbox())
+
     def test_intro_frame_uses_same_open_reference_without_old_closed_cover(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -363,6 +377,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(SURAH_NAMES[110], "المسد")
             self.assertEqual(make_frame.call_args_list[0].args[-1], renderer.SURAH_NAMES_TASHKEEL[18])
             self.assertEqual(make_frame.call_args_list[3].args[-1], renderer.SURAH_NAMES_TASHKEEL[87])
+            self.assertTrue(all(call.kwargs.get("include_surah_header") is False
+                                for call in make_frame.call_args_list))
             self.assertGreaterEqual(run.call_count, 8)
             self.assertTrue(any("-stream_loop" in call.args[0] for call in run.call_args_list))
             self.assertTrue(any("processed" in " ".join(call.args[0]) for call in run.call_args_list))
