@@ -875,8 +875,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
-    # Validate all selected ayahs before rendering. Ordinary videos remain <=45s;
-    # only one complete ayah may use the exceptional <=60s allowance.
+    # Validate all selected ayahs before rendering. The audio preparer targets <=45s
+    # and may add one whole next ayah; every complete-ayah part has a hard <=60s ceiling.
     candidates = {x["candidate_id"]: x for x in batch.get("passages", [])}
     report_items = report.get("items", [])
     for item in report_items:
@@ -897,8 +897,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         if start != 0:
             raise ValueError("Preview must select the opening contiguous prefix of the requested ayahs.")
         audio_duration = item.get("duration_seconds")
-        exceptional_single_ayah = len(selected) == 1 and isinstance(audio_duration, (int, float)) and 45.0 < audio_duration <= 60.0
-        allowed_seconds = 60.0 if exceptional_single_ayah else 45.0
+        allowed_seconds = 60.0
         if not isinstance(audio_duration, (int, float)) or audio_duration <= 0 or audio_duration > allowed_seconds:
             raise ValueError(f"Prepared audio exceeds the {allowed_seconds:g}-second duration policy for its selected ayah count.")
     output_dir.mkdir(parents=True, exist_ok=True)
