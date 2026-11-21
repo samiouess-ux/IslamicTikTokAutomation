@@ -95,6 +95,25 @@
         "reflect"
       ],
       "confirmed_at_utc": "2026-11-21T03:12:53.976258+00:00"
+    },
+    {
+      "candidate_id": "quran_s102_001_008_part_001",
+      "hashtags_ar": [
+        "#تلاوة_خاشعة",
+        "#طمأنينة_القلب",
+        "#الصبر_والفرج"
+      ],
+      "hashtags_en": [
+        "#ListenToQuran",
+        "#PatienceAndHope"
+      ],
+      "hook_ids": [
+        "daily"
+      ],
+      "cta_ids": [
+        "daily"
+      ],
+      "confirmed_at_utc": "2026-11-21T06:34:03.573131+00:00"
     }
   ]
 }
