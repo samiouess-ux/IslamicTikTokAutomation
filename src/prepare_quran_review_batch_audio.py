@@ -25,7 +25,7 @@ from quran_audio_parts import partition_contiguous_ayahs
 DEFAULT_ARCHIVE = "https://download.qurancomplex.gov.sa/new-sounds/muaiqly-08/hafs/ayat-12-1-2020.zip"
 MIN_SECONDS = 0.0
 MAX_SECONDS = 45.0  # Normal maximum for multi-ayah videos.
-EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS = 60.0  # Only one complete ayah may use this exception.
+EXCEPTIONAL_SINGLE_AYAH_MAX_SECONDS = 60.0  # Hard ceiling for a complete-ayah part, including one whole-ayah extension above 45 seconds.
 
 
 def probe(path: Path) -> float:
