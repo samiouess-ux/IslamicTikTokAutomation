@@ -558,8 +558,9 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
         raise ValueError(f"Invalid surah number: {surah_number}")
     if start_ayah < 1 or end_ayah < start_ayah:
         raise ValueError("Opening cover needs a valid, ordered ayah range.")
-    if background_frame is None or not Path(background_frame).is_file():
-        raise FileNotFoundError("The opening cover requires the first full-bleed background frame.")
+    # The opening layer is transparent and is composited over the live first
+    # ayah scene by FFmpeg. A separate still background frame is unnecessary.
+    # Keep background_frame in the signature for compatibility with callers.
 
     # This is a transparent title/range layer, not a full-screen cover.
     # The first ayah frame remains visible underneath from the very first frame.
