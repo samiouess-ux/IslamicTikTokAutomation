@@ -25,6 +25,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertIn("x='iw/2-iw/zoom/2'", photo_filter)
         self.assertIn("y='ih/2-ih/zoom/2'", photo_filter)
         self.assertIn("fps=30", photo_filter)
+        # Supersample the same zoom at 2x resolution to reduce crop-pixel stepping,
+        # then downsample smoothly; keep the original 0–30% zoom curve unchanged.
+        self.assertIn("scale=2160:3840", photo_filter)
+        self.assertIn("d=1:s=2160x3840:fps=30", photo_filter)
+        self.assertIn("scale=1080:1920:flags=lanczos", photo_filter)
         self.assertNotIn("min(zoom+", photo_filter)
 
     def test_scheduled_rotation_uses_the_full_approved_background_count(self):
