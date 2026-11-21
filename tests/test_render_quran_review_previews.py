@@ -233,7 +233,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
                 self.assertEqual(frame.mode, "RGBA")
-                self.assertLessEqual(max(abs(actual - expected) for actual, expected in zip(frame.getpixel((540, 780))[:3], (20, 45, 95))), 2)
+                self.assertEqual(frame.getpixel((540, 780))[3], 0,
+                                 "Opening title layer must be transparent over the first ayah.")
                 alpha = frame.getchannel("A")
                 self.assertIsNotNone(alpha.crop((138, 448, 270, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
@@ -346,15 +347,17 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertIn("[bg][2:v]overlay=0:0:format=auto[ayah]", filter_text)
             self.assertIn("[3:v]format=rgba,fade=t=out:st=0.4:d=0.8:alpha=1[intro]", filter_text)
             self.assertIn("[ayah][intro]overlay=0:0:format=auto[v]", filter_text)
+            self.assertIn("[ayah][intro]overlay=0:0:format=auto[v]", filter_text)
             self.assertNotIn("enable='lt(t,0.6)'", filter_text)
             self.assertLess(filter_text.index("[bg][2:v]overlay"), filter_text.index("[ayah][intro]overlay"))
             opening = result["opening_cover"]
             self.assertEqual(opening["duration_seconds"], 1.2)
+            self.assertTrue(opening["background_is_transparent"])
             self.assertEqual(opening["fade_seconds"], 0.8)
             self.assertAlmostEqual(opening["fade_start_seconds"], 0.4)
             self.assertEqual(opening["ayah_visible_from_seconds"], 0)
             self.assertEqual(opening["audio_starts_at_seconds"], 0)
-            self.assertEqual(opening["transition"], "alpha_fade_to_first_ayah")
+            self.assertEqual(opening["transition"], "transparent_title_overlay_fades_over_first_ayah")
             self.assertIn("-crf 23", " ".join(first_render_command))
             self.assertIn("-maxrate 6M", " ".join(first_render_command))
             self.assertIn("-bufsize 12M", " ".join(first_render_command))
