@@ -298,7 +298,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         return batch_path, report_path
 
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
-    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"format":{"duration":"25.0"},"streams":[{"codec_name":"h264"}]}')
     @patch("render_quran_review_previews.probe", return_value={
         "duration_seconds": 28.0, "width": 1080, "height": 1920,
         "video_codec": "h264", "audio_codec": "mp3",
@@ -314,7 +314,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             batch, report = self.fixtures(root)
-            result = render(batch, report, root / "out", background_rotation_index=2)
+            result = render(batch, report, root / "out", background_rotation_index=2, visual_history_path=root / "empty_visual_history.json")
             self.assertEqual(result["preview_count"], 2)
             self.assertEqual([x["background"]["id"] for x in result["items"]], [
                 "pexels-sunset-sky-35477402", "pexels-mountain-bridge-5903759"
@@ -325,7 +325,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(first_sequence[0], "pexels-sunset-sky-35477402")
             self.assertEqual(
                 [x["duration_seconds"] for x in result["items"][0]["background_sequence"]],
-                [5.0, 40.725, 24.0],
+                [25.0, 25.0, 25.0],
             )
             self.assertEqual(result["background_rotation_start_index"], 2)
             self.assertEqual([x["cover_template_id"] for x in result["items"]], ["open_gold_brackets", "open_gold_brackets"])
