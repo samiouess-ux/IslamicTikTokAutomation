@@ -380,7 +380,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
-    def test_allows_one_complete_ayah_exception_up_to_60_seconds(
+    def test_allows_complete_ayah_part_extension_up_to_60_seconds(
         self, _photos, _font, _run, _intro, _frame, _probe, _check, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
@@ -396,7 +396,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             report.write_text(json.dumps(report_data), encoding="utf-8")
             result = render(batch, report, root / "out", minimum_previews=1)
             self.assertEqual(result["preview_count"], 1)
-            self.assertEqual(result["items"][0]["duration_seconds"], 46.733)
+            self.assertEqual(result["items"][0]["duration_seconds"], 49.737)
             self.assertFalse(result["production_approved"])
             self.assertFalse(result["telegram_delivery"])
             self.assertFalse(result["auto_publish"])
