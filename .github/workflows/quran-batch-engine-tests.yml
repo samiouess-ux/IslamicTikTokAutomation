@@ -107,7 +107,7 @@ jobs:
                   reference_source.convert("RGB"), (1080, 1920),
                   method=Image.Resampling.LANCZOS
               )
-              reference.crop((70, 870, 240, 1050)).save(
+              reference.crop((70, 820, 240, 1080)).save(
                   output / "approved_reference_medallion_crop.png"
               )
           background = Image.new("RGB", (1080, 1920))
