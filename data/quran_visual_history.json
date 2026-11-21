@@ -246,6 +246,57 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T22:20:11.650829+00:00"
+    },
+    {
+      "candidate_id": "quran_s097_001_005_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-moroccan-courtyard-decor-32719926",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-31433867",
+          "categories": [
+            "architecture",
+            "mosque",
+            "prayer",
+            "quran"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-34317177",
+          "categories": [
+            "architecture",
+            "calligraphy",
+            "mosque",
+            "prayer"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-16483164",
+          "categories": [
+            "lantern",
+            "prayer",
+            "tasbih"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-36704278",
+          "categories": [
+            "architecture",
+            "calligraphy",
+            "islamic_art",
+            "lantern"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T22:30:34.658206+00:00"
     }
   ]
 }

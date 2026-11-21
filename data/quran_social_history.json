@@ -209,6 +209,25 @@
         "return"
       ],
       "confirmed_at_utc": "2026-11-21T22:20:11.624005+00:00"
+    },
+    {
+      "candidate_id": "quran_s097_001_005_part_001",
+      "hashtags_ar": [
+        "#تلاوة_قرآنية",
+        "#مع_القرآن",
+        "#تدبر_وعمل"
+      ],
+      "hashtags_en": [
+        "#ReadQuran",
+        "#QuranReflection"
+      ],
+      "hook_ids": [
+        "meaning"
+      ],
+      "cta_ids": [
+        "reflect2"
+      ],
+      "confirmed_at_utc": "2026-11-21T22:30:34.619657+00:00"
     }
   ]
 }
