@@ -97,6 +97,30 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T06:34:03.611494+00:00"
+    },
+    {
+      "candidate_id": "quran_s006_001_165_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-33425960",
+          "categories": [
+            "desert"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-11880826",
+          "categories": [
+            "forest",
+            "mountains",
+            "nature",
+            "sea"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T08:31:49.098421+00:00"
     }
   ]
 }

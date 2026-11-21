@@ -114,6 +114,25 @@
         "daily"
       ],
       "confirmed_at_utc": "2026-11-21T06:34:03.573131+00:00"
+    },
+    {
+      "candidate_id": "quran_s006_001_165_part_001",
+      "hashtags_ar": [
+        "#تلاوة_قرآنية",
+        "#آيات_من_القرآن",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#QuranVerses",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "meaning"
+      ],
+      "cta_ids": [
+        "reflect2"
+      ],
+      "confirmed_at_utc": "2026-11-21T08:31:49.060135+00:00"
     }
   ]
 }
