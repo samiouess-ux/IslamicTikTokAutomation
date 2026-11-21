@@ -1310,3 +1310,16 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Treat Basmala separation as deferred indefinitely. Do not continue investigating, implement a guessed timestamp, change Quran text/audio sources, or alter the first-ayah presentation unless the user explicitly reopens this request.
 - Preserve the currently approved video quality, design, zoom/motion, backgrounds, audio, duration policy, scheduler, Telegram bot/configuration, and manual TikTok review/publishing flow.
 - This is a documentation-only record of the user's final decision. No source code, media, workflow, Cron schedule, credentials, delivery history, or Telegram settings are changed. No test workflow, Cron run, Telegram send, or TikTok publishing is triggered. Work remains on `feature/telegram-review-notifications`; do not touch `main`.
+
+
+## External daily scheduler — cron-job.org — 2026-11-22
+
+- The daily Quran video workflow is triggered by the user's existing external cron-job.org job; the user confirms that the daily sending is working reliably. Do not replace it with a GitHub schedule, Cloudflare Worker, second cron job, or another bot.
+- Job name: `Quran Video Scheduler`.
+- Last previously recorded account check: 2026-11-02, when the job was confirmed enabled/active.
+- Configured timezone: `Africa/Tunis`.
+- Configured run times: `04:10`, `12:10`, and `18:10` local Tunisia time.
+- Previously checked request configuration: HTTP `POST`; timeout `30 seconds`; request targets the GitHub Actions workflow using branch/ref `feature/telegram-review-notifications`.
+- Important verification boundary: the prior check did not establish the exact request URL or verify the authorization/header values. Do not copy or reconstruct credentials, tokens, or endpoint details from assumptions. The current conversation confirms successful daily operation, but no live cron-job.org account inspection was performed during this documentation update.
+- Operational rule: preserve the existing external job and its settings. Do not trigger a test, manually dispatch the production workflow, or send an extra Telegram video unless the user explicitly asks.
+- This entry records previously checked settings and the user's current confirmation of reliable operation. Documentation only; no cron configuration, workflow, code, credentials, Telegram settings, or delivery history changed. No Cron run or Telegram send was triggered. Work remains on `feature/telegram-review-notifications`; do not touch `main`.
