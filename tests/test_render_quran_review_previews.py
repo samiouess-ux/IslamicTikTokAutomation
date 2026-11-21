@@ -141,11 +141,12 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         for surah_name in SURAH_NAMES:
             title = f"سورة {surah_name}"
             font = renderer.fit_surah_title_font(draw, title, path)
-            bounds = draw.textbbox((540, 540), title, font=font, anchor="mm",
+            bounds = draw.textbbox((540, 520), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
-            self.assertLessEqual(bounds[2] - bounds[0], 620, title)
-            self.assertLessEqual(bounds[3] - bounds[1], 112, title)
+            self.assertLessEqual(bounds[2] - bounds[0], 520, title)
+            self.assertLessEqual(bounds[3] - bounds[1], 90, title)
             self.assertGreaterEqual(font.size, 48, title)
+            self.assertLessEqual(font.size, 88, title)
 
     def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:
