@@ -138,15 +138,15 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         image = Image.new("RGBA", (1080, 1920))
         draw = ImageDraw.Draw(image)
         path = font_file()
-        for surah_name in SURAH_NAMES:
+        for surah_name in renderer.SURAH_NAMES_TASHKEEL:
             title = f"سورة {surah_name}"
             font = renderer.fit_surah_title_font(draw, title, path)
             bounds = draw.textbbox((540, 520), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
             self.assertLessEqual(bounds[2] - bounds[0], 520, title)
-            self.assertLessEqual(bounds[3] - bounds[1], 90, title)
+            self.assertLessEqual(bounds[3] - bounds[1], 86, title)
             self.assertGreaterEqual(font.size, 48, title)
-            self.assertLessEqual(font.size, 88, title)
+            self.assertLessEqual(font.size, 68, title)
 
     def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -154,7 +154,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             make_frame(
                 {"number": 5, "arabic": "وَالضُّحَىٰ وَاللَّيْلِ إِذَا سَجَىٰ",
                  "english": "By the morning brightness and by the night when it covers with darkness,"},
-                93, 0, output, font_file(), SURAH_NAMES[92]
+                93, 0, output, font_file(), renderer.SURAH_NAMES_TASHKEEL[92]
             )
             with Image.open(output) as frame:
                 self.assertEqual(frame.size, (1080, 1920))
@@ -314,8 +314,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(SURAH_NAMES[18], "مريم")
             self.assertEqual(SURAH_NAMES[87], "الغاشية")
             self.assertEqual(SURAH_NAMES[110], "المسد")
-            self.assertEqual(make_frame.call_args_list[0].args[-1], "مريم")
-            self.assertEqual(make_frame.call_args_list[3].args[-1], "الغاشية")
+            self.assertEqual(make_frame.call_args_list[0].args[-1], renderer.SURAH_NAMES_TASHKEEL[18])
+            self.assertEqual(make_frame.call_args_list[3].args[-1], renderer.SURAH_NAMES_TASHKEEL[87])
             self.assertGreaterEqual(run.call_count, 8)
             self.assertTrue(any("-stream_loop" in call.args[0] for call in run.call_args_list))
             self.assertTrue(any("processed" in " ".join(call.args[0]) for call in run.call_args_list))
