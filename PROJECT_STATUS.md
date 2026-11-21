@@ -1302,3 +1302,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - A separate full-surah stream page for Surah Al-Qadr explicitly says verse timestamps are not published, so it cannot supply a reliable Basmala boundary for the delivered recording.
 - Current conclusion: no alternate recording or timing source has been approved. Keep the existing KFGQPC MP3 and current rendering unchanged. Do not splice a standalone Basmala from an unverified recording or infer a timestamp. Continue seeking a boundary tied to the exact existing audio or a permission-cleared, user-approved matched source.
 - No code, production audio, renderer, schedule, Telegram settings, delivery history, or visual design changed. No Telegram delivery or Cron test was triggered.
+
+
+## Final user decision: keep current Basmala presentation unchanged — 2026-11-22
+
+- User explicitly decided to leave the current Basmala/first-ayah presentation as it is because a reliable separation that preserves exact audio/text synchronization has not been established.
+- Treat Basmala separation as deferred indefinitely. Do not continue investigating, implement a guessed timestamp, change Quran text/audio sources, or alter the first-ayah presentation unless the user explicitly reopens this request.
+- Preserve the currently approved video quality, design, zoom/motion, backgrounds, audio, duration policy, scheduler, Telegram bot/configuration, and manual TikTok review/publishing flow.
+- This is a documentation-only record of the user's final decision. No source code, media, workflow, Cron schedule, credentials, delivery history, or Telegram settings are changed. No test workflow, Cron run, Telegram send, or TikTok publishing is triggered. Work remains on `feature/telegram-review-notifications`; do not touch `main`.
