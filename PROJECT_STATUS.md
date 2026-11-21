@@ -1218,3 +1218,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 - First push-triggered CI exposed two test-fixture issues in the new rotation path: the mocked ffprobe response omitted a valid duration for a newly eligible catalog item, and the concat-list fixture used a literal escaped newline. Corrected the fixture to provide verified media duration, isolated the renderer test from the repository's persistent production history, and corrected concat-list newline encoding. The first CI attempt is recorded as failed; rerun validation is required before declaring the change verified.
 
 - Corrected the concat manifest writer to emit real line breaks between FFmpeg concat entries; the prior version emitted literal backslash-n characters, which the regression test caught. Re-run CI is pending.
+
+
+## Duration policy refinement — 2026-11-21 (CI validation pending)
+
+- User approved changing the active Quran video duration behavior while keeping the existing 45-second normal target and 60-second hard ceiling.
+- Updated `src/quran_audio_parts.py`: parts are filled toward 45 seconds; when the next complete contiguous ayah would cross 45 seconds but the combined duration remains at or below 60 seconds, that complete ayah is included and the part is closed immediately. No further ayah is added to that extended part. A single ayah between 45 and 60 seconds remains a standalone complete part. Any ayah or combination exceeding 60 seconds is not included in that part; no ayah is cut or sped up.
+- Updated `src/quran_delivery_attempt.py` so the reservation/send safety gate accepts any complete-ayah part up to 60 seconds, regardless of whether it contains one or multiple ayahs. The audio partitioner remains responsible for the 45-second target and one-ayah extension rule.
+- Added regression tests for the two observed examples: 26.2 + 22.465 = 48.665 seconds, and 43.4 + 11.729 = 55.129 seconds. Added tests for refusing a combined part above 60 seconds and preserving a standalone 46.733-second ayah. Updated reservation tests to accept multi-ayah previews up to 60 seconds and reject 60.001 seconds.
+- Code/test commits on `feature/telegram-review-notifications`: `e8beab6639428928365fb646c957b157a1ad6c89`, `63ea2eda25192e33b8b7bbd809fe01c877431568`, `d8f463d370777383a7d07f81ae053bf9aad4c1ef`, `a9620da5e73f91c28c9739457c25691785d0cdf5`, `5e25e1026ab27ebb6848385e19e8697242323544`.
+- No Telegram send, Cron run, manual workflow dispatch, TikTok publishing, schedule/credential change, or `main` branch modification was performed. CI validation is pending; do not treat the change as verified until the relevant push-triggered checks pass.
