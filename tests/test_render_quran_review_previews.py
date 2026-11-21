@@ -166,6 +166,10 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertLessEqual(right[3] - right[1], 180)
         self.assertLessEqual(abs((left[0] + left[2]) / 2 - 66), 3)
         self.assertLessEqual(abs((right[0] + right[2]) / 2 - 66), 3)
+        divider = alpha.crop((298, 650, 784, 730)).getbbox()
+        self.assertIsNotNone(divider)
+        self.assertLessEqual(divider[2] - divider[0], 400)
+        self.assertLessEqual(divider[3] - divider[1], 66)
 
     def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:
