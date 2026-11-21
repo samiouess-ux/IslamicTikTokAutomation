@@ -372,7 +372,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
     @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
     @patch("render_quran_review_previews.probe", return_value={
-        "duration_seconds": 46.733, "width": 1080, "height": 1920,
+        "duration_seconds": 49.737, "width": 1080, "height": 1920,
         "video_codec": "h264", "audio_codec": "mp3",
     })
     @patch("render_quran_review_previews.make_frame")
@@ -390,8 +390,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             report_data = json.loads(report.read_text(encoding="utf-8"))
             batch_data["passages"] = batch_data["passages"][:1]
             report_data["items"] = report_data["items"][:1]
-            report_data["items"][0]["selected_verses"] = [81]
-            report_data["items"][0]["duration_seconds"] = 46.733
+            report_data["items"][0]["selected_verses"] = [81, 82]
+            report_data["items"][0]["duration_seconds"] = 49.737
             batch.write_text(json.dumps(batch_data), encoding="utf-8")
             report.write_text(json.dumps(report_data), encoding="utf-8")
             result = render(batch, report, root / "out", minimum_previews=1)
