@@ -57,8 +57,8 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
     def test_shared_delivery_limit_is_60_seconds_for_one_ayah(self):
         self.assertEqual(delivery_duration_limit_seconds([17]), 60.0)
 
-    def test_shared_delivery_limit_is_45_seconds_for_multiple_ayahs(self):
-        self.assertEqual(delivery_duration_limit_seconds([17, 18]), 45.0)
+    def test_shared_delivery_limit_is_60_seconds_for_multiple_ayahs(self):
+        self.assertEqual(delivery_duration_limit_seconds([17, 18]), 60.0)
 
     def test_shared_delivery_limit_rejects_empty_selection(self):
         with self.assertRaisesRegex(ValueError, "at least one selected ayah"):
@@ -70,13 +70,15 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
         self.assertTrue(self.pending.exists())
         self.assertEqual(json.loads(self.history.read_text())["ayah_references"], [])
 
-    def test_reservation_rejects_preview_over_45_seconds(self):
+    def test_reservation_accepts_multi_ayah_preview_up_to_60_seconds(self):
+        audio = json.loads(self.audio.read_text(encoding="utf-8"))
+        audio["items"][0]["duration_seconds"] = 55.129
+        self.audio.write_text(json.dumps(audio), encoding="utf-8")
         preview = json.loads(self.preview.read_text(encoding="utf-8"))
-        preview["items"][0]["duration_seconds"] = 45.001
+        preview["items"][0]["duration_seconds"] = 55.129
         self.preview.write_text(json.dumps(preview), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "no longer than 45 seconds"):
-            self.reserve()
-        self.assertFalse(self.pending.exists())
+        pending = self.reserve()
+        self.assertEqual(pending["selected_verses"], [1, 2])
 
     def test_reservation_accepts_single_complete_ayah_up_to_60_seconds(self):
         audio = json.loads(self.audio.read_text(encoding="utf-8"))
@@ -90,14 +92,14 @@ class QuranDeliveryAttemptTests(unittest.TestCase):
         self.assertEqual(pending["selected_verses"], [1])
         self.assertEqual(pending["ayah_references"], ["11:1"])
 
-    def test_reservation_rejects_multi_ayah_audio_over_45_seconds(self):
+    def test_reservation_rejects_multi_ayah_audio_over_60_seconds(self):
         audio = json.loads(self.audio.read_text(encoding="utf-8"))
-        audio["items"][0]["duration_seconds"] = 46.0
+        audio["items"][0]["duration_seconds"] = 60.001
         self.audio.write_text(json.dumps(audio), encoding="utf-8")
         preview = json.loads(self.preview.read_text(encoding="utf-8"))
-        preview["items"][0]["duration_seconds"] = 46.0
+        preview["items"][0]["duration_seconds"] = 60.001
         self.preview.write_text(json.dumps(preview), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "no longer than 45 seconds"):
+        with self.assertRaisesRegex(ValueError, "no longer than 60 seconds"):
             self.reserve()
         self.assertFalse(self.pending.exists())
 
