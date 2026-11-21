@@ -1193,3 +1193,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Verified the final commit `8b48bc213c31fb5da88787faf25690e896750d4e` on `feature/telegram-review-notifications`: Quran batch engine workflow run `44873693600` passed, including visual-template tests and reference-layout rendering; isolated request pipeline run `44873693574` also passed.
 - Review-only preview artifact `quran-reference-layout-preview` (artifact `14694777000`) was generated and visually inspected. It is awaiting user approval; this is not a production design approval.
 - No Telegram delivery, Cron execution, publishing, delivery-history mutation, or `main` branch change was made.
+
+
+### 2026-11-21 — Surah-title spacing refinement (preview pending)
+- On `feature/telegram-review-notifications` only, reduced the extracted open gold brackets and matching floral divider from 82% to 77% of their original crop dimensions (about 6.1% smaller relative to the previous preview).
+- Moved the two brackets inward by 10px each to reduce the empty space around the surah title. Kept the original reference pixels, title wording/font/center, ayah text, medallion, and background unchanged.
+- Updated the focused geometry regression assertions for the new inward bracket positions. Source commit: `aa189e82f0b4880749246bd083b320bbd5a83396`; test commit: `675046873209fa9144e0e94e811b841961e5013e`.
+- Validation and a fresh render-only preview are pending; do not treat the previous 82% preview as evidence for this new adjustment. Do not approve the design until the new artifact is inspected.
+- No Telegram delivery, Cron execution, production workflow dispatch, TikTok publishing, delivery-history mutation, or `main` branch change was performed.
