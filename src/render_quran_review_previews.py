@@ -693,12 +693,18 @@ def prepare_moving_background(candidate: dict, destination: Path) -> dict:
 
 
 def photo_motion_filter() -> str:
-    """Apply a smooth centered 0–30% zoom cycle to every background type."""
+    """Apply the existing smooth centered 0–30% zoom with sub-pixel-stable output.
+
+    Render the zoom/pan at 2x resolution, then downsample with Lanczos.
+    This reduces visible one-pixel crop-position stepping from zoompan while
+    preserving the original zoom curve, 12-second cycle, and centered framing.
+    """
     return (
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,"
+        "[0:v]scale=2160:3840:force_original_aspect_ratio=increase,crop=2160:3840,"
         "zoompan=z='1.15-0.15*cos(2*PI*on/360)':"
         "x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':"
-        "d=1:s=1080x1920:fps=30,setsar=1[bg];"
+        "d=1:s=2160x3840:fps=30,"
+        "scale=1080:1920:flags=lanczos,setsar=1[bg];"
     )
 
 
