@@ -350,7 +350,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertIn("[ayah][intro]overlay=0:0:format=auto[v]", filter_text)
             self.assertNotIn("enable='lt(t,0.6)'", filter_text)
             self.assertLess(filter_text.index("[bg][2:v]overlay"), filter_text.index("[ayah][intro]overlay"))
-            opening = result["opening_cover"]
+            opening = result["opening_title_overlay"]
             self.assertEqual(opening["duration_seconds"], 1.2)
             self.assertTrue(opening["background_is_transparent"])
             self.assertEqual(opening["fade_seconds"], 0.8)
@@ -373,7 +373,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(report_data["background_type"], "mixed_moving_video_and_photo")
 
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
-    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"format":{"duration":"25.0"},"streams":[{"codec_name":"h264","width":1080,"height":1920}]}')
     @patch("render_quran_review_previews.probe", return_value={
         "duration_seconds": 49.737, "width": 1080, "height": 1920,
         "video_codec": "h264", "audio_codec": "mp3",
@@ -405,7 +405,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertFalse(result["auto_publish"])
 
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
-    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"format":{"duration":"25.0"},"streams":[{"codec_name":"h264","width":1080,"height":1920}]}')
     @patch("render_quran_review_previews.probe", return_value={
         "duration_seconds": 31.9, "width": 1080, "height": 1920,
         "video_codec": "h264", "audio_codec": "mp3",
@@ -438,7 +438,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
 
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.download_background", side_effect=lambda url, dest: dest.write_bytes(b"x" * 100001))
-    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"streams":[{"codec_name":"h264"}]}')
+    @patch("render_quran_review_previews.subprocess.check_output", return_value='{"format":{"duration":"25.0"},"streams":[{"codec_name":"h264","width":1080,"height":1920}]}')
     def test_rejects_non_prefix_audio_verse_selection_before_rendering(self, _check, _download, _font):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
