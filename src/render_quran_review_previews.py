@@ -373,7 +373,17 @@ def draw_reference_surah_ornaments(image: Image.Image) -> None:
     image.alpha_composite(right_ornament, right_position)
     divider_box = (298, 650, 784, 730)
     divider = _gold_reference_crop(reference, divider_box)
-    image.alpha_composite(divider, (divider_box[0], divider_box[1]))
+    divider_scale = 0.82
+    divider_size = (
+        round(divider.width * divider_scale),
+        round(divider.height * divider_scale),
+    )
+    divider = divider.resize(divider_size, Image.Resampling.LANCZOS)
+    divider_position = (
+        divider_box[0] + (divider_box[2] - divider_box[0] - divider_size[0]) // 2,
+        divider_box[1] + (divider_box[3] - divider_box[1] - divider_size[1]) // 2,
+    )
+    image.alpha_composite(divider, divider_position)
 
 
 def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
