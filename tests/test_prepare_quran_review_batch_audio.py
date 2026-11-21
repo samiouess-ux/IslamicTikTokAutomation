@@ -261,7 +261,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertEqual(item["status"], "audio_prepared_requires_exact_recording_listen_and_user_review")
             self.assertEqual(item["remaining_verses"], [])
             self.assertEqual(report["maximum_seconds"], 45.0)
-            self.assertEqual(report["exceptional_single_ayah_maximum_seconds"], 60.0)
+            self.assertEqual(report["maximum_complete_ayah_part_seconds"], 60.0)
 
     def test_defers_a_single_ayah_that_exceeds_60_seconds_without_truncating(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -301,7 +301,7 @@ class QuranBatchAudioTests(unittest.TestCase):
             self.assertFalse(item["passage_complete"])
             self.assertEqual(report["audio_prepared_count"], 0)
             self.assertEqual(report["maximum_seconds"], 45.0)
-            self.assertEqual(report["exceptional_single_ayah_maximum_seconds"], 60.0)
+            self.assertEqual(report["maximum_complete_ayah_part_seconds"], 60.0)
 
     def test_trim_edge_silence_keeps_mp3_and_preserves_the_recitation_body(self):
         with tempfile.TemporaryDirectory() as tmp:
