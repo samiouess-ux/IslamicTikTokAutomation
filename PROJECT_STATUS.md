@@ -1185,3 +1185,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Reference-driven layout preview artifact was also uploaded successfully. The focused engine validation and background review jobs passed.
 - All artifacts are review-only: `production_approved=false`, `telegram_delivery=false`, and `auto_publish=false`. No Telegram send, delivery-history mutation, Cron run, or TikTok publishing was triggered. All work remained on `feature/telegram-review-notifications`; `main` was not touched.
 - Next: continue visual review of the preview artifact and make any requested adjustments before enabling any production delivery. Do not treat this render as a Telegram-delivered or TikTok-published video.
+
+
+### 2026-11-21 — Surah-title ornament balance adjustment
+- Reduced the two open gold surah-title brackets to 82% of their previous size and reduced the matching horizontal divider to 82%, keeping each ornament centered in its original reference area. The original approved gold artwork, title text, ayah layout, medallion, and background treatment remain unchanged.
+- Added a focused regression test for the bracket dimensions/centering and divider size in `tests/test_render_quran_review_previews.py`.
+- Verified the final commit `8b48bc213c31fb5da88787faf25690e896750d4e` on `feature/telegram-review-notifications`: Quran batch engine workflow run `44873693600` passed, including visual-template tests and reference-layout rendering; isolated request pipeline run `44873693574` also passed.
+- Review-only preview artifact `quran-reference-layout-preview` (artifact `14694777000`) was generated and visually inspected. It is awaiting user approval; this is not a production design approval.
+- No Telegram delivery, Cron execution, publishing, delivery-history mutation, or `main` branch change was made.
