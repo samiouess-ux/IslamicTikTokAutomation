@@ -1,3 +1,14 @@
+## Opening fade and moving-background render verified — 2026-11-21
+
+- Latest active branch HEAD before this status update: `e7c1782584f06b733063caf4cf8bc22bfe27be77` on `feature/telegram-review-notifications`; `main` was not changed.
+- Corrected the ayah-frame renderer so the surah title/ornament are not baked into every ayah layer; they exist only in the transparent opening overlay and can fade away cleanly. The first ayah's opening background is now required to be an approved moving-video asset; later ayahs continue using the approved mixed photo/video catalog.
+- Added regression coverage for omitting the surah header from ayah layers and for requiring a moving-video background in the opening scene.
+- Exact-commit validation passed: Quran batch engine run `44955476007`, isolated Quran request pipeline run `44955476003`, and full inventory/render run `44955475999`.
+- Downloaded and inspected artifact `quran-visual-review-samples` (artifact ID `14727009338`) from run `44955475999`. The review-only MP4 is 1080x1920, 47.921 seconds, H.264 video + original MP3 audio. It contains Surah Al-Hijr, ayahs 1–4. The first frame shows the first ayah and Saheeh International translation underneath the opening title/range overlay; sampled frames show the title/ornament fading away by about 3 seconds, while the first ayah remains visible. Extracted frames at different times show the first-scene Mostar river background is moving video, not a still image. The report records the opening overlay as transparent, 1.2 seconds total with a 0.8-second fade beginning at 0.4 seconds; audio and ayah scene begin at t=0.
+- Workflow reserve/send/history/sync/notify Telegram steps were all skipped because this was a push-triggered render-only validation. No Telegram message/video was sent, no Cron job was triggered, no delivery history was mutated, and no TikTok publishing occurred. Artifact report explicitly marks production approval, Telegram delivery, and auto-publishing false.
+- This verifies the opening behavior for this render sample; it does not by itself establish production approval or confirm the next scheduled Telegram delivery. Keep delivery review-only until the user explicitly approves.
+- Next: retain this render as the verified technical checkpoint and await the user's decision before any production send. Do not trigger Cron or manually dispatch Telegram delivery.
+
 ## Opening overlay regression fix and validation — 2026-11-21
 
 - Root cause found from the full inventory/render workflow log: `make_intro_frame()` still required a separate still-background image, although the opening layer is transparent and FFmpeg composites it over the live first ayah scene. This stale guard caused the production render stage to stop before generating a preview.
