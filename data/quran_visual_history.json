@@ -33,6 +33,28 @@
       ],
       "cover_template_id": "emerald_green",
       "confirmed_at_utc": "2026-11-20T11:12:10.679444+00:00"
+    },
+    {
+      "candidate_id": "quran_s038_001_088_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mosque-waterfront-12536108",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-historic-mosque-stained-glass-30733250",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-modern-mosque-interior-35417846",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T03:12:54.017015+00:00"
     }
   ]
 }

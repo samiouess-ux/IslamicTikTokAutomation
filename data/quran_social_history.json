@@ -76,6 +76,25 @@
         "listen"
       ],
       "confirmed_at_utc": "2026-11-20T11:12:10.655648+00:00"
+    },
+    {
+      "candidate_id": "quran_s038_001_088_part_001",
+      "hashtags_ar": [
+        "#ذكر_الله",
+        "#مع_القرآن",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#ReminderForTheSoul",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "heart"
+      ],
+      "cta_ids": [
+        "reflect"
+      ],
+      "confirmed_at_utc": "2026-11-21T03:12:53.976258+00:00"
     }
   ]
 }
