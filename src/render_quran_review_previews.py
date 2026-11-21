@@ -353,27 +353,27 @@ def draw_reference_surah_ornaments(image: Image.Image) -> None:
     left_ornament = _gold_reference_crop(reference, left_box)
     # Keep the exact approved gold linework, but reduce the brackets slightly
     # so the surah name reads first instead of being visually dominated by them.
-    ornament_scale = 0.82
+    ornament_scale = 0.77
     ornament_size = (
         round(left_ornament.width * ornament_scale),
         round(left_ornament.height * ornament_scale),
     )
     left_ornament = left_ornament.resize(ornament_size, Image.Resampling.LANCZOS)
     left_position = (
-        left_box[0] + (left_box[2] - left_box[0] - ornament_size[0]) // 2,
+        left_box[0] + (left_box[2] - left_box[0] - ornament_size[0]) // 2 + 10,
         left_box[1] + (left_box[3] - left_box[1] - ornament_size[1]) // 2,
     )
     image.alpha_composite(left_ornament, left_position)
     right_ornament = left_ornament.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     right_box = (810, 448, 942, 665)
     right_position = (
-        right_box[0] + (right_box[2] - right_box[0] - ornament_size[0]) // 2,
+        right_box[0] + (right_box[2] - right_box[0] - ornament_size[0]) // 2 - 10,
         right_box[1] + (right_box[3] - right_box[1] - ornament_size[1]) // 2,
     )
     image.alpha_composite(right_ornament, right_position)
     divider_box = (298, 650, 784, 730)
     divider = _gold_reference_crop(reference, divider_box)
-    divider_scale = 0.82
+    divider_scale = 0.77
     divider_size = (
         round(divider.width * divider_scale),
         round(divider.height * divider_scale),
