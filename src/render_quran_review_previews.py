@@ -441,7 +441,8 @@ def fit_surah_title(draw: ImageDraw.ImageDraw, surah_number: int,
 
 
 def make_frame(verse: dict, surah: int, index: int, out: Path,
-               font_path: str, surah_name: str) -> None:
+               font_path: str, surah_name: str,
+               include_surah_header: bool = True) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not isinstance(verse.get("number"), int):
@@ -454,19 +455,21 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    # Prefer correct tashkeel when it fits; otherwise keep the plain name readable.
-    title_center = (540, 520)
-    title_text, title_font = fit_surah_title(
-        draw, surah, bold_font_file(), center=title_center
-    )
-    draw_reference_surah_ornaments(image)
-    # Shift the complete title ornament group upward by 40px, preserving its artwork.
-    title_group = image.crop((0, 400, 1080, 760))
-    image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
-    image.alpha_composite(title_group, (0, 360))
-    draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
-              anchor="mm", direction="rtl", language="ar",
-              stroke_width=2, stroke_fill=(55, 34, 12, 190))
+    if include_surah_header:
+        # Keep the approved header for standalone/reference frames. In rendered
+        # videos the surah title appears only in the opening overlay, so it can
+        # genuinely fade away instead of remaining underneath in the ayah layer.
+        title_center = (540, 520)
+        title_text, title_font = fit_surah_title(
+            draw, surah, bold_font_file(), center=title_center
+        )
+        draw_reference_surah_ornaments(image)
+        title_group = image.crop((0, 400, 1080, 760))
+        image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
+        image.alpha_composite(title_group, (0, 360))
+        draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
+                  anchor="mm", direction="rtl", language="ar",
+                  stroke_width=2, stroke_fill=(55, 34, 12, 190))
     
     arabic = verse.get("arabic")
     english = verse.get("english")
@@ -950,8 +953,17 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             if not audio.is_file():
                 raise FileNotFoundError(f"Whole-ayah audio file missing: {audio}")
             ayah_audio_duration = audio_duration_seconds(audio)
+            # The opening must sit over live moving footage, never a still
+            # photo. Keep the full mixed catalog rotation for later ayahs.
+            background_pool = (
+                [bg for bg in background_sequence
+                 if bg.get("background_type") == "moving_video"]
+                if index == 0 else background_sequence
+            )
+            if not background_pool:
+                raise RuntimeError("The opening scene requires an approved moving-video background.")
             background_candidate = choose_background_for_ayah(
-                background_sequence, ayah_audio_duration, used_background_ids,
+                background_pool, ayah_audio_duration, used_background_ids,
                 recent_background_categories | used_background_categories,
                 recent_background_ids,
             )
@@ -986,7 +998,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 raise ValueError(f"Invalid surah number: {surah_number}")
             make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
                         "english": verse["english_saheeh_international"]},
-                       surah_number, index, frame, font_path, SURAH_NAMES_TASHKEEL[surah_number - 1])
+                       surah_number, index, frame, font_path,
+                       SURAH_NAMES_TASHKEEL[surah_number - 1],
+                       include_surah_header=False)
             segment = work / f"segment_{index:02d}.mp4"
             background_input = (
                 ["-loop", "1", "-framerate", "30", "-i", str(background)]
