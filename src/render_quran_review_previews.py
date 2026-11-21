@@ -561,12 +561,9 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     if background_frame is None or not Path(background_frame).is_file():
         raise FileNotFoundError("The opening cover requires the first full-bleed background frame.")
 
-    with Image.open(background_frame) as source:
-        image = ImageOps.fit(
-            source.convert("RGB"), (1080, 1920),
-            method=Image.Resampling.LANCZOS
-        ).convert("RGBA")
-
+    # This is a transparent title/range layer, not a full-screen cover.
+    # The first ayah frame remains visible underneath from the very first frame.
+    image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     accent = (245, 184, 55)
     title_center = (540, 520)
@@ -1002,18 +999,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             if index == 0:
                 # The opening title is an overlay on the first ayah segment.
                 # It adds no silent lead-in and does not change the audio stream.
-                intro = work / "opening_cover.png"
-                cover_background = work / "opening_background.png"
-                if background_candidate.get("background_type") == "photo":
-                    with Image.open(background) as source_photo:
-                        ImageOps.fit(source_photo.convert("RGB"), (1080, 1920)).save(cover_background)
-                else:
-                    subprocess.run([
-                        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                        "-ss", "0", "-i", str(background), "-frames:v", "1",
-                        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920",
-                        str(cover_background),
-                    ], check=True)
+                intro = work / "opening_title_overlay.png"
                 scheduled_cover_index = (background_rotation_index + len(previews)) % len(COVER_TEMPLATE_IDS)
                 cover_template_id, cover_rotation_index = choose_cover_template(
                     scheduled_cover_index, recent_cover_ids,
@@ -1021,7 +1007,6 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 make_intro_frame(
                     surah_number, int(numbers[0]), int(numbers[-1]),
                     intro, font_path, SURAH_NAMES_TASHKEEL[surah_number - 1],
-                    background_frame=cover_background,
                     cover_rotation_index=cover_rotation_index,
                 )
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
@@ -1032,9 +1017,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 fade_start_text = f"{fade_start:g}"
                 fade_duration_text = f"{INTRO_FADE_SECONDS:g}"
                 filter_complex = background_filter + (
-                    # Composite the first ayah from t=0 beneath the full-screen cover.
-                    # Fade only the cover's alpha channel to reveal the live background
-                    # and first ayah smoothly; the original recitation remains untouched.
+                    # Keep the moving/photo background and first ayah visible from t=0.
+                    # Only the transparent title/range layer fades; it never hides the ayah.
                     "[bg][2:v]overlay=0:0:format=auto[ayah];"
                     f"[3:v]format=rgba,fade=t=out:st={fade_start_text}:"
                     f"d={fade_duration_text}:alpha=1[intro];"
@@ -1112,8 +1096,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         "recent_background_history_window": 6,
         "recent_cover_history_window": 3,
         "scene_transition": {"type": "synchronized_hard_cut_at_ayah_boundary", "duration_seconds": 0.0, "audio_reencoded": False, "ayah_text_overlap": False},
-        "opening_cover": {"included_in_video": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "fade_start_seconds": INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS, "ayah_visible_from_seconds": 0, "audio_starts_at_seconds": 0, "visible_only_at_start": True, "transition": "alpha_fade_to_first_ayah", "template_count": len(COVER_TEMPLATE_IDS), "title_font": "Amiri Bold", "title_vocalization": "full_tashkeel"},
-        "note": "The full approved photo-and-video catalog is rotated in catalog order with persistent recent-use avoidance. Ayah scenes cut exactly at audio boundaries without crossfading text; original MP3 recitation is stream-copied. One of the four original user-supplied covers is selected by the monotonic GitHub run rotation; the surah name is fully vocalized and rendered with Amiri Bold. The first ayah is composited from t=0 beneath the cover; the cover fades out over 0.8 seconds beginning at 0.4 seconds, revealing the ayah and moving background smoothly. Original recitation starts at t=0 and the video remains review-only.",
+        "opening_title_overlay": {"included_in_video": True, "background_is_transparent": True, "duration_seconds": INTRO_DURATION_SECONDS, "fade_seconds": INTRO_FADE_SECONDS, "fade_start_seconds": INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS, "ayah_visible_from_seconds": 0, "audio_starts_at_seconds": 0, "transition": "transparent_title_overlay_fades_over_first_ayah", "template_count": len(COVER_TEMPLATE_IDS), "title_font": "Amiri Bold", "title_vocalization": "full_tashkeel"},
+        "note": "The full approved photo-and-video catalog is rotated in catalog order with persistent recent-use avoidance. Ayah scenes cut exactly at audio boundaries without crossfading text; original MP3 recitation is stream-copied. The opening surah title and ayah-range layer has a transparent background and fades out over the first 0.8 seconds beginning at 0.4 seconds, so the first complete ayah and its translation remain visible from t=0 underneath it. The approved ornament, Amiri Bold title, background, and original recitation are unchanged; the video remains review-only.",
     }
     (output_dir / "preview_report.json").write_text(json.dumps(result, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     return result
