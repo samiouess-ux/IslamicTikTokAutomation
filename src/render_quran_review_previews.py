@@ -387,10 +387,10 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
 
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                          center: tuple = (540, 520), max_width: int = 520,
-                          max_height: int = 86):
+                          center: tuple = (540, 520), max_width: int = 600,
+                          max_height: int = 120):
     """Fit the complete surah title between the open ornamental brackets."""
-    for size in (68, 64, 60, 56, 52, 48):
+    for size in (112, 104, 96, 88, 80, 72, 64):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         bounds = draw.textbbox(center, text, font=font, anchor="mm",
                                direction="rtl", language="ar")
