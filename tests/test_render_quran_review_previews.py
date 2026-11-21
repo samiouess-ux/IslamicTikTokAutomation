@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import render_quran_review_previews as renderer
@@ -207,6 +207,17 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((298, 650, 784, 730)).getbbox())
                 self.assertIsNotNone(alpha.getbbox())
+
+    def test_approved_reference_medallion_crop_uses_renderer_coordinates(self):
+        with Image.open(renderer.APPROVED_DESIGN_REFERENCE) as source:
+            reference = ImageOps.fit(
+                source.convert("RGB"), (1080, 1920),
+                method=Image.Resampling.LANCZOS
+            )
+            crop = reference.crop((103, 906, 207, 1014))
+        self.assertEqual(crop.size, (104, 108))
+        self.assertEqual(renderer.APPROVED_DESIGN_REFERENCE,
+                         Path("references/approved_quran_design.png"))
 
     def test_vocalized_surah_catalog_has_all_114_chapters(self):
         self.assertEqual(len(renderer.SURAH_NAMES_TASHKEEL), 114)
