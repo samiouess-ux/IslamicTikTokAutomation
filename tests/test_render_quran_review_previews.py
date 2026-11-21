@@ -221,12 +221,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     def test_intro_frame_uses_same_open_reference_without_old_closed_cover(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            background = root / "first_scene.jpg"
-            Image.new("RGB", (1080, 1920), (20, 45, 95)).save(background)
-            output = root / "opening_cover.png"
+            output = root / "opening_title_overlay.png"
             selected = make_intro_frame(
                 93, 5, 8, output, font_file(), SURAH_NAMES[92],
-                background_frame=background,
                 cover_rotation_index=2,
             )
             self.assertEqual(selected, "open_gold_brackets")
