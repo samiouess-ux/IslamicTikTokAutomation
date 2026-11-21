@@ -1059,7 +1059,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
         transition_info = assemble_review_segments(segments, audio_files, concat, output, work)
         info = probe(output)
-        preview_limit = 60.0 if len(verses) == 1 and float(item.get("duration_seconds", 0)) > 45.0 else 45.0
+        # The audio preparer enforces the 45s target plus at most one whole
+        # next ayah; rendered complete-ayah parts must never exceed 60s.
+        preview_limit = 60.0
         if info["duration_seconds"] > preview_limit:
             raise RuntimeError(f"Rendered preview exceeds the {preview_limit:g}-second duration policy for its selected ayah count: {info['duration_seconds']:.3f}s")
         previews.append({
