@@ -121,6 +121,23 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T08:31:49.098421+00:00"
+    },
+    {
+      "candidate_id": "quran_s049_001_018_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-38901615",
+          "categories": [
+            "hajj",
+            "kaaba",
+            "mecca",
+            "pilgrimage"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T11:11:51.668711+00:00"
     }
   ]
 }

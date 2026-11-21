@@ -133,6 +133,25 @@
         "reflect2"
       ],
       "confirmed_at_utc": "2026-11-21T08:31:49.060135+00:00"
+    },
+    {
+      "candidate_id": "quran_s049_001_018_part_001",
+      "hashtags_ar": [
+        "#آيات_قرآنية",
+        "#القرآن_الكريم",
+        "#الصبر_والفرج"
+      ],
+      "hashtags_en": [
+        "#IslamicReminder",
+        "#PatienceAndHope"
+      ],
+      "hook_ids": [
+        "reminder"
+      ],
+      "cta_ids": [
+        "share"
+      ],
+      "confirmed_at_utc": "2026-11-21T11:11:51.633989+00:00"
     }
   ]
 }
