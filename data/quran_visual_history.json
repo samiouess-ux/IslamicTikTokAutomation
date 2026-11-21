@@ -207,6 +207,45 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T21:38:20.383031+00:00"
+    },
+    {
+      "candidate_id": "quran_s015_001_099_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mosque-river-mostar-27529804",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-40352601",
+          "categories": [
+            "lantern",
+            "prayer",
+            "quran"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-34219158",
+          "categories": [
+            "architecture",
+            "islamic_art",
+            "mosque"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-31607767",
+          "categories": [
+            "architecture",
+            "islamic_art",
+            "mosque"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-21T22:20:11.650829+00:00"
     }
   ]
 }
