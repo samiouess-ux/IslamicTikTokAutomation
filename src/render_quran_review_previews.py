@@ -385,9 +385,9 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                           center: tuple = (540, 520), max_width: int = 520,
-                          max_height: int = 90):
+                          max_height: int = 86):
     """Fit the complete surah title between the open ornamental brackets."""
-    for size in (88, 80, 72, 64, 56, 48):
+    for size in (68, 64, 60, 56, 52, 48):
         font = ImageFont.truetype(font_path, size, layout_engine=ImageFont.Layout.RAQM)
         bounds = draw.textbbox(center, text, font=font, anchor="mm",
                                direction="rtl", language="ar")
@@ -416,7 +416,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     title_center = (540, 520)
     title_font = fit_surah_title_font(draw, title_text, bold_font_file(),
                                       center=title_center, max_width=520,
-                                      max_height=90)
+                                      max_height=86)
     draw_reference_surah_ornaments(image)
     # Shift the complete title ornament group upward by 40px, preserving its artwork.
     title_group = image.crop((0, 400, 1080, 760))
@@ -528,9 +528,13 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     draw = ImageDraw.Draw(image)
     accent = (245, 184, 55)
     title_text = f"سورة {surah_name}"
-    title_center = (540, 540)
+    title_center = (540, 520)
     title_font = fit_surah_title_font(draw, title_text, font_path, center=title_center)
     draw_reference_surah_ornaments(image)
+    # Keep the opening title ornaments and title aligned exactly like ayah frames.
+    title_group = image.crop((0, 400, 1080, 760))
+    image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
+    image.alpha_composite(title_group, (0, 360))
     draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
@@ -1006,7 +1010,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 raise ValueError(f"Invalid surah number: {surah_number}")
             make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
                         "english": verse["english_saheeh_international"]},
-                       surah_number, index, frame, font_path, SURAH_NAMES[surah_number - 1])
+                       surah_number, index, frame, font_path, SURAH_NAMES_TASHKEEL[surah_number - 1])
             segment = work / f"segment_{index:02d}.mp4"
             background_input = (
                 ["-loop", "1", "-framerate", "30", "-i", str(background)]
@@ -1038,7 +1042,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 )
                 make_intro_frame(
                     surah_number, int(numbers[0]), int(numbers[-1]),
-                    intro, font_path, SURAH_NAMES[surah_number - 1],
+                    intro, font_path, SURAH_NAMES_TASHKEEL[surah_number - 1],
                     background_frame=cover_background,
                     cover_rotation_index=cover_rotation_index,
                 )
