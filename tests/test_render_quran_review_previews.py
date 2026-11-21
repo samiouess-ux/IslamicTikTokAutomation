@@ -138,15 +138,18 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         image = Image.new("RGBA", (1080, 1920))
         draw = ImageDraw.Draw(image)
         path = font_file()
-        for surah_name in renderer.SURAH_NAMES_TASHKEEL:
-            title = f"سورة {surah_name}"
-            font = renderer.fit_surah_title_font(draw, title, path)
+        selected_names = []
+        for surah_number in range(1, 115):
+            title, font = renderer.fit_surah_title(draw, surah_number, path)
+            selected_names.append(title)
             bounds = draw.textbbox((540, 520), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
             self.assertLessEqual(bounds[2] - bounds[0], 520, title)
             self.assertLessEqual(bounds[3] - bounds[1], 86, title)
             self.assertGreaterEqual(font.size, 48, title)
             self.assertLessEqual(font.size, 68, title)
+        self.assertEqual(selected_names[17], f"سورة {renderer.SURAH_NAMES_TASHKEEL[17]}")
+        self.assertTrue(all(name.startswith("سورة ") for name in selected_names))
 
     def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -314,8 +317,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             self.assertEqual(SURAH_NAMES[18], "مريم")
             self.assertEqual(SURAH_NAMES[87], "الغاشية")
             self.assertEqual(SURAH_NAMES[110], "المسد")
-            self.assertEqual(make_frame.call_args_list[0].args[-1], renderer.SURAH_NAMES_TASHKEEL[18])
-            self.assertEqual(make_frame.call_args_list[3].args[-1], renderer.SURAH_NAMES_TASHKEEL[87])
+            self.assertEqual(make_frame.call_args_list[0].args[-1], SURAH_NAMES[18])
+            self.assertEqual(make_frame.call_args_list[3].args[-1], SURAH_NAMES[87])
             self.assertGreaterEqual(run.call_count, 8)
             self.assertTrue(any("-stream_loop" in call.args[0] for call in run.call_args_list))
             self.assertTrue(any("processed" in " ".join(call.args[0]) for call in run.call_args_list))
