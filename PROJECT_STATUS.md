@@ -1,3 +1,14 @@
+## Opening overlay regression fix and validation — 2026-11-21
+
+- Root cause found from the full inventory/render workflow log: `make_intro_frame()` still required a separate still-background image, although the opening layer is transparent and FFmpeg composites it over the live first ayah scene. This stale guard caused the production render stage to stop before generating a preview.
+- Removed only that obsolete background-file requirement; retained the optional parameter for caller compatibility. The moving background, first ayah, and original audio remain on the underlying scene from frame 0.
+- Updated the intro-frame regression test to call `make_intro_frame()` without a still background image, while checking the output remains a transparent RGBA title overlay.
+- Source commit: `9ea4a620e1f3fd331958b7a158a9eea4942770e2`; test commit / current branch HEAD at this checkpoint: `d9eef22107134287ae2d7547fd3b3f4dd76131d0`.
+- Validation on the exact test commit: Quran batch engine run `44954479484` passed, including compilation, full catalog/batch/visual tests, reference-driven sample render, and daily orchestrator test. Isolated Quran request pipeline run `44954479409` passed.
+- Full inventory/render workflow `44954479429` was still running at the time of this note. It is a push-triggered render-only workflow; the workflow explicitly disables Telegram reservation/send on push. Do not claim a full MP4 render or visual artifact passed until that run completes and its artifact is inspected.
+- No Telegram message/video was sent, no Cron job was triggered, no TikTok publishing occurred, and `main` was not changed. All commits remain on `feature/telegram-review-notifications`.
+- Next: check completion of run `44954479429`; if it succeeds, inspect the generated preview's first frame and verify the title/ornament remains over the first ayah without a still cover.
+
 ## First ayah visible from the opening frame — 2026-11-21
 
 - User reviewed the actual Telegram MP4 and confirmed the requested adjustment: keep the approved surah title/ornament and ayah-range intro, but make the first Arabic ayah and its English Saheeh International translation visible immediately from frame 0.
