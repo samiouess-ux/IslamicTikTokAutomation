@@ -39,8 +39,8 @@ class PartsTests(unittest.TestCase):
         parts, rest = partition_contiguous_ayahs(
             verses, {1: 43.4, 2: 16.7}, 45, 60
         )
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1]])
-        self.assertEqual([v['ayah'] for v in rest], [2])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1], [2]])
+        self.assertEqual(rest, [])
 
     def test_long_complete_ayah_between_45_and_60_stays_alone(self):
         verses = [{'ayah': 1}, {'ayah': 2}]
