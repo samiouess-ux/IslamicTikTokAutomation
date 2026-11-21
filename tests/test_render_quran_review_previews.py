@@ -503,12 +503,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 probe(path)
 
 
-    @patch("render_quran_review_previews.media_duration_seconds", return_value=12.1)
-    @patch("render_quran_review_previews.probe", side_effect=[
-        {"duration_seconds": 5.0}, {"duration_seconds": 7.0}
-    ])
     @patch("render_quran_review_previews.subprocess.run")
-    def test_scene_assembly_crossfades_video_but_stream_copies_original_audio(self, run, _probe, _audio_duration):
+    def test_scene_assembly_cuts_at_ayah_boundaries_and_stream_copies_original_audio(self, run):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             segments = [root / "ayah-1.mp4", root / "ayah-2.mp4"]
@@ -519,33 +515,22 @@ class ReviewPreviewRendererTests(unittest.TestCase):
             output = root / "review.mp4"
             result = renderer.assemble_review_segments(segments, audio_files, concat, output, root)
             commands = [call.args[0] for call in run.call_args_list]
-            audio_command = next(command for command in commands if "-c:a" in command and str(root / "joined_original_audio.mp3") in command)
-            video_command = next(command for command in commands if "-filter_complex" in command)
-            mux_command = commands[-1]
+            video_command, audio_command, mux_command = commands
+            self.assertIn(str(concat), video_command)
+            self.assertIn("-an", video_command)
+            self.assertIn("copy", video_command)
             self.assertIn(str(root / "audio_segments.txt"), audio_command)
             self.assertIn("copy", audio_command)
-            self.assertIn("xfade=transition=fade", video_command[video_command.index("-filter_complex") + 1])
-            self.assertIn("-an", video_command)
+            self.assertIn("-shortest", mux_command)
             self.assertIn("-c:a", mux_command)
             self.assertIn("copy", mux_command)
             self.assertFalse(result["audio_reencoded"])
-            self.assertEqual(result["transition"], "video_only_crossfade")
-            self.assertEqual(result["duration_target_seconds"], 12.1)
-            self.assertEqual(result["video_overlap_padding_seconds"], 0.45)
-            self.assertTrue((root / "audio_segments.txt").read_text(encoding="utf-8").endswith("\n"))
-
-    def test_scene_crossfade_filter_preserves_total_video_duration_and_offsets(self):
-        filter_text, total = renderer.build_scene_transition_filter([5.0, 7.0, 8.0], 0.35)
-        self.assertEqual(total, 20.0)
-        self.assertIn("offset=4.650000", filter_text)
-        self.assertIn("offset=11.300000", filter_text)
-        self.assertIn("stop_duration=0.7", filter_text)
-        self.assertIn("trim=duration=20.000000", filter_text)
-        self.assertIn("[xfade2]tpad=", filter_text)
-
-    def test_scene_crossfade_rejects_segments_shorter_than_transition(self):
-        with self.assertRaisesRegex(ValueError, "longer than the positive transition"):
-            renderer.build_scene_transition_filter([0.2, 5.0], 0.35)
+            self.assertEqual(result["transition"], "synchronized_hard_cut_at_ayah_boundary")
+            self.assertEqual(result["transition_seconds"], 0.0)
+            self.assertFalse(result["ayah_text_overlap"])
+            self.assertFalse(result["crossfade_audio_offset"])
+            self.assertEqual(len((root / "segments.txt").read_text(encoding="utf-8").splitlines()), 2)
+            self.assertEqual(len((root / "audio_segments.txt").read_text(encoding="utf-8").splitlines()), 2)
 
     def test_recent_visual_selection_avoids_recent_assets_and_categories(self):
         backgrounds = [
@@ -556,21 +541,40 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         chosen = renderer.choose_first_background(backgrounds, 0, {"recent"}, {"sea"})
         self.assertEqual(chosen["id"], "fresh")
 
-    def test_first_background_prefers_moving_video_over_photo(self):
+    def test_ayah_background_avoids_recently_delivered_ids(self):
+        backgrounds = [
+            {"id": "recent", "background_type": "moving_video", "duration_seconds": 30.0, "tags": ["sea"]},
+            {"id": "fresh", "background_type": "moving_video", "duration_seconds": 30.0, "tags": ["forest"]},
+        ]
+        chosen = renderer.choose_background_for_ayah(
+            backgrounds, 10.0, set(), set(), {"recent"}
+        )
+        self.assertEqual(chosen["id"], "fresh")
+
+    def test_background_sequence_preserves_full_rotation_order_after_fresh_start(self):
+        backgrounds = [
+            {"id": "one", "tags": ["sea"]},
+            {"id": "two", "tags": ["forest"]},
+            {"id": "three", "tags": ["mosque"]},
+        ]
+        sequence = renderer.build_background_sequence(backgrounds, 1, {"two"}, {"forest"})
+        self.assertEqual([item["id"] for item in sequence], ["three", "two", "one"])
+
+    def test_first_background_rotation_includes_photo_and_video_assets(self):
         backgrounds = [
             {"id": "photo", "background_type": "photo", "tags": ["nature"]},
             {"id": "moving", "background_type": "moving_video", "tags": ["mosque"]},
         ]
-        chosen = renderer.choose_first_background(backgrounds, 0, set(), set())
-        self.assertEqual(chosen["id"], "moving")
+        self.assertEqual(renderer.choose_first_background(backgrounds, 0, set(), set())["id"], "photo")
+        self.assertEqual(renderer.choose_first_background(backgrounds, 1, set(), set())["id"], "moving")
 
-    def test_ayah_background_prefers_suitable_moving_video_over_photo(self):
+    def test_ayah_background_selection_respects_full_catalog_rotation(self):
         backgrounds = [
             {"id": "photo", "background_type": "photo", "duration_seconds": None},
             {"id": "moving", "background_type": "moving_video", "duration_seconds": 25.0},
         ]
-        chosen = renderer.choose_background_for_ayah(backgrounds, 16.98, set())
-        self.assertEqual(chosen["id"], "moving")
+        self.assertEqual(renderer.choose_background_for_ayah(backgrounds, 16.98, set())["id"], "photo")
+        self.assertEqual(renderer.choose_background_for_ayah(backgrounds[1:] + backgrounds[:1], 16.98, set())["id"], "moving")
 
     def test_category_aware_ayah_selection_prefers_a_different_scene_family(self):
         backgrounds = [

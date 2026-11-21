@@ -1203,3 +1203,14 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Fresh reference-driven preview artifact `quran-reference-layout-preview` (artifact `14695096809`) was generated successfully from the updated code. Both the composited ayah preview and intro preview were downloaded and visually inspected.
 - This remains a review-only preview. No Telegram delivery, Cron execution, production workflow dispatch, TikTok publishing, or delivery-history mutation was performed. All work stayed on `feature/telegram-review-notifications`; `main` was not touched.
 - Next: wait for the user's visual approval before making any further design change or treating this layout as production-approved.
+
+
+## Background rotation and ayah-transition synchronization fix (2026-11-21)
+
+- Updated `src/render_quran_review_previews.py` on `feature/telegram-review-notifications` only.
+- Background selection now rotates the full approved mixed photo/video catalog in its supplied catalog order; it no longer silently prefers moving videos only or sorts the remaining video pool by duration.
+- Every ayah-level selection now excludes background IDs present in the persistent recent-delivery history as well as assets already used earlier in the same video. If the recent-history window covers the entire eligible pool, the selector safely relaxes historical avoidance while preserving within-video uniqueness.
+- Approved still photos and moving clips both participate in rotation. A moving clip is eligible only when its verified duration covers the complete ayah; a still photo can cover any complete ayah.
+- Removed the scene crossfade that blended the outgoing and incoming ayah text and caused the next text to appear before its matching recitation. Scene video is now concatenated with hard cuts at the exact per-ayah segment boundaries; the original MP3 ayah files are concatenated and stream-copied without audio re-encoding. This intentionally prioritizes exact text/audio synchronization over a visual crossfade.
+- Added regression coverage for mixed photo/video rotation, recent-ID avoidance, catalog-order preservation, and hard-cut scene assembly with original audio stream copy.
+- No Cron configuration, Telegram send, workflow dispatch, TikTok publishing, credentials, or `main` branch changes were made by this code edit. CI validation is pending; do not treat the fixes as production-verified until the push-triggered test/render workflow completes successfully.
