@@ -93,13 +93,23 @@ jobs:
           python - <<'PY'
           import sys
           from pathlib import Path
-          from PIL import Image, ImageDraw
+          from PIL import Image, ImageDraw, ImageOps
           sys.path.insert(0, str(Path("src").resolve()))
           from render_quran_review_previews import (
               SURAH_NAMES, font_file, make_frame, make_intro_frame
           )
 
           output = Path("output/quran-reference-layout-preview")
+          # Export the exact source medallion crop used by the renderer so
+          # its alpha extraction can be reviewed against the approved artwork.
+          with Image.open("references/approved_quran_design.png") as reference_source:
+              reference = ImageOps.fit(
+                  reference_source.convert("RGB"), (1080, 1920),
+                  method=Image.Resampling.LANCZOS
+              )
+              reference.crop((70, 870, 240, 1050)).save(
+                  output / "approved_reference_medallion_crop.png"
+              )
           background = Image.new("RGB", (1080, 1920))
           pixels = background.load()
           for y in range(1920):
