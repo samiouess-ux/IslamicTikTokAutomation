@@ -228,6 +228,25 @@
         "reflect2"
       ],
       "confirmed_at_utc": "2026-11-21T22:30:34.619657+00:00"
+    },
+    {
+      "candidate_id": "quran_s083_001_036_part_001",
+      "hashtags_ar": [
+        "#آيات_قرآنية",
+        "#طمأنينة_القلب",
+        "#تدبر_وعمل"
+      ],
+      "hashtags_en": [
+        "#FaithReminder",
+        "#QuranReflection"
+      ],
+      "hook_ids": [
+        "reflection"
+      ],
+      "cta_ids": [
+        "reflect"
+      ],
+      "confirmed_at_utc": "2026-11-22T03:12:35.400176+00:00"
     }
   ]
 }

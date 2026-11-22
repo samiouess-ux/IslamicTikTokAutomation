@@ -297,6 +297,43 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-21T22:30:34.658206+00:00"
+    },
+    {
+      "candidate_id": "quran_s083_001_036_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mountain-lake-37675265",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mountain-bridge-5903759",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-modern-mosque-interior-35417846",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-historic-mosque-stained-glass-30733250",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-sunset-sky-35477402",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-waterfront-12536108",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-22T03:12:35.430070+00:00"
     }
   ]
 }
