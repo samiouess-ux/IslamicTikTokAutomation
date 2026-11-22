@@ -266,6 +266,25 @@
         "save"
       ],
       "confirmed_at_utc": "2026-11-22T11:11:58.603500+00:00"
+    },
+    {
+      "candidate_id": "quran_s032_001_030_part_001",
+      "hashtags_ar": [
+        "#ذكر_الله",
+        "#نور_القرآن",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#QuranDaily",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "share"
+      ],
+      "cta_ids": [
+        "share"
+      ],
+      "confirmed_at_utc": "2026-11-22T17:12:06.634818+00:00"
     }
   ]
 }

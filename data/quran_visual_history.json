@@ -406,6 +406,36 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-22T11:11:58.627329+00:00"
+    },
+    {
+      "candidate_id": "quran_s032_001_030_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-illuminated-mosque-night-34928699",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-38901615",
+          "categories": [
+            "hajj",
+            "kaaba",
+            "mecca",
+            "pilgrimage"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-32617834",
+          "categories": [
+            "mosque",
+            "nature"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-22T17:12:06.663350+00:00"
     }
   ]
 }
