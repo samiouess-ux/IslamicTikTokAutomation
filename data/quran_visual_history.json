@@ -334,6 +334,78 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-22T03:12:35.430070+00:00"
+    },
+    {
+      "candidate_id": "quran_s070_001_044_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-waterfall-forest-12110531",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-interior-calligraphy-19819594",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-33425960",
+          "categories": [
+            "desert"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-35720587",
+          "categories": [
+            "architecture",
+            "courtyard",
+            "mosque"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-16106055",
+          "categories": [
+            "minaret",
+            "moon",
+            "mosque",
+            "night"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-31584135",
+          "categories": [
+            "architecture",
+            "minaret",
+            "mosque",
+            "night"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-2233416",
+          "categories": [
+            "crescent",
+            "lantern",
+            "ramadan"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-36521625",
+          "categories": [
+            "lantern",
+            "ramadan",
+            "still_life",
+            "tea"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-22T11:11:58.627329+00:00"
     }
   ]
 }

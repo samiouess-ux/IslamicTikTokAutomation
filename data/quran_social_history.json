@@ -247,6 +247,25 @@
         "reflect"
       ],
       "confirmed_at_utc": "2026-11-22T03:12:35.400176+00:00"
+    },
+    {
+      "candidate_id": "quran_s070_001_044_part_001",
+      "hashtags_ar": [
+        "#تذكير_بالله",
+        "#القرآن",
+        "#الصبر_والفرج"
+      ],
+      "hashtags_en": [
+        "#Quran",
+        "#PatienceAndHope"
+      ],
+      "hook_ids": [
+        "listen"
+      ],
+      "cta_ids": [
+        "save"
+      ],
+      "confirmed_at_utc": "2026-11-22T11:11:58.603500+00:00"
     }
   ]
 }
