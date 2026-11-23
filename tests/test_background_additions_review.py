@@ -36,9 +36,9 @@ class BackgroundAdditionReviewTests(unittest.TestCase):
                 else:
                     self.assertFalse(item["download_verified"])
 
-    def test_existing_four_candidate_catalog_is_unchanged(self):
+    def test_existing_and_new_approved_candidates_are_download_verified(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(catalog["candidates"]), 15)
+        self.assertEqual(len(catalog["candidates"]), 17)
         self.assertTrue(all(item["user_approved"] and item["download_verified"] for item in catalog["candidates"]))
         original_ids = {
                 "pexels-ocean-shore-35036280",
