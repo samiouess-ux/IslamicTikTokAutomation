@@ -18,7 +18,7 @@ from background_review_adapter import (
 class BackgroundReviewAdapterTests(unittest.TestCase):
     def _write_catalogs(self, root: Path):
         photo = root / "approved.jpg"
-        Image.new("RGB", (1200, 800), (30, 90, 120)).save(photo, quality=95)
+        Image.effect_noise((1200, 800), 100).convert("RGB").save(photo, quality=95)
         video_catalog = root / "videos.json"
         video_catalog.write_text(json.dumps({"candidates": [{
             "id": "video-1", "approved": True, "user_approved": True,
