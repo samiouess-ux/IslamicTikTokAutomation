@@ -1,4 +1,4 @@
-name: Review staged Quran video backgrounds
+name: Review approved Quran video backgrounds
 
 on:
   workflow_dispatch:
@@ -74,11 +74,11 @@ jobs:
             --catalog data/background_candidates.json \
             --output-dir output/background_additions_review \
             --overlay-frame output/background_additions_review/quran_overlay_ash_sharh_94_5.png \
-            --include-id pexels-mosque-river-mostar-27529804 \
-            --include-id pexels-mosque-minaret-lush-trees-35447276 \
-            --include-id pexels-waterfall-forest-12110531 \
-            --include-id pexels-mosque-waterfront-12536108
-      - name: Activate only the four explicitly approved, downloaded, ffprobe-verified portrait clips
+            --include-id pexels-mosque-architecture-28899957 \
+            --include-id pexels-ancient-mosque-architecture-36628576 \
+            --include-id pexels-ancient-mosque-architecture-36628576 \
+            --include-id pexels-mosque-architecture-28899957
+      - name: Activate only the two explicitly approved, downloaded, ffprobe-verified portrait clips
         run: |
           python - <<'PY'
           import json
@@ -86,10 +86,10 @@ jobs:
 
           review = json.loads(Path("output/background_additions_review/background_review_report.json").read_text(encoding="utf-8"))
           target_ids = {
-              "pexels-mosque-river-mostar-27529804",
-              "pexels-mosque-minaret-lush-trees-35447276",
-              "pexels-waterfall-forest-12110531",
-              "pexels-mosque-waterfront-12536108",
+              "pexels-mosque-architecture-28899957",
+              "pexels-ancient-mosque-architecture-36628576",
+              "pexels-ancient-mosque-architecture-36628576",
+              "pexels-mosque-architecture-28899957",
           }
           items = {item["id"]: item for item in review.get("items", [])}
           missing = target_ids - set(items)
@@ -112,7 +112,7 @@ jobs:
               item = items[asset_id]
               candidate = {
                   "id": asset_id,
-                  "category": "nature" if asset_id == "pexels-waterfall-forest-12110531" else "mosque_exterior",
+                  "category": "nature" if asset_id == "pexels-ancient-mosque-architecture-36628576" else "mosque_exterior",
                   "description": item["description"],
                   "creator": item.get("creator") or "Pexels contributor",
                   "source_page_url": item["source_page_url"],
@@ -124,7 +124,7 @@ jobs:
                   "download_verified": True,
                   "approved": True,
                   "user_approved": True,
-                  "notes": "User approved on 2026-11-17. MP4 download, ffprobe metadata and 9:16 portrait dimensions verified by GitHub Actions. Renderer uses the original video with center crop; existing background rotation and 30% zoom settings are unchanged.",
+                  "notes": "User approved the visual overlay preview on 2026-11-23. MP4 download, ffprobe metadata and 9:16 portrait dimensions verified by GitHub Actions. Renderer uses the original video with center crop; existing background rotation and 30% zoom settings are unchanged. User approved this exact Quran-overlay preview on 2026-11-23.",
               }
               existing = next((entry for entry in candidates if entry.get("id") == asset_id), None)
               if existing:
@@ -138,7 +138,7 @@ jobs:
           eligible_new = target_ids.intersection(item["id"] for item in eligible)
           if eligible_new != target_ids:
               raise SystemExit(f"Rotation eligibility check failed: {sorted(eligible_new)}")
-          print("All four approved clips are now eligible for the existing background rotation.")
+          print("All two approved clips are now eligible for the existing background rotation.")
           print("No renderer settings, existing candidates or Telegram settings were changed.")
           PY
 
