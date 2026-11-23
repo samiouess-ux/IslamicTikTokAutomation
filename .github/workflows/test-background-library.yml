@@ -12,6 +12,9 @@ on:
       - "tests/test_background_rotation.py"
       - "src/background_review_adapter.py"
       - "tests/test_background_review_adapter.py"
+      - "src/background_mixed_renderer.py"
+      - "tests/test_background_mixed_renderer.py"
+      - "src/render_video_scenes.py"
   workflow_dispatch:
 
 permissions:
@@ -30,13 +33,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install test dependency
-        run: python -m pip install --disable-pip-version-check pillow
+      - name: Install test dependencies and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check pillow
       - name: Test shared photo and video background library
         run: python -m unittest discover -s tests -p 'test_background_library.py' -v
       - name: Test review-only photo and video adapter
         run: python -m unittest discover -s tests -p 'test_background_review_adapter.py' -v
+      - name: Test mixed photo/video background renderer
+        run: python -m unittest discover -s tests -p 'test_background_mixed_renderer.py' -v
       - name: Test existing video background rotation
         run: python -m unittest discover -s tests -p 'test_background_rotation.py' -v
       - name: Compile isolated library and review adapter modules
-        run: python -m py_compile src/background_library.py src/background_rotation.py src/background_review_adapter.py
+        run: python -m py_compile src/background_library.py src/background_rotation.py src/background_review_adapter.py src/background_mixed_renderer.py src/render_video_scenes.py
