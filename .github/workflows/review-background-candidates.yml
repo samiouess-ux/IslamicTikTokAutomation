@@ -17,6 +17,8 @@ on:
       - "tests/test_background_rotation.py"
       - "tests/test_prepare_background_review_previews.py"
       - "src/background_rotation.py"
+      - "src/background_library.py"
+      - "tests/test_background_library.py"
       - "src/render_video_scenes.py"
       - ".github/workflows/render-manifest-video.yml"
 
@@ -45,6 +47,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_background_additions_review.py' -v
           python -m unittest discover -s tests -p 'test_background_candidates.py' -v
           python -m unittest discover -s tests -p 'test_background_rotation.py' -v
+          python -m unittest discover -s tests -p 'test_background_library.py' -v
           python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
           python -m py_compile src/background_rotation.py src/render_video_scenes.py
       - name: Render a genuine Quran overlay from the approved verse source
