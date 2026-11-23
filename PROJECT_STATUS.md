@@ -1459,3 +1459,10 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Broader Quran batch engine regression run `45155582965` was still in progress at the time of this entry; check its final status before claiming the full engine suite passed.
 - No production workflow was manually dispatched, no Cron job was run, and no Telegram video was sent during this change. The existing render workflow input default is already `use_photo_backgrounds: true`, so future normal dispatches of that workflow will select from the unified library. The user's external Cron schedule, Telegram bot/configuration, credentials, audio, approved overlay design, zoom parameters, TikTok manual publishing, and all unrelated production settings remain unchanged.
 - All code and documentation changes remain on `feature/telegram-review-notifications`; `main` is untouched.
+
+
+## Full Quran engine regression completed after mixed-background integration — 2026-11-23
+
+- Broader Quran batch engine regression run `45155582965` completed successfully. All steps passed: module compilation, Quran catalog/batch/visual-template tests, a reference-driven Quran layout render and preview artifact upload (no delivery), Quran-only daily orchestrator tests, and the test-only safety check.
+- This supplements the dedicated mixed-background CI run `45155633254` and successful review workflow run `45155645483`. No production render, Cron execution, Telegram send, or TikTok publishing was triggered by these checks.
+- The mixed photo/video renderer is integrated on `feature/telegram-review-notifications`; the existing `render-manifest-video.yml` option default enables the unified library. First naturally scheduled delivery should be monitored for correct media rotation and output quality. Do not manually trigger an extra production video just to test it.
