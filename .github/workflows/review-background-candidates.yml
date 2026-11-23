@@ -21,6 +21,9 @@ on:
       - "tests/test_background_library.py"
       - "src/background_review_adapter.py"
       - "tests/test_background_review_adapter.py"
+      - "src/background_mixed_renderer.py"
+      - "tests/test_background_mixed_renderer.py"
+      - "src/render_video_scenes.py"
       - "data/background_photos_manifest.json"
       - "assets/background_photos/**"
       - "src/render_video_scenes.py"
@@ -53,8 +56,9 @@ jobs:
           python -m unittest discover -s tests -p 'test_background_rotation.py' -v
           python -m unittest discover -s tests -p 'test_background_library.py' -v
           python -m unittest discover -s tests -p 'test_background_review_adapter.py' -v
+          python -m unittest discover -s tests -p 'test_background_mixed_renderer.py' -v
           python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
-          python -m py_compile src/background_rotation.py src/background_library.py src/background_review_adapter.py src/render_video_scenes.py
+          python -m py_compile src/background_rotation.py src/background_library.py src/background_review_adapter.py src/background_mixed_renderer.py src/render_video_scenes.py
       - name: Render a genuine Quran overlay from the approved verse source
         run: |
           mkdir -p output/background_additions_review
