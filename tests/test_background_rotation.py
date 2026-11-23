@@ -17,7 +17,7 @@ class BackgroundRotationTests(unittest.TestCase):
 
     def test_only_verified_portrait_backgrounds_are_rotation_eligible(self):
         items = load_eligible_backgrounds(self.catalog)
-        self.assertEqual(len(items), 11)
+        self.assertEqual(len(items), 13)
         self.assertTrue(all(x["approved"] and x["user_approved"] and x["download_verified"] for x in items))
         original = {
             "pexels-ocean-shore-35036280",
