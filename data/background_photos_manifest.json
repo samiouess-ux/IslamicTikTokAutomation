@@ -522,5 +522,12 @@
         "still_life"
       ]
     }
-  ]
+  ],
+  "user_approval": {
+    "status": "approved",
+    "user_approved": true,
+    "approval_scope": "All 35 photo candidates in this manifest",
+    "approval_recorded_on": "2026-11-23",
+    "note": "The user confirmed that these photos had already been explicitly approved in prior project review. This records that existing approval; it does not approve newly added photos."
+  }
 }
