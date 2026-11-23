@@ -96,29 +96,40 @@ def select_background_sequence(
 
 
 def load_eligible_photo_backgrounds(manifest_path: Path) -> list[dict]:
-    """Load only downloaded photos with explicit user approval and valid local files."""
+    """Load previously user-approved photos only when their local image files verify."""
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    approval = manifest.get("user_approval", {})
+    if not (
+        approval.get("status") == "approved"
+        and approval.get("user_approved") is True
+        and approval.get("approval_scope") == "All 35 photo candidates in this manifest"
+    ):
+        raise ValueError("Photo manifest has no recorded explicit user approval.")
+
+    from PIL import Image
+
     candidates = manifest.get("candidates", [])
     eligible = []
     for item in candidates:
-        if not (
-            item.get("approved") is True
-            and item.get("user_approved") is True
-            and item.get("download_verified") is True
-        ):
-            continue
         local_path = item.get("local_path")
         if not isinstance(local_path, str) or not local_path.strip():
             continue
         path = Path(local_path)
         if not path.is_file() or path.stat().st_size < 50_000:
             continue
+        try:
+            with Image.open(path) as image:
+                image.verify()
+            with Image.open(path) as image:
+                width, height = image.size
+                if width < 720 or height < 720:
+                    continue
+        except (OSError, ValueError):
+            continue
         eligible.append(item)
     ids = [item.get("id") for item in eligible]
     if any(not item_id for item_id in ids) or len(ids) != len(set(ids)):
         raise ValueError("Eligible photo background IDs must be present and unique.")
     if not eligible:
-        raise ValueError(
-            "No explicitly user-approved, download-verified photo backgrounds are eligible."
-        )
+        raise ValueError("No previously approved photo backgrounds passed local image verification.")
     return sorted(eligible, key=lambda item: item["id"])
