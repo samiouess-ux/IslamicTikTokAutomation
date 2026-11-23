@@ -1349,3 +1349,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 - A separate pre-existing candidate test suite failed in run `45147249697` because it hard-coded 15 total entries and required every entry to be download-verified. That expectation became stale when two intentionally pending entries were added. Updated `tests/test_background_candidates.py` to assert 17 total entries, 15 technically verified existing entries, and exactly these two staged entries excluded from rotation. Validation after this test correction is pending.
 - No production renderer, active rotation settings, background history, scheduler, Telegram configuration, credentials, delivery history, or TikTok publishing behavior was changed. No Telegram send, Cron execution, or production workflow dispatch occurred. All changes remain on `feature/telegram-review-notifications`; `main` was not touched.
 - Next: obtain the user's visual/legibility approval for these two previewed backgrounds. Keep both staged and inactive until that approval; then separately decide whether to enable them in the existing rotation.
+
+
+## Two new Quran backgrounds visually approved and enabled for rotation — 2026-11-23
+
+- User explicitly approved both actual Quran-overlay review previews, including the bright-sky mosque clip.
+- Both source MP4s had already passed isolated download and ffprobe verification in review run `45147837063`: `pexels-mosque-architecture-28899957` (1080x1920, 26.067s) and `pexels-ancient-mosque-architecture-36628576` (2160x3840, 11.967s).
+- Updated only these two entries in `data/background_candidates.json` to `download_verified=true`, preserving their existing approval flags, direct Pexels source URLs, and metadata.
+- Restricted the background review/activation workflow to exactly these two user-approved IDs. It re-downloads/probes them, renders the real Quran overlay, validates 9:16 media and approval, then makes only these two eligible in the existing background rotation. It does not send Telegram, invoke Cron, publish to TikTok, or alter renderer/zoom/audio/scheduling configuration.
+- Updated background candidate tests to reflect 17 total verified candidates and explicitly assert the two new IDs are eligible. Updated the staged-additions count assertion from 15 to 17.
+- All changes remain on `feature/telegram-review-notifications`; `main` is untouched. Await the exact-commit CI result before claiming the workflow activation is complete.
