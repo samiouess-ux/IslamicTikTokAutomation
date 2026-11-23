@@ -1407,3 +1407,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - The parallel review workflow run `45153955164` was still in progress at the time of this update. Its outcome must be checked separately before treating its preview/activation sequence as complete.
 - All work remains on `feature/telegram-review-notifications`; `main` is untouched. Production renderer behavior, schedule, credentials, Telegram delivery, Cron, audio, zoom, and TikTok publishing remain unchanged.
 - Next: verify the parallel review workflow result; then build a separate review-only adapter/preview using the shared library, keeping photo and video renderers distinct. Do not activate photos in scheduled production without a user-reviewed preview and explicit approval.
+
+
+## Isolated background review workflow — successful preview validation — 2026-11-23
+
+- Review workflow run `45153955164` completed successfully on commit `1b8c60e3ad80a46c766b558e088634645b6a4c00`. Existing catalog/preview safeguards passed, the genuine Quran overlay frame rendered, both explicitly approved mosque clips downloaded and passed ffprobe, and the review images/artifact were published.
+- Artifact `quran-islamic-background-review` (ID `14806933752`) contains the two verified MP4 sources, center-cropped 9:16 stills, Quran-overlay composites, contact sheets, the overlay PNG, and `background_review_report.json`.
+- Report confirms both clips are H.264 portrait media (1080x1920 / 26.067s and 2160x3840 / 11.967s), with no unresolved downloads. It explicitly records `production_enabled: false` and `overlay_legibility_review_required: true`; these are review assets, not permission to change scheduled production.
+- The separate shared-library CI run `45153955127` also passed all shared-library tests, all 9 existing background-rotation tests, and module compilation.
+- Next implementation remains review-only: connect the common typed library to a separate preview adapter while keeping photo and video rendering paths distinct. No scheduled renderer, production defaults, daily schedule, Telegram, credentials, Cron, audio, zoom, or TikTok publishing changes.
