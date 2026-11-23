@@ -1323,3 +1323,15 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Important verification boundary: the prior check did not establish the exact request URL or verify the authorization/header values. Do not copy or reconstruct credentials, tokens, or endpoint details from assumptions. The current conversation confirms successful daily operation, but no live cron-job.org account inspection was performed during this documentation update.
 - Operational rule: preserve the existing external job and its settings. Do not trigger a test, manually dispatch the production workflow, or send an extra Telegram video unless the user explicitly asks.
 - This entry records previously checked settings and the user's current confirmation of reliable operation. Documentation only; no cron configuration, workflow, code, credentials, Telegram settings, or delivery history changed. No Cron run or Telegram send was triggered. Work remains on `feature/telegram-review-notifications`; do not touch `main`.
+
+
+## Background library expansion — two candidates staged (2026-11-23)
+
+- User approved adding two new Pexels video candidates to the background library.
+- Added metadata to `data/background_candidates.json` on `feature/telegram-review-notifications` only:
+  - `pexels-mosque-architecture-28899957`: Pexels page confirms Free, 1080x1920, 9:16, 26 seconds.
+  - `pexels-ancient-mosque-architecture-36628576`: Pexels page confirms Free, 2160x3840, 9:16, 11 seconds.
+- Their Pexels pages and direct MP4 URLs were identified, but the MP4 files could not be downloaded in this session, so `download_verified=false` is deliberately retained for both. They therefore remain ineligible for the production background rotation under the existing verified-download gate.
+- A third previously suggested candidate (video ID 30963441) could not be verified as a matching Pexels page and was not added.
+- No renderer, selection logic, active background catalog, workflow, scheduler, Telegram settings, credentials, or delivery history was changed. No workflow activation, Cron run, Telegram send, or TikTok publishing was triggered. `main` was not touched.
+- Next safe step: verify/download the two MP4 files and run ffprobe checks, then prepare overlay previews for user review before any production activation.
