@@ -7,8 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from background_rotation import (load_eligible_backgrounds, select_background,
-                                 select_background_sequence)
+from background_rotation import (load_eligible_backgrounds, load_eligible_photo_backgrounds,
+                                 select_background, select_background_sequence)
 
 
 class BackgroundRotationTests(unittest.TestCase):
@@ -28,6 +28,27 @@ class BackgroundRotationTests(unittest.TestCase):
         self.assertTrue(all(x.get("aspect_ratio") == "9:16" for x in items))
         self.assertNotIn("pexels-mountain-bridge-5903759", {x["id"] for x in items})
         self.assertNotIn("pexels-illuminated-mosque-night-34928699", {x["id"] for x in items})
+
+
+    def test_photo_assets_require_explicit_approval_and_verified_download(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            photo = root / "approved.jpg"
+            photo.write_bytes(b"x" * 60_000)
+            manifest = root / "photos.json"
+            data = {"candidates": [
+                {"id": "pending", "local_path": str(photo),
+                 "approved": True, "user_approved": False, "download_verified": True},
+                {"id": "approved", "local_path": str(photo),
+                 "approved": True, "user_approved": True, "download_verified": True},
+            ]}
+            manifest.write_text(json.dumps(data), encoding="utf-8")
+            eligible = load_eligible_photo_backgrounds(manifest)
+            self.assertEqual([item["id"] for item in eligible], ["approved"])
+
+    def test_existing_photo_manifest_does_not_auto_approve_assets(self):
+        with self.assertRaisesRegex(ValueError, "explicitly user-approved"):
+            load_eligible_photo_backgrounds(ROOT / "data" / "background_photos_manifest.json")
 
     def test_selection_is_deterministic_and_avoids_recent_ids(self):
         first = select_background(self.catalog, "stable-video-key")
