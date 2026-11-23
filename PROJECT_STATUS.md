@@ -1427,3 +1427,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Dedicated CI run `45154506664` on commit `2a9ff1ed4675e38e85a28a14ce1bcfbe43183489` passed: 2 shared-library tests, 3 review-adapter tests, 9 existing background-rotation tests, and Python compilation.
 - Updated the review workflow to generate the unified inventory and photo Quran-overlay contact sheet, include photo catalog/assets in its path filters, and run the new adapter tests. The parallel review workflow run `45154506678` was still in progress at the time of this update; verify it before claiming the photo contact sheet artifact is ready.
 - The dedicated test workflow now also runs the new review-adapter tests. All changes remain on `feature/telegram-review-notifications`; `main` is untouched. Production rendering, schedule, Telegram, credentials, Cron, audio, zoom, and TikTok publishing remain unchanged.
+
+
+## Review artifact publishing race fix — 2026-11-23
+
+- In review run `45154506678`, all tests, the unified 35-photo contact sheet, and the two video overlay previews completed successfully. The only failed step was the final Git push: the branch advanced concurrently when the status log was committed, so the workflow's generated-image commit was rejected as non-fast-forward. No source changes were lost and no production action occurred.
+- Removed generated preview commits/pushes from the review workflow. Review images and verified source clips are now retained as workflow artifacts only; artifact upload uses `if: always()` so it still runs if a later optional step fails. This avoids branch races and unnecessary generated-image commits.
+- Replacement review run `45154716270` was triggered on commit `def1058053f78717a365f66188c23a55cce6224a`; at the time of this status entry it was still running the environment-install step. Its final status and artifact availability remain to be verified.
+- Production rendering, background selection defaults, daily schedule, Telegram, credentials, Cron, audio, zoom, and TikTok publishing remain unchanged. All work stays on `feature/telegram-review-notifications`; `main` is untouched.
