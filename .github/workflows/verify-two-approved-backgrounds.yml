@@ -1,0 +1,87 @@
+name: Verify two approved Pexels backgrounds (review only)
+
+on:
+  push:
+    branches:
+      - feature/telegram-review-notifications
+    paths:
+      - ".github/workflows/verify-two-approved-backgrounds.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-two-backgrounds:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the approved project branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+
+      - name: Install isolated video inspection dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core fonts-hosny-amiri fonts-noto-core
+          fc-cache -f
+          python -m pip install --disable-pip-version-check pillow
+
+      - name: Render the existing approved Quran overlay
+        run: |
+          mkdir -p output/two_backgrounds_review
+          python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          from render_quran_review_previews import make_frame, font_file
+
+          reference = json.loads(Path("data/reference/surah_ash_sharh_94_1_8_approved.json").read_text(encoding="utf-8"))
+          draft = json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+          source_arabic = reference["verses"]["94:5"]
+          verse = next(v for v in draft["verses"] if v["number"] == 5)
+          if verse["arabic"] != source_arabic or not verse.get("english"):
+              raise SystemExit("Approved Quran source/translation check failed; refusing preview.")
+          overlay = Path("output/two_backgrounds_review/quran_overlay_ash_sharh_94_5.png")
+          make_frame(verse, 94, 4, overlay, font_file(), reference["surah_name_ar"])
+          print(f"Rendered approved Quran overlay: {overlay}")
+          PY
+
+      - name: Resolve, download and ffprobe only the two user-approved clips
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          source = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
+          wanted = {
+              "pexels-mosque-architecture-28899957",
+              "pexels-ancient-mosque-architecture-36628576",
+          }
+          selected = [item for item in source.get("candidates", []) if item.get("id") in wanted]
+          if {item.get("id") for item in selected} != wanted:
+              raise SystemExit("The two expected approved candidates are not both present.")
+          for item in selected:
+              if item.get("user_approved") is not True or item.get("approved") is not True:
+                  raise SystemExit(f"Candidate lacks explicit user approval: {item.get('id')}")
+              item["direct_video_url"] = ""
+          review_only = {"schema_version": 1, "candidates": selected}
+          Path("data/two_backgrounds_review_only.json").write_text(
+              json.dumps(review_only, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          PY
+
+          python src/prepare_background_review_previews.py             --catalog data/two_backgrounds_review_only.json             --output-dir output/two_backgrounds_review             --overlay-frame output/two_backgrounds_review/quran_overlay_ash_sharh_94_5.png             --include-id pexels-mosque-architecture-28899957             --include-id pexels-ancient-mosque-architecture-36628576
+
+      - name: Upload review-only previews and source clips
+        uses: actions/upload-artifact@v4
+        with:
+          name: two-approved-pexels-backgrounds-review
+          path: output/two_backgrounds_review/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Confirm no production activation or delivery
+        run: |
+          echo "Review-only run completed."
+          echo "No production catalog, renderer settings, scheduler, Telegram delivery, or TikTok publishing was changed."
