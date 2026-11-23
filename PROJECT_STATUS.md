@@ -1,3 +1,13 @@
+## Background approval safety correction — 2026-11-23
+
+- Active branch: `feature/telegram-review-notifications`; latest known HEAD before this change: `8239b910ec595ba909176013ea956540d1da8dd4`. `main` was not changed.
+- Confirmed the video catalog has 17 records, of which 13 currently pass the existing strict 9:16 + approval + download-verification filter. The two newly reviewed mosque clips were downloaded, ffprobe-verified, activated by the background-review workflow, and added to the video catalog. Workflow run `45149427845` completed successfully; its preview/test/activation/publish steps all passed.
+- Found a safety gap in the separate photo path: `build_photo_background_reel()` previously treated any sufficiently large local file as eligible, without checking explicit approval or download-verification flags. The 35-entry photo manifest currently has no such flags, so none of those photos has machine-recorded approval status.
+- Added a fail-closed photo eligibility loader requiring `approved=true`, `user_approved=true`, `download_verified=true`, a unique ID, and an existing local file of at least 50 KB. The optional photo-render path now uses this loader. Existing photo entries remain pending and are not auto-approved.
+- Added regression tests for explicit photo approval and for keeping the existing unreviewed photo manifest out of eligibility.
+- This is a safety-gate correction only. It does not enable photo backgrounds, change the default video rotation, alter visual design/zoom, schedule, Telegram, credentials, Cron, or TikTok behavior. No production render, Cron run, Telegram send, or TikTok publish was triggered.
+- Validation of this exact change is pending. Next: run the branch's render-only background tests, then build a unified photo/video asset intake and review process while keeping all unapproved assets excluded.
+ 
 ## Opening fade and moving-background render verified — 2026-11-21
 
 - Latest active branch HEAD before this status update: `e7c1782584f06b733063caf4cf8bc22bfe27be77` on `feature/telegram-review-notifications`; `main` was not changed.
