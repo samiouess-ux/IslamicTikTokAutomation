@@ -19,6 +19,10 @@ on:
       - "src/background_rotation.py"
       - "src/background_library.py"
       - "tests/test_background_library.py"
+      - "src/background_review_adapter.py"
+      - "tests/test_background_review_adapter.py"
+      - "data/background_photos_manifest.json"
+      - "assets/background_photos/**"
       - "src/render_video_scenes.py"
       - ".github/workflows/render-manifest-video.yml"
 
@@ -48,8 +52,9 @@ jobs:
           python -m unittest discover -s tests -p 'test_background_candidates.py' -v
           python -m unittest discover -s tests -p 'test_background_rotation.py' -v
           python -m unittest discover -s tests -p 'test_background_library.py' -v
+          python -m unittest discover -s tests -p 'test_background_review_adapter.py' -v
           python -m unittest discover -s tests -p 'test_prepare_background_review_previews.py' -v
-          python -m py_compile src/background_rotation.py src/render_video_scenes.py
+          python -m py_compile src/background_rotation.py src/background_library.py src/background_review_adapter.py src/render_video_scenes.py
       - name: Render a genuine Quran overlay from the approved verse source
         run: |
           mkdir -p output/background_additions_review
@@ -71,6 +76,13 @@ jobs:
           make_frame(verse, 94, 4, overlay, font_file(), reference["surah_name_ar"])
           print(f"Rendered real Quran overlay for Ash-Sharh 94:5: {overlay}")
           PY
+      - name: Build unified review inventory and photo overlay contact sheet
+        run: |
+          python src/background_review_adapter.py \
+            --video-catalog data/background_candidates.json \
+            --photo-manifest data/background_photos_manifest.json \
+            --overlay-frame output/background_additions_review/quran_overlay_ash_sharh_94_5.png \
+            --output-dir output/background_additions_review
       - name: Download and prepare isolated Islamic background previews with Quran overlay
         run: |
           python src/prepare_background_review_previews.py \
@@ -78,7 +90,6 @@ jobs:
             --output-dir output/background_additions_review \
             --overlay-frame output/background_additions_review/quran_overlay_ash_sharh_94_5.png \
             --include-id pexels-mosque-architecture-28899957 \
-            --include-id pexels-ancient-mosque-architecture-36628576 \
             --include-id pexels-ancient-mosque-architecture-36628576
       - name: Activate only the two explicitly approved, downloaded, ffprobe-verified portrait clips
         run: |
