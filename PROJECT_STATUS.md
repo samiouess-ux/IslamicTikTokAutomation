@@ -1416,3 +1416,14 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Report confirms both clips are H.264 portrait media (1080x1920 / 26.067s and 2160x3840 / 11.967s), with no unresolved downloads. It explicitly records `production_enabled: false` and `overlay_legibility_review_required: true`; these are review assets, not permission to change scheduled production.
 - The separate shared-library CI run `45153955127` also passed all shared-library tests, all 9 existing background-rotation tests, and module compilation.
 - Next implementation remains review-only: connect the common typed library to a separate preview adapter while keeping photo and video rendering paths distinct. No scheduled renderer, production defaults, daily schedule, Telegram, credentials, Cron, audio, zoom, or TikTok publishing changes.
+
+
+## Review-only adapter for the shared photo/video background library — 2026-11-23
+
+- Added `src/background_review_adapter.py`: it loads the common verified inventory, keeps video and photo records in separate groups, and creates a center-cropped 9:16 contact sheet for all approved photos with the actual transparent Quran overlay. The output explicitly remains review-only and marks overlay legibility review as required.
+- The existing video preview pipeline remains the video-specific adapter; the new photo contact-sheet adapter does not replace or modify it. No scheduled production renderer or media-selection logic is imported or changed.
+- Added `tests/test_background_review_adapter.py` for typed inventory grouping, photo crop/overlay contact sheet creation, and fail-closed behavior for an empty photo inventory.
+- First adapter CI run exposed a test-fixture issue: the synthetic solid-color JPEG was smaller than the photo loader's existing 50 KB verification threshold. Replaced it with a deterministic noise image so the fixture represents a valid locally verified photo; no production validation threshold was changed.
+- Dedicated CI run `45154506664` on commit `2a9ff1ed4675e38e85a28a14ce1bcfbe43183489` passed: 2 shared-library tests, 3 review-adapter tests, 9 existing background-rotation tests, and Python compilation.
+- Updated the review workflow to generate the unified inventory and photo Quran-overlay contact sheet, include photo catalog/assets in its path filters, and run the new adapter tests. The parallel review workflow run `45154506678` was still in progress at the time of this update; verify it before claiming the photo contact sheet artifact is ready.
+- The dedicated test workflow now also runs the new review-adapter tests. All changes remain on `feature/telegram-review-notifications`; `main` is untouched. Production rendering, schedule, Telegram, credentials, Cron, audio, zoom, and TikTok publishing remain unchanged.
