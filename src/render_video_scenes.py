@@ -368,7 +368,7 @@ def main() -> None:
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", default="output/review.mp4")
     parser.add_argument("--background-rotation", action="store_true", help="Select from the approved background catalog.")
-    parser.add_argument("--use-photo-backgrounds", action="store_true", help="Use the downloaded Pexels photo library with gentle motion and crossfades.")
+    parser.add_argument("--use-photo-backgrounds", action="store_true", help="Use the unified, explicitly approved photo/video background library with media-specific rendering and crossfades.")
     parser.add_argument("--background-rotation-key", default="manual-review")
     parser.add_argument("--recent-background-id", action="append", default=[])
     args = parser.parse_args()
@@ -477,9 +477,11 @@ def main() -> None:
     duration = float(duration_result)
     validate_video_duration(duration)
     if args.use_photo_backgrounds:
-        from background_rotation import load_eligible_photo_backgrounds
-        eligible_photos = load_eligible_photo_backgrounds(
-            Path("data/background_photos_manifest.json")
+        from background_library import load_background_library
+        from background_mixed_renderer import build_mixed_background_reel
+        eligible_assets = load_background_library(
+            Path("data/background_candidates.json"),
+            Path("data/background_photos_manifest.json"),
         )
         timed_scenes = []
         for index, scene in enumerate(scenes):
@@ -488,9 +490,9 @@ def main() -> None:
             if index < len(scenes) - 1:
                 scene_duration += inter_verse_gap * len(scene["verses"])
             timed_scenes.append({"verses": selected_verses, "duration": scene_duration})
-        build_photo_background_reel(
-            eligible_photos, timed_scenes, duration, work, bg_file,
-            args.background_rotation_key
+        build_mixed_background_reel(
+            eligible_assets, timed_scenes, duration, work, bg_file,
+            args.background_rotation_key, args.recent_background_id
         )
     else:
         build_background_reel(
