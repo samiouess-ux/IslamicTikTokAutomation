@@ -30,25 +30,33 @@ class BackgroundRotationTests(unittest.TestCase):
         self.assertNotIn("pexels-illuminated-mosque-night-34928699", {x["id"] for x in items})
 
 
-    def test_photo_assets_require_explicit_approval_and_verified_download(self):
+    def test_previously_approved_photo_manifest_uses_verified_local_files(self):
+        from PIL import Image
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             photo = root / "approved.jpg"
-            photo.write_bytes(b"x" * 60_000)
+            Image.new("RGB", (900, 1200), "white").save(photo, quality=90)
             manifest = root / "photos.json"
-            data = {"candidates": [
-                {"id": "pending", "local_path": str(photo),
-                 "approved": True, "user_approved": False, "download_verified": True},
-                {"id": "approved", "local_path": str(photo),
-                 "approved": True, "user_approved": True, "download_verified": True},
-            ]}
+            data = {
+                "user_approval": {
+                    "status": "approved", "user_approved": True,
+                    "approval_scope": "All 35 photo candidates in this manifest"
+                },
+                "candidates": [
+                    {"id": "approved", "local_path": str(photo)},
+                    {"id": "missing", "local_path": str(root / "missing.jpg")}
+                ]
+            }
             manifest.write_text(json.dumps(data), encoding="utf-8")
             eligible = load_eligible_photo_backgrounds(manifest)
             self.assertEqual([item["id"] for item in eligible], ["approved"])
 
-    def test_existing_photo_manifest_does_not_auto_approve_assets(self):
-        with self.assertRaisesRegex(ValueError, "explicitly user-approved"):
-            load_eligible_photo_backgrounds(ROOT / "data" / "background_photos_manifest.json")
+    def test_photo_manifest_without_approval_record_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "photos.json"
+            manifest.write_text(json.dumps({"candidates": []}), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "no recorded explicit user approval"):
+                load_eligible_photo_backgrounds(manifest)
 
     def test_selection_is_deterministic_and_avoids_recent_ids(self):
         first = select_background(self.catalog, "stable-video-key")
