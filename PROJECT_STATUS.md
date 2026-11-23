@@ -1387,3 +1387,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Restricted the background review/activation workflow to exactly these two user-approved IDs. It re-downloads/probes them, renders the real Quran overlay, validates 9:16 media and approval, then makes only these two eligible in the existing background rotation. It does not send Telegram, invoke Cron, publish to TikTok, or alter renderer/zoom/audio/scheduling configuration.
 - Updated background candidate tests to reflect 17 total verified candidates and explicitly assert the two new IDs are eligible. Updated the staged-additions count assertion from 15 to 17.
 - All changes remain on `feature/telegram-review-notifications`; `main` is untouched. Await the exact-commit CI result before claiming the workflow activation is complete.
+
+
+## Shared background library loader — isolated implementation — 2026-11-23
+
+- Added `src/background_library.py` with a single typed intake function that combines the existing strict video eligibility loader and the previously approved/locally verified photo loader.
+- The normalized records carry an explicit `media_type` (`photo` or `video`), common `asset_id` / `source_url` fields, and media-appropriate `asset_url` / `asset_path` fields. Duplicate IDs across the two catalogs fail closed.
+- Added `tests/test_background_library.py` for combining only eligible assets, retaining the media type and source fields, excluding pending/missing assets, and rejecting cross-catalog ID collisions.
+- This is an isolated management/intake layer only. It does not change either catalog, photo/video renderer, production selection, render workflow defaults, daily schedule, Telegram, credentials, Cron, or TikTok publishing. No production render or Telegram send was triggered.
+- Next validation: run the new tests together with existing background rotation tests. Only after that passes, consider a separate review-only adapter integration; production renderer activation remains deferred pending a user-reviewed preview.
