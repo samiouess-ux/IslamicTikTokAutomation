@@ -1,4 +1,4 @@
-"""Safety checks for staged, review-only background candidates."""
+"""Safety checks for staged and approved background candidates."""
 import json
 import re
 import unittest
@@ -28,27 +28,30 @@ class BackgroundCandidateTests(unittest.TestCase):
             self.assertRegex(url, rf"/video-files/{re.escape(source_id)}/[^/]+\.mp4$")
             self.assertIn(source_id, item["source_page_url"])
 
-    def test_two_new_candidates_remain_staged_until_visual_review(self):
+    def test_two_new_candidates_are_approved_and_eligible(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
-        pending_ids = {
+        approved_ids = {
             "pexels-mosque-architecture-28899957",
             "pexels-ancient-mosque-architecture-36628576",
         }
         entries = {item["id"]: item for item in catalog["candidates"]}
-        self.assertTrue(pending_ids.issubset(entries))
-        for item in catalog["candidates"]:
+        self.assertTrue(approved_ids.issubset(entries))
+        for asset_id in approved_ids:
+            item = entries[asset_id]
             self.assertTrue(item["approved"])
             self.assertTrue(item["user_approved"])
-            self.assertEqual(item["download_verified"], item["id"] not in pending_ids)
+            self.assertTrue(item["download_verified"])
+            self.assertEqual(item["aspect_ratio"], "9:16")
+            self.assertTrue(item["direct_video_url"].startswith("https://"))
         eligible_ids = {
             item["id"] for item in load_eligible_backgrounds(Path("data/background_candidates.json"))
         }
-        self.assertTrue(pending_ids.isdisjoint(eligible_ids))
+        self.assertTrue(approved_ids.issubset(eligible_ids))
 
-    def test_only_fifteen_existing_candidates_are_download_verified(self):
+    def test_all_seventeen_candidates_are_download_verified(self):
         catalog = json.loads(Path("data/background_candidates.json").read_text(encoding="utf-8"))
         verified = [item for item in catalog["candidates"] if item["download_verified"]]
-        self.assertEqual(len(verified), 15)
+        self.assertEqual(len(verified), 17)
 
 
 if __name__ == "__main__":
