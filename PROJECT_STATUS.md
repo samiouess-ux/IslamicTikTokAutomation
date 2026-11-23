@@ -1,3 +1,12 @@
+## Restore recorded approval for existing photo library — 2026-11-23
+
+- User clarified that all 35 photos in `data/background_photos_manifest.json` had already been visually approved in earlier review. The previous commit's assumption that no approval existed was incorrect; it is superseded by this correction.
+- Recorded the user's existing approval at manifest level, explicitly scoped to the 35 existing candidates. This does not pre-approve future additions.
+- Updated the photo eligibility loader to honor that recorded approval and independently verify each local image file (exists, at least 50 KB, decodable image, minimum 720 px dimensions). Invalid or missing files are skipped; newly added photos are not covered by the existing approval scope.
+- Added tests for previously approved photos and fail-closed behavior when approval metadata is absent.
+- This changes only the optional photo eligibility gate. It does not switch photo backgrounds on in the production schedule, change video rotation, design, zoom, schedule, Telegram, credentials, Cron, or TikTok.
+- The earlier render-only test run on commit `fcda6c9` passed the Quran batch engine tests; its background-review run failed at publishing preview images after the validation and render steps had passed. The subsequent background-review run for commit `25ea8a9` completed successfully but was against the earlier approval-gate implementation. This corrected approval-record change still requires exact-commit validation.
+ 
 ## Background approval safety correction — 2026-11-23
 
 - Active branch: `feature/telegram-review-notifications`; latest known HEAD before this change: `8239b910ec595ba909176013ea956540d1da8dd4`. `main` was not changed.
