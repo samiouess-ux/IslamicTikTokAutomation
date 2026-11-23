@@ -304,6 +304,25 @@
         "daily"
       ],
       "confirmed_at_utc": "2026-11-23T03:12:17.000559+00:00"
+    },
+    {
+      "candidate_id": "quran_s012_001_111_part_001",
+      "hashtags_ar": [
+        "#تلاوة_خاشعة",
+        "#القرآن_الكريم",
+        "#تدبر_وعمل"
+      ],
+      "hashtags_en": [
+        "#QuranTime",
+        "#QuranReflection"
+      ],
+      "hook_ids": [
+        "daily"
+      ],
+      "cta_ids": [
+        "listen"
+      ],
+      "confirmed_at_utc": "2026-11-23T11:12:42.525303+00:00"
     }
   ]
 }
