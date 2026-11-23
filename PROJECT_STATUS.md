@@ -1,3 +1,12 @@
+## Unified background library architecture review — 2026-11-23
+
+- Confirmed the existing sources are separate: `data/background_candidates.json` (17 video records; 13 pass the strict approved + user-approved + download-verified + 9:16 filter) and `data/background_photos_manifest.json` (35 previously user-approved photos, all 35 local assets present and downloaded/image-decoded/dimension-verified by the photo download workflow).
+- Confirmed the renderers are separate by design: video clips use `build_background_reel()`; still photos use `build_photo_background_reel()` with gentle zoom and crossfades. Keep these media-specific rendering paths so photos are not treated as video files and videos retain their clip-duration/probe safeguards.
+- Found a flag interaction in `.github/workflows/render-manifest-video.yml`: both `use_photo_backgrounds` and `use_background_rotation` default to true, but in `render_video_scenes.py` the photo branch builds the background reel instead of the selected video sequence. Thus this workflow's default run uses the photo reel; the video sequence selected earlier is not the reel source. This is a review-workflow behavior, not evidence of a change to the scheduled production path.
+- Confirmed `src/asset_rotation.py` is a generic approved-asset selector but currently does not unify the photo and video background catalogs.
+- Recommended implementation: one shared background-library intake/eligibility/approval layer that normalizes photos and videos with an explicit `media_type`, while retaining separate photo/video render adapters. First integrate and test the shared library in an isolated review-only path; do not change the daily production renderer, schedule, Telegram, design, zoom, or background choice until the user reviews a rendered preview and separately approves activation.
+- No renderer, workflow input defaults, production settings, schedule, Telegram, credentials, Cron, or TikTok behavior changed during this architecture review.
+ 
 ## Restore recorded approval for existing photo library — 2026-11-23
 
 - User clarified that all 35 photos in `data/background_photos_manifest.json` had already been visually approved in earlier review. The previous commit's assumption that no approval existed was incorrect; it is superseded by this correction.
