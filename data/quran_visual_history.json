@@ -485,6 +485,18 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-23T11:12:42.551707+00:00"
+    },
+    {
+      "candidate_id": "quran_s058_001_022_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-ancient-mosque-architecture-36628576",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-23T17:14:30.657505+00:00"
     }
   ]
 }

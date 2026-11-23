@@ -323,6 +323,25 @@
         "listen"
       ],
       "confirmed_at_utc": "2026-11-23T11:12:42.525303+00:00"
+    },
+    {
+      "candidate_id": "quran_s058_001_022_part_001",
+      "hashtags_ar": [
+        "#رسالة_قرآنية",
+        "#آيات_الله",
+        "#توحيد_الله"
+      ],
+      "hashtags_en": [
+        "#QuranInspiration",
+        "#Tawheed"
+      ],
+      "hook_ids": [
+        "reminder"
+      ],
+      "cta_ids": [
+        "remind"
+      ],
+      "confirmed_at_utc": "2026-11-23T17:14:30.630913+00:00"
     }
   ]
 }
