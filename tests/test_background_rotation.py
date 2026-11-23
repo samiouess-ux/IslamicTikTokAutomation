@@ -35,7 +35,7 @@ class BackgroundRotationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             photo = root / "approved.jpg"
-            Image.new("RGB", (900, 1200), "white").save(photo, quality=90)
+            Image.effect_noise((900, 1200), 100).convert("RGB").save(photo, quality=95)
             manifest = root / "photos.json"
             data = {
                 "user_approval": {
