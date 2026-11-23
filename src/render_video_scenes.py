@@ -477,7 +477,10 @@ def main() -> None:
     duration = float(duration_result)
     validate_video_duration(duration)
     if args.use_photo_backgrounds:
-        photo_data = json.loads(Path("data/background_photos_manifest.json").read_text(encoding="utf-8"))
+        from background_rotation import load_eligible_photo_backgrounds
+        eligible_photos = load_eligible_photo_backgrounds(
+            Path("data/background_photos_manifest.json")
+        )
         timed_scenes = []
         for index, scene in enumerate(scenes):
             selected_verses = [v for v in verses if int(v["number"]) in scene["verses"]]
@@ -486,7 +489,7 @@ def main() -> None:
                 scene_duration += inter_verse_gap * len(scene["verses"])
             timed_scenes.append({"verses": selected_verses, "duration": scene_duration})
         build_photo_background_reel(
-            photo_data.get("candidates", []), timed_scenes, duration, work, bg_file,
+            eligible_photos, timed_scenes, duration, work, bg_file,
             args.background_rotation_key
         )
     else:
