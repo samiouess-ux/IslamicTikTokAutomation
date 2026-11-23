@@ -154,18 +154,10 @@ jobs:
           print("No renderer settings, existing candidates or Telegram settings were changed.")
           PY
 
-      - name: Publish lightweight review images to the branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add output/background_additions_review/*.jpg output/background_additions_review/background_review_report.json data/background_candidates.json
-          if git diff --cached --quiet; then
-            echo "No review images changed."
-          else
-            git commit -m "Publish Quran overlay background review previews"
-            git push origin HEAD:feature/telegram-review-notifications
-          fi
+      - name: Keep generated review previews out of source history
+        run: echo "Review-only previews are retained as workflow artifacts; no generated files are pushed to the source branch."
       - name: Upload review contact sheets and verified source clips
+        if: always()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
