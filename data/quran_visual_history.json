@@ -436,6 +436,26 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-22T17:12:06.663350+00:00"
+    },
+    {
+      "candidate_id": "quran_s034_001_054_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-historic-mosque-stained-glass-30733250",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-29080198",
+          "categories": [
+            "mosque",
+            "urban"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-23T03:12:17.041589+00:00"
     }
   ]
 }

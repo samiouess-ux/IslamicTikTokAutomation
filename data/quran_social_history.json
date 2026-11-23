@@ -285,6 +285,25 @@
         "share"
       ],
       "confirmed_at_utc": "2026-11-22T17:12:06.634818+00:00"
+    },
+    {
+      "candidate_id": "quran_s034_001_054_part_001",
+      "hashtags_ar": [
+        "#تذكير_إيماني",
+        "#تدبر_القرآن",
+        "#رحمة_ومغفرة"
+      ],
+      "hashtags_en": [
+        "#QuranAndSunnah",
+        "#MercyAndForgiveness"
+      ],
+      "hook_ids": [
+        "calm"
+      ],
+      "cta_ids": [
+        "daily"
+      ],
+      "confirmed_at_utc": "2026-11-23T03:12:17.000559+00:00"
     }
   ]
 }
