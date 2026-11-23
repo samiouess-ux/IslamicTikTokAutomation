@@ -74,7 +74,11 @@ class BackgroundLibraryTests(unittest.TestCase):
                     "status": "approved", "user_approved": True,
                     "approval_scope": "All 35 photo candidates in this manifest"
                 },
-                "candidates": [{"id": "same", "local_path": str(photo)}]
+                "candidates": [{
+                    "id": "same", "local_path": str(photo),
+                    "source_page_url": "https://example.com/photo",
+                    "image_url": "https://cdn.example/photo.jpg"
+                }]
             }), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "globally unique"):
                 load_background_library(videos, photos)
