@@ -1335,3 +1335,17 @@ Follow this sequence. The user should not need to repeat these decisions.
 - A third previously suggested candidate (video ID 30963441) could not be verified as a matching Pexels page and was not added.
 - No renderer, selection logic, active background catalog, workflow, scheduler, Telegram settings, credentials, or delivery history was changed. No workflow activation, Cron run, Telegram send, or TikTok publishing was triggered. `main` was not touched.
 - Next safe step: verify/download the two MP4 files and run ffprobe checks, then prepare overlay previews for user review before any production activation.
+
+
+## Two approved Pexels backgrounds — media verification and review previews (2026-11-23)
+
+- Supersedes the earlier note that the two new MP4 files were still awaiting download. Both files were successfully resolved from their official Pexels download pages, downloaded in an isolated review-only GitHub Actions run, and passed ffprobe.
+- Review-only workflow: `.github/workflows/verify-two-approved-backgrounds.yml`, commit `e2c17bccc2c95b99aaab7479aefa3fd8b6117c38`; run `45147837063` completed successfully. It processes only the two explicitly approved IDs, uses a temporary manifest with direct URLs blanked so the official Pexels download redirect is resolved, and uploads previews/source MP4s as artifact `two-approved-pexels-backgrounds-review` (artifact ID `14805381033`).
+- Verified media:
+  - `pexels-mosque-architecture-28899957`: H.264, 1080x1920, 26.067 seconds, 42,182,162 bytes.
+  - `pexels-ancient-mosque-architecture-36628576`: H.264, 2160x3840, 11.967 seconds, 32,633,757 bytes.
+- The workflow generated center-cropped 9:16 images and composited the current Quran overlay for visual review. The first background's Arabic/English text is legible in the still preview. The second background has a bright sky behind the surah title area; check its legibility against the moving clip before production use. These are still-frame checks, not a complete motion review.
+- Both entries deliberately retain `download_verified=false` in the production candidate manifest for now. Although the media files passed technical verification, the overlay/legibility review has not been approved; therefore neither candidate is eligible for the existing production rotation. Do not set the flag true until the user confirms the preview.
+- A separate pre-existing candidate test suite failed in run `45147249697` because it hard-coded 15 total entries and required every entry to be download-verified. That expectation became stale when two intentionally pending entries were added. Updated `tests/test_background_candidates.py` to assert 17 total entries, 15 technically verified existing entries, and exactly these two staged entries excluded from rotation. Validation after this test correction is pending.
+- No production renderer, active rotation settings, background history, scheduler, Telegram configuration, credentials, delivery history, or TikTok publishing behavior was changed. No Telegram send, Cron execution, or production workflow dispatch occurred. All changes remain on `feature/telegram-review-notifications`; `main` was not touched.
+- Next: obtain the user's visual/legibility approval for these two previewed backgrounds. Keep both staged and inactive until that approval; then separately decide whether to enable them in the existing rotation.
