@@ -1396,3 +1396,14 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Added `tests/test_background_library.py` for combining only eligible assets, retaining the media type and source fields, excluding pending/missing assets, and rejecting cross-catalog ID collisions.
 - This is an isolated management/intake layer only. It does not change either catalog, photo/video renderer, production selection, render workflow defaults, daily schedule, Telegram, credentials, Cron, or TikTok publishing. No production render or Telegram send was triggered.
 - Next validation: run the new tests together with existing background rotation tests. Only after that passes, consider a separate review-only adapter integration; production renderer activation remains deferred pending a user-reviewed preview.
+
+
+## Shared background library validation — 2026-11-23
+
+- Added a dedicated, read-only CI workflow at `.github/workflows/test-background-library.yml`. It runs only the shared library tests, existing video background rotation tests, and Python compilation; it does not render or send videos, modify catalogs, or touch Telegram/Cron/TikTok.
+- The first combined review-workflow run exposed a test-fixture issue: the duplicate-ID photo fixture omitted its required source-page metadata, so normalization raised `KeyError` before the duplicate-ID assertion. The production loader was not the cause.
+- Corrected the duplicate-ID test fixture by supplying the same source-page and image URL metadata used by valid photo records. No production source code was changed for this test failure.
+- Dedicated CI run `45153955127` on commit `1b8c60e3ad80a46c766b558e088634645b6a4c00` completed successfully: shared photo/video library tests passed, all existing background-rotation tests passed, and both isolated modules compiled successfully.
+- The parallel review workflow run `45153955164` was still in progress at the time of this update. Its outcome must be checked separately before treating its preview/activation sequence as complete.
+- All work remains on `feature/telegram-review-notifications`; `main` is untouched. Production renderer behavior, schedule, credentials, Telegram delivery, Cron, audio, zoom, and TikTok publishing remain unchanged.
+- Next: verify the parallel review workflow result; then build a separate review-only adapter/preview using the shared library, keeping photo and video renderers distinct. Do not activate photos in scheduled production without a user-reviewed preview and explicit approval.
