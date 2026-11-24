@@ -342,6 +342,25 @@
         "remind"
       ],
       "confirmed_at_utc": "2026-11-23T17:14:30.630913+00:00"
+    },
+    {
+      "candidate_id": "quran_s103_001_003_part_001",
+      "hashtags_ar": [
+        "#آيات_للتدبر",
+        "#كلام_الله",
+        "#الصبر_والفرج"
+      ],
+      "hashtags_en": [
+        "#WordsOfAllah",
+        "#PatienceAndHope"
+      ],
+      "hook_ids": [
+        "pause"
+      ],
+      "cta_ids": [
+        "support"
+      ],
+      "confirmed_at_utc": "2026-11-24T03:12:04.615159+00:00"
     }
   ]
 }
