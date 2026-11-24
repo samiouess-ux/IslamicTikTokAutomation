@@ -522,6 +522,28 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-24T03:12:04.653618+00:00"
+    },
+    {
+      "candidate_id": "quran_s046_001_035_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mountain-lake-37675265",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mountain-bridge-5903759",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-waterfront-12536108",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-24T11:12:33.809974+00:00"
     }
   ]
 }

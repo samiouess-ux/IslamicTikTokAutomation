@@ -361,6 +361,25 @@
         "support"
       ],
       "confirmed_at_utc": "2026-11-24T03:12:04.615159+00:00"
+    },
+    {
+      "candidate_id": "quran_s046_001_035_part_001",
+      "hashtags_ar": [
+        "#آيات_من_القرآن",
+        "#رسالة_قرآنية",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#ReflectOnQuran",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "light"
+      ],
+      "cta_ids": [
+        "follow"
+      ],
+      "confirmed_at_utc": "2026-11-24T11:12:33.783677+00:00"
     }
   ]
 }
