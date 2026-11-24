@@ -544,6 +544,58 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-24T11:12:33.809974+00:00"
+    },
+    {
+      "candidate_id": "quran_s020_001_135_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-sunset-sky-35477402",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-40352601",
+          "categories": [
+            "lantern",
+            "prayer",
+            "quran"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-28975736",
+          "categories": [
+            "architecture",
+            "calligraphy",
+            "islamic_art"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-modern-mosque-interior-35417846",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-interior-calligraphy-19819594",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-33425960",
+          "categories": [
+            "desert"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-moroccan-courtyard-tiles-34527220",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-24T17:12:57.333887+00:00"
     }
   ]
 }

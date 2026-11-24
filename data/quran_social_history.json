@@ -380,6 +380,25 @@
         "follow"
       ],
       "confirmed_at_utc": "2026-11-24T11:12:33.783677+00:00"
+    },
+    {
+      "candidate_id": "quran_s020_001_135_part_001",
+      "hashtags_ar": [
+        "#آيات_الله",
+        "#القرآن",
+        "#الصبر_والفرج"
+      ],
+      "hashtags_en": [
+        "#IslamicContent",
+        "#PatienceAndHope"
+      ],
+      "hook_ids": [
+        "reflection"
+      ],
+      "cta_ids": [
+        "support"
+      ],
+      "confirmed_at_utc": "2026-11-24T17:12:57.302643+00:00"
     }
   ]
 }
