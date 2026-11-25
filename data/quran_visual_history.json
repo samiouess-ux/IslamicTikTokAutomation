@@ -630,6 +630,42 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-25T03:11:35.412731+00:00"
+    },
+    {
+      "candidate_id": "quran_s106_001_004_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-historic-mosque-stained-glass-30733250",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-16106055",
+          "categories": [
+            "minaret",
+            "moon",
+            "mosque",
+            "night"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-mosque-river-mostar-27529804",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-5300216",
+          "categories": [
+            "mountains",
+            "river",
+            "sunset"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-25T11:12:04.037070+00:00"
     }
   ]
 }
