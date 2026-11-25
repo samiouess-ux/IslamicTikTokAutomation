@@ -399,6 +399,25 @@
         "support"
       ],
       "confirmed_at_utc": "2026-11-24T17:12:57.302643+00:00"
+    },
+    {
+      "candidate_id": "quran_s112_001_004_part_001",
+      "hashtags_ar": [
+        "#الذكر_الحكيم",
+        "#طمأنينة_القلب",
+        "#توحيد_الله"
+      ],
+      "hashtags_en": [
+        "#QuranInspiration",
+        "#Tawheed"
+      ],
+      "hook_ids": [
+        "light"
+      ],
+      "cta_ids": [
+        "return"
+      ],
+      "confirmed_at_utc": "2026-11-25T03:11:35.380524+00:00"
     }
   ]
 }

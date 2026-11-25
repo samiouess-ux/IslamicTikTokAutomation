@@ -596,6 +596,40 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-24T17:12:57.333887+00:00"
+    },
+    {
+      "candidate_id": "quran_s112_001_004_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-moroccan-courtyard-decor-32719926",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-1681875",
+          "categories": [
+            "nature"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-38901615",
+          "categories": [
+            "hajj",
+            "kaaba",
+            "mecca",
+            "pilgrimage"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-mosque-minaret-lush-trees-35447276",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-25T03:11:35.412731+00:00"
     }
   ]
 }
