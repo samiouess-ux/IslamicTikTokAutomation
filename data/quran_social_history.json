@@ -437,6 +437,25 @@
         "reflect2"
       ],
       "confirmed_at_utc": "2026-11-25T11:12:04.004024+00:00"
+    },
+    {
+      "candidate_id": "quran_s024_001_064_part_001",
+      "hashtags_ar": [
+        "#ذكر_الله",
+        "#تذكير_بالله",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#FaithReminder",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "reminder"
+      ],
+      "cta_ids": [
+        "save"
+      ],
+      "confirmed_at_utc": "2026-11-25T17:12:39.093948+00:00"
     }
   ]
 }

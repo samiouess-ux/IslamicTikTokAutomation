@@ -666,6 +666,26 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-25T11:12:04.037070+00:00"
+    },
+    {
+      "candidate_id": "quran_s024_001_064_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mosque-architecture-28899957",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-13721885",
+          "categories": [
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-25T17:12:39.136279+00:00"
     }
   ]
 }
