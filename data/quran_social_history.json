@@ -456,6 +456,25 @@
         "save"
       ],
       "confirmed_at_utc": "2026-11-25T17:12:39.093948+00:00"
+    },
+    {
+      "candidate_id": "quran_s069_001_052_part_001",
+      "hashtags_ar": [
+        "#نور_القرآن",
+        "#آيات_من_القرآن",
+        "#تدبر_وعمل"
+      ],
+      "hashtags_en": [
+        "#QuranVerses",
+        "#QuranReflection"
+      ],
+      "hook_ids": [
+        "calm"
+      ],
+      "cta_ids": [
+        "reflect"
+      ],
+      "confirmed_at_utc": "2026-11-26T03:11:52.129100+00:00"
     }
   ]
 }
