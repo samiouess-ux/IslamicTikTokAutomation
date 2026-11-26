@@ -475,6 +475,25 @@
         "reflect"
       ],
       "confirmed_at_utc": "2026-11-26T03:11:52.129100+00:00"
+    },
+    {
+      "candidate_id": "quran_s001_001_007_part_001",
+      "hashtags_ar": [
+        "#مع_القرآن",
+        "#تدبر_القرآن",
+        "#رحمة_ومغفرة"
+      ],
+      "hashtags_en": [
+        "#ReminderForTheSoul",
+        "#MercyAndForgiveness"
+      ],
+      "hook_ids": [
+        "meaning"
+      ],
+      "cta_ids": [
+        "follow"
+      ],
+      "confirmed_at_utc": "2026-11-26T11:20:03.701543+00:00"
     }
   ]
 }

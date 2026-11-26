@@ -739,6 +739,75 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-26T03:11:52.152967+00:00"
+    },
+    {
+      "candidate_id": "quran_s001_001_007_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-islamic-dome-geometric-40564360",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-34993385",
+          "categories": [
+            "mosque",
+            "prayer",
+            "quran"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-31433867",
+          "categories": [
+            "architecture",
+            "mosque",
+            "prayer",
+            "quran"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-34317177",
+          "categories": [
+            "architecture",
+            "calligraphy",
+            "mosque",
+            "prayer"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-16483164",
+          "categories": [
+            "lantern",
+            "prayer",
+            "tasbih"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-36704278",
+          "categories": [
+            "architecture",
+            "calligraphy",
+            "islamic_art",
+            "lantern"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-35720587",
+          "categories": [
+            "architecture",
+            "courtyard",
+            "mosque"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-26T11:20:03.726961+00:00"
     }
   ]
 }
