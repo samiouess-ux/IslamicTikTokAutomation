@@ -32,6 +32,7 @@ class BackgroundReviewAdapterTests(unittest.TestCase):
                 "status": "approved", "user_approved": True,
                 "approval_scope": "All 35 photo candidates in this manifest",
             },
+            "approved_photo_ids": ["photo-1"],
             "candidates": [{
                 "id": "photo-1", "local_path": str(photo),
                 "source_page_url": "https://example.com/photo",
