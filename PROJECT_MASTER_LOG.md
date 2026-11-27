@@ -554,3 +554,11 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Commits: renderer `2d28d41706fb1ccd7ccff61610abe97209bf6c8c`; test `cac76a29d773415c069073776b9480165e5782d4`.
 - A new isolated CI run is triggered by these commits. The earlier run `46076018505` was already rendering the fresh preview when this stricter validation was added; its output is not sufficient to validate the new sequence check. No synchronization success is claimed until the latest run passes and its MP4 is inspected.
 - Production branch, `main`, Telegram, Cron, backgrounds, visual design, selection, duration policy, and publishing remain untouched. PR #10 remains unmerged.
+
+
+### 2026-11-28 — Fresh Al-Kahf 18:21 review render completed
+- Isolated workflow run `46076326024` completed successfully; all renderer regression tests, official catalog/audio preparation, one-ayah batch creation, fresh 9:16 render, report verification, and review-artifact upload steps passed.
+- Artifact: `al-kahf-18-21-fresh-review-preview` (artifact ID `15235376485`); contains a fresh `56.033s` 1080x1920 MP4, six ayah display overlays, the original joined MP3, and a render report.
+- Report confirms `text_audio_synchronization: quran_word_alignment`, MP3 stream-copy mode, no audio re-encode, `review_only=true`, `production_approved=false`, `telegram_delivery=false`, and `auto_publish=false`.
+- Visual frame sampling confirms the renderer cycles through the six sequential ayah display overlays. The report and CI verification pass, but a human listening check of phrase starts, pauses, and any naturally repeated phrase is still required before calling the synchronization accepted. The preview is not approved for production.
+- No merge. Production branch, `main`, Telegram, Cron, background/design policy, selection, duration policy, and publishing remain untouched.
