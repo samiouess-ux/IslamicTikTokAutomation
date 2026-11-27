@@ -470,7 +470,7 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
     number_font = ImageFont.truetype(font_path, 32, layout_engine=ImageFont.Layout.RAQM)
     digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw = ImageDraw.Draw(image)
-    draw.text((155, int(center_y)), digits, font=number_font, fill=(255, 196, 54, 255),
+    draw.text((155, int(center_y)), digits, font=number_font, fill=(238, 184, 43, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=1, stroke_fill=(55, 34, 12, 170))
 
@@ -589,7 +589,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     # Approved reference: unobstructed full-bleed scenery, bright gold title
     # between open arabesque brackets, white Quran text, gold ayah medallion,
     # and centered English translation. No panel, border, or dark overlay.
-    accent = (245, 184, 55)
+    accent = (249, 232, 76)
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
@@ -709,7 +709,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     # The first ayah frame remains visible underneath from the very first frame.
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    accent = (245, 184, 55)
+    accent = (249, 232, 76)
     title_center = (540, 520)
     title_text, title_font = fit_surah_title(
         draw, surah_number, font_path, center=title_center
