@@ -513,6 +513,25 @@
         "listen"
       ],
       "confirmed_at_utc": "2026-11-26T17:12:31.399293+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_020_110_part_001",
+      "hashtags_ar": [
+        "#تلاوة_قرآنية",
+        "#كلام_الله",
+        "#توحيد_الله"
+      ],
+      "hashtags_en": [
+        "#QuranReminder",
+        "#Tawheed"
+      ],
+      "hook_ids": [
+        "share"
+      ],
+      "cta_ids": [
+        "share"
+      ],
+      "confirmed_at_utc": "2026-11-27T03:12:11.105138+00:00"
     }
   ]
 }

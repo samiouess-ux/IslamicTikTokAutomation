@@ -854,6 +854,18 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-26T17:12:31.432059+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_020_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-modern-mosque-interior-35417846",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-27T03:12:11.139132+00:00"
     }
   ]
 }
