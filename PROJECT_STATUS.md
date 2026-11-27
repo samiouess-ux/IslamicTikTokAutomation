@@ -1605,3 +1605,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Visual inspection of all six Arabic/English display layers shows the waqf-mark issue is NOT fully resolved: small stop/waqf glyphs still appear visually detached above the main Arabic line in display portions 04 and 05. Therefore the new preview remains NOT approved, despite automated tests and workflow success. The current regression only checks chunk-leading tokens and display whitespace; it does not yet catch line-wrap placement of a waqf glyph inside a display frame.
 - Next: correct Arabic line fitting/rendering so waqf marks remain visually attached to the preceding word across line wraps, add a regression test that exercises actual rendered line layout (not only chunk boundaries), then run another fresh isolated 18:21 preview and inspect it. Do not change design, reference, text, translation, audio, background, or production settings.
 - Delivery gates remain closed: production_approved=false, telegram_delivery=false, auto_publish=false. No Telegram send, Cron, production delivery/history mutation, TikTok publishing, or main-branch change occurred.
+
+
+### Waqf shaping adjustment — 2026-11-27
+
+- After visual review of fresh rerender #3 (run 46036002062, artifact 15215898699), the stop signs still appeared visually detached in display frames 04 and 05 even though whitespace normalization and chunk-boundary checks passed.
+- Updated only the review renderer's display-layer helper to insert a Unicode Zero Width Joiner between the preceding Arabic word and a standalone Uthmani pause sign. Source Arabic/chunk manifests remain unchanged. Updated the regression expectation to require the ZWJ-bound display sequence.
+- Commits: renderer e6dcf2181b0d0b8c26ef21b1b8f0c87f871dfdf5; regression test c13f593c3e6b6e9e5760f9044fb3a5dd97e0284b.
+- This is a targeted hypothesis, not yet verified in a rendered image. Await the push-triggered regression run and a fresh isolated Al-Kahf 18:21 render; do not approve until actual display frames confirm the marks are visually attached. Production/Cron/Telegram/TikTok remain untouched; main unchanged.
