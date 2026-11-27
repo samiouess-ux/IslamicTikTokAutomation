@@ -133,8 +133,6 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                             for chunk in chunks))
 
     def test_standalone_waqf_marks_stay_attached_to_their_preceding_word(self):
-        image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(image)
         original = " ".join(
             ["كَلِمَةٌ"] * 18 + ["ۚ"] + ["كَلِمَةٌ"] * 18 + ["ۖ"] +
             ["كَلِمَةٌ"] * 18
@@ -145,16 +143,18 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         )
         displayed = [chunk["arabic"] for chunk in chunks]
         self.assertGreater(len(displayed), 1)
+        self.assertEqual(" ".join(displayed), original)
+        mark_tokens = ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
         for chunk in displayed:
-            tokens = chunk.split()
-            self.assertFalse(any(token and all(
-                character in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
-                for character in token
-            ) for token in tokens))
-        joined = " ".join(displayed)
-        self.assertIn("كَلِمَةٌۚ", joined)
-        self.assertIn("كَلِمَةٌۖ", joined)
-        self.assertEqual(joined.replace(" ", ""), original.replace(" ", ""))
+            first_token = chunk.split()[0]
+            self.assertFalse(first_token and all(
+                character in mark_tokens for character in first_token
+            ))
+        rendered = renderer.attach_waqf_marks_for_display(original)
+        self.assertIn("كَلِمَةٌۚ", rendered)
+        self.assertIn("كَلِمَةٌۖ", rendered)
+        self.assertNotIn(" ۚ", rendered)
+        self.assertNotIn(" ۖ", rendered)
 
     def test_ayah_number_is_shown_only_when_requested_for_display_chunk(self):
         verse = {"number": 21, "arabic": "آية طويلة", "english": "A long verse"}
