@@ -158,3 +158,5 @@ jobs:
 # Re-run trigger: verify standalone Uthmani waqf marks remain attached after the 2026-11-27 chunking fix.
 
 # Retry after preserving exact source whitespace and normalizing waqf marks only in rendered pixels.
+
+# Fresh review rerender after ZWJ-bound waqf shaping adjustment.
