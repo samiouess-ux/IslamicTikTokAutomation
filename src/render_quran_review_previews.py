@@ -582,6 +582,13 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
     ]
 
 
+def attach_waqf_marks_for_display(text: str) -> str:
+    """Keep standalone Uthmani pause marks beside the preceding word visually."""
+    for pause_mark in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ"):
+        text = text.replace(" " + pause_mark, pause_mark)
+    return text
+
+
 def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str,
                include_surah_header: bool = True,
@@ -618,10 +625,8 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     
     arabic = arabic_display_text if arabic_display_text is not None else verse.get("arabic")
     english = english_display_text if english_display_text is not None else verse.get("english")
-    # Render standalone Uthmani waqf signs adjacent to the preceding word,
-    # while retaining the original spaced source text in the chunk manifest.
-    for pause_mark in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ"):
-        arabic = arabic.replace(" " + pause_mark, pause_mark)
+    # Keep source text lossless in manifests; normalize only its display layer.
+    arabic = attach_waqf_marks_for_display(arabic)
     if (not isinstance(arabic, str) or not arabic.strip()
             or not isinstance(english, str) or not english.strip()):
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
