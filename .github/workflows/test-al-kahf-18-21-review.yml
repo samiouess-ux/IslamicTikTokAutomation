@@ -156,3 +156,5 @@ jobs:
           retention-days: 7
 
 # Re-run trigger: verify standalone Uthmani waqf marks remain attached after the 2026-11-27 chunking fix.
+
+# Retry after preserving exact source whitespace and normalizing waqf marks only in rendered pixels.
