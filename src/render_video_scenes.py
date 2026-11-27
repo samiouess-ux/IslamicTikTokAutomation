@@ -36,7 +36,7 @@ def run(command: list[str]) -> None:
     subprocess.run(command, check=True)
 
 
-MAX_VIDEO_SECONDS = 40.0
+MAX_VIDEO_SECONDS = 60.0
 
 
 def validate_video_duration(duration: float, maximum: float = MAX_VIDEO_SECONDS) -> None:
