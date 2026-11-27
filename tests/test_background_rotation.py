@@ -40,22 +40,25 @@ class BackgroundRotationTests(unittest.TestCase):
             data = {
                 "user_approval": {
                     "status": "approved", "user_approved": True,
-                    "approval_scope": "All 35 photo candidates in this manifest"
+                    "approval_scope": "test allowlist"
                 },
+                "approved_photo_ids": ["approved"],
                 "candidates": [
                     {"id": "approved", "local_path": str(photo)},
+                    {"id": "unapproved-but-present", "local_path": str(photo)},
                     {"id": "missing", "local_path": str(root / "missing.jpg")}
                 ]
             }
             manifest.write_text(json.dumps(data), encoding="utf-8")
             eligible = load_eligible_photo_backgrounds(manifest)
             self.assertEqual([item["id"] for item in eligible], ["approved"])
+            self.assertNotIn("unapproved-but-present", [item["id"] for item in eligible])
 
     def test_photo_manifest_without_approval_record_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             manifest = Path(tmp) / "photos.json"
             manifest.write_text(json.dumps({"candidates": []}), encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "no recorded explicit user approval"):
+            with self.assertRaisesRegex(ValueError, "no explicit approved_photo_ids allowlist"):
                 load_eligible_photo_backgrounds(manifest)
 
     def test_selection_is_deterministic_and_avoids_recent_ids(self):
