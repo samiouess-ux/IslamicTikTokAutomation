@@ -15,18 +15,18 @@ class PartsTests(unittest.TestCase):
     def test_explicit_normal_cap_defers_overflow_without_exception(self):
         verses = [{'ayah': n} for n in range(1, 5)]
         parts, rest = partition_contiguous_ayahs(verses, {1: 30, 2: 66, 3: 10, 4: 10}, 40)
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1]])
-        self.assertEqual([v['ayah'] for v in rest], [2, 3, 4])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1], [3, 4]])
+        self.assertEqual([v['ayah'] for v in rest], [])
 
-    def test_complete_next_ayah_can_extend_part_to_48_665_seconds(self):
+    def test_keeps_adding_contiguous_ayahs_after_45_until_60_second_cap(self):
         verses = [{'ayah': 1}, {'ayah': 2}, {'ayah': 3}]
         parts, rest = partition_contiguous_ayahs(
             verses, {1: 26.2, 2: 22.465, 3: 10}, 45, 60
         )
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2], [3]])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2, 3]])
         self.assertEqual(rest, [])
 
-    def test_complete_next_ayah_can_extend_part_to_55_129_seconds(self):
+    def test_starts_next_part_only_when_next_ayah_would_exceed_60(self):
         verses = [{'ayah': 1}, {'ayah': 2}, {'ayah': 3}]
         parts, rest = partition_contiguous_ayahs(
             verses, {1: 43.4, 2: 11.729, 3: 10}, 45, 60
@@ -42,13 +42,21 @@ class PartsTests(unittest.TestCase):
         self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1], [2]])
         self.assertEqual(rest, [])
 
-    def test_long_complete_ayah_between_45_and_60_stays_alone(self):
+    def test_long_complete_ayah_can_be_combined_if_total_stays_within_60(self):
         verses = [{'ayah': 1}, {'ayah': 2}]
         parts, rest = partition_contiguous_ayahs(
             verses, {1: 46.733, 2: 10}, 45, 60
         )
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1], [2]])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1, 2]])
         self.assertEqual(rest, [])
+
+    def test_ayah_over_60_blocks_sequence_without_being_split_or_skipped(self):
+        verses = [{'ayah': 1}, {'ayah': 2}, {'ayah': 3}]
+        parts, rest = partition_contiguous_ayahs(
+            verses, {1: 20, 2: 66, 3: 10}, 45, 60
+        )
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1]])
+        self.assertEqual([v['ayah'] for v in rest], [2, 3])
 
     def test_gap_rejected(self):
         with self.assertRaisesRegex(ValueError, 'contiguous'):
