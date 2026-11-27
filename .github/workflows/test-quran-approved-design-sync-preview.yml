@@ -51,6 +51,12 @@ jobs:
       - name: Render repeat-aware preview with exact approved design functions
         run: python scripts/render_approved_design_repeat_sync_preview.py
 
+      - name: Verify ornament diagnostic outputs
+        run: |
+          test -s quran-ornament-color-diagnostic.png
+          test -s quran-ornament-color-diagnostic.json
+          ls -lh quran-ornament-color-diagnostic.png quran-ornament-color-diagnostic.json
+
       - name: Validate output media
         run: |
           ffprobe -v error -show_entries stream=codec_type,width,height -show_entries format=duration \
@@ -67,3 +73,13 @@ jobs:
             quran-ornament-color-diagnostic.json
           if-no-files-found: error
           retention-days: 7
+
+      - name: Publish ornament color diagnostic files
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-ornament-color-diagnostic
+          path: |
+            quran-ornament-color-diagnostic.png
+            quran-ornament-color-diagnostic.json
+          if-no-files-found: error
+          retention-days: 3
