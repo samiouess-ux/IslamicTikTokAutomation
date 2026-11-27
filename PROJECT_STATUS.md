@@ -1475,3 +1475,14 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Added `src/prepare_pending_photo_background_review.py` and the isolated workflow `.github/workflows/review-pending-photo-backgrounds.yml`. The workflow downloads each image only into a temporary runner, validates it, creates compact 540x960 previews with the real approved Quran overlay, and uploads a seven-day review artifact. Source images are not committed to Git, preserving repository storage.
 - Dedicated review workflow run `45976828780` completed successfully. All six images downloaded, passed image validation, were resized into temporary previews, and received the real Quran overlay; zero candidates failed. Artifact `quran-pending-photo-background-review` (ID `15187801018`, about 1.9 MB) contains the contact sheet, six individual previews, and a valid JSON report. The artifact expires after seven days.
 - No production workflow, Cron job, Telegram delivery, existing background catalog, production manifest, or main branch was changed. New photos must remain excluded from production until the user visually reviews and explicitly approves them.
+
+
+## Six additional Quran photo backgrounds approved and imported — 2026-11-27
+
+- User explicitly approved all six previewed candidates after reviewing the Quran-overlay contact sheet.
+- Added the six photos to `data/background_photos_manifest.json`; the production photo inventory now records 41 approved photo IDs (the original 35 plus these six).
+- Strengthened photo approval safety: production eligibility now requires membership in the explicit `approved_photo_ids` allowlist. A local image file or a manifest-level approval note alone cannot approve a new photo. Updated rotation, shared-library, and review-adapter test fixtures to use the explicit allowlist and verify unapproved files are excluded.
+- Downloaded all six approved images in GitHub Actions, validated them, resized them to fit within 1080x1920 while preserving aspect ratio, and saved optimized JPEGs under `assets/background_photos/`. The six new files total 2,370,468 bytes (~2.26 MiB); no original large video files were added.
+- Import workflow run `45977421605` completed successfully: download/optimization, photo-approval tests, shared-library tests, mixed photo/video renderer integration test, and commit of the compact image assets all passed.
+- All work remains on `feature/telegram-review-notifications`; the 13 approved portrait videos are unchanged. No production render, Cron run, Telegram send, or TikTok publish was triggered.
+- Follow-up full shared-library CI run `45977554283` was still running when this entry was recorded; verify its final result before claiming the full review-adapter suite passed.
