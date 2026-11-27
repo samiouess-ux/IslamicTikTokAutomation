@@ -45,6 +45,9 @@ jobs:
         run: |
           quran-word-align file test-audio/018.mp3 18 --riwayah hafs --out aligned --format json
 
+      - name: Diagnose exact approved ornament colors without changing the renderer
+        run: python scripts/diagnose_approved_ornament_colors.py
+
       - name: Render repeat-aware preview with exact approved design functions
         run: python scripts/render_approved_design_repeat_sync_preview.py
 
