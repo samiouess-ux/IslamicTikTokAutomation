@@ -508,9 +508,9 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
                               audio_duration: float) -> list[dict]:
     """Split only visually dense ayahs into complete sequential display phrases.
 
-    Arabic word order and spelling are preserved. Existing Quran pause marks
-    are preferred as break points; timing is proportional to Arabic word count
-    because the source inventory has ayah-level, not word-level timestamps.
+    Arabic word order and spelling are preserved. Quran pause marks are preferred
+    as visual break points. Audio timing is assigned later only by Quran-specific
+    word alignment; if that fails, the renderer keeps the complete ayah visible.
     """
     arabic = verse.get("arabic_uthmani", verse.get("arabic", ""))
     english = verse.get("english_saheeh_international", verse.get("english", ""))
@@ -1290,12 +1290,16 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             display_chunks = plan_ayah_display_chunks(verse_payload, font_path,
                                                        ayah_audio_duration)
             display_intervals = {0: [(0.0, ayah_audio_duration)]}
+            synchronization_method = "single_complete_ayah"
             if len(display_chunks) > 1:
                 display_intervals = align_ayah_display_intervals(
                     audio, surah_number, int(verse["ayah"]), verse_payload,
                     display_chunks, ayah_audio_duration,
                 )
-                if display_intervals is None:
+                if display_intervals is not None:
+                    synchronization_method = "quran_word_alignment"
+                else:
+                    synchronization_method = "full_ayah_fallback"
                     # Fail closed: never guess phrase timing. Keep the exact
                     # complete ayah and its translation visible for the whole audio.
                     display_chunks = [{
@@ -1412,6 +1416,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             "review_only": True,
             "audio_approved": False,
             "rendering_approved": False,
+            "text_audio_synchronization": synchronization_method,
             "telegram_delivery": False,
             "auto_publish": False,
         })
