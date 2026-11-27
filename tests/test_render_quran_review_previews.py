@@ -157,9 +157,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
 
     def test_audio_pause_detector_parses_silence_end_timestamps(self):
         result = type("Completed", (), {
-            "stderr": "silence_end: 0.040 | silence_duration: 0.12\\n"
-                      "silence_end: 8.420 | silence_duration: 0.20\\n"
-                      "silence_end: 19.100 | silence_duration: 0.16\\n"
+            "stderr": "silence_end: 0.040 | silence_duration: 0.12\n"
+                      "silence_end: 8.420 | silence_duration: 0.20\n"
+                      "silence_end: 19.100 | silence_duration: 0.16\n"
         })()
         with patch.object(renderer.subprocess, "run", return_value=result):
             boundaries = renderer.detect_audio_pause_boundaries(Path("ayah.mp3"), 25.0)
