@@ -127,6 +127,8 @@ jobs:
               raise SystemExit("Preview is not 1080x1920.")
           if item.get("video_codec") != "h264" or item.get("audio_codec") != "mp3":
               raise SystemExit("Expected H.264 video with the original MP3 audio stream.")
+          if item.get("text_audio_synchronization") != "quran_word_alignment":
+              raise SystemExit(f"Expected Quran word-level alignment, got {item.get('text_audio_synchronization')!r}.")
           if not 0 < item.get("duration_seconds", 0) <= 60:
               raise SystemExit("Preview duration is outside the 60-second hard cap.")
           if report.get("production_approved") is not False or report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
@@ -142,6 +144,7 @@ jobs:
               "resolution": [item["width"], item["height"]],
               "video_codec": item["video_codec"],
               "audio_codec": item["audio_codec"],
+              "text_audio_synchronization": item.get("text_audio_synchronization"),
               "background": item.get("background"),
               "review_only": item.get("review_only"),
               "telegram_delivery": report.get("telegram_delivery"),
