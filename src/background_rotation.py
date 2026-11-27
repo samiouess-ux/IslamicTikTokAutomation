@@ -98,19 +98,22 @@ def select_background_sequence(
 def load_eligible_photo_backgrounds(manifest_path: Path) -> list[dict]:
     """Load previously user-approved photos only when their local image files verify."""
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    approval = manifest.get("user_approval", {})
-    if not (
-        approval.get("status") == "approved"
-        and approval.get("user_approved") is True
-        and approval.get("approval_scope") == "All 35 photo candidates in this manifest"
-    ):
-        raise ValueError("Photo manifest has no recorded explicit user approval.")
+    approved_ids = manifest.get("approved_photo_ids", [])
+    if not isinstance(approved_ids, list) or not approved_ids:
+        raise ValueError("Photo manifest has no explicit approved_photo_ids allowlist.")
+    if any(not isinstance(item_id, str) or not item_id.strip() for item_id in approved_ids):
+        raise ValueError("Photo approved_photo_ids must contain non-empty strings.")
+    if len(approved_ids) != len(set(approved_ids)):
+        raise ValueError("Photo approved_photo_ids must be unique.")
+    approved_id_set = set(approved_ids)
 
     from PIL import Image
 
     candidates = manifest.get("candidates", [])
     eligible = []
     for item in candidates:
+        if item.get("id") not in approved_id_set:
+            continue
         local_path = item.get("local_path")
         if not isinstance(local_path, str) or not local_path.strip():
             continue
