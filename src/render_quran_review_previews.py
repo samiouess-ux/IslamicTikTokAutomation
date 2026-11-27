@@ -661,16 +661,19 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
     
-    digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
-    start_text = str(start_ayah).translate(digits)
-    end_text = str(end_ayah).translate(digits)
-    range_text = (f"الْآيَةُ {start_text}" if start_ayah == end_ayah
-                  else f"الْآيَاتُ {start_text} - {end_text}")
-    range_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
-    draw.text((540, 840), range_text, font=range_font,
-              fill=(255, 222, 142, 255), anchor="mm",
-              direction="rtl", language="ar",
-              stroke_width=2, stroke_fill=(35, 24, 12, 190))
+    # A single-ayah opening already shows its number in the gold medallion.
+    # Keep a range label only when the video contains multiple ayahs, avoiding
+    # a duplicate ayah number during the opening overlay.
+    if start_ayah != end_ayah:
+        digits = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+        start_text = str(start_ayah).translate(digits)
+        end_text = str(end_ayah).translate(digits)
+        range_text = f"الْآيَاتُ {start_text} - {end_text}"
+        range_font = ImageFont.truetype(font_path, 54, layout_engine=ImageFont.Layout.RAQM)
+        draw.text((540, 840), range_text, font=range_font,
+                  fill=(255, 222, 142, 255), anchor="mm",
+                  direction="rtl", language="ar",
+                  stroke_width=2, stroke_fill=(35, 24, 12, 190))
     image.save(out)
     return "open_gold_brackets"
 
