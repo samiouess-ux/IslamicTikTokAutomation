@@ -714,11 +714,18 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     title_text, title_font = fit_surah_title(
         draw, surah_number, font_path, center=title_center
     )
-    draw_reference_surah_ornaments(image)
-    # Keep the opening title ornaments and title aligned exactly like ayah frames.
-    title_group = image.crop((0, 400, 1080, 760))
-    image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
-    image.alpha_composite(title_group, (0, 360))
+
+    # Keep the approved ornaments on their own full-opacity layer. Only the
+    # title/range layer receives the existing fade, preventing the gold artwork
+    # from blending with bright moving scenery during the opening transition.
+    ornament_layer = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    draw_reference_surah_ornaments(ornament_layer)
+    ornament_group = ornament_layer.crop((0, 400, 1080, 760))
+    ornament_layer.paste((0, 0, 0, 0), (0, 400, 1080, 760))
+    ornament_layer.alpha_composite(ornament_group, (0, 360))
+    ornament_path = out.with_name("opening_title_ornaments.png")
+    ornament_layer.save(ornament_path)
+
     draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
@@ -1189,6 +1196,10 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     cover_rotation_index=cover_rotation_index,
                 )
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
+                ornaments = work / "opening_title_ornaments.png"
+                if not ornaments.is_file():
+                    raise FileNotFoundError("Full-opacity approved ornament overlay was not generated.")
+                command.extend(["-loop", "1", "-framerate", "30", "-i", str(ornaments)])
 
             background_filter = photo_motion_filter()
             filters = [background_filter.rstrip(";")]
@@ -1212,11 +1223,18 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             if index == 0:
                 intro_input_index = frame_input_start + len(frame_paths)
                 fade_start = INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS
+                ornaments_input_index = intro_input_index + 1
                 filters.append(
                     f"[{intro_input_index}:v]format=rgba,fade=t=out:st={fade_start:g}:"
                     f"d={INTRO_FADE_SECONDS:g}:alpha=1[intro]"
                 )
-                filters.append(f"[{current}][intro]overlay=0:0:format=auto[v]")
+                filters.append(
+                    f"[{current}][intro]overlay=0:0:format=auto[title_overlay]"
+                )
+                filters.append(
+                    f"[title_overlay][{ornaments_input_index}:v]"
+                    f"overlay=0:0:format=auto:enable='lt(t,{INTRO_DURATION_SECONDS:g})'[v]"
+                )
                 current = "v"
             filter_complex = ";".join(filters)
             command.extend([
