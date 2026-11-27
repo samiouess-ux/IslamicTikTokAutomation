@@ -1613,3 +1613,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Updated only the review renderer's display-layer helper to insert a Unicode Zero Width Joiner between the preceding Arabic word and a standalone Uthmani pause sign. Source Arabic/chunk manifests remain unchanged. Updated the regression expectation to require the ZWJ-bound display sequence.
 - Commits: renderer e6dcf2181b0d0b8c26ef21b1b8f0c87f871dfdf5; regression test c13f593c3e6b6e9e5760f9044fb3a5dd97e0284b.
 - This is a targeted hypothesis, not yet verified in a rendered image. Await the push-triggered regression run and a fresh isolated Al-Kahf 18:21 render; do not approve until actual display frames confirm the marks are visually attached. Production/Cron/Telegram/TikTok remain untouched; main unchanged.
+
+
+### Waqf ZWJ rerender #4 — automated success, visual issue persists — 2026-11-27
+
+- Dedicated review-only run 46037498420 completed successfully on commit fbcf528c90b1573edce6d4ad1633d86d30ed03f4. All workflow steps passed: renderer regression suite, official catalogs, exact Al-Kahf 18:21 batch, original whole-ayah audio preparation, fresh 9:16 MP4 render, exact-ayah/audio/delivery-gate verification, and artifact upload.
+- Fresh artifact: al-kahf-18-21-fresh-review-preview, ID 15218926536. Downloaded and inspected the actual Arabic display frames. MP4 is 56.033 seconds, 1080x1920, H.264 + MP3.
+- The ZWJ display-layer adjustment did NOT resolve the visual issue: display screens 04 and 05 still show waqf/stop glyphs detached above the main Arabic line. Automated tests passed but do not exercise the actual Arabic font shaping/line layout. Preview remains NOT approved.
+- Next: investigate the Arabic font/rendering and line-layout behavior for Uthmani waqf marks; add a regression using actual rendered pixels/line geometry, then create another fresh review-only 18:21 render. Preserve exact source Arabic/English, original audio, approved design, and background; do not approve based on unit tests alone.
+- Production approval, Telegram delivery, and auto-publish remain false. No Telegram send, Cron, delivery-history mutation, TikTok publishing, or main-branch change occurred.
