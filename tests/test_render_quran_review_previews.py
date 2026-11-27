@@ -121,6 +121,31 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertTrue(all(chunk["arabic"].strip() and chunk["english"].strip()
                             for chunk in chunks))
 
+    def test_ayah_number_is_shown_only_when_requested_for_display_chunk(self):
+        verse = {"number": 21, "arabic": "آية طويلة", "english": "A long verse"}
+        path = font_file()
+        arabic_font = ImageFont.truetype(path, 56, layout_engine=ImageFont.Layout.RAQM)
+        english_font = ImageFont.truetype(
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "chunk.png"
+            with patch.object(renderer, "fit_arabic_lines",
+                              return_value=(arabic_font, ["آية طويلة"], 72)), \
+                 patch.object(renderer, "fit_translation_lines",
+                              return_value=(english_font, ["A long verse"], 34)), \
+                 patch.object(renderer, "draw_reference_ayah_medallion") as medallion:
+                make_frame(
+                    verse, 18, 0, output, path, "الكهف",
+                    include_surah_header=False, show_ayah_number=False,
+                )
+                medallion.assert_not_called()
+                make_frame(
+                    verse, 18, 0, output, path, "الكهف",
+                    include_surah_header=False, show_ayah_number=True,
+                )
+                medallion.assert_called_once()
+
     def test_short_ayah_keeps_single_unchanged_display(self):
         verse = {"arabic": "حم", "english": "Ha, Meem."}
         chunks = renderer.plan_ayah_display_chunks(verse, font_file(), 8.0)
