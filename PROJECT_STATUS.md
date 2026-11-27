@@ -1466,3 +1466,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Broader Quran batch engine regression run `45155582965` completed successfully. All steps passed: module compilation, Quran catalog/batch/visual-template tests, a reference-driven Quran layout render and preview artifact upload (no delivery), Quran-only daily orchestrator tests, and the test-only safety check.
 - This supplements the dedicated mixed-background CI run `45155633254` and successful review workflow run `45155645483`. No production render, Cron execution, Telegram send, or TikTok publishing was triggered by these checks.
 - The mixed photo/video renderer is integrated on `feature/telegram-review-notifications`; the existing `render-manifest-video.yml` option default enables the unified library. First naturally scheduled delivery should be monitored for correct media rotation and output quality. Do not manually trigger an extra production video just to test it.
+
+
+## Six new Pexels photo candidates staged for isolated review — 2026-11-27
+
+- Added `data/background_photos_pending_review.json` with six new Pexels photo candidates: two mosque exterior/minaret scenes, one mosque at dusk, one mosque interior, and two waterfall/forest scenes. Source pages and image URLs are retained per candidate.
+- All six are explicitly marked `pending` / `user_approved: false`. They are not in the production photo manifest, are not eligible for the daily renderer, and do not alter the 35 previously approved photos or the 13 approved portrait videos.
+- Added `src/prepare_pending_photo_background_review.py` and the isolated workflow `.github/workflows/review-pending-photo-backgrounds.yml`. The workflow downloads each image only into a temporary runner, validates it, creates compact 540x960 previews with the real approved Quran overlay, and uploads a seven-day review artifact. Source images are not committed to Git, preserving repository storage.
+- Workflow run `45976803960` was created by the staged manifest/workflow push. Its final result and artifact must be checked before claiming the previews are ready.
+- No production workflow, Cron job, Telegram delivery, existing background catalog, production manifest, or main branch was changed. New photos must remain excluded from production until the user visually reviews and explicitly approves them.
