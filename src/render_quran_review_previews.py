@@ -882,8 +882,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         raise ValueError("Only review-only batch inputs are accepted.")
     if report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
         raise ValueError("Delivery and publishing must remain disabled.")
-    # Validate all selected ayahs before rendering. The audio preparer targets <=45s
-    # and may add one whole next ayah; every complete-ayah part has a hard <=60s ceiling.
+    # Validate all selected ayahs before rendering. The audio preparer prefers 45s
+    # but packs the full contiguous sequence while it remains within the 60s hard cap.
     candidates = {x["candidate_id"]: x for x in batch.get("passages", [])}
     report_items = report.get("items", [])
     for item in report_items:
@@ -1064,8 +1064,8 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
         output = output_dir / f"{part_id}_REVIEW_ONLY.mp4"
         transition_info = assemble_review_segments(segments, audio_files, concat, output, work)
         info = probe(output)
-        # The audio preparer enforces the 45s target plus at most one whole
-        # next ayah; rendered complete-ayah parts must never exceed 60s.
+        # The audio preparer may pass the 45s target when further contiguous whole
+        # ayahs fit; rendered complete-ayah parts must never exceed 60s.
         preview_limit = 60.0
         if info["duration_seconds"] > preview_limit:
             raise RuntimeError(f"Rendered preview exceeds the {preview_limit:g}-second duration policy for its selected ayah count: {info['duration_seconds']:.3f}s")
