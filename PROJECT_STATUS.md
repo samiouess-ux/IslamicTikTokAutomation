@@ -1585,3 +1585,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Visual inspection of extracted video frames and all six Arabic/English display screens: the same waterfall/forest background remains consistent across the long ayah; the surah title overlay is transparent; there is no dark text rectangle; the ayah-number badge appears only on the first display screen; Arabic and Saheeh English are split across six sequential screens.
 - IMPORTANT VISUAL ISSUE: display screen 04 contains a detached small Arabic waqf/stop symbol floating above the main Arabic line. Therefore this fresh preview is NOT approved yet. Fix only the chunk-boundary handling for Quranic stop/waqf marks so the mark stays attached to its correct text position, preserve all exact Arabic/English words and order, then rerender this same ayah in a new isolated review-only run and inspect again.
 - Delivery gates remain closed: production_approved=false, telegram_delivery=false, auto_publish=false. No Telegram send, Cron, production delivery/history, TikTok publishing, or main-branch changes occurred.
+
+
+### Waqf-mark display fix and fresh rerender #2 — 2026-11-27
+
+- Fixed src/render_quran_review_previews.py so standalone Uthmani waqf/stop-sign tokens (ۚ ۖ ۗ ۘ ۙ ۛ ۜ) are attached to the preceding Arabic word before visual chunk planning. The mark is preserved; only the display whitespace is normalized so it cannot become a detached glyph/screen.
+- Added regression test test_standalone_waqf_marks_stay_attached_to_their_preceding_word in tests/test_render_quran_review_previews.py. Code commits: f62f8cf21559222cd703fe2ecf5eb32f7cabd7ba and 988807b5843a652f745e2516e7af1a7ce7e92142.
+- Triggered a new isolated review run by a harmless comment update to its workflow: commit d47087d2efdb65ce15494fd28aeb93b7ca6d03bc. Run #2 / 46035818522 is currently in progress; dependency installation is underway. It will render the same exact Al-Kahf 18:21 afresh and remains review-only.
+- Previous run #1's visual issue remains unapproved until run #2 completes and the new MP4/screens are inspected. No Telegram, Cron, production delivery/history, TikTok publishing, or main-branch changes.
