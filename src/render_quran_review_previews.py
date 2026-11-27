@@ -347,6 +347,10 @@ def bold_font_file() -> str:
 
 APPROVED_DESIGN_REFERENCE = Path("references/approved_quran_design.png")
 REFERENCE_AYAH_MEDALLION_BOX = (103, 860, 207, 968)
+SURAH_TITLE_GOLD = (245, 184, 55)
+AYAH_NUMBER_GOLD = (255, 196, 54, 255)
+AYAH_NUMBER_FONT_SIZE = 38
+SURAH_TITLE_CENTER = (540, 540)
 
 
 def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
@@ -438,16 +442,16 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
     medallion = _gold_reference_crop(reference, box, clear_center=True)
     destination_y = int(center_y) - (box[3] - box[1]) // 2
     image.alpha_composite(medallion, (box[0], destination_y))
-    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
+    number_font = ImageFont.truetype(font_path, AYAH_NUMBER_FONT_SIZE, layout_engine=ImageFont.Layout.RAQM)
     digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw = ImageDraw.Draw(image)
-    draw.text((155, int(center_y)), digits, font=number_font, fill=(255, 196, 54, 255),
+    draw.text((155, int(center_y)), digits, font=number_font, fill=AYAH_NUMBER_GOLD,
               anchor="mm", direction="rtl", language="ar",
               stroke_width=1, stroke_fill=(55, 34, 12, 170))
 
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                          center: tuple = (540, 540), max_width: int = 620,
+                          center: tuple = SURAH_TITLE_CENTER, max_width: int = 620,
                           max_height: int = 120):
     """Fit the complete surah title between the open ornamental brackets."""
     for size in (112, 104, 96, 88, 80, 72, 64):
@@ -460,7 +464,7 @@ def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 
 
 def fit_surah_title(draw: ImageDraw.ImageDraw, surah_number: int,
-                     font_path: str, center: tuple = (540, 540)):
+                     font_path: str, center: tuple = SURAH_TITLE_CENTER):
     """Prefer a fully vocalized chapter name, but fall back when it will look cramped."""
     if not 1 <= surah_number <= len(SURAH_NAMES):
         raise ValueError(f"Invalid surah number: {surah_number}")
@@ -560,7 +564,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     # Approved reference: unobstructed full-bleed scenery, bright gold title
     # between open arabesque brackets, white Quran text, gold ayah medallion,
     # and centered English translation. No panel, border, or dark overlay.
-    accent = (245, 184, 55)
+    accent = SURAH_TITLE_GOLD
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
@@ -568,7 +572,7 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         # Keep the approved header for standalone/reference frames. In rendered
         # videos the surah title appears only in the opening overlay, so it can
         # genuinely fade away instead of remaining underneath in the ayah layer.
-        title_center = (540, 540)
+        title_center = SURAH_TITLE_CENTER
         title_text, title_font = fit_surah_title(
             draw, surah, bold_font_file(), center=title_center
         )
