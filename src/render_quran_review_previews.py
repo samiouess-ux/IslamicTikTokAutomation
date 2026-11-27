@@ -267,30 +267,64 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
             lines.append(current)
 
         # Avoid leaving a standalone Arabic one-letter particle (for example
-        # و / ف) on its own display line. Move the preceding complete word to
-        # that line when it still fits; otherwise try the next smaller font.
-        if len(lines) > 1 and len(lines[-1].split()) == 1:
-            orphan = lines[-1].split()[0]
+        # و / ف) on its own display line. Rebalance with an adjacent complete
+        # word, preserving the exact source word order and spelling.
+        orphan_unresolved = False
+        line_index = 0
+        while line_index < len(lines):
+            line_words = lines[line_index].split()
+            if len(line_words) != 1:
+                line_index += 1
+                continue
+            orphan = line_words[0]
             arabic_letters = sum(
                 1 for character in orphan
                 if character.isalpha() and "ARABIC" in unicodedata.name(character, "")
             )
-            if arabic_letters == 1:
-                previous_words = lines[-2].split()
-                if previous_words:
-                    candidate_last = previous_words[-1] + " " + orphan
-                    candidate_bounds = draw.textbbox(
-                        (0, 0), candidate_last, font=font,
-                        direction="rtl", language="ar"
-                    )
-                    candidate_width = candidate_bounds[2] - candidate_bounds[0]
-                    if candidate_width <= max_width:
-                        lines[-2] = " ".join(previous_words[:-1])
-                        lines[-1] = candidate_last
-                        if not lines[-2]:
-                            lines.pop(-2)
-                    else:
-                        continue
+            if arabic_letters != 1:
+                line_index += 1
+                continue
+
+            if line_index > 0:
+                adjacent_words = lines[line_index - 1].split()
+                if not adjacent_words:
+                    line_index += 1
+                    continue
+                candidate = adjacent_words[-1] + " " + orphan
+                replace_index = line_index - 1
+                replacement_words = adjacent_words[:-1]
+            elif line_index + 1 < len(lines):
+                adjacent_words = lines[line_index + 1].split()
+                if not adjacent_words:
+                    line_index += 1
+                    continue
+                candidate = orphan + " " + adjacent_words[0]
+                replace_index = line_index + 1
+                replacement_words = adjacent_words[1:]
+            else:
+                line_index += 1
+                continue
+
+            candidate_bounds = draw.textbbox(
+                (0, 0), candidate, font=font,
+                direction="rtl", language="ar"
+            )
+            candidate_width = candidate_bounds[2] - candidate_bounds[0]
+            if candidate_width > max_width:
+                orphan_unresolved = True
+                break
+
+            lines[line_index] = candidate
+            if replacement_words:
+                lines[replace_index] = " ".join(replacement_words)
+                line_index += 1
+            else:
+                lines.pop(replace_index)
+                if replace_index < line_index:
+                    line_index -= 1
+
+        if orphan_unresolved:
+            continue
 
         line_height = (max(48, int(size * 1.4)) if size <= 40
                        else max(72, int(size * 1.48)))
