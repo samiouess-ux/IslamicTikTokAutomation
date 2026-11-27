@@ -529,24 +529,14 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
     if fitted_font is not None and fitted_font.size >= 56 and len(fitted_lines) <= 4:
         return [{"arabic": arabic, "english": english}]
 
-    # Uthmani catalogs may place a waqf/stop sign in its own whitespace-
-    # separated token. Keep every mark, but bind it to the preceding word for
-    # display so Pillow never lays it out as a detached one-character line.
+    # Keep the source's exact token spacing for lossless rejoining. A pause
+    # sign that is its own token must travel with the preceding word's screen.
     pause_marks = ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
-    raw_words = arabic.split()
-    words = []
-    for token in raw_words:
-        if token and all(character in pause_marks for character in token):
-            if not words:
-                raise ValueError("A Quran pause mark cannot precede the first ayah word.")
-            words[-1] += token
-        else:
-            words.append(token)
-
+    words = arabic.split()
     english_words = english.split()
     max_chunks = min(6, len(english_words), max(1, int(audio_duration / 1.5)))
     if len(words) < 2 or max_chunks < 2:
-        return [{"arabic": " ".join(words), "english": english}]
+        return [{"arabic": arabic, "english": english}]
 
     target = max(1, math.ceil(len(words) / max_chunks))
     arabic_groups = []
@@ -560,6 +550,11 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
         marked = [cut for cut in range(lower, upper + 1)
                   if any(mark in remaining[cut - 1] for mark in pause_marks)]
         cut = marked[-1] if marked else min(target, len(remaining) - 1)
+        # Never start the next screen with a standalone waqf glyph.
+        if (cut < len(remaining)
+                and remaining[cut]
+                and all(character in pause_marks for character in remaining[cut])):
+            cut += 1
         arabic_groups.append(remaining[:cut])
         remaining = remaining[cut:]
 
@@ -623,6 +618,10 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
     
     arabic = arabic_display_text if arabic_display_text is not None else verse.get("arabic")
     english = english_display_text if english_display_text is not None else verse.get("english")
+    # Render standalone Uthmani waqf signs adjacent to the preceding word,
+    # while retaining the original spaced source text in the chunk manifest.
+    for pause_mark in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ"):
+        arabic = arabic.replace(" " + pause_mark, pause_mark)
     if (not isinstance(arabic, str) or not arabic.strip()
             or not isinstance(english, str) or not english.strip()):
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
