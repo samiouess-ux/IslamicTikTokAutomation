@@ -1,0 +1,37 @@
+name: Add user-approved Quran photo backgrounds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  add-approved-photos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install image validation tools
+        run: python -m pip install --disable-pip-version-check pillow
+      - name: Download and optimize only explicitly approved photos
+        run: python src/download_approved_photo_assets.py
+      - name: Run background approval and renderer tests
+        run: |
+          python -m unittest tests.test_background_rotation tests.test_background_library tests.test_background_mixed_renderer -v
+      - name: Commit compact approved photo assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/background_photos/
+          if git diff --cached --quiet; then
+            echo "No new photo assets to commit."
+          else
+            git commit -m "Add six user-approved compact Quran photo backgrounds"
+            git push origin HEAD:feature/telegram-review-notifications
+          fi
