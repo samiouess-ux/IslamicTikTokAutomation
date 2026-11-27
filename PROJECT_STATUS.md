@@ -1511,3 +1511,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 
 - Follow-up code review found and fixed a missing `math` import required by the new finite-duration guard. The chunk planner now also treats a layout-fit failure as a reason to attempt phrase segmentation rather than failing before segmentation. Fix commit: `2b0a333c6ebcb9599bb76e07c3cc3923c8d01aec`.
 - The existing push-triggered review workflow explicitly includes both the renderer and its test file in its path filters. GitHub combined commit status currently exposes no status contexts for the latest commit; therefore automated validation and rendered-preview inspection are still unconfirmed. Do not enable production use until the workflow result and preview are inspected.
+
+
+### Validation and visual review completed — 2026-11-27
+
+- Push-triggered inventory/review workflow run #671 (45983718961) completed successfully on commit f15daab9a07e9aba36aa553786b6ad443da1cfe7. The FFmpeg filter-graph separator issue is resolved; review-only preview rendering and background-overlay review stages completed.
+- Quran batch engine tests run #318 (45983718953) passed; isolated Quran request pipeline run #219 (45983718985) passed; approved-background review run #175 (45983718996) passed.
+- Downloaded and inspected review artifact quran-visual-review-samples (artifact ID 15190208992). The rendered Al-Kahf 18:21 preview is 56.000 seconds, 1080x1920, H.264 video with original MP3 audio. The report identifies an approved moving-video background and confirms the preview is review-only.
+- Visual inspection confirms the long ayah is shown in six successive complete display portions. Arabic and Saheeh English portions appear sequentially, remain readable, and retain the existing white Arabic / gold ayah medallion / English translation treatment. The approved background remains in motion. Automated regression coverage confirms short ayahs retain one unchanged display. The source ayah and recitation remain whole; phrase timing remains approximate because there are no word-level audio timestamps.
+- The workflow explicitly skipped Telegram reservation, Telegram send, delivery-history recording, and history sync. Artifact metadata confirms production_approved=false, telegram_delivery=false, and auto_publish=false. No production Cron run, Telegram send, or TikTok publication occurred.
+- Result: the visual segmentation implementation is validated in the isolated review pipeline; it has not been promoted or enabled through a production dispatch. All work remains on feature/telegram-review-notifications; main and production settings remain untouched.
