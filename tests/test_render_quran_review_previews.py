@@ -55,6 +55,17 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertGreaterEqual(font.size, 48)
         self.assertGreater(line_height, font.size)
 
+    def test_arabic_one_letter_particle_is_not_left_alone_on_a_line(self):
+        image = Image.new("RGB", (1080, 1920))
+        draw = ImageDraw.Draw(image)
+        original = " ".join(["الْمُؤْمِنُونَ"] * 12 + ["وَ"])
+        _, lines, _ = fit_arabic_lines(
+            draw, original, font_file(), max_width=320, max_lines=7
+        )
+        self.assertEqual(" ".join(lines), original)
+        self.assertNotIn("وَ", lines)
+        self.assertTrue(all(line.strip() for line in lines))
+
     def test_long_quran_ayah_uses_readable_fallback_without_dropping_words(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
