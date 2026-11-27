@@ -529,14 +529,26 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
     if fitted_font is not None and fitted_font.size >= 56 and len(fitted_lines) <= 4:
         return [{"arabic": arabic, "english": english}]
 
-    words = arabic.split()
+    # Uthmani catalogs may place a waqf/stop sign in its own whitespace-
+    # separated token. Keep every mark, but bind it to the preceding word for
+    # display so Pillow never lays it out as a detached one-character line.
+    pause_marks = ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
+    raw_words = arabic.split()
+    words = []
+    for token in raw_words:
+        if token and all(character in pause_marks for character in token):
+            if not words:
+                raise ValueError("A Quran pause mark cannot precede the first ayah word.")
+            words[-1] += token
+        else:
+            words.append(token)
+
     english_words = english.split()
     max_chunks = min(6, len(english_words), max(1, int(audio_duration / 1.5)))
     if len(words) < 2 or max_chunks < 2:
-        return [{"arabic": arabic, "english": english}]
+        return [{"arabic": " ".join(words), "english": english}]
 
     target = max(1, math.ceil(len(words) / max_chunks))
-    pause_marks = ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
     arabic_groups = []
     remaining = list(words)
     while remaining:
