@@ -919,6 +919,28 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-27T16:23:14.725178+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_026_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-waterfall-forest-12110531",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-11880826",
+          "categories": [
+            "forest",
+            "mountains",
+            "nature",
+            "sea"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-27T17:12:43.687602+00:00"
     }
   ]
 }

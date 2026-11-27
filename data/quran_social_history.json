@@ -589,6 +589,25 @@
         "follow"
       ],
       "confirmed_at_utc": "2026-11-27T16:23:14.687072+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_026_110_part_001",
+      "hashtags_ar": [
+        "#تدبر_القرآن",
+        "#ذكر_الله",
+        "#توحيد_الله"
+      ],
+      "hashtags_en": [
+        "#Islam",
+        "#Tawheed"
+      ],
+      "hook_ids": [
+        "heart"
+      ],
+      "cta_ids": [
+        "reflect2"
+      ],
+      "confirmed_at_utc": "2026-11-27T17:12:43.649488+00:00"
     }
   ]
 }
