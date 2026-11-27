@@ -1231,9 +1231,16 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 filters.append(
                     f"[{current}][intro]overlay=0:0:format=auto[title_overlay]"
                 )
+                # Bound the ornament stream itself to the intro window. This is
+                # more reliable than an overlay enable expression for looped PNG
+                # inputs and lets the underlying ayah stream pass through at EOF.
                 filters.append(
-                    f"[title_overlay][{ornaments_input_index}:v]"
-                    f"overlay=0:0:format=auto:enable='lt(t,{INTRO_DURATION_SECONDS:g})'[v]"
+                    f"[{ornaments_input_index}:v]format=rgba,"
+                    f"trim=duration={INTRO_DURATION_SECONDS:g},setpts=PTS-STARTPTS[ornaments]"
+                )
+                filters.append(
+                    f"[title_overlay][ornaments]overlay=0:0:format=auto:"
+                    f"eof_action=pass:shortest=0[v]"
                 )
                 current = "v"
             filter_complex = ";".join(filters)
