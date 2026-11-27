@@ -517,7 +517,8 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str,
                include_surah_header: bool = True,
                arabic_display_text: str | None = None,
-               english_display_text: str | None = None) -> None:
+               english_display_text: str | None = None,
+               show_ayah_number: bool = True) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not isinstance(verse.get("number"), int):
@@ -565,10 +566,12 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
                   direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(0, 0, 0, 150))
 
-    # Keep the original gold medallion artwork, aligned with the ayah block.
-    draw_reference_ayah_medallion(
-        image, verse["number"], bold_font_file(), center_y=ayah_center_y
-    )
+    # A long ayah may occupy several display screens: show its gold number
+    # only on the first screen, never imply that later chunks are new ayahs.
+    if show_ayah_number:
+        draw_reference_ayah_medallion(
+            image, verse["number"], bold_font_file(), center_y=ayah_center_y
+        )
 
     english_font, en_lines, english_line_height = fit_translation_lines(
         draw, english, font_path, max_width=680, max_lines=8
@@ -1092,6 +1095,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     include_surah_header=False,
                     arabic_display_text=chunk["arabic"],
                     english_display_text=chunk["english"],
+                    show_ayah_number=(chunk_index == 0),
                 )
                 frame_paths.append(frame)
 
