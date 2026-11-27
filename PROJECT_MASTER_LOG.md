@@ -533,3 +533,10 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Corrected only the affected test fixture to supply a valid 25-second ayah audio duration. This does not change production rendering behavior or the alignment algorithm.
 - Commit: `f203be7d5489a6d8dde71a2bdc83d528d3435fa3`. Awaiting a fresh workflow run; the actual Al-Kahf 18:21 MP4 and synchronization remain unverified until render and audio/frame spot checks complete.
 - Scope remains isolated to `fix/audio-text-pause-sync`; no merge, Telegram delivery, Cron, or publishing.
+
+
+### 2026-11-27 — Isolated second CI failure to nondeterministic background test fixture
+- After the audio-duration fixture correction, the renderer suite advanced further and exposed one existing test that depended on the live approved-background catalog. Its expected background IDs no longer matched the current catalog, so the test failed before the Quran alignment/render steps.
+- Updated only that test to supply a deterministic three-video fixture with the same rotation expectations. No production background-selection code or visual assets were changed.
+- Commit: `0a8029fdb1209978a2d2e1c412e0d4e8e7e7d736`. A new isolated workflow run is expected from this test-file push; actual alignment and MP4 review are still pending.
+- Scope remains `fix/audio-text-pause-sync`; production branch, Telegram, Cron, and publishing remain untouched.
