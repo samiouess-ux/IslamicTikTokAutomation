@@ -1122,7 +1122,7 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
 
             background_filter = photo_motion_filter()
-            filters = [background_filter]
+            filters = [background_filter.rstrip(";")]
             current = "bg"
             frame_input_start = 2
             elapsed = 0.0
