@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "source": "Pexels",
+  "status": "pending_visual_review",
+  "approval_note": "These six additions are candidates only. They are NOT user-approved for production and must not enter the scheduled renderer until the user explicitly approves them after reviewing the Quran-overlay previews.",
+  "usage": "Review-only intake. Images are downloaded and resized in GitHub Actions artifacts; source images are not committed to the repository.",
+  "candidates": [
+    {
+      "id": "pexels-39965216",
+      "photo_id": 39965216,
+      "description": "Mosque with twin minarets beneath a blue sky",
+      "source_page_url": "https://www.pexels.com/photo/majestic-mosque-with-dual-minarets-under-blue-sky-39965216/",
+      "image_url": "https://images.pexels.com/photos/39965216/pexels-photo-39965216.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "source_dimensions": "3510x6240",
+      "source_aspect_ratio": "9:16",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "architecture",
+        "sky"
+      ],
+      "approval_status": "pending",
+      "user_approved": false
+    },
+    {
+      "id": "pexels-39965214",
+      "photo_id": 39965214,
+      "description": "Historic mosque minarets and dome against a blue sky",
+      "source_page_url": "https://www.pexels.com/photo/historic-mosque-minarets-against-blue-sky-39965214/",
+      "image_url": "https://images.pexels.com/photos/39965214/pexels-photo-39965214.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "source_dimensions": "3510x6240",
+      "source_aspect_ratio": "9:16",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "architecture",
+        "sky"
+      ],
+      "approval_status": "pending",
+      "user_approved": false
+    },
+    {
+      "id": "pexels-37490044",
+      "photo_id": 37490044,
+      "description": "Egyptian mosque minaret at dusk",
+      "source_page_url": "https://www.pexels.com/photo/stunning-egyptian-mosque-minaret-at-dusk-37490044/",
+      "image_url": "https://images.pexels.com/photos/37490044/pexels-photo-37490044.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "source_dimensions": "1836x3264",
+      "source_aspect_ratio": "9:16",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "minaret",
+        "dusk"
+      ],
+      "approval_status": "pending",
+      "user_approved": false
+    },
+    {
+      "id": "pexels-36749078",
+      "photo_id": 36749078,
+      "description": "Intricate mosque interior with decorative tilework",
+      "source_page_url": "https://www.pexels.com/photo/intricate-mosque-interior-with-stunning-tiles-36749078/",
+      "image_url": "https://images.pexels.com/photos/36749078/pexels-photo-36749078.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "source_dimensions": "2268x4032",
+      "source_aspect_ratio": "9:16",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "interior",
+        "islamic_art"
+      ],
+      "approval_status": "pending",
+      "user_approved": false
+    },
+    {
+      "id": "pexels-12396074",
+      "photo_id": 12396074,
+      "description": "Waterfall in a green forest",
+      "source_page_url": "https://www.pexels.com/photo/waterfall-in-forest-12396074/",
+      "image_url": "https://images.pexels.com/photos/12396074/pexels-photo-12396074.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "source_dimensions": "2268x4032",
+      "source_aspect_ratio": "9:16",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "waterfall",
+        "forest",
+        "nature"
+      ],
+      "approval_status": "pending",
+      "user_approved": false
+    },
+    {
+      "id": "pexels-8316768",
+      "photo_id": 8316768,
+      "description": "Scenic waterfall surrounded by forest",
+      "source_page_url": "https://www.pexels.com/photo/scenic-view-of-a-waterfall-in-the-forest-8316768/",
+      "image_url": "https://images.pexels.com/photos/8316768/pexels-photo-8316768.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "source_dimensions": "4640x6960",
+      "source_aspect_ratio": "2:3",
+      "license": "Pexels License — source page marked Free; center-cropped to 9:16 for preview",
+      "tags": [
+        "waterfall",
+        "forest",
+        "nature"
+      ],
+      "approval_status": "pending",
+      "user_approved": false
+    }
+  ]
+}
