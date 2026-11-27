@@ -105,7 +105,7 @@ def main():
         "user_approval_required": True,
         "note": "These preview images are temporary workflow artifacts. No source image is committed to the repository or enabled in production.",
     }
-    (out / "pending_photo_review_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    (out / "pending_photo_review_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"prepared": len(items), "failed": len(failures), "production_enabled": False}, indent=2))
 
 if __name__ == "__main__":
