@@ -151,10 +151,12 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 character in mark_tokens for character in first_token
             ))
         rendered = renderer.attach_waqf_marks_for_display(original)
-        self.assertIn("كَلِمَةٌ\u200dۚ", rendered)
-        self.assertIn("كَلِمَةٌ\u200dۖ", rendered)
+        self.assertIn("كَلِمَةٌۚ", rendered)
+        self.assertIn("كَلِمَةٌۖ", rendered)
         self.assertNotIn(" ۚ", rendered)
         self.assertNotIn(" ۖ", rendered)
+        self.assertNotIn("\u200dۚ", rendered)
+        self.assertNotIn("\u200dۖ", rendered)
 
     def test_ayah_number_is_shown_only_when_requested_for_display_chunk(self):
         verse = {"number": 21, "arabic": "آية طويلة", "english": "A long verse"}
