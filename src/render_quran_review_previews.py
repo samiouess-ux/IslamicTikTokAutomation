@@ -918,6 +918,7 @@ def calculate_display_intervals_from_alignment(
     expected_words = set(range(1, cursor))
     events = []
     seen_words = set()
+    word_sequence = []
     previous_start = -1
     duration_ms = audio_duration * 1000
     for item in aligned_words:
@@ -934,12 +935,41 @@ def calculate_display_intervals_from_alignment(
             return None
         previous_start = start_ms
         seen_words.add(word)
+        word_sequence.append(word)
         chunk_index = next((i for i, (first, after) in enumerate(ranges) if first <= word < after), None)
         if chunk_index is None:
             return None
         events.append((chunk_index, start_ms / 1000.0))
     if seen_words != expected_words or not events or events[0][0] != 0:
         return None
+
+    # Validate the heard canonical-word sequence, not just set coverage.
+    # A repetition may jump back to an earlier word, but it must then replay
+    # every intervening canonical word in order before normal progression
+    # resumes. Any unexplained reorder fails closed to the full-ayah screen.
+    expected_next = 1
+    replay_next = None
+    replay_resume = None
+    for word in word_sequence:
+        if replay_next is not None:
+            if word == replay_next and word < replay_resume:
+                replay_next += 1
+            elif word == replay_resume:
+                expected_next = replay_resume + 1
+                replay_next = None
+                replay_resume = None
+            else:
+                return None
+        elif word == expected_next:
+            expected_next += 1
+        elif word < expected_next:
+            replay_next = word + 1
+            replay_resume = expected_next
+        else:
+            return None
+    if expected_next != cursor or replay_next is not None:
+        return None
+
     runs = []
     for chunk_index, timestamp in events:
         if runs and runs[-1][0] == chunk_index:
