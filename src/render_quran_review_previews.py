@@ -583,14 +583,15 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
 
 
 def attach_waqf_marks_for_display(text: str) -> str:
-    """Keep Uthmani pause signs in the same display token as the preceding word.
+    """Attach each Uthmani pause sign directly to its preceding display word.
 
-    The zero-width joiner prevents the line-layout stage from treating a pause
-    sign as an independent token. This affects display text only; Quran source
-    text and chunk manifests remain byte-for-byte unchanged.
+    These pause signs are Unicode nonspacing marks. A zero-width joiner before
+    them interrupts their association with the preceding Arabic base glyph and
+    can make them render detached. Remove only the display-layer separator;
+    preserve the original Quran source text and chunk manifests unchanged.
     """
     for pause_mark in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ"):
-        text = text.replace(" " + pause_mark, "\u200d" + pause_mark)
+        text = text.replace(" " + pause_mark, pause_mark)
     return text
 
 
