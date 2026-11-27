@@ -100,6 +100,32 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertLess(long_font.size, short_font.size)
         self.assertLessEqual((len(lines) - 1) * line_height, 390)
 
+    def test_long_ayah_is_split_into_ordered_complete_display_chunks(self):
+        long_ayah = (
+            "إِنَّمَا الْمُؤْمِنُونَ الَّذِينَ آمَنُوا بِاللَّهِ وَرَسُولِهِ "
+            "وَإِذَا كَانُوا مَعَهُ عَلَىٰ أَمْرٍ جَامِعٍ لَمْ يَذْهَبُوا "
+            "حَتَّىٰ يَسْتَأْذِنُوهُ ۚ إِنَّ الَّذِينَ يَسْتَأْذِنُونَكَ "
+            "أُولَٰئِكَ الَّذِينَ يُؤْمِنُونَ بِاللَّهِ وَرَسُولِهِ ۚ "
+            "فَإِذَا اسْتَأْذَنُوكَ لِبَعْضِ شَأْنِهِمْ فَأْذَنْ لِمَنْ "
+            "شِئْتَ مِنْهُمْ وَاسْتَغْفِرْ لَهُمُ اللَّهَ ۚ إِنَّ اللَّهَ "
+            "غَفُورٌ رَحِيمٌ"
+        )
+        english = "Indeed the believers are those who believe in Allah and His Messenger and when they are with him for a matter of collective concern they do not depart until they ask his permission."
+        chunks = renderer.plan_ayah_display_chunks(
+            {"arabic": long_ayah, "english": english}, font_file(), 24.0
+        )
+        self.assertGreater(len(chunks), 1)
+        self.assertLessEqual(len(chunks), 6)
+        self.assertEqual(" ".join(chunk["arabic"] for chunk in chunks), long_ayah)
+        self.assertEqual(" ".join(chunk["english"] for chunk in chunks), english)
+        self.assertTrue(all(chunk["arabic"].strip() and chunk["english"].strip()
+                            for chunk in chunks))
+
+    def test_short_ayah_keeps_single_unchanged_display(self):
+        verse = {"arabic": "حم", "english": "Ha, Meem."}
+        chunks = renderer.plan_ayah_display_chunks(verse, font_file(), 8.0)
+        self.assertEqual(chunks, [verse])
+
     def test_reference_translation_wraps_into_four_centered_lines(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
@@ -360,12 +386,11 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 if "-loop" in call.args[0]
             )
             filter_text = " ".join(first_render_command)
-            self.assertIn("[bg][2:v]overlay=0:0:format=auto[ayah]", filter_text)
+            self.assertIn("[bg][2:v]overlay=0:0:enable='gte(t,0.000000)", filter_text)
             self.assertIn("[3:v]format=rgba,fade=t=out:st=0.4:d=0.8:alpha=1[intro]", filter_text)
-            self.assertIn("[ayah][intro]overlay=0:0:format=auto[v]", filter_text)
-            self.assertIn("[ayah][intro]overlay=0:0:format=auto[v]", filter_text)
+            self.assertIn("[ayah_display_0][intro]overlay=0:0:format=auto[v]", filter_text)
             self.assertNotIn("enable='lt(t,0.6)'", filter_text)
-            self.assertLess(filter_text.index("[bg][2:v]overlay"), filter_text.index("[ayah][intro]overlay"))
+            self.assertLess(filter_text.index("[bg][2:v]overlay"), filter_text.index("[ayah_display_0][intro]overlay"))
             opening = result["opening_title_overlay"]
             self.assertEqual(opening["duration_seconds"], 1.2)
             self.assertTrue(opening["background_is_transparent"])
