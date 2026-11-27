@@ -407,46 +407,17 @@ def draw_reference_surah_ornaments(image: Image.Image) -> None:
             source.convert("RGB"), (1080, 1920),
             method=Image.Resampling.LANCZOS
         )
-    # Coordinates are on the 1080x1920 fitted reference itself.
-    # The two title brackets are mirrored counterparts in the approved artwork.
-    # Reuse the left bracket's original pixels, mirrored for the right side:
-    # this preserves every fine gold stroke while avoiding the bright sunset
-    # behind the right bracket being mistaken for ornament by the color key.
+    # Preserve the approved reference's original scale and exact placement.
+    # The right bracket is mirrored from the left to avoid extracting scenery.
     left_box = (138, 448, 270, 665)
     left_ornament = _gold_reference_crop(reference, left_box)
-    # Keep the exact approved gold linework, but reduce the brackets slightly
-    # so the surah name reads first instead of being visually dominated by them.
-    ornament_scale = 0.77
-    ornament_size = (
-        round(left_ornament.width * ornament_scale),
-        round(left_ornament.height * ornament_scale),
-    )
-    left_ornament = left_ornament.resize(ornament_size, Image.Resampling.LANCZOS)
-    left_position = (
-        left_box[0] + (left_box[2] - left_box[0] - ornament_size[0]) // 2 + 10,
-        left_box[1] + (left_box[3] - left_box[1] - ornament_size[1]) // 2,
-    )
-    image.alpha_composite(left_ornament, left_position)
+    image.alpha_composite(left_ornament, (left_box[0], left_box[1]))
     right_ornament = left_ornament.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     right_box = (810, 448, 942, 665)
-    right_position = (
-        right_box[0] + (right_box[2] - right_box[0] - ornament_size[0]) // 2 - 10,
-        right_box[1] + (right_box[3] - right_box[1] - ornament_size[1]) // 2,
-    )
-    image.alpha_composite(right_ornament, right_position)
+    image.alpha_composite(right_ornament, (right_box[0], right_box[1]))
     divider_box = (298, 650, 784, 730)
     divider = _gold_reference_crop(reference, divider_box)
-    divider_scale = 0.77
-    divider_size = (
-        round(divider.width * divider_scale),
-        round(divider.height * divider_scale),
-    )
-    divider = divider.resize(divider_size, Image.Resampling.LANCZOS)
-    divider_position = (
-        divider_box[0] + (divider_box[2] - divider_box[0] - divider_size[0]) // 2,
-        divider_box[1] + (divider_box[3] - divider_box[1] - divider_size[1]) // 2,
-    )
-    image.alpha_composite(divider, divider_position)
+    image.alpha_composite(divider, (divider_box[0], divider_box[1]))
 
 
 def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
@@ -467,7 +438,7 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
     medallion = _gold_reference_crop(reference, box, clear_center=True)
     destination_y = int(center_y) - (box[3] - box[1]) // 2
     image.alpha_composite(medallion, (box[0], destination_y))
-    number_font = ImageFont.truetype(font_path, 32, layout_engine=ImageFont.Layout.RAQM)
+    number_font = ImageFont.truetype(font_path, 38, layout_engine=ImageFont.Layout.RAQM)
     digits = str(ayah_number).translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
     draw = ImageDraw.Draw(image)
     draw.text((155, int(center_y)), digits, font=number_font, fill=(255, 196, 54, 255),
@@ -476,7 +447,7 @@ def draw_reference_ayah_medallion(image: Image.Image, ayah_number: int,
 
 
 def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
-                          center: tuple = (540, 520), max_width: int = 600,
+                          center: tuple = (540, 540), max_width: int = 620,
                           max_height: int = 120):
     """Fit the complete surah title between the open ornamental brackets."""
     for size in (112, 104, 96, 88, 80, 72, 64):
@@ -489,7 +460,7 @@ def fit_surah_title_font(draw: ImageDraw.ImageDraw, text: str, font_path: str,
 
 
 def fit_surah_title(draw: ImageDraw.ImageDraw, surah_number: int,
-                     font_path: str, center: tuple = (540, 520)):
+                     font_path: str, center: tuple = (540, 540)):
     """Prefer a fully vocalized chapter name, but fall back when it will look cramped."""
     if not 1 <= surah_number <= len(SURAH_NAMES):
         raise ValueError(f"Invalid surah number: {surah_number}")
@@ -597,14 +568,11 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
         # Keep the approved header for standalone/reference frames. In rendered
         # videos the surah title appears only in the opening overlay, so it can
         # genuinely fade away instead of remaining underneath in the ayah layer.
-        title_center = (540, 520)
+        title_center = (540, 540)
         title_text, title_font = fit_surah_title(
             draw, surah, bold_font_file(), center=title_center
         )
         draw_reference_surah_ornaments(image)
-        title_group = image.crop((0, 400, 1080, 760))
-        image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
-        image.alpha_composite(title_group, (0, 360))
         draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
                   anchor="mm", direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(55, 34, 12, 190))
@@ -710,15 +678,11 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
     accent = (245, 184, 55)
-    title_center = (540, 520)
+    title_center = (540, 540)
     title_text, title_font = fit_surah_title(
         draw, surah_number, font_path, center=title_center
     )
     draw_reference_surah_ornaments(image)
-    # Keep the opening title ornaments and title aligned exactly like ayah frames.
-    title_group = image.crop((0, 400, 1080, 760))
-    image.paste((0, 0, 0, 0), (0, 400, 1080, 760))
-    image.alpha_composite(title_group, (0, 360))
     draw.text(title_center, title_text, font=title_font, fill=(*accent, 255),
               anchor="mm", direction="rtl", language="ar",
               stroke_width=2, stroke_fill=(55, 34, 12, 190))
