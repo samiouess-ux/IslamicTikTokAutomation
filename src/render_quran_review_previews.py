@@ -440,9 +440,80 @@ def fit_surah_title(draw: ImageDraw.ImageDraw, surah_number: int,
     raise ValueError(f"Surah {surah_number} title cannot fit safely between its ornamental brackets.")
 
 
+def plan_ayah_display_chunks(verse: dict, font_path: str,
+                              audio_duration: float) -> list[dict]:
+    """Split only visually dense ayahs into complete sequential display phrases.
+
+    Arabic word order and spelling are preserved. Existing Quran pause marks
+    are preferred as break points; timing is proportional to Arabic word count
+    because the source inventory has ayah-level, not word-level timestamps.
+    """
+    arabic = verse.get("arabic_uthmani", verse.get("arabic", ""))
+    english = verse.get("english_saheeh_international", verse.get("english", ""))
+    if not isinstance(arabic, str) or not arabic.strip():
+        raise ValueError("Cannot segment an empty Arabic ayah.")
+    if not isinstance(english, str) or not english.strip():
+        raise ValueError("Cannot segment an empty paired translation.")
+    if not math.isfinite(audio_duration) or audio_duration <= 0:
+        raise ValueError("Ayah display timing must be finite and positive.")
+
+    probe_image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+    probe_draw = ImageDraw.Draw(probe_image)
+    fitted_font, fitted_lines, _ = fit_arabic_lines(probe_draw, arabic, font_path)
+    if fitted_font.size >= 56 and len(fitted_lines) <= 4:
+        return [{"arabic": arabic, "english": english}]
+
+    words = arabic.split()
+    english_words = english.split()
+    max_chunks = min(6, max(1, int(audio_duration / 1.5)))
+    if len(words) < 2 or max_chunks < 2:
+        return [{"arabic": arabic, "english": english}]
+
+    target = max(1, math.ceil(len(words) / max_chunks))
+    pause_marks = ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
+    arabic_groups = []
+    remaining = list(words)
+    while remaining:
+        if len(remaining) <= target + 2 or len(arabic_groups) >= max_chunks - 1:
+            arabic_groups.append(remaining)
+            break
+        lower = max(1, target - 2)
+        upper = min(len(remaining) - 1, target + 2)
+        marked = [cut for cut in range(lower, upper + 1)
+                  if any(mark in remaining[cut - 1] for mark in pause_marks)]
+        cut = marked[-1] if marked else min(target, len(remaining) - 1)
+        arabic_groups.append(remaining[:cut])
+        remaining = remaining[cut:]
+
+    if len(arabic_groups) < 2:
+        return [{"arabic": arabic, "english": english}]
+
+    weights = [len(group) for group in arabic_groups]
+    english_groups = []
+    start = 0
+    total_arabic_words = sum(weights)
+    for group_index, weight in enumerate(weights):
+        if group_index == len(weights) - 1:
+            end = len(english_words)
+        else:
+            end = round(sum(weights[:group_index + 1]) / total_arabic_words
+                        * len(english_words))
+            end = max(start + 1, min(end, len(english_words)
+                                     - (len(weights) - group_index - 1)))
+        english_groups.append(english_words[start:end])
+        start = end
+
+    return [
+        {"arabic": " ".join(arabic_group), "english": " ".join(english_group)}
+        for arabic_group, english_group in zip(arabic_groups, english_groups)
+    ]
+
+
 def make_frame(verse: dict, surah: int, index: int, out: Path,
                font_path: str, surah_name: str,
-               include_surah_header: bool = True) -> None:
+               include_surah_header: bool = True,
+               arabic_display_text: str | None = None,
+               english_display_text: str | None = None) -> None:
     if not features.check("raqm"):
         raise RuntimeError("Pillow RAQM support is required; refusing unsafe Arabic shaping.")
     if not isinstance(verse.get("number"), int):
@@ -471,8 +542,8 @@ def make_frame(verse: dict, surah: int, index: int, out: Path,
                   anchor="mm", direction="rtl", language="ar",
                   stroke_width=2, stroke_fill=(55, 34, 12, 190))
     
-    arabic = verse.get("arabic")
-    english = verse.get("english")
+    arabic = arabic_display_text if arabic_display_text is not None else verse.get("arabic")
+    english = english_display_text if english_display_text is not None else verse.get("english")
     if (not isinstance(arabic, str) or not arabic.strip()
             or not isinstance(english, str) or not english.strip()):
         raise ValueError("Every preview ayah needs non-empty Arabic and paired translation.")
@@ -998,25 +1069,39 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     prepared_backgrounds[background_candidate["id"]]["tags"] = background_candidate.get("tags", [])
             background = Path(prepared_backgrounds[background_candidate["id"]]["path"])
             used_backgrounds.append(prepared_backgrounds[background_candidate["id"]])
-            frame = work / f"ayah_{int(verse['ayah']):03d}.png"
             surah_number = int(candidate["surah_number"])
             if not 1 <= surah_number <= len(SURAH_NAMES):
                 raise ValueError(f"Invalid surah number: {surah_number}")
-            make_frame({"number": int(verse["ayah"]), "arabic": verse["arabic_uthmani"],
-                        "english": verse["english_saheeh_international"]},
-                       surah_number, index, frame, font_path,
-                       SURAH_NAMES_TASHKEEL[surah_number - 1],
-                       include_surah_header=False)
+            verse_payload = {"number": int(verse["ayah"]),
+                             "arabic": verse["arabic_uthmani"],
+                             "english": verse["english_saheeh_international"]}
+            display_chunks = plan_ayah_display_chunks(verse_payload, font_path,
+                                                       ayah_audio_duration)
+            frame_paths = []
+            for chunk_index, chunk in enumerate(display_chunks):
+                frame = work / (
+                    f"ayah_{int(verse['ayah']):03d}_display_{chunk_index + 1:02d}.png"
+                )
+                make_frame(
+                    verse_payload, surah_number, index, frame, font_path,
+                    SURAH_NAMES_TASHKEEL[surah_number - 1],
+                    include_surah_header=False,
+                    arabic_display_text=chunk["arabic"],
+                    english_display_text=chunk["english"],
+                )
+                frame_paths.append(frame)
+
             segment = work / f"segment_{index:02d}.mp4"
             background_input = (
                 ["-loop", "1", "-framerate", "30", "-i", str(background)]
                 if background_candidate.get("background_type") == "photo"
                 else ["-stream_loop", "-1", "-i", str(background)]
             )
-            command = [
-                "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-                *background_input, "-i", str(audio), "-i", str(frame),
-            ]
+            command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                       *background_input, "-i", str(audio)]
+            for frame_path in frame_paths:
+                command.extend(["-loop", "1", "-framerate", "30", "-i", str(frame_path)])
+
             if index == 0:
                 # The opening title is an overlay on the first ayah segment.
                 # It adds no silent lead-in and does not change the audio stream.
@@ -1031,28 +1116,39 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     cover_rotation_index=cover_rotation_index,
                 )
                 command.extend(["-loop", "1", "-framerate", "30", "-i", str(intro)])
-                background_filter = (
-                    photo_motion_filter()
+
+            background_filter = photo_motion_filter()
+            filters = [background_filter]
+            current = "bg"
+            frame_input_start = 2
+            elapsed = 0.0
+            total_words = sum(len(chunk["arabic"].split()) for chunk in display_chunks)
+            for chunk_index, chunk in enumerate(display_chunks):
+                chunk_words = len(chunk["arabic"].split())
+                chunk_end = (ayah_audio_duration if chunk_index == len(display_chunks) - 1
+                             else elapsed + ayah_audio_duration * chunk_words / total_words)
+                output_label = f"ayah_display_{chunk_index}"
+                filters.append(
+                    f"[{current}][{frame_input_start + chunk_index}:v]"
+                    f"overlay=0:0:enable='gte(t,{elapsed:.6f})*lt(t,{chunk_end:.6f})'"
+                    f"[{output_label}]"
                 )
+                current = output_label
+                elapsed = chunk_end
+
+            if index == 0:
+                intro_input_index = frame_input_start + len(frame_paths)
                 fade_start = INTRO_DURATION_SECONDS - INTRO_FADE_SECONDS
-                fade_start_text = f"{fade_start:g}"
-                fade_duration_text = f"{INTRO_FADE_SECONDS:g}"
-                filter_complex = background_filter + (
-                    # Keep the moving/photo background and first ayah visible from t=0.
-                    # Only the transparent title/range layer fades; it never hides the ayah.
-                    "[bg][2:v]overlay=0:0:format=auto[ayah];"
-                    f"[3:v]format=rgba,fade=t=out:st={fade_start_text}:"
-                    f"d={fade_duration_text}:alpha=1[intro];"
-                    "[ayah][intro]overlay=0:0:format=auto[v]"
+                filters.append(
+                    f"[{intro_input_index}:v]format=rgba,fade=t=out:st={fade_start:g}:"
+                    f"d={INTRO_FADE_SECONDS:g}:alpha=1[intro]"
                 )
-            else:
-                background_filter = (
-                    photo_motion_filter()
-                )
-                filter_complex = background_filter + "[bg][2:v]overlay=0:0:format=auto[v]"
+                filters.append(f"[{current}][intro]overlay=0:0:format=auto[v]")
+                current = "v"
+            filter_complex = ";".join(filters)
             command.extend([
                 "-filter_complex", filter_complex,
-                "-map", "[v]", "-map", "1:a:0",
+                "-map", f"[{current}]", "-map", "1:a:0",
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-maxrate", "6M", "-bufsize", "12M",
                 "-pix_fmt", "yuv420p", "-c:a", "copy", "-shortest",
                 "-movflags", "+faststart", str(segment)
