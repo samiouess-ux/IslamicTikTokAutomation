@@ -562,3 +562,11 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Report confirms `text_audio_synchronization: quran_word_alignment`, MP3 stream-copy mode, no audio re-encode, `review_only=true`, `production_approved=false`, `telegram_delivery=false`, and `auto_publish=false`.
 - Visual frame sampling confirms the renderer cycles through the six sequential ayah display overlays. The report and CI verification pass, but a human listening check of phrase starts, pauses, and any naturally repeated phrase is still required before calling the synchronization accepted. The preview is not approved for production.
 - No merge. Production branch, `main`, Telegram, Cron, background/design policy, selection, duration policy, and publishing remain untouched.
+
+
+### 2026-11-28 — User accepted Al-Kahf 18:21 synchronization preview
+- User reviewed the fresh Al-Kahf 18:21 review-only MP4 and confirmed the result is satisfactory: “هكا مريڨلة، سجل وخليها هكا”.
+- Record this preview's current Quran word-alignment behavior as the user-accepted reference for this isolated audio/text synchronization fix. No further timing or display adjustments were requested.
+- Keep the implementation and visual timing as shown in the accepted preview; do not make speculative refinements.
+- This is approval of the reviewed preview behavior, not authorization to merge PR #10 or activate production. PR #10 remains open and unmerged unless the user separately instructs otherwise.
+- Production branch, `main`, Telegram delivery, Cron, design/backgrounds, ayah selection, duration policy, and TikTok publishing remain unchanged.
