@@ -160,3 +160,5 @@ jobs:
 # Retry after preserving exact source whitespace and normalizing waqf marks only in rendered pixels.
 
 # Fresh review rerender after ZWJ-bound waqf shaping adjustment.
+
+# Fresh isolated preview after removing the separator before each Quran pause mark.
