@@ -15,8 +15,8 @@ class PartsTests(unittest.TestCase):
     def test_explicit_normal_cap_defers_overflow_without_exception(self):
         verses = [{'ayah': n} for n in range(1, 5)]
         parts, rest = partition_contiguous_ayahs(verses, {1: 30, 2: 66, 3: 10, 4: 10}, 40)
-        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1], [3, 4]])
-        self.assertEqual([v['ayah'] for v in rest], [])
+        self.assertEqual([[v['ayah'] for v in p] for p in parts], [[1]])
+        self.assertEqual([v['ayah'] for v in rest], [2, 3, 4])
 
     def test_keeps_adding_contiguous_ayahs_after_45_until_60_second_cap(self):
         verses = [{'ayah': 1}, {'ayah': 2}, {'ayah': 3}]
