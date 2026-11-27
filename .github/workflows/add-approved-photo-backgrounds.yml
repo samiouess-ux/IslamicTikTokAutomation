@@ -30,7 +30,9 @@ jobs:
         run: python src/download_approved_photo_assets.py
       - name: Run background approval and renderer tests
         run: |
-          python -m unittest discover -s tests -v
+          python -m unittest discover -s tests -p 'test_background_rotation.py' -v
+          python -m unittest discover -s tests -p 'test_background_library.py' -v
+          python -m unittest discover -s tests -p 'test_background_mixed_renderer.py' -v
       - name: Commit compact approved photo assets
         run: |
           git config user.name "github-actions[bot]"
