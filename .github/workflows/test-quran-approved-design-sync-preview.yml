@@ -1,0 +1,64 @@
+name: Approved Quran design repeat-sync preview (18:14)
+
+on:
+  push:
+    branches:
+      - test/quran-approved-design-sync-preview
+
+permissions:
+  contents: read
+
+jobs:
+  render-review-only-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout isolated test branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg and Arabic fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fontconfig fonts-hosny-amiri
+
+      - name: Install preview dependencies and aligner
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pillow "git+https://github.com/voltarostudio/quran-word-align.git"
+
+      - name: Download recitation and approved moving background
+        run: |
+          mkdir -p test-audio test-assets
+          curl --fail --location --retry 3 --retry-delay 2 \
+            "https://cdn.mp3quran.net/audio/maher-muaiqly/r1/018.mp3" \
+            --output test-audio/018.mp3
+          curl --fail --location --retry 3 --retry-delay 2 \
+            "https://videos.pexels.com/video-files/35036280/14841709_2160_3840_30fps.mp4" \
+            --output test-assets/approved-background.mp4
+
+      - name: Align Surah Al-Kahf (Hafs)
+        run: |
+          quran-word-align file test-audio/018.mp3 18 --riwayah hafs --out aligned --format json
+
+      - name: Render repeat-aware preview with exact approved design functions
+        run: python scripts/render_approved_design_repeat_sync_preview.py
+
+      - name: Validate output media
+        run: |
+          ffprobe -v error -show_entries stream=codec_type,width,height -show_entries format=duration \
+            -of json quran-18-14-approved-design-sync-preview.mp4
+
+      - name: Publish review-only artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-18-14-approved-design-sync-preview
+          path: |
+            quran-18-14-approved-design-sync-preview.mp4
+            quran-18-14-approved-design-sync-report.json
+          if-no-files-found: error
+          retention-days: 7
