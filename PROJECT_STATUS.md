@@ -1521,3 +1521,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Visual inspection confirms the long ayah is shown in six successive complete display portions. Arabic and Saheeh English portions appear sequentially, remain readable, and retain the existing white Arabic / gold ayah medallion / English translation treatment. The approved background remains in motion. Automated regression coverage confirms short ayahs retain one unchanged display. The source ayah and recitation remain whole; phrase timing remains approximate because there are no word-level audio timestamps.
 - The workflow explicitly skipped Telegram reservation, Telegram send, delivery-history recording, and history sync. Artifact metadata confirms production_approved=false, telegram_delivery=false, and auto_publish=false. No production Cron run, Telegram send, or TikTok publication occurred.
 - Result: the visual segmentation implementation is validated in the isolated review pipeline; it has not been promoted or enabled through a production dispatch. All work remains on feature/telegram-review-notifications; main and production settings remain untouched.
+
+
+### Long-ayah numbering refinement — 2026-11-27
+
+- User approved showing the gold ayah-number medallion only on the first display screen when one long ayah is segmented across multiple screens. Later chunks of that same ayah omit the medallion; the next distinct ayah retains its normal number.
+- Updated src/render_quran_review_previews.py with an explicit show_ayah_number flag, enabled only for display chunk index zero. Default behavior remains unchanged for all existing callers and unsplit short ayahs.
+- Added a regression test proving the medallion is omitted when show_ayah_number is false and retained when true.
+- Commits: renderer e17a4e9c5e886840ad77fe03774a84fa477ac69c; test b4ddf8ef8c56e49170a64f2c531ecb7a8f870d24.
+- Validation pending push-triggered CI. This is review-renderer-only; no production dispatch, Cron run, Telegram send, or TikTok publication has occurred. Changes remain on feature/telegram-review-notifications; main is untouched.
