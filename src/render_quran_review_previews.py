@@ -454,8 +454,8 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
         raise ValueError("Cannot segment an empty Arabic ayah.")
     if not isinstance(english, str) or not english.strip():
         raise ValueError("Cannot segment an empty paired translation.")
-    if not math.isfinite(audio_duration) or audio_duration <= 0:
-        raise ValueError("Ayah display timing must be finite and positive.")
+    if not math.isfinite(audio_duration) or audio_duration <= 0 or not Path(font_path).is_file():
+        return [{"arabic": arabic, "english": english}]
 
     probe_image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     probe_draw = ImageDraw.Draw(probe_image)
@@ -465,7 +465,7 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
 
     words = arabic.split()
     english_words = english.split()
-    max_chunks = min(6, max(1, int(audio_duration / 1.5)))
+    max_chunks = min(6, len(english_words), max(1, int(audio_duration / 1.5)))
     if len(words) < 2 or max_chunks < 2:
         return [{"arabic": arabic, "english": english}]
 
