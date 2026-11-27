@@ -1243,8 +1243,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                              "english": verse["english_saheeh_international"]}
             display_chunks = plan_ayah_display_chunks(verse_payload, font_path,
                                                        ayah_audio_duration)
-            audio_pause_boundaries = detect_audio_pause_boundaries(
-                audio, ayah_audio_duration
+            audio_pause_boundaries = (
+                detect_audio_pause_boundaries(audio, ayah_audio_duration)
+                if len(display_chunks) > 1 else []
             )
             display_boundaries = calculate_display_chunk_boundaries(
                 display_chunks, ayah_audio_duration, audio_pause_boundaries
