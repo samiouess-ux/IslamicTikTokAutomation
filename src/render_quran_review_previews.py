@@ -264,6 +264,35 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
                 current = word
         if current:
             lines.append(current)
+
+        # Avoid leaving a standalone Arabic one-letter particle (for example
+        # و / ف) on its own display line. Move the preceding complete word to
+        # that line when it still fits; otherwise try the next smaller font.
+        if len(lines) > 1 and len(lines[-1].split()) == 1:
+            orphan = lines[-1].split()[0]
+            arabic_letters = sum(
+                1 for character in orphan
+                if character.isalpha() and "ARABIC" in __import__("unicodedata").name(character, "")
+            )
+            if arabic_letters == 1:
+                previous_words = lines[-2].split()
+                if previous_words:
+                    candidate_last = previous_words[-1] + " " + orphan
+                    candidate_width = draw.textbbox(
+                        (0, 0), candidate_last, font=font,
+                        direction="rtl", language="ar"
+                    )[2] - draw.textbbox(
+                        (0, 0), candidate_last, font=font,
+                        direction="rtl", language="ar"
+                    )[0]
+                    if candidate_width <= max_width:
+                        lines[-2] = " ".join(previous_words[:-1])
+                        lines[-1] = candidate_last
+                        if not lines[-2]:
+                            lines.pop(-2)
+                    else:
+                        continue
+
         line_height = (max(48, int(size * 1.4)) if size <= 40
                        else max(72, int(size * 1.48)))
         block_height = max(0, len(lines) - 1) * line_height
