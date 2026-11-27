@@ -12,13 +12,14 @@ def partition_contiguous_ayahs(
     maximum_seconds: float | None = None,
     exceptional_single_ayah_seconds: float | None = None,
 ) -> tuple[list[list[T]], list[T]]:
-    """Pack complete contiguous ayahs toward the normal cap, with one extension up to the hard cap.
+    """Pack each contiguous part as far as possible without crossing its hard cap.
 
-    A part may exceed maximum_seconds only when adding the next complete ayah
-    keeps the total within exceptional_single_ayah_seconds. That extension
-    closes the part immediately; no further ayah is added to it. An ayah that
-    individually exceeds the normal cap may still be emitted alone when it
-    fits the exceptional ceiling.
+    maximum_seconds is the preferred 45-second target. When the next whole,
+    contiguous ayah takes the part above that target, keep adding subsequent
+    complete ayahs while the combined part remains at or below
+    exceptional_single_ayah_seconds (the 60-second hard cap). The target is
+    not a reason to stop early. No ayah is split, skipped, reordered, or sped up.
+    An ayah longer than the hard cap blocks the sequence at that point.
     """
     if maximum_seconds is not None and maximum_seconds <= 0:
         raise ValueError("maximum_seconds must be positive.")
@@ -46,28 +47,19 @@ def partition_contiguous_ayahs(
             current.append(item)
             continue
 
-        if duration > maximum_seconds:
-            if hard_cap is None or duration > hard_cap:
-                break
+        if hard_cap is not None and duration > hard_cap:
             if current:
                 parts.append(current)
                 current = []
                 current_duration = 0.0
-            # An individually long ayah is always its own complete part.
-            parts.append([item])
-            continue
+            # This ayah cannot be included intact. Stop here; never skip it.
+            break
 
-        if current and current_duration + duration > maximum_seconds:
-            if hard_cap is not None and current_duration + duration <= hard_cap:
-                # One complete ayah may extend this part beyond the target.
-                current.append(item)
-                parts.append(current)
-                current = []
-                current_duration = 0.0
-                continue
+        if current and hard_cap is not None and current_duration + duration > hard_cap:
             parts.append(current)
-            current = []
-            current_duration = 0.0
+            current = [item]
+            current_duration = duration
+            continue
 
         current.append(item)
         current_duration += duration
