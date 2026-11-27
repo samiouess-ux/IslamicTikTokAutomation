@@ -908,7 +908,7 @@ def detect_audio_pause_boundaries(audio_path: Path, audio_duration: float) -> li
         )
     except (OSError, subprocess.SubprocessError):
         return []
-    log = result.stderr or ""
+    log = result.stderr if isinstance(result.stderr, str) else ""
     boundaries = []
     for match in re.finditer(r"silence_end:\s*([0-9]+(?:\.[0-9]+)?)", log):
         point = float(match.group(1))
