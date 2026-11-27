@@ -1,0 +1,156 @@
+name: Test Al-Kahf 18:21 long-ayah display (review only)
+
+on:
+  push:
+    branches: [feature/telegram-review-notifications]
+    paths:
+      - ".github/workflows/test-al-kahf-18-21-review.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-al-kahf-18-21:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install isolated preview dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-hosny-amiri fonts-dejavu-core
+          python -m pip install --disable-pip-version-check pillow remotezip
+
+      - name: Re-run the current renderer regression suite
+        run: python -m unittest -v tests/test_render_quran_review_previews.py
+
+      - name: Build official Arabic, Saheeh translation, and Hafs audio catalogs
+        run: |
+          mkdir -p output
+          python src/build_official_audio_inventory.py output/official_verse_audio_inventory.json
+          python src/build_quran_translation_catalog.py --output output/saheeh_international_translation.json
+          python src/build_quran_uthmani_catalog.py --output output/quran_uthmani_candidate.json
+          python src/build_quran_video_catalog.py \
+            --arabic output/quran_uthmani_candidate.json \
+            --translation output/saheeh_international_translation.json \
+            --audio output/official_verse_audio_inventory.json \
+            --output output/quran_joined_candidate.json
+
+      - name: Create a one-ayah review batch for exactly Al-Kahf 18:21
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          joined = json.loads(Path("output/quran_joined_candidate.json").read_text(encoding="utf-8"))
+          verse = joined["verses"].get("18:21")
+          if not isinstance(verse, dict):
+              raise SystemExit("Joined source catalogs do not contain Al-Kahf 18:21.")
+          passage = {
+              "candidate_id": "quran_s018_021_021",
+              "surah_number": 18,
+              "verse_numbers": [21],
+              "verses": [{
+                  "ayah": 21,
+                  "reference": "18:21",
+                  "arabic_uthmani": verse["arabic_uthmani"],
+                  "english_saheeh_international": verse["english_saheeh_international"],
+                  "official_audio_archive_member": verse["audio_archive_member"],
+              }],
+              "status": "candidate_requires_human_review",
+              "approval": {
+                  "arabic_text_reviewed": False,
+                  "translation_rights_confirmed": False,
+                  "exact_recitation_listened_to": False,
+                  "recording_reuse_approved": False,
+                  "background_licensed_and_user_approved": False,
+                  "ready_to_render": False,
+                  "ready_to_publish": False,
+              },
+          }
+          batch = {
+              "schema_version": 1,
+              "batch_status": "review_candidates_only",
+              "rendering_allowed": False,
+              "auto_publish": False,
+              "passages": [passage],
+          }
+          Path("output/quran_review_batch_18_21.json").write_text(
+              json.dumps(batch, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          print("Prepared exactly one review candidate: Surah Al-Kahf 18:21.")
+          PY
+
+      - name: Download and prepare the original whole-ayah audio
+        run: |
+          python src/prepare_quran_review_batch_audio.py \
+            --batch output/quran_review_batch_18_21.json \
+            --inventory output/official_verse_audio_inventory.json \
+            --output-dir output/quran_batch_audio_18_21 \
+            --report output/quran_batch_audio_report_18_21.json \
+            --target-count 1
+
+      - name: Render a fresh 9:16 review-only video using current decoupage code
+        run: |
+          python src/render_quran_review_previews.py \
+            --batch output/quran_review_batch_18_21.json \
+            --audio-report output/quran_batch_audio_report_18_21.json \
+            --output-dir output/quran_review_previews_18_21 \
+            --minimum-previews 1 \
+            --background-rotation-index 7 \
+            --visual-history data/quran_visual_history.json
+
+      - name: Verify exact ayah, fresh MP4, original audio, and closed delivery gates
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("output/quran_review_previews_18_21/preview_report.json").read_text(encoding="utf-8"))
+          if report.get("preview_count") != 1 or len(report.get("items", [])) != 1:
+              raise SystemExit("Expected exactly one fresh preview.")
+          item = report["items"][0]
+          if item.get("surah_number") != 18 or item.get("verses") != [21]:
+              raise SystemExit(f"Wrong passage rendered: surah={item.get('surah_number')} verses={item.get('verses')}")
+          if (item.get("width"), item.get("height")) != (1080, 1920):
+              raise SystemExit("Preview is not 1080x1920.")
+          if item.get("video_codec") != "h264" or item.get("audio_codec") != "mp3":
+              raise SystemExit("Expected H.264 video with the original MP3 audio stream.")
+          if not 0 < item.get("duration_seconds", 0) <= 60:
+              raise SystemExit("Preview duration is outside the 60-second hard cap.")
+          if report.get("production_approved") is not False or report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
+              raise SystemExit("Review-only safety gates are not closed.")
+          video = Path(item["file"])
+          if not video.is_file() or video.stat().st_size == 0:
+              raise SystemExit("Fresh MP4 file is missing or empty.")
+          print(json.dumps({
+              "candidate_id": item["candidate_id"],
+              "surah": item["surah_number"],
+              "ayahs": item["verses"],
+              "duration_seconds": item["duration_seconds"],
+              "resolution": [item["width"], item["height"]],
+              "video_codec": item["video_codec"],
+              "audio_codec": item["audio_codec"],
+              "background": item.get("background"),
+              "review_only": item.get("review_only"),
+              "telegram_delivery": report.get("telegram_delivery"),
+              "auto_publish": report.get("auto_publish"),
+          }, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload fresh Al-Kahf 18:21 preview for visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: al-kahf-18-21-fresh-review-preview
+          path: output/quran_review_previews_18_21/
+          if-no-files-found: error
+          retention-days: 7
