@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "source": "Pexels",
-  "status": "pending_visual_review",
-  "approval_note": "These six additions are candidates only. They are NOT user-approved for production and must not enter the scheduled renderer until the user explicitly approves them after reviewing the Quran-overlay previews.",
+  "status": "approved_by_user_and_imported",
+  "approval_note": "All six candidates were explicitly approved by the user after reviewing the Quran-overlay contact sheet and have been imported into the production photo manifest. This file remains as the original intake/review record.",
   "usage": "Review-only intake. Images are downloaded and resized in GitHub Actions artifacts; source images are not committed to the repository.",
   "candidates": [
     {
@@ -19,8 +19,9 @@
         "architecture",
         "sky"
       ],
-      "approval_status": "pending",
-      "user_approved": false
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27"
     },
     {
       "id": "pexels-39965214",
@@ -36,8 +37,9 @@
         "architecture",
         "sky"
       ],
-      "approval_status": "pending",
-      "user_approved": false
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27"
     },
     {
       "id": "pexels-37490044",
@@ -53,8 +55,9 @@
         "minaret",
         "dusk"
       ],
-      "approval_status": "pending",
-      "user_approved": false
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27"
     },
     {
       "id": "pexels-36749078",
@@ -70,8 +73,9 @@
         "interior",
         "islamic_art"
       ],
-      "approval_status": "pending",
-      "user_approved": false
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27"
     },
     {
       "id": "pexels-12396074",
@@ -87,8 +91,9 @@
         "forest",
         "nature"
       ],
-      "approval_status": "pending",
-      "user_approved": false
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27"
     },
     {
       "id": "pexels-8316768",
@@ -104,8 +109,10 @@
         "forest",
         "nature"
       ],
-      "approval_status": "pending",
-      "user_approved": false
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27"
     }
-  ]
+  ],
+  "approval_recorded_on": "2026-11-27"
 }
