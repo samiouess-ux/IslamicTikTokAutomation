@@ -866,6 +866,18 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-27T03:12:11.139132+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_021_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-moroccan-courtyard-tiles-34527220",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-27T11:14:54.247260+00:00"
     }
   ]
 }

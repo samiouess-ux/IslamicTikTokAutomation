@@ -532,6 +532,25 @@
         "share"
       ],
       "confirmed_at_utc": "2026-11-27T03:12:11.105138+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_021_110_part_001",
+      "hashtags_ar": [
+        "#آيات_للتدبر",
+        "#آيات_قرآنية",
+        "#تدبر_وعمل"
+      ],
+      "hashtags_en": [
+        "#ListenToQuran",
+        "#QuranReflection"
+      ],
+      "hook_ids": [
+        "daily"
+      ],
+      "cta_ids": [
+        "daily"
+      ],
+      "confirmed_at_utc": "2026-11-27T11:14:54.210028+00:00"
     }
   ]
 }
