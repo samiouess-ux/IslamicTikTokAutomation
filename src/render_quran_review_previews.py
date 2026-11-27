@@ -681,7 +681,7 @@ def make_intro_frame(surah_number: int, start_ayah: int, end_ayah: int,
     # The first ayah frame remains visible underneath from the very first frame.
     image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
-    accent = (245, 184, 55)
+    accent = SURAH_TITLE_GOLD
     title_center = (540, 540)
     title_text, title_font = fit_surah_title(
         draw, surah_number, font_path, center=title_center
