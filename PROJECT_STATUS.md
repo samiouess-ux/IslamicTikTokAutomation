@@ -1486,3 +1486,13 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Import workflow run `45977421605` completed successfully: download/optimization, photo-approval tests, shared-library tests, mixed photo/video renderer integration test, and commit of the compact image assets all passed.
 - All work remains on `feature/telegram-review-notifications`; the 13 approved portrait videos are unchanged. No production render, Cron run, Telegram send, or TikTok publish was triggered.
 - Follow-up full shared-library CI run `45977554283` completed successfully. Shared photo/video library tests, review-adapter tests, mixed photo/video FFmpeg integration tests, existing video rotation tests, and module compilation all passed.
+
+
+## Duration policy correction — contiguous whole-ayah packing to 60 seconds — 2026-11-27
+
+- User clarified the final rule: 45 seconds is the preferred target, not a stopping threshold. Continue adding the next complete contiguous ayah(s) whenever the full combined sequence remains at or below the 60-second hard cap. This applies to one or multiple long ayahs; never split, skip, reorder, or speed up an ayah.
+- Corrected src/quran_audio_parts.py to pack contiguous whole ayahs until the next one would exceed 60 seconds. Corrected audio preparation metadata and final audio validation to apply the same 60-second hard cap to single- and multi-ayah parts. The review renderer already had a 60-second MP4 guard; its policy comments are now aligned. The legacy renderer and its tests were also aligned from the obsolete 40-second guard to 60 seconds.
+- Updated the duration specification, scheduled failure notification, deferred-ledger description, and regression tests. Added an integration regression where the sequence passes 45 seconds and then includes another complete ayah because the total remains 56 seconds.
+- Al-Kahf duration facts verified from the existing status history: 18:19 is 66.116 seconds and remains deferred intact; 18:20 is 16.98 seconds after edge-silence handling; 18:21 is 56.111 seconds, so 18:20 + 18:21 exceeds 60 seconds and cannot be combined. The 46.733-second figure belongs to Al-Kahf 18:17, not 18:20.
+- Scope: samiouess-ux/IslamicTikTokAutomation, branch feature/telegram-review-notifications only. main, external Cron schedule, Telegram credentials/bot, production delivery settings, approved design, backgrounds, and manual-only TikTok publishing are unchanged. No production workflow dispatch, Cron run, Telegram send, or TikTok publication was initiated.
+- Validation: code and regression tests updated; push-triggered CI is pending and must be checked before treating the correction as verified.
