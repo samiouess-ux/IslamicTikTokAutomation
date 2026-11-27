@@ -162,3 +162,5 @@ jobs:
 # Fresh review rerender after ZWJ-bound waqf shaping adjustment.
 
 # Fresh isolated preview after removing the separator before each Quran pause mark.
+
+# Fresh isolated review after restoring the tested ZWJ token-binding helper.
