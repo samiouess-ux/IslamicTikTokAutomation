@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import math
 import subprocess
 import zipfile
 from datetime import datetime, timezone
@@ -459,8 +460,11 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
 
     probe_image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
     probe_draw = ImageDraw.Draw(probe_image)
-    fitted_font, fitted_lines, _ = fit_arabic_lines(probe_draw, arabic, font_path)
-    if fitted_font.size >= 56 and len(fitted_lines) <= 4:
+    try:
+        fitted_font, fitted_lines, _ = fit_arabic_lines(probe_draw, arabic, font_path)
+    except ValueError:
+        fitted_font, fitted_lines = None, []
+    if fitted_font is not None and fitted_font.size >= 56 and len(fitted_lines) <= 4:
         return [{"arabic": arabic, "english": english}]
 
     words = arabic.split()
