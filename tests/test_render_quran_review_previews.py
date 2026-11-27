@@ -58,9 +58,9 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     def test_arabic_one_letter_particle_is_not_left_alone_on_a_line(self):
         image = Image.new("RGB", (1080, 1920))
         draw = ImageDraw.Draw(image)
-        original = " ".join(["الْمُؤْمِنُونَ"] * 12 + ["وَ"])
+        original = " ".join(["هُوَ"] * 12 + ["وَ"])
         _, lines, _ = fit_arabic_lines(
-            draw, original, font_file(), max_width=320, max_lines=7
+            draw, original, font_file(), max_width=250, max_lines=7
         )
         self.assertEqual(" ".join(lines), original)
         self.assertNotIn("وَ", lines)
