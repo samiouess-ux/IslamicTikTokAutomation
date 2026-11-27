@@ -462,9 +462,10 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.make_intro_frame")
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
+    @patch("render_quran_review_previews.audio_duration_seconds", return_value=25.0)
     @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
     def test_renders_multiple_complete_distinct_review_previews(
-        self, _photos, _font, run, make_intro_frame, make_frame, _probe, _check_output, _download
+        self, _photos, _audio_duration, _font, run, make_intro_frame, make_frame, _probe, _check_output, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
