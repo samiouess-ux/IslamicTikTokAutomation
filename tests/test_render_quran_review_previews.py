@@ -167,6 +167,16 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         heard = [[1, 0, 200, .9], [2, 200, 400, .9], [3, 400, 600, .2], [4, 600, 800, .9]]
         self.assertIsNone(renderer.calculate_display_intervals_from_alignment(chunks, heard, 2.0))
 
+    def test_audio_alignment_fails_closed_on_out_of_order_canonical_words(self):
+        chunks = [
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+        ]
+        # Every word is present, but the aligner has reordered words 2 and 3.
+        heard = [[1, 0, 150, .9], [3, 150, 300, .9],
+                 [2, 300, 450, .9], [4, 450, 600, .9]]
+        self.assertIsNone(renderer.calculate_display_intervals_from_alignment(chunks, heard, 2.0))
+
     def test_standalone_waqf_marks_stay_attached_to_their_preceding_word(self):
         original = " ".join(
             ["كَلِمَةٌ"] * 18 + ["ۚ"] + ["كَلِمَةٌ"] * 18 + ["ۖ"] +
