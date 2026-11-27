@@ -37,8 +37,9 @@ class BackgroundLibraryTests(unittest.TestCase):
             photos.write_text(json.dumps({
                 "user_approval": {
                     "status": "approved", "user_approved": True,
-                    "approval_scope": "All 35 photo candidates in this manifest"
+                    "approval_scope": "test allowlist"
                 },
+                "approved_photo_ids": ["photo-1"],
                 "candidates": [
                     {"id": "photo-1", "local_path": str(photo),
                      "source_page_url": "https://example.com/photo",
@@ -72,8 +73,9 @@ class BackgroundLibraryTests(unittest.TestCase):
             photos.write_text(json.dumps({
                 "user_approval": {
                     "status": "approved", "user_approved": True,
-                    "approval_scope": "All 35 photo candidates in this manifest"
+                    "approval_scope": "test allowlist"
                 },
+                "approved_photo_ids": ["same"],
                 "candidates": [{
                     "id": "same", "local_path": str(photo),
                     "source_page_url": "https://example.com/photo",
