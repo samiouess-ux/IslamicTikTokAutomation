@@ -151,8 +151,8 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 character in mark_tokens for character in first_token
             ))
         rendered = renderer.attach_waqf_marks_for_display(original)
-        self.assertIn("كَلِمَةٌۚ", rendered)
-        self.assertIn("كَلِمَةٌۖ", rendered)
+        self.assertIn("كَلِمَةٌ\u200dۚ", rendered)
+        self.assertIn("كَلِمَةٌ\u200dۖ", rendered)
         self.assertNotIn(" ۚ", rendered)
         self.assertNotIn(" ۖ", rendered)
 
