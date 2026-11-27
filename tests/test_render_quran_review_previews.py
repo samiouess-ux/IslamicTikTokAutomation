@@ -132,6 +132,30 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertTrue(all(chunk["arabic"].strip() and chunk["english"].strip()
                             for chunk in chunks))
 
+    def test_standalone_waqf_marks_stay_attached_to_their_preceding_word(self):
+        image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        original = " ".join(
+            ["كَلِمَةٌ"] * 18 + ["ۚ"] + ["كَلِمَةٌ"] * 18 + ["ۖ"] +
+            ["كَلِمَةٌ"] * 18
+        )
+        chunks = renderer.plan_ayah_display_chunks(
+            {"arabic": original, "english": " ".join(["word"] * 48)},
+            font_file(), 30.0
+        )
+        displayed = [chunk["arabic"] for chunk in chunks]
+        self.assertGreater(len(displayed), 1)
+        for chunk in displayed:
+            tokens = chunk.split()
+            self.assertFalse(any(token and all(
+                character in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ")
+                for character in token
+            ) for token in tokens))
+        joined = " ".join(displayed)
+        self.assertIn("كَلِمَةٌۚ", joined)
+        self.assertIn("كَلِمَةٌۖ", joined)
+        self.assertEqual(joined.replace(" ", ""), original.replace(" ", ""))
+
     def test_ayah_number_is_shown_only_when_requested_for_display_chunk(self):
         verse = {"number": 21, "arabic": "آية طويلة", "english": "A long verse"}
         path = font_file()
