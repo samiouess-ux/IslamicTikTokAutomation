@@ -583,15 +583,16 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
 
 
 def attach_waqf_marks_for_display(text: str) -> str:
-    """Bind Uthmani pause signs to the preceding word in the display text.
+    """Attach standalone Uthmani pause signs directly to the preceding word.
 
-    These signs are spacing characters in some Quran fonts and can be painted
-    as isolated floating glyphs even after whitespace removal. A ZWJ keeps the
-    sign in the same Arabic shaping cluster as the preceding word. Source text
-    and chunk manifests remain byte-for-byte unchanged.
+    A pause sign is a combining Quranic annotation, not a separate word.
+    Remove only the display-layer separator before that sign so RAQM shapes it
+    against the preceding Arabic word. Do not insert ZWJ: that can make the
+    annotation position against the joiner rather than the final letter.
+    Source text and chunk manifests remain byte-for-byte unchanged.
     """
     for pause_mark in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ"):
-        text = text.replace(" " + pause_mark, "\u200d" + pause_mark)
+        text = text.replace(" " + pause_mark, pause_mark)
     return text
 
 
