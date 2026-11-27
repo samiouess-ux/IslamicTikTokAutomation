@@ -10,6 +10,7 @@ import io
 import json
 import math
 import subprocess
+import unicodedata
 import zipfile
 from datetime import datetime, timezone
 import urllib.request
@@ -272,19 +273,17 @@ def fit_arabic_lines(draw: ImageDraw.ImageDraw, text: str, font_path: str,
             orphan = lines[-1].split()[0]
             arabic_letters = sum(
                 1 for character in orphan
-                if character.isalpha() and "ARABIC" in __import__("unicodedata").name(character, "")
+                if character.isalpha() and "ARABIC" in unicodedata.name(character, "")
             )
             if arabic_letters == 1:
                 previous_words = lines[-2].split()
                 if previous_words:
                     candidate_last = previous_words[-1] + " " + orphan
-                    candidate_width = draw.textbbox(
+                    candidate_bounds = draw.textbbox(
                         (0, 0), candidate_last, font=font,
                         direction="rtl", language="ar"
-                    )[2] - draw.textbbox(
-                        (0, 0), candidate_last, font=font,
-                        direction="rtl", language="ar"
-                    )[0]
+                    )
+                    candidate_width = candidate_bounds[2] - candidate_bounds[0]
                     if candidate_width <= max_width:
                         lines[-2] = " ".join(previous_words[:-1])
                         lines[-1] = candidate_last
