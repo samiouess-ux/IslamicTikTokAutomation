@@ -1530,3 +1530,11 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Added a regression test proving the medallion is omitted when show_ayah_number is false and retained when true.
 - Commits: renderer e17a4e9c5e886840ad77fe03774a84fa477ac69c; test b4ddf8ef8c56e49170a64f2c531ecb7a8f870d24.
 - Validation pending push-triggered CI. This is review-renderer-only; no production dispatch, Cron run, Telegram send, or TikTok publication has occurred. Changes remain on feature/telegram-review-notifications; main is untouched.
+
+
+### Single-ayah opening title cleanup — 2026-11-27
+- Review-only media inspection found that a single-ayah video showed its ayah number both in the gold medallion and in the opening title range label.
+- Updated `src/render_quran_review_previews.py` so the opening range label appears only for multi-ayah videos; single-ayah videos rely on the existing gold medallion. The surah title ornament, first-ayah display, audio, duration, and production delivery path are unchanged.
+- Added a regression test for single-ayah openings and retained a check that multi-ayah openings still show their range.
+- Commits: `9e4215f605a3d5017106231242ef608a8e6742bc` (renderer), `7c416be97e0c82b74d954cd4e67234b54b72056e` (tests).
+- Validation is pending the push-triggered CI run. No production render, Cron test, Telegram send, or TikTok publication was triggered.
