@@ -367,8 +367,8 @@ def _gold_reference_crop(reference: Image.Image, box: tuple[int, int, int, int],
         ])
     else:
         gold.putdata([
-            255 if (r > 130 and g > 75 and r > g * 1.01
-                    and g > b * 1.05 and r - b > 25) else 0
+            255 if (r > 95 and g > 65 and r > g * 0.88
+                    and g > b * 1.12 and r - b > 18) else 0
             for r, g, b in crop.getdata()
         ])
     # Remove isolated scenery specks, then soften the binary edge slightly so
