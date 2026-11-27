@@ -1538,3 +1538,12 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Added a regression test for single-ayah openings and retained a check that multi-ayah openings still show their range.
 - Commits: `9e4215f605a3d5017106231242ef608a8e6742bc` (renderer), `7c416be97e0c82b74d954cd4e67234b54b72056e` (tests).
 - Validation is pending the push-triggered CI run. No production render, Cron test, Telegram send, or TikTok publication was triggered.
+
+
+### Arabic orphan-letter line correction — 2026-11-27
+
+- User reported that a single Arabic letter/particle was left alone on a line in the first display portion of a segmented long ayah.
+- Updated `fit_arabic_lines` in `src/render_quran_review_previews.py` to detect a one-letter Arabic token occupying a line by itself and rebalance it with an adjacent complete word when it fits. If it cannot be rebalanced at the current font size, the fitter tries a smaller size. Arabic word order and exact tokens are preserved; no Quran text is removed or rewritten.
+- Added a regression test using a standalone `وَ` token at a forced line boundary. Existing short-ayah and long-ayah preservation tests remain in place.
+- Commits: renderer correction `d6a15565faf474fbe990b8a092f5880654554277`, cleanup `d7e4049c454d29b5dfc33952e30edf76a256fcb6`, regression test `89ae49b4adf4e8b4502040e0772f503e8355adbb`, generalized adjacent-line rebalancing `fd677559721b25bc5ed229229130f40666d422c4`.
+- CI and a newly rendered preview are pending. This change is limited to Arabic line wrapping in the review renderer; design, English translation, audio, backgrounds, transitions, duration, delivery, Cron schedule, and TikTok publishing are not intentionally changed. No production dispatch, Cron test, Telegram send, or TikTok publication was initiated. All changes remain on `feature/telegram-review-notifications`; `main` is untouched.
