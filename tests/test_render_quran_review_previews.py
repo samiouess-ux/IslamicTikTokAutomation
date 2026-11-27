@@ -504,7 +504,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 if "-loop" in call.args[0]
             )
             filter_text = " ".join(first_render_command)
-            self.assertIn("[bg][2:v]overlay=0:0:enable='gte(t,0.000000)", filter_text)
+            self.assertIn("[bg][2:v]overlay=0:0:enable='(gte(t,0.000000)*lt(t,25.000000))'", filter_text)
             self.assertIn("[3:v]format=rgba,fade=t=out:st=0.4:d=0.8:alpha=1[intro]", filter_text)
             self.assertIn("[ayah_display_0][intro]overlay=0:0:format=auto[v]", filter_text)
             self.assertNotIn("enable='lt(t,0.6)'", filter_text)
