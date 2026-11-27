@@ -526,3 +526,10 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Commits on `fix/audio-text-pause-sync`: renderer `266e07e6d78c5c03cd95c4b18fd630b2b13ff035`; tests `92b5f57d30e8dae20312b23f73e6291bd4ab54bb`; pinned workflow dependency `e9698b9a458630b4fbc0e522f022fa348065c6c7`; alignment status metadata `89231ed9d417622ab59be107503d35f3dfe61122`; workflow alignment assertion `3d330f9f022bf48521c8993fb585f3c6f545996a`.
 - Fresh review workflow run `46075423812` is in progress on the latest commit at log time. No render or synchronization success is claimed until its test, alignment, and MP4 steps pass and the actual output is inspected.
 - Production branch `feature/telegram-review-notifications`, `main`, Telegram delivery, Cron, backgrounds, design, ayah selection, duration policy, and publishing remain untouched. PR #10 remains unmerged and requires user review.
+
+
+### 2026-11-27 — Review workflow regression isolated and test fixture corrected
+- The fresh word-alignment workflow run `46075423812` failed in the existing renderer regression suite before catalog build or MP4 render. The failing test mocked the FFprobe output for background media but did not mock the new per-ayah audio-duration probe; the latter therefore returned 0 and produced a zero-length display interval in the test command.
+- Corrected only the affected test fixture to supply a valid 25-second ayah audio duration. This does not change production rendering behavior or the alignment algorithm.
+- Commit: `f203be7d5489a6d8dde71a2bdc83d528d3435fa3`. Awaiting a fresh workflow run; the actual Al-Kahf 18:21 MP4 and synchronization remain unverified until render and audio/frame spot checks complete.
+- Scope remains isolated to `fix/audio-text-pause-sync`; no merge, Telegram delivery, Cron, or publishing.
