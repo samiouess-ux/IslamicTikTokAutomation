@@ -540,3 +540,8 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Updated only that test to supply a deterministic three-video fixture with the same rotation expectations. No production background-selection code or visual assets were changed.
 - Commit: `0a8029fdb1209978a2d2e1c412e0d4e8e7e7d736`. A new isolated workflow run is expected from this test-file push; actual alignment and MP4 review are still pending.
 - Scope remains `fix/audio-text-pause-sync`; production branch, Telegram, Cron, and publishing remain untouched.
+
+
+### 2026-11-27 — Test fixture metadata completed
+- The next regression run confirmed the deterministic video fixtures needed the same `background_type: moving_video` metadata that the real catalog loader adds. The failure was isolated to the test fixture; no production code was implicated.
+- Added that metadata to the three fixture entries in commit `3228ea8a05eebc4b39550193bf80d2ad82d967da`. Awaiting the next run before proceeding to the fresh Al-Kahf 18:21 render.
