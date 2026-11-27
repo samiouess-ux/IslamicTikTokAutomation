@@ -570,6 +570,25 @@
         "remind"
       ],
       "confirmed_at_utc": "2026-11-27T12:20:37.347397+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_023_110_part_001",
+      "hashtags_ar": [
+        "#الذكر_الحكيم",
+        "#طمأنينة_القلب",
+        "#الهداية_والإيمان"
+      ],
+      "hashtags_en": [
+        "#ReflectOnQuran",
+        "#FaithAndGuidance"
+      ],
+      "hook_ids": [
+        "calm"
+      ],
+      "cta_ids": [
+        "follow"
+      ],
+      "confirmed_at_utc": "2026-11-27T16:23:14.687072+00:00"
     }
   ]
 }

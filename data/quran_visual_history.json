@@ -890,6 +890,35 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-27T12:20:37.374027+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_023_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mosque-architecture-28899957",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-33425960",
+          "categories": [
+            "desert"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-38901615",
+          "categories": [
+            "hajj",
+            "kaaba",
+            "mecca",
+            "pilgrimage"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-27T16:23:14.725178+00:00"
     }
   ]
 }
