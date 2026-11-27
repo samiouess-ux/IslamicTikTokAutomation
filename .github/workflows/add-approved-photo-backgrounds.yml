@@ -2,6 +2,13 @@ name: Add user-approved Quran photo backgrounds
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/telegram-review-notifications
+    paths:
+      - "data/background_photos_manifest.json"
+      - "src/download_approved_photo_assets.py"
+      - ".github/workflows/add-approved-photo-backgrounds.yml"
 
 permissions:
   contents: write
