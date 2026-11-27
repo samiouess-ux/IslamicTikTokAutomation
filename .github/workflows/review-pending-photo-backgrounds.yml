@@ -1,0 +1,58 @@
+name: Review pending Quran photo backgrounds
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/telegram-review-notifications
+    paths:
+      - "data/background_photos_pending_review.json"
+      - "src/prepare_pending_photo_background_review.py"
+      - ".github/workflows/review-pending-photo-backgrounds.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-photo-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/telegram-review-notifications
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install image tools and approved Arabic font
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-dejavu-core fonts-hosny-amiri fonts-noto-core
+          fc-cache -f
+          python -m pip install --disable-pip-version-check pillow
+      - name: Render Quran overlay from the approved verse source
+        run: |
+          mkdir -p output/pending_photo_background_review
+          python - <<'PY'
+          import json, sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          from render_quran_review_previews import make_frame, font_file
+          reference = json.loads(Path("data/reference/surah_ash_sharh_94_1_8_approved.json").read_text(encoding="utf-8"))
+          draft = json.loads(Path("content/second_video_ash_sharh_94_1_8_draft.json").read_text(encoding="utf-8"))
+          source_arabic = reference["verses"]["94:5"]
+          verse = next(v for v in draft["verses"] if v["number"] == 5)
+          if verse["arabic"] != source_arabic or not verse.get("english"):
+              raise SystemExit("Approved Quran text/translation check failed; refusing photo overlay.")
+          make_frame(verse, 94, 4, Path("output/pending_photo_background_review/quran_overlay.png"), font_file(), reference["surah_name_ar"])
+          PY
+      - name: Download, validate, resize and composite pending photos
+        run: python src/prepare_pending_photo_background_review.py
+      - name: Upload temporary review package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-pending-photo-background-review
+          path: output/pending_photo_background_review/
+          if-no-files-found: error
+          retention-days: 7
