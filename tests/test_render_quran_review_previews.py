@@ -132,38 +132,40 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertTrue(all(chunk["arabic"].strip() and chunk["english"].strip()
                             for chunk in chunks))
 
-    def test_display_chunk_boundaries_snap_to_detected_recitation_pauses(self):
+    def test_audio_alignment_keeps_a_repeated_phrase_on_its_original_text(self):
         chunks = [
-            {"arabic": "كلمة كلمة", "english": "two words"},
-            {"arabic": "كلمة كلمة", "english": "two words"},
-            {"arabic": "كلمة كلمة", "english": "two words"},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
         ]
-        boundaries = renderer.calculate_display_chunk_boundaries(
-            chunks, 30.0, [9.7, 19.4, 25.0]
-        )
-        self.assertEqual(boundaries[0], 0.0)
-        self.assertEqual(boundaries[-1], 30.0)
-        self.assertAlmostEqual(boundaries[1], 9.7)
-        self.assertAlmostEqual(boundaries[2], 19.4)
+        # The reciter returns to words 1–4 before proceeding to words 5–6.
+        heard = [
+            [1, 100, 300, .9], [2, 300, 500, .9],
+            [3, 500, 700, .9], [4, 700, 900, .9],
+            [1, 900, 1100, .9], [2, 1100, 1300, .9],
+            [3, 1300, 1500, .9], [4, 1500, 1700, .9],
+            [5, 1700, 1900, .9], [6, 1900, 2100, .9],
+        ]
+        intervals = renderer.calculate_display_intervals_from_alignment(chunks, heard, 2.5)
+        self.assertEqual(intervals[0], [(0.0, .5), (.9, 1.3)])
+        self.assertEqual(intervals[1], [(.5, .9), (1.3, 1.7)])
+        self.assertEqual(intervals[2], [(1.7, 2.5)])
 
-    def test_display_chunk_boundaries_fall_back_when_no_recitation_pauses_exist(self):
+    def test_audio_alignment_fails_closed_when_a_canonical_word_is_missing(self):
         chunks = [
-            {"arabic": "كلمة كلمة", "english": "two words"},
-            {"arabic": "كلمة كلمة", "english": "two words"},
-            {"arabic": "كلمة كلمة", "english": "two words"},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
         ]
-        boundaries = renderer.calculate_display_chunk_boundaries(chunks, 30.0, [])
-        self.assertEqual(boundaries, [0.0, 10.0, 20.0, 30.0])
+        heard = [[1, 0, 200, .9], [2, 200, 400, .9], [4, 600, 800, .9]]
+        self.assertIsNone(renderer.calculate_display_intervals_from_alignment(chunks, heard, 2.0))
 
-    def test_audio_pause_detector_parses_silence_end_timestamps(self):
-        result = type("Completed", (), {
-            "stderr": "silence_end: 0.040 | silence_duration: 0.12\n"
-                      "silence_end: 8.420 | silence_duration: 0.20\n"
-                      "silence_end: 19.100 | silence_duration: 0.16\n"
-        })()
-        with patch.object(renderer.subprocess, "run", return_value=result):
-            boundaries = renderer.detect_audio_pause_boundaries(Path("ayah.mp3"), 25.0)
-        self.assertEqual(boundaries, [8.42, 19.1])
+    def test_audio_alignment_fails_closed_on_low_confidence(self):
+        chunks = [
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+            {"arabic": "كلمة كلمة", "english": "two words", "word_count": 2},
+        ]
+        heard = [[1, 0, 200, .9], [2, 200, 400, .9], [3, 400, 600, .2], [4, 600, 800, .9]]
+        self.assertIsNone(renderer.calculate_display_intervals_from_alignment(chunks, heard, 2.0))
 
     def test_standalone_waqf_marks_stay_attached_to_their_preceding_word(self):
         original = " ".join(
