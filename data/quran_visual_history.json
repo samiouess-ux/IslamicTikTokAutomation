@@ -878,6 +878,18 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-27T11:14:54.247260+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_022_110_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-historic-mosque-stained-glass-30733250",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-27T12:20:37.374027+00:00"
     }
   ]
 }

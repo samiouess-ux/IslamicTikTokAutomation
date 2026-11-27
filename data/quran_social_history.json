@@ -551,6 +551,25 @@
         "daily"
       ],
       "confirmed_at_utc": "2026-11-27T11:14:54.210028+00:00"
+    },
+    {
+      "candidate_id": "quran_s018_022_110_part_001",
+      "hashtags_ar": [
+        "#القرآن",
+        "#تلاوة_قرآنية",
+        "#توحيد_الله"
+      ],
+      "hashtags_en": [
+        "#WordsOfAllah",
+        "#Tawheed"
+      ],
+      "hook_ids": [
+        "heart"
+      ],
+      "cta_ids": [
+        "remind"
+      ],
+      "confirmed_at_utc": "2026-11-27T12:20:37.347397+00:00"
     }
   ]
 }
