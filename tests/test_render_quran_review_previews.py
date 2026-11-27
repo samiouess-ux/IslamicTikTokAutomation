@@ -463,9 +463,14 @@ class ReviewPreviewRendererTests(unittest.TestCase):
     @patch("render_quran_review_previews.subprocess.run")
     @patch("render_quran_review_previews.font_file", return_value="/tmp/font.ttf")
     @patch("render_quran_review_previews.audio_duration_seconds", return_value=25.0)
+    @patch("render_quran_review_previews.load_approved_backgrounds", return_value=[
+        {"id": "pexels-mountain-bridge-5903759", "direct_video_url": "https://videos.pexels.com/video-files/test-1.mp4", "duration_seconds": 25.0, "tags": ["mountain"]},
+        {"id": "pexels-river-forest-test", "direct_video_url": "https://videos.pexels.com/video-files/test-2.mp4", "duration_seconds": 25.0, "tags": ["river"]},
+        {"id": "pexels-sunset-sky-35477402", "direct_video_url": "https://videos.pexels.com/video-files/test-3.mp4", "duration_seconds": 25.0, "tags": ["sunset"]},
+    ])
     @patch("render_quran_review_previews.load_approved_photo_backgrounds", return_value=[])
     def test_renders_multiple_complete_distinct_review_previews(
-        self, _photos, _audio_duration, _font, run, make_intro_frame, make_frame, _probe, _check_output, _download
+        self, _photos, _moving_backgrounds, _audio_duration, _font, run, make_intro_frame, make_frame, _probe, _check_output, _download
     ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
