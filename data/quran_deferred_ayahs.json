@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Explicitly deferred complete Quran ayahs that exceed the hard single-ayah delivery ceiling. Deferred references are not marked as delivered and remain excluded from automatic candidate selection until manually reviewed.",
+  "description": "Explicitly deferred complete Quran ayahs that exceed the 60-second hard delivery ceiling; the sequence is never skipped or cut. Deferred references are not marked as delivered and remain excluded from automatic candidate selection until manually reviewed.",
   "ayah_references": [
     "18:19"
   ],
