@@ -1,12 +1,14 @@
 import importlib.util
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 from PIL import Image
 from quran_word_align.align import mushaf_words
 
 ROOT = Path(".")
+sys.path.insert(0, str(ROOT / "src"))
 AUDIO = ROOT / "test-audio/018.mp3"
 BACKGROUND = ROOT / "test-assets/approved-background.mp4"
 DATA = json.loads((ROOT / "aligned/018.json").read_text(encoding="utf-8"))
@@ -81,7 +83,7 @@ for i, group in enumerate(groups, start=1):
     start = (group["start_ms"] - start_ms) / 1000
     end = (group["end_ms"] - start_ms) / 1000
     filters.append(
-        f"[{current}][{i+2}:v]overlay=0:0:enable='gte(t,{start:.6f})*lt(t,{end:.6f})'[v{i}]"
+        f"[{current}][{i+1}:v]overlay=0:0:enable='gte(t,{start:.6f})*lt(t,{end:.6f})'[v{i}]"
     )
     current = f"v{i}"
 filters.extend([
