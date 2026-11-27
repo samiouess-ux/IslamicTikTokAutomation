@@ -154,3 +154,5 @@ jobs:
           path: output/quran_review_previews_18_21/
           if-no-files-found: error
           retention-days: 7
+
+# Re-run trigger: verify standalone Uthmani waqf marks remain attached after the 2026-11-27 chunking fix.
