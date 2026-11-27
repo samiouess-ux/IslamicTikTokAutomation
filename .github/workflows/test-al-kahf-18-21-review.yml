@@ -2,7 +2,7 @@ name: Test Al-Kahf 18:21 long-ayah display (review only)
 
 on:
   push:
-    branches: [feature/telegram-review-notifications]
+    branches: [fix/audio-text-pause-sync]
     paths:
       - ".github/workflows/test-al-kahf-18-21-review.yml"
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/telegram-review-notifications
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-python@v5
         with:
