@@ -583,9 +583,15 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
 
 
 def attach_waqf_marks_for_display(text: str) -> str:
-    """Keep standalone Uthmani pause marks beside the preceding word visually."""
+    """Bind Uthmani pause signs to the preceding word in the display text.
+
+    These signs are spacing characters in some Quran fonts and can be painted
+    as isolated floating glyphs even after whitespace removal. A ZWJ keeps the
+    sign in the same Arabic shaping cluster as the preceding word. Source text
+    and chunk manifests remain byte-for-byte unchanged.
+    """
     for pause_mark in ("ۚ", "ۖ", "ۗ", "ۘ", "ۙ", "ۛ", "ۜ"):
-        text = text.replace(" " + pause_mark, pause_mark)
+        text = text.replace(" " + pause_mark, "\u200d" + pause_mark)
     return text
 
 
