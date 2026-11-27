@@ -1507,3 +1507,7 @@ Follow this sequence. The user should not need to repeat these decisions.
 - Added regression tests for complete Arabic/English text preservation across display chunks and for short ayahs remaining a single display. Updated the review-render filter assertions for timed overlay frames.
 - Commits: renderer implementation `32d6083f2d8038f1cd01eafb6813784de4966893`; safe fallback `57b7104ab22e6575f47afde8202a43c2e38d6cab`; regression tests `1284ba0b597de4d9161b4b5cee53569a86545ef6`.
 - Validation is pending; do not treat this feature as production-verified until the push-triggered test/review workflow completes and its rendered preview is inspected. No manual production dispatch, Cron run, Telegram send, or TikTok publication was initiated. All changes are on `feature/telegram-review-notifications`; `main` remains untouched.
+
+
+- Follow-up code review found and fixed a missing `math` import required by the new finite-duration guard. The chunk planner now also treats a layout-fit failure as a reason to attempt phrase segmentation rather than failing before segmentation. Fix commit: `2b0a333c6ebcb9599bb76e07c3cc3923c8d01aec`.
+- The existing push-triggered review workflow explicitly includes both the renderer and its test file in its path filters. GitHub combined commit status currently exposes no status contexts for the latest commit; therefore automated validation and rendered-preview inspection are still unconfirmed. Do not enable production use until the workflow result and preview are inspected.
