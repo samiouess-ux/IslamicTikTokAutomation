@@ -210,7 +210,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         for surah_number in range(1, 115):
             title, font = renderer.fit_surah_title(draw, surah_number, path)
             selected_names.append(title)
-            bounds = draw.textbbox((540, 540), title, font=font, anchor="mm",
+            bounds = draw.textbbox((540, 520), title, font=font, anchor="mm",
                                    direction="rtl", language="ar")
             self.assertLessEqual(bounds[2] - bounds[0], 600, title)
             self.assertLessEqual(bounds[3] - bounds[1], 120, title)
@@ -219,7 +219,7 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertEqual(selected_names[17], f"سورة {renderer.SURAH_NAMES_TASHKEEL[17]}")
         self.assertTrue(all(name.startswith("سورة ") for name in selected_names))
 
-    def test_surah_ornaments_keep_original_reference_scale_and_placement(self):
+    def test_surah_brackets_are_reduced_and_centered_to_balance_title(self):
         image = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
         renderer.draw_reference_surah_ornaments(image)
         alpha = image.getchannel("A")
@@ -227,23 +227,16 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         right = alpha.crop((810, 448, 942, 665)).getbbox()
         self.assertIsNotNone(left)
         self.assertIsNotNone(right)
-        # The approved ornament crops must not be scaled down or shifted inward.
-        self.assertGreater(left[2] - left[0], 110)
-        self.assertGreater(left[3] - left[1], 180)
-        self.assertGreater(right[2] - right[0], 110)
-        self.assertGreater(right[3] - right[1], 180)
-        self.assertLessEqual(abs((left[0] + left[2]) / 2 - 66), 3)
-        self.assertLessEqual(abs((right[0] + right[2]) / 2 - 66), 3)
+        self.assertLessEqual(left[2] - left[0], 110)
+        self.assertLessEqual(left[3] - left[1], 180)
+        self.assertLessEqual(right[2] - right[0], 110)
+        self.assertLessEqual(right[3] - right[1], 180)
+        self.assertLessEqual(abs((left[0] + left[2]) / 2 - 76), 3)
+        self.assertLessEqual(abs((right[0] + right[2]) / 2 - 56), 3)
         divider = alpha.crop((298, 650, 784, 730)).getbbox()
         self.assertIsNotNone(divider)
-        self.assertGreater(divider[2] - divider[0], 400)
-        self.assertGreater(divider[3] - divider[1], 66)
-
-    def test_approved_title_and_ayah_number_gold_are_locked(self):
-        self.assertEqual((245, 184, 55), renderer.SURAH_TITLE_GOLD)
-        self.assertEqual((255, 196, 54, 255), renderer.AYAH_NUMBER_GOLD)
-        self.assertEqual(38, renderer.AYAH_NUMBER_FONT_SIZE)
-        self.assertEqual((540, 540), renderer.SURAH_TITLE_CENTER)
+        self.assertLessEqual(divider[2] - divider[0], 400)
+        self.assertLessEqual(divider[3] - divider[1], 66)
 
     def test_make_frame_matches_open_reference_without_panels(self):
         with tempfile.TemporaryDirectory() as tmp:

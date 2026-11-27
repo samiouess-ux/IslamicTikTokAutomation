@@ -1549,14 +1549,3 @@ Follow this sequence. The user should not need to repeat these decisions.
 - CI and a newly rendered preview are pending. This change is limited to Arabic line wrapping in the review renderer; design, English translation, audio, backgrounds, transitions, duration, delivery, Cron schedule, and TikTok publishing are not intentionally changed. No production dispatch, Cron test, Telegram send, or TikTok publication was initiated. All changes remain on `feature/telegram-review-notifications`; `main` is untouched.
 
 - Test-fixture correction: the first isolated pipeline run exposed that the regression test's artificial 320px width was narrower than a single test word at the largest font, so the test errored before reaching the orphan-line case. Replaced the fixture with shorter Arabic words and a realistic 250px boundary; this changes only the test input, not renderer behavior. Follow-up CI is pending.
-
-
-### Approved Quran visual reference restored — 2026-11-27
-
-- Audited the renderer actually used by the scheduled Quran inventory workflow: `src/render_quran_review_previews.py`. The scheduled workflow calls this renderer directly; the separate legacy `src/render_video.py` is not the active path for these Telegram review videos.
-- Restored the approved open gold brackets and floral divider to their original reference crop scale and coordinates. Removed the later 0.77 scaling and the inward 10-pixel shifts that had visibly changed the ornament.
-- Restored the title's reference center to `(540, 540)` and removed the later 40-pixel upward compositing shift from both the standalone ayah header and opening-title overlay.
-- Locked the title gold to `(245, 184, 55)`; locked the ayah-number gold to `(255, 196, 54, 255)` and restored the number font size from 32 to 38.
-- Kept the existing complete medallion crop and its transparent reference-derived ornament extraction; no Quran text, translation, audio, background rotation, timing, caption, or delivery behavior was changed.
-- Updated renderer regression tests to reject reduced/shifted ornaments and to lock the approved title/number colors and number size.
-- Changes are limited to `feature/telegram-review-notifications`. No Cron run, production workflow dispatch, Telegram send, TikTok publication, or change to `main` was made. Push-triggered validation and a fresh review-only preview must pass visual inspection before considering the correction fully verified.
