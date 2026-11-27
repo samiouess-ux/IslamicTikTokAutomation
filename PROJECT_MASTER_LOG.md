@@ -545,3 +545,12 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 ### 2026-11-27 — Test fixture metadata completed
 - The next regression run confirmed the deterministic video fixtures needed the same `background_type: moving_video` metadata that the real catalog loader adds. The failure was isolated to the test fixture; no production code was implicated.
 - Added that metadata to the three fixture entries in commit `3228ea8a05eebc4b39550193bf80d2ad82d967da`. Awaiting the next run before proceeding to the fresh Al-Kahf 18:21 render.
+
+
+### 2026-11-27 — Tightened canonical word-order validation for repeated recitation
+- Code review found that the first word-alignment validator checked complete word coverage and timestamp order but did not independently reject every possible canonical-word reordering.
+- Added a sequence validator: normal progression must follow canonical Hafs word order; a backtrack is accepted only when the recitation then replays the intervening canonical words in order before resuming. Any unexplained reorder now fails closed to the complete-ayah display.
+- Added a regression test where all words are present but words 2 and 3 are swapped; the alignment must be rejected. The existing repeated-phrase test remains the positive case.
+- Commits: renderer `2d28d41706fb1ccd7ccff61610abe97209bf6c8c`; test `cac76a29d773415c069073776b9480165e5782d4`.
+- A new isolated CI run is triggered by these commits. The earlier run `46076018505` was already rendering the fresh preview when this stricter validation was added; its output is not sufficient to validate the new sequence check. No synchronization success is claimed until the latest run passes and its MP4 is inspected.
+- Production branch, `main`, Telegram, Cron, backgrounds, visual design, selection, duration policy, and publishing remain untouched. PR #10 remains unmerged.
