@@ -24,8 +24,9 @@ jobs:
           from pathlib import Path
           import json
 
-          src = Image.open("references/approved_quran_design.png").convert("RGB")
-          w, h = src.size
+          source = Image.open("references/approved_quran_design.png").convert("RGB")
+          w, h = source.size
+          src = source.resize((1080, 1920), Image.Resampling.LANCZOS)
           regions = {
               "title_and_divider": (250, 400, 830, 750),
               "left_ornament": (138, 448, 270, 665),
