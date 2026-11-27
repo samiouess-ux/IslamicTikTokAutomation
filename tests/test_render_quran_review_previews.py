@@ -132,6 +132,39 @@ class ReviewPreviewRendererTests(unittest.TestCase):
         self.assertTrue(all(chunk["arabic"].strip() and chunk["english"].strip()
                             for chunk in chunks))
 
+    def test_display_chunk_boundaries_snap_to_detected_recitation_pauses(self):
+        chunks = [
+            {"arabic": "كلمة كلمة", "english": "two words"},
+            {"arabic": "كلمة كلمة", "english": "two words"},
+            {"arabic": "كلمة كلمة", "english": "two words"},
+        ]
+        boundaries = renderer.calculate_display_chunk_boundaries(
+            chunks, 30.0, [9.7, 19.4, 25.0]
+        )
+        self.assertEqual(boundaries[0], 0.0)
+        self.assertEqual(boundaries[-1], 30.0)
+        self.assertAlmostEqual(boundaries[1], 9.7)
+        self.assertAlmostEqual(boundaries[2], 19.4)
+
+    def test_display_chunk_boundaries_fall_back_when_no_recitation_pauses_exist(self):
+        chunks = [
+            {"arabic": "كلمة كلمة", "english": "two words"},
+            {"arabic": "كلمة كلمة", "english": "two words"},
+            {"arabic": "كلمة كلمة", "english": "two words"},
+        ]
+        boundaries = renderer.calculate_display_chunk_boundaries(chunks, 30.0, [])
+        self.assertEqual(boundaries, [0.0, 10.0, 20.0, 30.0])
+
+    def test_audio_pause_detector_parses_silence_end_timestamps(self):
+        result = type("Completed", (), {
+            "stderr": "silence_end: 0.040 | silence_duration: 0.12\\n"
+                      "silence_end: 8.420 | silence_duration: 0.20\\n"
+                      "silence_end: 19.100 | silence_duration: 0.16\\n"
+        })()
+        with patch.object(renderer.subprocess, "run", return_value=result):
+            boundaries = renderer.detect_audio_pause_boundaries(Path("ayah.mp3"), 25.0)
+        self.assertEqual(boundaries, [8.42, 19.1])
+
     def test_standalone_waqf_marks_stay_attached_to_their_preceding_word(self):
         original = " ".join(
             ["كَلِمَةٌ"] * 18 + ["ۚ"] + ["كَلِمَةٌ"] * 18 + ["ۖ"] +
