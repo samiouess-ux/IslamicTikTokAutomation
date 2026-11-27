@@ -63,5 +63,7 @@ jobs:
           path: |
             quran-18-14-approved-design-sync-preview.mp4
             quran-18-14-approved-design-sync-report.json
+            quran-ornament-color-diagnostic.png
+            quran-ornament-color-diagnostic.json
           if-no-files-found: error
           retention-days: 7
