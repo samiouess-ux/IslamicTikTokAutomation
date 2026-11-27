@@ -577,10 +577,15 @@ def plan_ayah_display_chunks(verse: dict, font_path: str,
         english_groups.append(english_words[start:end])
         start = end
 
-    return [
-        {"arabic": " ".join(arabic_group), "english": " ".join(english_group)}
-        for arabic_group, english_group in zip(arabic_groups, english_groups)
-    ]
+    chunks = []
+    for arabic_group, english_group in zip(arabic_groups, english_groups):
+        chunks.append({
+            "arabic": " ".join(arabic_group),
+            "english": " ".join(english_group),
+            "word_count": sum(1 for token in arabic_group
+                              if any(character not in pause_marks for character in token)),
+        })
+    return chunks
 
 
 def attach_waqf_marks_for_display(text: str) -> str:
@@ -889,75 +894,116 @@ def audio_duration_seconds(path: Path) -> float:
         return 0.0
 
 
-def detect_audio_pause_boundaries(audio_path: Path, audio_duration: float) -> list[float]:
-    """Find real recitation pause ends so display phrases change as the next phrase starts.
+def calculate_display_intervals_from_alignment(
+    display_chunks: list[dict],
+    aligned_words: list[list],
+    audio_duration: float,
+    minimum_confidence: float = 0.30,
+) -> dict[int, list[tuple[float, float]]] | None:
+    """Convert Quran word timestamps, including recitation backtracks, into screen intervals.
 
-    This is phrase-level alignment: the audio inventory has whole-ayah MP3s, not
-    word timestamps. If FFmpeg cannot detect reliable pauses, the caller uses the
-    existing duration-based fallback rather than failing a render.
+    Returns None unless every canonical word is represented, timestamps are valid,
+    and every display chunk is heard. No proportional or silence-based timing fallback.
     """
-    if not math.isfinite(audio_duration) or audio_duration <= 0:
-        return []
+    if not display_chunks or not aligned_words or not math.isfinite(audio_duration) or audio_duration <= 0:
+        return None
+    ranges = []
+    cursor = 1
+    for chunk in display_chunks:
+        count = int(chunk.get("word_count", 0))
+        if count < 1:
+            return None
+        ranges.append((cursor, cursor + count))
+        cursor += count
+    expected_words = set(range(1, cursor))
+    events = []
+    seen_words = set()
+    previous_start = -1
+    duration_ms = audio_duration * 1000
+    for item in aligned_words:
+        if not isinstance(item, (list, tuple)) or len(item) < 4:
+            return None
+        try:
+            word, start_ms, end_ms, confidence = int(item[0]), float(item[1]), float(item[2]), float(item[3])
+        except (TypeError, ValueError):
+            return None
+        if (word not in expected_words or not math.isfinite(start_ms) or not math.isfinite(end_ms)
+                or not math.isfinite(confidence) or confidence < minimum_confidence
+                or start_ms < 0 or end_ms <= start_ms or end_ms > duration_ms + 250
+                or start_ms < previous_start):
+            return None
+        previous_start = start_ms
+        seen_words.add(word)
+        chunk_index = next((i for i, (first, after) in enumerate(ranges) if first <= word < after), None)
+        if chunk_index is None:
+            return None
+        events.append((chunk_index, start_ms / 1000.0))
+    if seen_words != expected_words or not events or events[0][0] != 0:
+        return None
+    runs = []
+    for chunk_index, timestamp in events:
+        if runs and runs[-1][0] == chunk_index:
+            continue
+        if runs and timestamp <= runs[-1][1]:
+            return None
+        runs.append((chunk_index, timestamp))
+    if len({index for index, _ in runs}) != len(display_chunks):
+        return None
+    intervals: dict[int, list[tuple[float, float]]] = {i: [] for i in range(len(display_chunks))}
+    for i, (chunk_index, start_time) in enumerate(runs):
+        end_time = runs[i + 1][1] if i + 1 < len(runs) else audio_duration
+        start_time = 0.0 if i == 0 else start_time
+        if end_time - start_time < 0.08:
+            return None
+        intervals[chunk_index].append((start_time, end_time))
+    return intervals
+
+
+_QURAN_ALIGNER_MODEL = None
+
+
+def align_ayah_display_intervals(
+    audio_path: Path,
+    surah_number: int,
+    ayah_number: int,
+    verse: dict,
+    display_chunks: list[dict],
+    audio_duration: float,
+) -> dict[int, list[tuple[float, float]]] | None:
+    """Use Quran-specific CTC alignment; repeated words remain repeated audio events."""
+    global _QURAN_ALIGNER_MODEL
     try:
-        result = subprocess.run(
-            [
-                "ffmpeg", "-hide_banner", "-nostats", "-i", str(audio_path),
-                "-af", "silencedetect=noise=-32dB:d=0.12", "-f", "null", "-",
-            ],
-            capture_output=True, text=True, check=False,
+        from quran_word_align.align import Model, align_recording, letters, mushaf_words
+        words = mushaf_words("hafs")
+        canonical = words.get((surah_number, ayah_number))
+        if not canonical:
+            return None
+        source_tokens = [letters(token) for token in verse["arabic"].split()]
+        source_tokens = [token for token in source_tokens if token]
+        canonical_tokens = [letters(token) for _, token in canonical]
+        if source_tokens != canonical_tokens:
+            return None
+        cursor = 1
+        for chunk in display_chunks:
+            count = sum(1 for token in chunk["arabic"].split() if letters(token))
+            chunk["word_count"] = count
+            cursor += count
+        if cursor - 1 != len(canonical):
+            return None
+        if _QURAN_ALIGNER_MODEL is None:
+            _QURAN_ALIGNER_MODEL = Model()
+        result = align_recording(
+            surah_number, audio_path, words, _QURAN_ALIGNER_MODEL,
+            windows=[(ayah_number, 0.0, audio_duration)], margin=0.0,
         )
-    except (OSError, subprocess.SubprocessError):
-        return []
-    log = result.stderr if isinstance(result.stderr, str) else ""
-    boundaries = []
-    for match in re.finditer(r"silence_end:\s*([0-9]+(?:\.[0-9]+)?)", log):
-        point = float(match.group(1))
-        if 0.35 < point < audio_duration - 0.35:
-            boundaries.append(point)
-    return sorted(set(boundaries))
-
-
-def calculate_display_chunk_boundaries(
-    display_chunks: list[dict], audio_duration: float,
-    pause_boundaries: list[float] | None = None,
-) -> list[float]:
-    """Place phrase-screen changes on nearby real audio pauses where available.
-
-    Quran pause-aware text grouping is retained. Each ideal word-weighted
-    boundary is moved to the nearest detected pause end within a conservative
-    tolerance; otherwise that boundary keeps its proportional fallback time.
-    """
-    if not display_chunks:
-        return [0.0, max(0.0, audio_duration)]
-    if len(display_chunks) == 1:
-        return [0.0, audio_duration]
-    weights = [max(1, len(chunk["arabic"].split())) for chunk in display_chunks]
-    total = sum(weights)
-    ideal = []
-    elapsed_words = 0
-    for weight in weights[:-1]:
-        elapsed_words += weight
-        ideal.append(audio_duration * elapsed_words / total)
-
-    pauses = sorted(
-        point for point in (pause_boundaries or [])
-        if isinstance(point, (int, float)) and 0 < point < audio_duration
-    )
-    chosen = []
-    min_gap = min(1.5, audio_duration / (len(display_chunks) * 1.5))
-    tolerance = min(3.0, max(1.0, audio_duration * 0.12))
-    for index, target in enumerate(ideal):
-        lower = (chosen[-1] if chosen else 0.0) + min_gap
-        remaining = len(ideal) - index
-        upper = audio_duration - remaining * min_gap
-        candidates = [
-            point for point in pauses
-            if lower <= point <= upper and abs(point - target) <= tolerance
-        ]
-        boundary = min(candidates, key=lambda point: (abs(point - target), point)) if candidates else target
-        boundary = min(upper, max(lower, boundary))
-        chosen.append(boundary)
-    return [0.0, *chosen, audio_duration]
+        aligned = result.get(ayah_number) or result.get(str(ayah_number))
+        return calculate_display_intervals_from_alignment(
+            display_chunks, aligned or [], audio_duration,
+        )
+    except Exception:
+        # Alignment is optional for safe rendering. Failure keeps the complete
+        # canonical ayah on screen rather than guessing phrase timestamps.
+        return None
 
 
 def background_categories(item: dict) -> set[str]:
@@ -1243,13 +1289,21 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                              "english": verse["english_saheeh_international"]}
             display_chunks = plan_ayah_display_chunks(verse_payload, font_path,
                                                        ayah_audio_duration)
-            audio_pause_boundaries = (
-                detect_audio_pause_boundaries(audio, ayah_audio_duration)
-                if len(display_chunks) > 1 else []
-            )
-            display_boundaries = calculate_display_chunk_boundaries(
-                display_chunks, ayah_audio_duration, audio_pause_boundaries
-            )
+            display_intervals = {0: [(0.0, ayah_audio_duration)]}
+            if len(display_chunks) > 1:
+                display_intervals = align_ayah_display_intervals(
+                    audio, surah_number, int(verse["ayah"]), verse_payload,
+                    display_chunks, ayah_audio_duration,
+                )
+                if display_intervals is None:
+                    # Fail closed: never guess phrase timing. Keep the exact
+                    # complete ayah and its translation visible for the whole audio.
+                    display_chunks = [{
+                        "arabic": verse_payload["arabic"],
+                        "english": verse_payload["english"],
+                        "word_count": len(verse_payload["arabic"].split()),
+                    }]
+                    display_intervals = {0: [(0.0, ayah_audio_duration)]}
             frame_paths = []
             for chunk_index, chunk in enumerate(display_chunks):
                 frame = work / (
@@ -1296,12 +1350,17 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             current = "bg"
             frame_input_start = 2
             for chunk_index, chunk in enumerate(display_chunks):
-                elapsed = display_boundaries[chunk_index]
-                chunk_end = display_boundaries[chunk_index + 1]
+                windows = display_intervals.get(chunk_index, [])
+                if not windows:
+                    raise RuntimeError("A Quran display chunk has no audio-grounded interval.")
+                enable = "+".join(
+                    f"(gte(t,{start_time:.6f})*lt(t,{end_time:.6f}))"
+                    for start_time, end_time in windows
+                )
                 output_label = f"ayah_display_{chunk_index}"
                 filters.append(
                     f"[{current}][{frame_input_start + chunk_index}:v]"
-                    f"overlay=0:0:enable='gte(t,{elapsed:.6f})*lt(t,{chunk_end:.6f})'"
+                    f"overlay=0:0:enable='{enable}'"
                     f"[{output_label}]"
                 )
                 current = output_label
