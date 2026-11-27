@@ -521,13 +521,170 @@
         "tea",
         "still_life"
       ]
+    },
+    {
+      "id": "pexels-39965216",
+      "photo_id": 39965216,
+      "creator": "Pexels contributor (see source page)",
+      "description": "Mosque with twin minarets beneath a blue sky",
+      "source_page_url": "https://www.pexels.com/photo/majestic-mosque-with-dual-minarets-under-blue-sky-39965216/",
+      "image_url": "https://images.pexels.com/photos/39965216/pexels-photo-39965216.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "local_path": "assets/background_photos/pexels-39965216.jpg",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "architecture",
+        "sky"
+      ],
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27",
+      "approval_note": "Explicitly approved by the user after reviewing the Quran-overlay contact sheet."
+    },
+    {
+      "id": "pexels-39965214",
+      "photo_id": 39965214,
+      "creator": "Pexels contributor (see source page)",
+      "description": "Historic mosque minarets and dome against a blue sky",
+      "source_page_url": "https://www.pexels.com/photo/historic-mosque-minarets-against-blue-sky-39965214/",
+      "image_url": "https://images.pexels.com/photos/39965214/pexels-photo-39965214.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "local_path": "assets/background_photos/pexels-39965214.jpg",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "architecture",
+        "sky"
+      ],
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27",
+      "approval_note": "Explicitly approved by the user after reviewing the Quran-overlay contact sheet."
+    },
+    {
+      "id": "pexels-37490044",
+      "photo_id": 37490044,
+      "creator": "Pexels contributor (see source page)",
+      "description": "Egyptian mosque minaret at dusk",
+      "source_page_url": "https://www.pexels.com/photo/stunning-egyptian-mosque-minaret-at-dusk-37490044/",
+      "image_url": "https://images.pexels.com/photos/37490044/pexels-photo-37490044.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "local_path": "assets/background_photos/pexels-37490044.jpg",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "minaret",
+        "dusk"
+      ],
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27",
+      "approval_note": "Explicitly approved by the user after reviewing the Quran-overlay contact sheet."
+    },
+    {
+      "id": "pexels-36749078",
+      "photo_id": 36749078,
+      "creator": "Pexels contributor (see source page)",
+      "description": "Intricate mosque interior with decorative tilework",
+      "source_page_url": "https://www.pexels.com/photo/intricate-mosque-interior-with-stunning-tiles-36749078/",
+      "image_url": "https://images.pexels.com/photos/36749078/pexels-photo-36749078.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "local_path": "assets/background_photos/pexels-36749078.jpg",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "mosque",
+        "interior",
+        "islamic_art"
+      ],
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27",
+      "approval_note": "Explicitly approved by the user after reviewing the Quran-overlay contact sheet."
+    },
+    {
+      "id": "pexels-12396074",
+      "photo_id": 12396074,
+      "creator": "Pexels contributor (see source page)",
+      "description": "Waterfall in a green forest",
+      "source_page_url": "https://www.pexels.com/photo/waterfall-in-forest-12396074/",
+      "image_url": "https://images.pexels.com/photos/12396074/pexels-photo-12396074.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "local_path": "assets/background_photos/pexels-12396074.jpg",
+      "license": "Pexels License — source page marked Free",
+      "tags": [
+        "waterfall",
+        "forest",
+        "nature"
+      ],
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27",
+      "approval_note": "Explicitly approved by the user after reviewing the Quran-overlay contact sheet."
+    },
+    {
+      "id": "pexels-8316768",
+      "photo_id": 8316768,
+      "creator": "Pexels contributor (see source page)",
+      "description": "Scenic waterfall surrounded by forest",
+      "source_page_url": "https://www.pexels.com/photo/scenic-view-of-a-waterfall-in-the-forest-8316768/",
+      "image_url": "https://images.pexels.com/photos/8316768/pexels-photo-8316768.jpeg?auto=compress&cs=tinysrgb&w=1440",
+      "local_path": "assets/background_photos/pexels-8316768.jpg",
+      "license": "Pexels License — source page marked Free; center-cropped to 9:16 for preview",
+      "tags": [
+        "waterfall",
+        "forest",
+        "nature"
+      ],
+      "approval_status": "approved",
+      "user_approved": true,
+      "user_approved_on": "2026-11-27",
+      "approval_note": "Explicitly approved by the user after reviewing the Quran-overlay contact sheet."
     }
   ],
   "user_approval": {
     "status": "approved",
     "user_approved": true,
-    "approval_scope": "All 35 photo candidates in this manifest",
-    "approval_recorded_on": "2026-11-23",
-    "note": "The user confirmed that these photos had already been explicitly approved in prior project review. This records that existing approval; it does not approve newly added photos."
-  }
+    "approval_scope": "35 original photos plus 6 additional photos explicitly approved by the user on 2026-11-27",
+    "approval_recorded_on": "2026-11-27",
+    "note": "Eligibility is enforced by approved_photo_ids. Any candidate outside this explicit allowlist remains excluded, regardless of local file presence."
+  },
+  "approved_photo_ids": [
+    "pexels-32617834",
+    "pexels-32815080",
+    "pexels-36917116",
+    "pexels-34721938",
+    "pexels-29080198",
+    "pexels-37099396",
+    "pexels-16648000",
+    "pexels-30720771",
+    "pexels-5722258",
+    "pexels-33425960",
+    "pexels-11880826",
+    "pexels-35652156",
+    "pexels-34321267",
+    "pexels-33406291",
+    "pexels-3832482",
+    "pexels-5300216",
+    "pexels-13721885",
+    "pexels-20287033",
+    "pexels-13909011",
+    "pexels-1681875",
+    "pexels-34219158",
+    "pexels-31607767",
+    "pexels-34993385",
+    "pexels-31433867",
+    "pexels-34317177",
+    "pexels-40352601",
+    "pexels-16483164",
+    "pexels-36704278",
+    "pexels-28975736",
+    "pexels-35720587",
+    "pexels-38901615",
+    "pexels-16106055",
+    "pexels-31584135",
+    "pexels-2233416",
+    "pexels-36521625",
+    "pexels-39965216",
+    "pexels-39965214",
+    "pexels-37490044",
+    "pexels-36749078",
+    "pexels-12396074",
+    "pexels-8316768"
+  ]
 }
