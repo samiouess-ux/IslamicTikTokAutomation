@@ -306,7 +306,22 @@ class ReviewPreviewRendererTests(unittest.TestCase):
                 self.assertIsNotNone(alpha.crop((138, 448, 270, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((810, 448, 942, 665)).getbbox())
                 self.assertIsNotNone(alpha.crop((298, 650, 784, 730)).getbbox())
+                self.assertIsNotNone(alpha.crop((300, 790, 780, 900)).getbbox(),
+                                     "Multi-ayah openings should retain their ayah range.")
                 self.assertIsNotNone(alpha.getbbox())
+
+    def test_single_ayah_intro_does_not_duplicate_medallion_number(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "single_ayah_opening.png"
+            make_intro_frame(
+                18, 21, 21, output, font_file(), SURAH_NAMES[17],
+            )
+            with Image.open(output) as frame:
+                alpha = frame.getchannel("A")
+                self.assertIsNone(
+                    alpha.crop((300, 790, 780, 900)).getbbox(),
+                    "A single ayah is already numbered by its gold medallion.",
+                )
 
     def test_approved_reference_medallion_crop_uses_renderer_coordinates(self):
         with Image.open(renderer.APPROVED_DESIGN_REFERENCE) as source:
