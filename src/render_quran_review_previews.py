@@ -9,6 +9,7 @@ import argparse
 import io
 import json
 import math
+import re
 import subprocess
 import unicodedata
 import zipfile
@@ -888,6 +889,77 @@ def audio_duration_seconds(path: Path) -> float:
         return 0.0
 
 
+def detect_audio_pause_boundaries(audio_path: Path, audio_duration: float) -> list[float]:
+    """Find real recitation pause ends so display phrases change as the next phrase starts.
+
+    This is phrase-level alignment: the audio inventory has whole-ayah MP3s, not
+    word timestamps. If FFmpeg cannot detect reliable pauses, the caller uses the
+    existing duration-based fallback rather than failing a render.
+    """
+    if not math.isfinite(audio_duration) or audio_duration <= 0:
+        return []
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-hide_banner", "-nostats", "-i", str(audio_path),
+                "-af", "silencedetect=noise=-32dB:d=0.12", "-f", "null", "-",
+            ],
+            capture_output=True, text=True, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    log = result.stderr or ""
+    boundaries = []
+    for match in re.finditer(r"silence_end:\\s*([0-9]+(?:\\.[0-9]+)?)", log):
+        point = float(match.group(1))
+        if 0.35 < point < audio_duration - 0.35:
+            boundaries.append(point)
+    return sorted(set(boundaries))
+
+
+def calculate_display_chunk_boundaries(
+    display_chunks: list[dict], audio_duration: float,
+    pause_boundaries: list[float] | None = None,
+) -> list[float]:
+    """Place phrase-screen changes on nearby real audio pauses where available.
+
+    Quran pause-aware text grouping is retained. Each ideal word-weighted
+    boundary is moved to the nearest detected pause end within a conservative
+    tolerance; otherwise that boundary keeps its proportional fallback time.
+    """
+    if not display_chunks:
+        return [0.0, max(0.0, audio_duration)]
+    if len(display_chunks) == 1:
+        return [0.0, audio_duration]
+    weights = [max(1, len(chunk["arabic"].split())) for chunk in display_chunks]
+    total = sum(weights)
+    ideal = []
+    elapsed_words = 0
+    for weight in weights[:-1]:
+        elapsed_words += weight
+        ideal.append(audio_duration * elapsed_words / total)
+
+    pauses = sorted(
+        point for point in (pause_boundaries or [])
+        if isinstance(point, (int, float)) and 0 < point < audio_duration
+    )
+    chosen = []
+    min_gap = min(1.5, audio_duration / (len(display_chunks) * 1.5))
+    tolerance = min(3.0, max(1.0, audio_duration * 0.12))
+    for index, target in enumerate(ideal):
+        lower = (chosen[-1] if chosen else 0.0) + min_gap
+        remaining = len(ideal) - index
+        upper = audio_duration - remaining * min_gap
+        candidates = [
+            point for point in pauses
+            if lower <= point <= upper and abs(point - target) <= tolerance
+        ]
+        boundary = min(candidates, key=lambda point: (abs(point - target), point)) if candidates else target
+        boundary = min(upper, max(lower, boundary))
+        chosen.append(boundary)
+    return [0.0, *chosen, audio_duration]
+
+
 def background_categories(item: dict) -> set[str]:
     """Return normalized visual categories for one approved background."""
     tags = item.get("tags", [])
@@ -1171,6 +1243,12 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                              "english": verse["english_saheeh_international"]}
             display_chunks = plan_ayah_display_chunks(verse_payload, font_path,
                                                        ayah_audio_duration)
+            audio_pause_boundaries = detect_audio_pause_boundaries(
+                audio, ayah_audio_duration
+            )
+            display_boundaries = calculate_display_chunk_boundaries(
+                display_chunks, ayah_audio_duration, audio_pause_boundaries
+            )
             frame_paths = []
             for chunk_index, chunk in enumerate(display_chunks):
                 frame = work / (
@@ -1216,12 +1294,9 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
             filters = [background_filter.rstrip(";")]
             current = "bg"
             frame_input_start = 2
-            elapsed = 0.0
-            total_words = sum(len(chunk["arabic"].split()) for chunk in display_chunks)
             for chunk_index, chunk in enumerate(display_chunks):
-                chunk_words = len(chunk["arabic"].split())
-                chunk_end = (ayah_audio_duration if chunk_index == len(display_chunks) - 1
-                             else elapsed + ayah_audio_duration * chunk_words / total_words)
+                elapsed = display_boundaries[chunk_index]
+                chunk_end = display_boundaries[chunk_index + 1]
                 output_label = f"ayah_display_{chunk_index}"
                 filters.append(
                     f"[{current}][{frame_input_start + chunk_index}:v]"
@@ -1229,7 +1304,6 @@ def render(batch_path: Path, report_path: Path, output_dir: Path, minimum_previe
                     f"[{output_label}]"
                 )
                 current = output_label
-                elapsed = chunk_end
 
             if index == 0:
                 intro_input_index = frame_input_start + len(frame_paths)
