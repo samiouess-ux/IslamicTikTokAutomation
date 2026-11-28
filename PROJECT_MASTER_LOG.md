@@ -507,3 +507,66 @@ Never claim a change, test, delivery, or documentation update succeeded unless t
 - Reference-driven layout preview artifact was also uploaded successfully. The focused engine validation and background review jobs passed.
 - All artifacts are review-only: `production_approved=false`, `telegram_delivery=false`, and `auto_publish=false`. No Telegram send, delivery-history mutation, Cron run, or TikTok publishing was triggered. All work remained on `feature/telegram-review-notifications`; `main` was not touched.
 - Next: continue visual review of the preview artifact and make any requested adjustments before enabling any production delivery. Do not treat this render as a Telegram-delivered or TikTok-published video.
+
+
+### 2026-11-27 — Quran recitation/text synchronization rejected; strict correction required
+- User reviewed the fresh Al-Kahf 18:21 render and rejected its synchronization: at times the reciter begins a phrase before the corresponding Arabic text appears; repeated recitation phrases are valid and must remain in the audio, but the on-screen Quran text must not advance out of sync.
+- The current pause-snapping/proportional phrase timing is explicitly insufficient. It is not word-level alignment and must not be treated as a successful synchronization fix.
+- Required behavior: preserve the exact canonical Uthmani ayah text and word order; align display changes to the actual spoken recitation, not proportional duration or silence boundaries alone; tolerate repeated words/phrases in the recitation without deleting or altering the original audio; keep the corresponding Quran text visible throughout repetitions and advance only when the reciter proceeds to the next canonical phrase. Never split a Quran word or omit/duplicate/rewrite Quran text.
+- Work is restricted to the separate branch `fix/audio-text-pause-sync` and PR #10. Do not merge or alter `feature/telegram-review-notifications`, `main`, production Telegram delivery, Cron, backgrounds, visual design, captions, ayah selection, duration policy, or publishing.
+- Validation must include a fresh review-only MP4 and frame/audio spot checks at phrase starts, pauses, and a repeated phrase. Unit tests alone or an FFmpeg silence-detection test are not sufficient. Mark synchronization unverified until the actual render has been inspected.
+- Next implementation direction: replace pause/proportional timing with audio-grounded word/phrase alignment. Investigate a Quran-text-constrained aligner that can represent reciter repetitions as repeated audio spans while keeping the canonical displayed text unchanged; fail closed to a single complete ayah screen if reliable alignment is unavailable rather than showing mistimed partial text.
+
+
+### 2026-11-27 — Replaced estimated phrase timing with Quran-specific word alignment (validation pending)
+- Replaced the rejected FFmpeg silence/proportional timing helper in the isolated review renderer with `quran-word-align`, pinned to upstream commit `bfd2291eaaa58a3295276ed27c13b161ff1227f4`. Its code and `quran-asr-tiny` model are MIT licensed; the canonical Hafs word inventory is sourced from the King Fahd Complex and is not generated from speech.
+- The renderer verifies that the displayed ayah's normalized Arabic words match the aligner's canonical Hafs word sequence before accepting timestamps. Each heard word event is mapped to its existing visual phrase group in audio order; backtracking/repeated phrases can therefore make the display return to the matching earlier group while the original MP3 remains untouched.
+- Added strict coverage, timestamp, ordering, and confidence checks. If alignment is missing, low-confidence, or text mapping differs, the renderer fails closed to the complete original ayah and translation on one screen. It no longer falls back to proportional or silence-snapped phrase timing.
+- Added regression tests for repeated-phrase backtracking and fail-closed behavior. The isolated workflow installs the pinned aligner and now requires Al-Kahf 18:21 to report `quran_word_alignment`; it will not accept the full-ayah fallback as a successful word-sync test.
+- Commits on `fix/audio-text-pause-sync`: renderer `266e07e6d78c5c03cd95c4b18fd630b2b13ff035`; tests `92b5f57d30e8dae20312b23f73e6291bd4ab54bb`; pinned workflow dependency `e9698b9a458630b4fbc0e522f022fa348065c6c7`; alignment status metadata `89231ed9d417622ab59be107503d35f3dfe61122`; workflow alignment assertion `3d330f9f022bf48521c8993fb585f3c6f545996a`.
+- Fresh review workflow run `46075423812` is in progress on the latest commit at log time. No render or synchronization success is claimed until its test, alignment, and MP4 steps pass and the actual output is inspected.
+- Production branch `feature/telegram-review-notifications`, `main`, Telegram delivery, Cron, backgrounds, design, ayah selection, duration policy, and publishing remain untouched. PR #10 remains unmerged and requires user review.
+
+
+### 2026-11-27 — Review workflow regression isolated and test fixture corrected
+- The fresh word-alignment workflow run `46075423812` failed in the existing renderer regression suite before catalog build or MP4 render. The failing test mocked the FFprobe output for background media but did not mock the new per-ayah audio-duration probe; the latter therefore returned 0 and produced a zero-length display interval in the test command.
+- Corrected only the affected test fixture to supply a valid 25-second ayah audio duration. This does not change production rendering behavior or the alignment algorithm.
+- Commit: `f203be7d5489a6d8dde71a2bdc83d528d3435fa3`. Awaiting a fresh workflow run; the actual Al-Kahf 18:21 MP4 and synchronization remain unverified until render and audio/frame spot checks complete.
+- Scope remains isolated to `fix/audio-text-pause-sync`; no merge, Telegram delivery, Cron, or publishing.
+
+
+### 2026-11-27 — Isolated second CI failure to nondeterministic background test fixture
+- After the audio-duration fixture correction, the renderer suite advanced further and exposed one existing test that depended on the live approved-background catalog. Its expected background IDs no longer matched the current catalog, so the test failed before the Quran alignment/render steps.
+- Updated only that test to supply a deterministic three-video fixture with the same rotation expectations. No production background-selection code or visual assets were changed.
+- Commit: `0a8029fdb1209978a2d2e1c412e0d4e8e7e7d736`. A new isolated workflow run is expected from this test-file push; actual alignment and MP4 review are still pending.
+- Scope remains `fix/audio-text-pause-sync`; production branch, Telegram, Cron, and publishing remain untouched.
+
+
+### 2026-11-27 — Test fixture metadata completed
+- The next regression run confirmed the deterministic video fixtures needed the same `background_type: moving_video` metadata that the real catalog loader adds. The failure was isolated to the test fixture; no production code was implicated.
+- Added that metadata to the three fixture entries in commit `3228ea8a05eebc4b39550193bf80d2ad82d967da`. Awaiting the next run before proceeding to the fresh Al-Kahf 18:21 render.
+
+
+### 2026-11-27 — Tightened canonical word-order validation for repeated recitation
+- Code review found that the first word-alignment validator checked complete word coverage and timestamp order but did not independently reject every possible canonical-word reordering.
+- Added a sequence validator: normal progression must follow canonical Hafs word order; a backtrack is accepted only when the recitation then replays the intervening canonical words in order before resuming. Any unexplained reorder now fails closed to the complete-ayah display.
+- Added a regression test where all words are present but words 2 and 3 are swapped; the alignment must be rejected. The existing repeated-phrase test remains the positive case.
+- Commits: renderer `2d28d41706fb1ccd7ccff61610abe97209bf6c8c`; test `cac76a29d773415c069073776b9480165e5782d4`.
+- A new isolated CI run is triggered by these commits. The earlier run `46076018505` was already rendering the fresh preview when this stricter validation was added; its output is not sufficient to validate the new sequence check. No synchronization success is claimed until the latest run passes and its MP4 is inspected.
+- Production branch, `main`, Telegram, Cron, backgrounds, visual design, selection, duration policy, and publishing remain untouched. PR #10 remains unmerged.
+
+
+### 2026-11-28 — Fresh Al-Kahf 18:21 review render completed
+- Isolated workflow run `46076326024` completed successfully; all renderer regression tests, official catalog/audio preparation, one-ayah batch creation, fresh 9:16 render, report verification, and review-artifact upload steps passed.
+- Artifact: `al-kahf-18-21-fresh-review-preview` (artifact ID `15235376485`); contains a fresh `56.033s` 1080x1920 MP4, six ayah display overlays, the original joined MP3, and a render report.
+- Report confirms `text_audio_synchronization: quran_word_alignment`, MP3 stream-copy mode, no audio re-encode, `review_only=true`, `production_approved=false`, `telegram_delivery=false`, and `auto_publish=false`.
+- Visual frame sampling confirms the renderer cycles through the six sequential ayah display overlays. The report and CI verification pass, but a human listening check of phrase starts, pauses, and any naturally repeated phrase is still required before calling the synchronization accepted. The preview is not approved for production.
+- No merge. Production branch, `main`, Telegram, Cron, background/design policy, selection, duration policy, and publishing remain untouched.
+
+
+### 2026-11-28 — User accepted Al-Kahf 18:21 synchronization preview
+- User reviewed the fresh Al-Kahf 18:21 review-only MP4 and confirmed the result is satisfactory: “هكا مريڨلة، سجل وخليها هكا”.
+- Record this preview's current Quran word-alignment behavior as the user-accepted reference for this isolated audio/text synchronization fix. No further timing or display adjustments were requested.
+- Keep the implementation and visual timing as shown in the accepted preview; do not make speculative refinements.
+- This is approval of the reviewed preview behavior, not authorization to merge PR #10 or activate production. PR #10 remains open and unmerged unless the user separately instructs otherwise.
+- Production branch, `main`, Telegram delivery, Cron, design/backgrounds, ayah selection, duration policy, and TikTok publishing remain unchanged.

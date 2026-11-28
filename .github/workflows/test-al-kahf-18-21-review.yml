@@ -2,9 +2,12 @@ name: Test Al-Kahf 18:21 long-ayah display (review only)
 
 on:
   push:
-    branches: [feature/telegram-review-notifications]
+    branches: [fix/audio-text-pause-sync]
     paths:
       - ".github/workflows/test-al-kahf-18-21-review.yml"
+      - "src/render_quran_review_previews.py"
+      - "tests/test_render_quran_review_previews.py"
+      - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/telegram-review-notifications
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-python@v5
         with:
@@ -27,7 +30,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ffmpeg fonts-hosny-amiri fonts-dejavu-core
-          python -m pip install --disable-pip-version-check pillow remotezip
+          python -m pip install --disable-pip-version-check pillow remotezip "git+https://github.com/voltarostudio/quran-word-align@bfd2291eaaa58a3295276ed27c13b161ff1227f4"
 
       - name: Re-run the current renderer regression suite
         run: python -m unittest -v tests/test_render_quran_review_previews.py
@@ -125,6 +128,8 @@ jobs:
               raise SystemExit("Preview is not 1080x1920.")
           if item.get("video_codec") != "h264" or item.get("audio_codec") != "mp3":
               raise SystemExit("Expected H.264 video with the original MP3 audio stream.")
+          if item.get("text_audio_synchronization") != "quran_word_alignment":
+              raise SystemExit(f"Expected Quran word-level alignment, got {item.get('text_audio_synchronization')!r}.")
           if not 0 < item.get("duration_seconds", 0) <= 60:
               raise SystemExit("Preview duration is outside the 60-second hard cap.")
           if report.get("production_approved") is not False or report.get("telegram_delivery") is not False or report.get("auto_publish") is not False:
@@ -140,6 +145,7 @@ jobs:
               "resolution": [item["width"], item["height"]],
               "video_codec": item["video_codec"],
               "audio_codec": item["audio_codec"],
+              "text_audio_synchronization": item.get("text_audio_synchronization"),
               "background": item.get("background"),
               "review_only": item.get("review_only"),
               "telegram_delivery": report.get("telegram_delivery"),

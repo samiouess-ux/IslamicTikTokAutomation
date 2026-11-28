@@ -87,7 +87,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg fonts-noto-core fonts-dejavu-core fonts-hosny-amiri
-          python -m pip install --disable-pip-version-check remotezip pillow
+          python -m pip install --disable-pip-version-check remotezip pillow "git+https://github.com/voltarostudio/quran-word-align@bfd2291eaaa58a3295276ed27c13b161ff1227f4"
       - name: Test official archive retry and filename mapping safeguards
         run: python -m unittest discover -s tests -p 'test_build_official_audio_inventory.py' -v
       - name: Validate four newly integrated background sources and rotation eligibility
