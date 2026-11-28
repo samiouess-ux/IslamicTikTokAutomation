@@ -1122,6 +1122,43 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-28T11:12:54.891608+00:00"
+    },
+    {
+      "candidate_id": "quran_s072_001_028_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-moroccan-courtyard-tiles-34527220",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-20287033",
+          "categories": [
+            "mountains",
+            "nature",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-13909011",
+          "categories": [
+            "forest",
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-1681875",
+          "categories": [
+            "nature"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-28T17:12:03.538028+00:00"
     }
   ]
 }
