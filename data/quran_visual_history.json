@@ -941,6 +941,42 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-27T17:12:43.687602+00:00"
+    },
+    {
+      "candidate_id": "quran_s076_001_031_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-ancient-mosque-architecture-36628576",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-29080198",
+          "categories": [
+            "mosque",
+            "urban"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-37099396",
+          "categories": [
+            "architecture",
+            "mosque"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-16648000",
+          "categories": [
+            "mosque",
+            "nature"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-28T00:19:56.919311+00:00"
     }
   ]
 }
