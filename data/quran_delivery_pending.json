@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "sending_or_outcome_unknown",
+  "candidate_id": "quran_s092_001_021_part_001",
+  "source_candidate_id": "quran_s092_001_021",
+  "surah_number": 92,
+  "selected_verses": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "ayah_references": [
+    "92:1",
+    "92:2",
+    "92:3",
+    "92:4",
+    "92:5",
+    "92:6",
+    "92:7",
+    "92:8",
+    "92:9",
+    "92:10",
+    "92:11",
+    "92:12"
+  ],
+  "created_at_utc": "2026-11-28T11:12:51.169247+00:00",
+  "recovery_note": "Do not resend automatically. Reconcile against the Telegram chat before clearing this reservation."
+}
