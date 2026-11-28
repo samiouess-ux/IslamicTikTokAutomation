@@ -646,6 +646,25 @@
         "share"
       ],
       "confirmed_at_utc": "2026-11-28T03:12:28.142530+00:00"
+    },
+    {
+      "candidate_id": "quran_s092_001_021_part_001",
+      "hashtags_ar": [
+        "#آيات_الله",
+        "#تذكير_إيماني",
+        "#الصبر_والفرج"
+      ],
+      "hashtags_en": [
+        "#IslamicReminder",
+        "#PatienceAndHope"
+      ],
+      "hook_ids": [
+        "meaning"
+      ],
+      "cta_ids": [
+        "remind"
+      ],
+      "confirmed_at_utc": "2026-11-28T11:12:54.858671+00:00"
     }
   ]
 }

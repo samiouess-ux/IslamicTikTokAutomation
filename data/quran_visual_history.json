@@ -1028,6 +1028,100 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-28T03:12:28.172577+00:00"
+    },
+    {
+      "candidate_id": "quran_s092_001_021_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-modern-mosque-interior-35417846",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-ocean-shore-35036280",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-islamic-dome-geometric-40564360",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-30720771",
+          "categories": [
+            "forest",
+            "mosque"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-sunset-sky-35477402",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-5722258",
+          "categories": [
+            "mosque",
+            "nature",
+            "rural"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-35652156",
+          "categories": [
+            "mountains",
+            "sea"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-34321267",
+          "categories": [
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-33406291",
+          "categories": [
+            "forest",
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-3832482",
+          "categories": [
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-5300216",
+          "categories": [
+            "mountains",
+            "river",
+            "sunset"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-13721885",
+          "categories": [
+            "mountains",
+            "sunset"
+          ],
+          "background_type": "photo"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-28T11:12:54.891608+00:00"
     }
   ]
 }
