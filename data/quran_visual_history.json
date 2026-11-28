@@ -977,6 +977,57 @@
       ],
       "cover_template_id": "open_gold_brackets",
       "confirmed_at_utc": "2026-11-28T00:19:56.919311+00:00"
+    },
+    {
+      "candidate_id": "quran_s099_001_008_part_001",
+      "backgrounds": [
+        {
+          "id": "pexels-mosque-interior-calligraphy-19819594",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-moroccan-courtyard-decor-32719926",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-minaret-lush-trees-35447276",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-river-mostar-27529804",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mosque-waterfront-12536108",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-40352601",
+          "categories": [
+            "lantern",
+            "prayer",
+            "quran"
+          ],
+          "background_type": "photo"
+        },
+        {
+          "id": "pexels-mountain-lake-37675265",
+          "categories": [],
+          "background_type": "moving_video"
+        },
+        {
+          "id": "pexels-mountain-bridge-5903759",
+          "categories": [],
+          "background_type": "moving_video"
+        }
+      ],
+      "cover_template_id": "open_gold_brackets",
+      "confirmed_at_utc": "2026-11-28T03:12:28.172577+00:00"
     }
   ]
 }

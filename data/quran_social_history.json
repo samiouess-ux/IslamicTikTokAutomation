@@ -627,6 +627,25 @@
         "support"
       ],
       "confirmed_at_utc": "2026-11-28T00:19:56.881381+00:00"
+    },
+    {
+      "candidate_id": "quran_s099_001_008_part_001",
+      "hashtags_ar": [
+        "#كلام_الله",
+        "#آيات_من_القرآن",
+        "#تدبر_وعمل"
+      ],
+      "hashtags_en": [
+        "#QuranTime",
+        "#QuranReflection"
+      ],
+      "hook_ids": [
+        "reflection"
+      ],
+      "cta_ids": [
+        "share"
+      ],
+      "confirmed_at_utc": "2026-11-28T03:12:28.142530+00:00"
     }
   ]
 }
