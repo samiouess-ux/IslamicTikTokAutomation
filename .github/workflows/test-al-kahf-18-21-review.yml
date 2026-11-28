@@ -7,6 +7,7 @@ on:
       - ".github/workflows/test-al-kahf-18-21-review.yml"
       - "src/render_quran_review_previews.py"
       - "tests/test_render_quran_review_previews.py"
+      - ".github/workflows/build-quran-audio-inventory.yml"
   workflow_dispatch:
 
 permissions:
